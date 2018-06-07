@@ -14,8 +14,6 @@
 
 """Bazel rule for Android sdk repository."""
 
-load(":migration_tag_DONOTUSE.bzl", _add_migration_tag = "add_migration_tag")
-
 def android_sdk_repository(**attrs):
   """Bazel android_sdk_repository rule.
 
@@ -24,4 +22,4 @@ def android_sdk_repository(**attrs):
   Args:
     **attrs: Rule attributes
   """
-  native.android_sdk_repository(**_add_migration_tag(attrs))
+  native.android_sdk_repository(**attrs)
