@@ -1,11 +1,11 @@
 ---
 platforms:
-  ubuntu1604:
+  ubuntu1404:
     build_targets:
     - "//..."
     # test_targets:
     # - "//..."
-  ubuntu1804:
+  ubuntu1604:
     build_targets:
     - "//..."
     # test_targets:

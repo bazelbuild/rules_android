@@ -18,8 +18,8 @@ _MIGRATION_TAG = "__ANDROID_RULES_MIGRATION__"
 _TAG_ATTR = "tags"
 
 def add_migration_tag(attrs):
-  if _TAG_ATTR in attrs and attrs[_TAG_ATTR] != None:
-    attrs[_TAG_ATTR] = attrs[_TAG_ATTR] + [_MIGRATION_TAG]
-  else:
-    attrs[_TAG_ATTR] = [_MIGRATION_TAG]
-  return attrs
+    if _TAG_ATTR in attrs and attrs[_TAG_ATTR] != None:
+        attrs[_TAG_ATTR] = attrs[_TAG_ATTR] + [_MIGRATION_TAG]
+    else:
+        attrs[_TAG_ATTR] = [_MIGRATION_TAG]
+    return attrs

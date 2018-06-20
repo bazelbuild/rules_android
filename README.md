@@ -1,9 +1,5 @@
 # Android support in Bazel
 
-## Announcements
-* <b> May 17, 2019.</b> [Android Native to Starlark Migration](https://github.com/bazelbuild/bazel/issues/8391) incompatible change.
-* <b> April 1, 2019.</b> [Roadmap](https://github.com/bazelbuild/rules_android/blob/master/ROADMAP.md) for rules_android published.
-
 ## Overview
 
 This repository contains the Skylark implementation of Android rules in Bazel.
@@ -19,7 +15,7 @@ To use the new Bazel Android rules, add the following to your WORKSPACE file:
 
     load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
-        name = "rules_android",
+        name = "build_bazel_rules_android",
         urls = ["https://github.com/bazelbuild/rules_android/archive/v0.1.1.zip"],
         sha256 = "cd06d15dd8bb59926e4d65f9003bfc20f9da4b2519985c27e190cddc8b7a7806",
         strip_prefix = "rules_android-0.1.1",
@@ -27,7 +23,7 @@ To use the new Bazel Android rules, add the following to your WORKSPACE file:
 
 Then, in your BUILD files, import and use the rules:
 
-    load("@rules_android//android:rules.bzl", "android_library")
+    load("@build_bazel_rules_android//android:rules.bzl", "android_library")
     android_library(
         ...
     )
