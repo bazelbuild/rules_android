@@ -1,5 +1,8 @@
 # Android support in Bazel
 
+## Announcements
+* <b> April 1, 2019.</b> [Roadmap](https://github.com/bazelbuild/rules_android/blob/master/ROADMAP.md) for rules_android published.
+
 ## Overview
 
 This repository contains the Skylark implementation of Android rules in Bazel.
