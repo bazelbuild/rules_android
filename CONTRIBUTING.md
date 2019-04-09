@@ -76,3 +76,11 @@ Once everything looks good, your changes will be merged.  Our continuous integra
    1. Goals
 
 1. When you're finished, click Submit new issue.
+
+### Communication Channels
+
+Please feel free to reach out if there are any questions, comments, or feedback you would like to communicate. We will be actively monitoring the following:
+   
+   1. Emails to android-rules-contrib@google.com
+   
+   1. Messages to #android channel in [Bazel's Slack](https://bazelbuild.slack.com). Sign-up [here](https://bazel-slackin.herokuapp.com).
