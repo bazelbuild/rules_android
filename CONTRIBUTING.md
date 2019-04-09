@@ -1,4 +1,4 @@
-Want to contribute? Great! First, read this page. This document serves as a guide for you to contribute to Android Starlark Rules productively and efficiently in partnership with Google.
+Want to contribute? Great! First, read this page. This document serves as a guide for you to contribute to the Android Starlark Rules productively and efficiently in partnership with Google.
 
 
 ### Prerequisite
@@ -24,7 +24,7 @@ the one above, the
 
 1. If you have determined your change as lightweight, then you can skip to Step 7. You may be asked to follow the full process if your pull request reviewer believes a more thorough design is needed. Follow all steps if you have a more complex change.
 
-1. Author a brief contribution proposal document and submit to mobile-devx-build@google.com for review. Please use the following [template](https://docs.google.com/document/d/1QvyOCJGZivWFNm9VqH2Kp-vq_ELx0662vygVlbKOojM/edit?usp=sharing) for the document outlining:
+1. Author a brief contribution proposal document and submit to android-rules-contrib@google.com for review. Please use the following [template](https://docs.google.com/document/d/14PJfIvFkHQMuQzAovtVGavdsXjxMJ8O7dxDeatX1HLM/edit?usp=sharing) for the document outlining:
 
    1. Problem Statement
    
@@ -32,7 +32,7 @@ the one above, the
    
    1. Alternative Considerations if any
 
-1. Out team will assign a reviewer and provide questions/comments on the design document.
+1. Our team will assign a reviewer and provide questions/comments on the design document.
 
 1. After resolving the comments, the design document reviewer will make a decision on how to move forward. Possible outcomes may include:
 
