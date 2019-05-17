@@ -1,6 +1,7 @@
 # Android support in Bazel
 
 ## Announcements
+* <b> May 17, 2019.</b> [Android Native to Starlark Migration](https://github.com/bazelbuild/bazel/issues/8391) incompatible change.
 * <b> April 1, 2019.</b> [Roadmap](https://github.com/bazelbuild/rules_android/blob/master/ROADMAP.md) for rules_android published.
 
 ## Overview
