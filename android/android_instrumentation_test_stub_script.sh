@@ -18,84 +18,52 @@ set -eux
 # Unset TESTBRIDGE_TEST_ONLY environment variable set by Bazel's --test_filter
 # flag so that JUnit3 doesn't filter out the Android test suite class. Instead,
 # forward this variable as a Java flag with the same name.
-if [ -z "${TESTBRIDGE_TEST_ONLY+1}" ]; then
+if [[ -z "${TESTBRIDGE_TEST_ONLY+1}" ]]; then
   ANDROID_TESTBRIDGE_TEST_ONLY=""
 else
   ANDROID_TESTBRIDGE_TEST_ONLY=${TESTBRIDGE_TEST_ONLY}
   unset TESTBRIDGE_TEST_ONLY
 fi
 
-function join_paths() {
-  local base_dir=$1
-  local sep=$2
-  shift 2
-  local paths=$@
-
-  local result=""
-  for path in $paths
-  do
-    result=${base_dir}/${path}${sep}${result}
-  done
-  echo ${result}
-}
-
-test_label="%test_label%"
-test_entry_point="%test_entry_point%"
-WORKSPACE_DIR="${TEST_SRCDIR}/%workspace%"
-adb="${WORKSPACE_DIR}/%adb%"
-aapt="${WORKSPACE_DIR}/%aapt%"
-device_script="${WORKSPACE_DIR}/%device_script%"
-
-data_deps="%data_deps%"
-data_deps=$(join_paths ${WORKSPACE_DIR} "," ${data_deps})
-
-device_broker_type="%device_broker_type%"
-
-target_apk="%target_apk%"
-
-instrumentation_apk="%instrumentation_apk%"
-
-support_apks="%support_apks%"
-support_apks=$(join_paths ${WORKSPACE_DIR} "," ${support_apks})
-
-apks_to_install="${support_apks}${target_apk},${instrumentation_apk}"
-
-declare -A device_script_fixtures=( %device_script_fixtures% )
-
-host_service_fixture="%host_service_fixture%"
-host_service_fixture_services="%host_service_fixture_services%"
-
-test_suite_property_name='%test_suite_property_name%'
+argv=$(cat <<END
+--aapt=%aapt% \
+--adb=%adb% \
+--apks_to_install=%apks_to_install% \
+--data_deps=%data_deps% \
+--device_broker_type=%device_broker_type% \
+--device_script=%device_script% \
+--dex2oat_on_cloud_enabled=%dex2oat_on_cloud_enabled% \
+--fixture_scripts=%fixture_scripts% \
+--hermetic_server_script=%host_service_fixtures% \
+--hermetic_servers=%host_service_fixture_services% \
+--proxy_server_name=%proxy% \
+--test_filter=${ANDROID_TESTBRIDGE_TEST_ONLY} \
+--test_label=%test_label%
+END
+)
 
 # Bazel-only test arguments for the device broker
-bazel_only_argv=$(cat <<END
+additional_bazel_only_argv=$(cat <<END
 --install_test_services=true
 END
 )
 
-argv=$(cat <<END
---aapt=${aapt} \
---adb=${adb} \
---device_broker_type=${device_broker_type} \
---device_script=${device_script} \
---data_deps=${data_deps} \
---test_label=${test_label} \
---apks_to_install=${apks_to_install} \
---fixture_scripts=$(printf "%s," "${!device_script_fixtures[@]}") \
---hermetic_server_script=${host_service_fixture} \
---hermetic_servers=${host_service_fixture_services} \
---data_deps=$(printf "%s," "${!device_script_fixtures[@]}") \
---test_filter=${ANDROID_TESTBRIDGE_TEST_ONLY} \
-$@
-END
-)
+export GOOGLE3_DIR="$TEST_SRCDIR/google3"
+
+# Jacoco Code Coverage
+jacoco_metadata='%jacoco_metadata%'
+if [[ -n "${jacoco_metadata}" ]]
+then
+    export JACOCO_METADATA="$GOOGLE3_DIR/$jacoco_metadata"
+    export NEW_JAVA_COVERAGE_RELEASED=true
+fi
 
 # We pass in $argv via two channels here:
 # 1) regular arguments: parsed normally by internal test entry point.
 # 2) --jvm_flag: external AndroidDeviceTestSuite doesn't parse the argvs if
 # passed in regularly, so we pass them in via a JVM flag hack and parse them
 # at the AndroidDeviceTestSuite constructor.
-$test_entry_point \
-    --wrapper_script_flag=--jvm_flag=-D$test_suite_property_name=com.google.android.apps.common.testing.suite.AndroidDeviceTestSuite \
-    --wrapper_script_flag=--jvm_flag=-Dargv="$bazel_only_argv $argv" \
-    $argv
+%test_entry_point% \
+    --wrapper_script_flag=--jvm_flag=-D%test_suite_property_name% \
+    --wrapper_script_flag=--jvm_flag=-Dargv="$additional_bazel_only_argv $argv" \
+    $argv "$@"
