@@ -1,4 +1,4 @@
-package(default_vsibility = ["//visibility:public"])
+package(default_visibility = ["//visibility:public"])
 
 platform(
 	name = "armeabi_v7a",
