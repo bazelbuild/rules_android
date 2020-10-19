@@ -2,7 +2,9 @@
 
 ## Overview
 
-This repository contains the Skylark implementation of Android rules in Bazel.
+NOTE: This branch contains a development preview of the Starlark implementation of Android rules for Bazel. This code is incomplete and will not function as-is.
+
+This repository contains the Starlark implementation of Android rules in Bazel.
 
 The rules are being incrementally converted from their native implementations
 in the [Bazel source
