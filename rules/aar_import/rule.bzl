@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rule for the device script fixture."""
+"""aar_import rule."""
 
-def android_device_script_fixture(**attrs):
-    """Bazel android_device_script_fixture rule.
+load(":attrs.bzl", _ATTRS = "ATTRS")
+load(":impl.bzl", _impl = "impl")
 
-    https://docs.bazel.build/versions/master/be/android.html#android_device_script_fixture
-
-    Args:
-      **attrs: Rule attributes
-    """
-    native.android_device_script_fixture(**attrs)
+aar_import = rule(
+    attrs = _ATTRS,
+    fragments = ["android"],
+    implementation = _impl,
+    provides = [AndroidNativeLibsInfo, JavaInfo],
+    toolchains = ["@rules_android//toolchains/android:toolchain_type"],
+)

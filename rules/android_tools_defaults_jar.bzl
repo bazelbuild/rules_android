@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rule for Android ndk repository."""
+"""Bazel rule for Android tools defaults jar."""
 
-def android_ndk_repository(**attrs):
-    """Bazel android_ndk_repository rule.
+load(":attrs.bzl", "ANDROID_TOOLS_DEFAULTS_JAR_ATTRS")
 
-    https://docs.bazel.build/versions/master/be/android.html#android_ndk_repository
+def _impl(ctx):
+    return [
+        DefaultInfo(
+            files = depset([ctx.attr._android_sdk[AndroidSdkInfo].android_jar]),
+        ),
+    ]
 
-    Args:
-      **attrs: Rule attributes
-    """
-    native.android_ndk_repository(**attrs)
+android_tools_defaults_jar = rule(
+    attrs = ANDROID_TOOLS_DEFAULTS_JAR_ATTRS,
+    implementation = _impl,
+)
