@@ -15,15 +15,18 @@
 """Bazel rule for Android tools defaults jar."""
 
 load(":attrs.bzl", "ANDROID_TOOLS_DEFAULTS_JAR_ATTRS")
+load(":utils.bzl", "get_android_sdk")
 
 def _impl(ctx):
     return [
         DefaultInfo(
-            files = depset([ctx.attr._android_sdk[AndroidSdkInfo].android_jar]),
+            files = depset([get_android_sdk(ctx).android_jar]),
         ),
     ]
 
 android_tools_defaults_jar = rule(
     attrs = ANDROID_TOOLS_DEFAULTS_JAR_ATTRS,
     implementation = _impl,
+    fragments = ["android"],
+    toolchains = ["@rules_android//toolchains/android_sdk:toolchain_type"],
 )

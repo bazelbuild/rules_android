@@ -19,8 +19,7 @@ EmulatorInfo = provider(
     fields = {
         "emulator": "A label for the emulator launcher executable at stable version.",
         "emulator_deps": "Additional files required to launch the stable version of emulator.",
-        "emulator_head": "A label for the emulator launcher executable at head version.",
-        "emulator_head_deps": "Additional files required to launch the head version of emulator.",
+        "emulator_suffix": "An optional path suffix used to find emulator binary under the emulator label path",
     },
 )
 
@@ -29,8 +28,7 @@ def _emulator_toolchain_impl(ctx):
         info = EmulatorInfo(
             emulator = ctx.attr.emulator,
             emulator_deps = ctx.attr.emulator_deps,
-            emulator_head = ctx.attr.emulator_head,
-            emulator_head_deps = ctx.attr.emulator_head_deps,
+            emulator_suffix = ctx.attr.emulator_suffix,
         ),
     )
     return [toolchain_info]
@@ -41,7 +39,6 @@ emulator_toolchain = rule(
         "emulator": attr.label(
             allow_files = True,
             cfg = "host",
-            executable = True,
             mandatory = True,
         ),
         "emulator_deps": attr.label_list(
@@ -51,11 +48,12 @@ emulator_toolchain = rule(
         "emulator_head": attr.label(
             allow_files = True,
             cfg = "host",
-            executable = True,
         ),
         "emulator_head_deps": attr.label_list(
             allow_files = True,
             cfg = "host",
         ),
+        "emulator_suffix": attr.string(default = ""),
+        "emulator_head_suffix": attr.string(default = ""),
     },
 )

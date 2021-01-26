@@ -29,11 +29,13 @@ def _outputs(_defined_local_resources):
     )
 
     if _defined_local_resources:
+        # TODO(b/177261846): resource-related predeclared outputs need to be re-pointed at the
+        # corresponding artifacts in the Starlark pipeline.
         outputs.update(
             dict(
-                resources_src_jar = "%{name}.srcjar",
-                resources_txt = "%{name}_symbols/R.txt",
-                resources_jar = "%{name}_resources.jar",
+                resources_src_jar = "_migrated/%{name}.srcjar",
+                resources_txt = "_migrated/%{name}_symbols/R.txt",
+                resources_jar = "_migrated/%{name}_resources.jar",
             ),
         )
 
@@ -42,6 +44,7 @@ def _outputs(_defined_local_resources):
 def make_rule(
         attrs = _ATTRS,
         implementation = _impl,
+        outputs = _outputs,
         additional_toolchains = []):
     """Makes the rule.
 
@@ -67,11 +70,11 @@ def make_rule(
             AndroidNativeLibsInfo,
             JavaInfo,
         ],
-        outputs = _outputs,
-        toolchains = (
-            ["@rules_android//toolchains/android:toolchain_type"] +
-            additional_toolchains
-        ),
+        outputs = outputs,
+        toolchains = [
+            "@rules_android//toolchains/android:toolchain_type",
+            "@rules_android//toolchains/android_sdk:toolchain_type",
+        ] + additional_toolchains,
         _skylark_testable = True,
     )
 

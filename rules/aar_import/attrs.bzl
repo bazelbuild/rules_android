@@ -34,6 +34,15 @@ ATTRS = _attrs.add(
             allow_files = False,
             allow_rules = ["aar_import", "java_import"],
         ),
+        has_lint_jar = attr.bool(
+            default = False,
+            doc = "Whether the aar contains a lint.jar. This is required to " +
+                  "know at analysis time if a lint jar is included in the aar.",
+        ),
+        package = attr.string(
+            doc = "Package to use while processing the aar at analysis time. " +
+                  "This needs to be the same value as the manifest's package.",
+        ),
         srcjar = attr.label(
             allow_single_file = [".srcjar"],
             doc =
@@ -42,11 +51,6 @@ ATTRS = _attrs.add(
         ),
         _flags = attr.label(
             default = "@rules_android//rules/flags",
-        ),
-        _diff_test_validation_stub_script = attr.label(
-            cfg = "host",
-            default = "@rules_android//test/rules/resources:test_stub_script.sh",
-            allow_single_file = True,
         ),
         _java_toolchain = attr.label(
             default = Label("//tools/jdk:toolchain_android_only"),

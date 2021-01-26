@@ -191,7 +191,6 @@ def _package(
         resource_configs = None,
         densities = [],
         application_id = None,
-        deps = [],
         direct_resources_nodes = [],
         transitive_resources_nodes = [],
         transitive_manifests = [],
@@ -234,8 +233,6 @@ def _package(
       densities: A list of strings. The list of screen densities to filter for when
         building the apk.
       application_id: An optional string. The applicationId set in manifest values.
-      deps: A list of AndroidResourcesV3Info. The list of AndroidResourcesV3Info
-        providers from deps.
       direct_resources_nodes: Depset of ResourcesNodeInfo providers. The set of
         ResourcesNodeInfo from direct dependencies.
       transitive_resources_nodes: Depset of ResourcesNodeInfo providers. The set
@@ -279,53 +276,38 @@ def _package(
     args.add("--tool", "AAPT2_PACKAGE")
     args.add("--")
     args.add("--aapt2", aapt.executable)
-    if deps:
-        direct_busybox_flags = []
-        transitive_busybox_flags = []
-        for dep in deps:
-            if dep.direct_busybox_flag:
-                direct_busybox_flags.append(dep.direct_busybox_flag)
-            transitive_busybox_flags.extend(dep.transitive_busybox_flags)
-            transitive_input_files.append(dep.transitive_compiled_resources)
-            transitive_input_files.append(dep.transitive_resource_files)
-            transitive_input_files.append(dep.transitive_assets)
-        args.add_joined("--data", depset(transitive = transitive_busybox_flags), join_with = ",")
-        if direct_busybox_flags:
-            args.add_joined("--directData", direct_busybox_flags, join_with = ",")
-    else:
-        args.add_joined(
-            "--data",
-            transitive_resources_nodes,
-            map_each = _make_package_resources_flags,
-            join_with = ",",
-        )
-        args.add_joined(
-            "--directData",
-            direct_resources_nodes,
-            map_each = _make_package_resources_flags,
-            join_with = ",",
-        )
-        args.add_joined(
-            "--directAssets",
-            direct_resources_nodes,
-            map_each = _make_package_assets_flags,
-            join_with = "&",
-            omit_if_empty = True,
-        )
-        args.add_joined(
-            "--assets",
-            transitive_resources_nodes,
-            map_each = _make_package_assets_flags,
-            join_with = "&",
-            omit_if_empty = True,
-        )
-        transitive_input_files.extend(transitive_resource_files)
-        transitive_input_files.extend(transitive_assets)
-        transitive_input_files.extend(transitive_compiled_assets)
-        transitive_input_files.extend(transitive_compiled_resources)
-        transitive_input_files.extend(transitive_manifests)
-        transitive_input_files.extend(transitive_r_txts)
-
+    args.add_joined(
+        "--data",
+        transitive_resources_nodes,
+        map_each = _make_package_resources_flags,
+        join_with = ",",
+    )
+    args.add_joined(
+        "--directData",
+        direct_resources_nodes,
+        map_each = _make_package_resources_flags,
+        join_with = ",",
+    )
+    args.add_joined(
+        "--directAssets",
+        direct_resources_nodes,
+        map_each = _make_package_assets_flags,
+        join_with = "&",
+        omit_if_empty = True,
+    )
+    args.add_joined(
+        "--assets",
+        transitive_resources_nodes,
+        map_each = _make_package_assets_flags,
+        join_with = "&",
+        omit_if_empty = True,
+    )
+    transitive_input_files.extend(transitive_resource_files)
+    transitive_input_files.extend(transitive_assets)
+    transitive_input_files.extend(transitive_compiled_assets)
+    transitive_input_files.extend(transitive_compiled_resources)
+    transitive_input_files.extend(transitive_manifests)
+    transitive_input_files.extend(transitive_r_txts)
     args.add(
         "--primaryData",
         _make_resources_flag(
@@ -396,12 +378,12 @@ def _package(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [aapt.executable],
+        tools = [aapt],
         arguments = [args],
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
         mnemonic = "PackageAndroidResources",
-        progress_message = "ResV3 Packaging Android Resources in %s" % ctx.label,
+        progress_message = "Packaging Android Resources in %s" % ctx.label,
     )
 
 def _parse(
@@ -595,13 +577,13 @@ def _validate_and_link(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [aapt.executable],
+        tools = [aapt],
         arguments = [args],
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
         mnemonic = "LinkAndroidResources",
         progress_message =
-            "ResV3 Linking Android Resources in " + out_file.short_path,
+            "Linking Android Resources in " + out_file.short_path,
     )
 
 def _compile(
@@ -649,12 +631,12 @@ def _compile(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [aapt.executable],
+        tools = [aapt],
         arguments = [args],
         inputs = resource_files + assets,
         outputs = [out_file],
         mnemonic = "CompileAndroidResources",
-        progress_message = "ResV3 Compiling Android Resources in %s" % out_file.short_path,
+        progress_message = "Compiling Android Resources in %s" % out_file.short_path,
     )
 
 def _make_merge_compiled_flags(resources_node_info):
@@ -844,7 +826,7 @@ def _merge_manifests(
         inputs = depset(directs, transitive = transitives),
         outputs = outputs,
         mnemonic = "MergeManifests",
-        progress_message = "ResV3 Merging Android Manifests in %s" % out_file.short_path,
+        progress_message = "Merging Android Manifests in %s" % out_file.short_path,
     )
 
 def _process_databinding(
@@ -973,6 +955,7 @@ def _make_aar(
         r_txt = None,
         manifest = None,
         proguard_specs = [],
+        should_throw_on_conflict = False,
         busybox = None,
         host_javabase = None):
     """Generate an android archive file.
@@ -990,6 +973,8 @@ def _make_aar(
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
       host_javabase: A Target. The host javabase.
+      should_throw_on_conflict: A boolean. Determines whether an error should be thrown
+        when a resource conflict occurs.
     """
     args = ctx.actions.args()
     args.add("--tool", "GENERATE_AAR")
@@ -1008,6 +993,8 @@ def _make_aar(
     args.add("--classes", class_jar)
     args.add("--aarOutput", out_aar)
     args.add_all(proguard_specs, before_each = "--proguardSpec")
+    if should_throw_on_conflict:
+        args.add("--throwOnResourceConflict")
 
     _java.run(
         ctx = ctx,

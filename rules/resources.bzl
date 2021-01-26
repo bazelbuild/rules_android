@@ -21,19 +21,15 @@ load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
 load(
     ":providers.bzl",
-    "AndroidResourcesV3Info",
     "ResourcesNodeInfo",
     "StarlarkAndroidResourcesInfo",
 )
-load(":testing.bzl", _testing = "testing")
 load(
     ":utils.bzl",
     "utils",
     _compilation_mode = "compilation_mode",
     _log = "log",
 )
-load("@rules_android//rules/flags:flags.bzl", _flags = "flags")
-load("@rules_android//rules:acls.bzl", "acls")
 
 _RESOURCE_FOLDER_TYPES = [
     "anim",
@@ -89,8 +85,6 @@ _RESOURCES_APK = "resources_apk"
 _VALIDATION_RESULTS = "validation_results"
 _VALIDATION_OUTPUTS = "validation_outputs"
 _RESOURCES_PROVIDER = "resources_provider"
-_RESOURCES_V3_APK = "resources_v3_apk"
-_RESOURCES_V3_PROVIDER = "resources_v3_provider"
 _STARLARK_PROCESSED_MANIFEST = "starlark_processed_manifest"
 _STARLARK_R_TXT = "starlark_r_txt"
 _STARLARK_PROCESSED_RESOURCES = "starlark_processed_resources"
@@ -107,12 +101,6 @@ _ResourcesProcessContextInfo = provider(
         _VALIDATION_RESULTS: "List of validation results.",
         _VALIDATION_OUTPUTS: "List of outputs given to OutputGroupInfo _validation group",
 
-        # TODO(djwhang): Used for testing and comparing AndroidResourcesV3Info
-        # with AndroidResourcesInfo. Once native resource processing is removed
-        # delete and make v3 default.
-        _RESOURCES_V3_APK: "Compiled resources apk from v3.",
-        _RESOURCES_V3_PROVIDER: "AndroidResourcesV3Info provider.",
-
         # TODO(djwhang): The android_library aar generation requires direct
         # access to providers. Remove once aar is its own rule.
         _ASSETS_PROVIDER: "AndroidAssetsInfo provider.",
@@ -123,31 +111,20 @@ _ResourcesProcessContextInfo = provider(
     },
 )
 
-_EMPTY_RESOURCES_V3_INFO = AndroidResourcesV3Info(
-    direct_r_pb = None,
-    transitive_r_pbs = depset(),
-    direct_busybox_flag = None,
-    transitive_busybox_flags = [],
-    transitive_compiled_resources = depset(),
-    transitive_r_txts = depset(),
-    transitive_manifests = depset(),
-    transitive_resource_files = depset(),
-    transitive_assets = depset(),
-)
-
 # Packaged resources context attributes.
 _PACKAGED_FINAL_MANIFEST = "processed_manifest"
 _PACKAGED_RESOURCE_APK = "resources_apk"
 _PACKAGED_CLASS_JAR = "class_jar"
 _PACKAGED_VALIDATION_RESULT = "validation_result"
 
-# Packaged resources context object.
 _ResourcesPackageContextInfo = provider(
+    "Packaged resources context object",
     fields = {
         _PACKAGED_FINAL_MANIFEST: "Final processed manifest.",
         _PACKAGED_RESOURCE_APK: "ResourceApk.",
         _PACKAGED_CLASS_JAR: "R class jar.",
         _PACKAGED_VALIDATION_RESULT: "Validation result.",
+        _R_JAVA: "JavaInfo for R.jar",
         _PROVIDERS: "The list of all providers to propagate.",
     },
 )
@@ -175,6 +152,42 @@ def _generate_dummy_manifest(
         content = content,
     )
 
+def _add_g3itr(
+        ctx,
+        manifest = None,
+        out_manifest = None,
+        xsltproc = None,
+        instrument_xslt = None):
+    """Adds Google3InstrumentationTestRunner instrumentation element to the manifest.
+
+    Element is only added if the manifest contains an instrumentation element with
+    name "android.test.InstrumentationTestRunner". The added element's name attr is
+    "com.google.android.apps.common.testing.testrunner.Google3InstrumentationTestRunner".
+
+    Args:
+      ctx: The context.
+      manifest: File. The AndroidManifest.xml file.
+      out_manifest: File. The transformed AndroidManifest.xml.
+      xsltproc: FilesToRunProvider. The xsltproc executable or
+        FilesToRunProvider.
+      instrument_xslt: File. The add_g3itr.xslt file describing the xslt
+        transformation to apply.
+    """
+    args = ctx.actions.args()
+    args.add("--nonet")
+    args.add("--novalid")
+    args.add("-o", out_manifest)
+    args.add(instrument_xslt)
+    args.add(manifest)
+
+    ctx.actions.run(
+        executable = xsltproc,
+        arguments = [args],
+        inputs = [manifest, instrument_xslt],
+        outputs = [out_manifest],
+        mnemonic = "AddG3ITRStarlark",
+        progress_message = "Adding G3ITR to test manifest for %s" % ctx.label,
+    )
 
 def _get_legacy_mergee_manifests(resources_infos):
     all_dependencies = depset(
@@ -398,6 +411,7 @@ def _package(
         deps = [],
         manifest = None,
         manifest_values = None,
+        instruments = None,
         resource_configs = None,
         densities = [],
         resource_files = [],
@@ -407,10 +421,13 @@ def _package(
         shrink_resources = None,
         use_android_resource_shrinking = None,
         use_android_resource_cycle_shrinking = None,
+        use_legacy_manifest_merger = False,
         should_throw_on_conflict = True,
         enable_data_binding = False,
+        enable_manifest_merging = True,
         aapt = None,
         android_jar = None,
+        legacy_merger = None,
         xsltproc = None,
         instrument_xslt = None,
         busybox = None,
@@ -428,6 +445,7 @@ def _package(
         against.
       manifest: File. The input top-level AndroidManifest.xml.
       manifest_values: String dictionary. Manifest values to substitute.
+      instruments: Optional target. The value of the "instruments" attr if set.
       resource_configs: sequence of Strings. A list of resource_configuration_filters
         to apply.
       densities: sequence of Strings. A list of densities to filter for when building
@@ -446,12 +464,18 @@ def _package(
         shrink_resources if the tristate value is auto (-1).
       use_android_resource_cycle_shrinking: Bool. Flag that enables more shrinking of
         code and resources by instructing AAPT2 to emit conditional Proguard keep rules.
+      use_legacy_manifest_merger: A boolean. Whether to use the legacy manifest merger
+      instead of the android manifest merger.
+      should_throw_on_conflict: A boolean. Determines whether an error should be thrown
+        when a resource conflict occurs.
       enable_data_binding: boolean. If true, processesing the data binding
         expressions in layout resources included through the resource_files
         parameter is enabled. Without this setting, data binding expressions
         produce build failures.
+      enable_manifest_merging: boolean. If true, manifest merging will be performed.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       android_jar: File. The Android jar.
+      legacy_merger: FilesToRunProvider. The legacy manifest merger executable.
       xsltproc: FilesToRunProvider. The xsltproc executable or
         FilesToRunProvider.
       instrument_xslt: File. The add_g3itr.xslt file describing the xslt
@@ -473,6 +497,19 @@ def _package(
         _PROVIDERS: [],
     }
 
+    g3itr_manifest = manifest
+
+    if xsltproc or instrument_xslt:
+        g3itr_manifest = ctx.actions.declare_file(
+            "_migrated/" + ctx.label.name + "add_g3itr/AndroidManifest.xml",
+        )
+        _add_g3itr(
+            ctx,
+            out_manifest = g3itr_manifest,
+            manifest = manifest,
+            xsltproc = xsltproc,
+            instrument_xslt = instrument_xslt,
+        )
 
     direct_resources_nodes = []
     transitive_resources_nodes = []
@@ -503,36 +540,50 @@ def _package(
     # TODO(b/156763506): Add analysis tests to verify logic around when manifest merging is configured.
     # TODO(b/154153771): Run the android merger if mergee_manifests or manifest values are present.
     merged_manifest = g3itr_manifest
-    if manifest_values or mergee_manifests:
-        # TODO(b/155124801): Support legacy manifest merger, which should only run if mergee manifests are present.
-        merged_manifest = ctx.actions.declare_file(
-            "_migrated/_merged/" + ctx.label.name + "/AndroidManifest.xml",
-        )
-        _busybox.merge_manifests(
-            ctx,
-            out_file = merged_manifest,
-            out_log_file = ctx.actions.declare_file(
-                "_migrated/_merged/" + ctx.label.name + "/manifest_merger_log.txt",
-            ),
-            manifest = g3itr_manifest,
-            mergee_manifests = mergee_manifests,
-            manifest_values = manifest_values,
-            merge_type = "APPLICATION",
-            java_package = java_package,
-            busybox = busybox,
-            host_javabase = host_javabase,
-        )
+    if enable_manifest_merging and (manifest_values or mergee_manifests):
+        if use_legacy_manifest_merger:
+            # Legacy manifest merger only runs if mergee manifests are present
+            if mergee_manifests:
+                merged_manifest = ctx.actions.declare_file(
+                    "_migrated/_merged/" + ctx.label.name + "/AndroidManifest.xml",
+                )
+                _legacy_merge_manifests(
+                    ctx,
+                    out_merged_manifest = merged_manifest,
+                    manifest = g3itr_manifest,
+                    mergee_manifests = mergee_manifests,
+                    legacy_merger = legacy_merger,
+                )
+        else:
+            merged_manifest = ctx.actions.declare_file(
+                "_migrated/_merged/" + ctx.label.name + "/AndroidManifest.xml",
+            )
+            _busybox.merge_manifests(
+                ctx,
+                out_file = merged_manifest,
+                out_log_file = ctx.actions.declare_file(
+                    "_migrated/_merged/" + ctx.label.name + "/manifest_merger_log.txt",
+                ),
+                manifest = g3itr_manifest,
+                mergee_manifests = mergee_manifests,
+                manifest_values = manifest_values,
+                merge_type = "APPLICATION",
+                java_package = java_package,
+                busybox = busybox,
+                host_javabase = host_javabase,
+            )
 
     processed_resources = resource_files
+    databinding_info = None
     if enable_data_binding:
-        out_databinding_info = ctx.actions.declare_file("_migrated/" + ctx.label.name + "/layout-info.zip")
+        databinding_info = ctx.actions.declare_file("_migrated/databinding/" + ctx.label.name + "/layout-info.zip")
         processed_resources, resources_dirname = _make_databinding_outputs(
             ctx,
             resource_files,
         )
         _busybox.process_databinding(
             ctx,
-            out_databinding_info = out_databinding_info,
+            out_databinding_info = databinding_info,
             out_databinding_processed_resources = processed_resources,
             databinding_resources_dirname = resources_dirname,
             resource_files = resource_files,
@@ -621,7 +672,7 @@ def _package(
         r_txt = r_txt,
         manifest = processed_manifest,
         package_for_r = java_package,
-        final_fields = not shrink_resource_cycles,
+        final_fields = not shrink_resource_cycles and not instruments,
         resources_nodes = depset(transitive = direct_resources_nodes + transitive_resources_nodes),
         transitive_r_txts = transitive_r_txts,
         transitive_manifests = transitive_manifests,
@@ -629,6 +680,15 @@ def _package(
         host_javabase = host_javabase,
     )
     packaged_resources_ctx[_PACKAGED_CLASS_JAR] = class_jar
+
+    java_info = JavaInfo(
+        output_jar = class_jar,
+        compile_jar = class_jar,
+        source_jar = r_java,
+    )
+
+    packaged_resources_ctx[_R_JAVA] = java_info
+
     packaged_resources_ctx[_PROVIDERS].append(AndroidApplicationResourceInfo(
         resource_apk = resource_apk,
         resource_java_src_jar = r_java,
@@ -638,6 +698,7 @@ def _package(
         main_dex_proguard_config = main_dex_proguard_cfg,
         r_txt = r_txt,
         resources_zip = resource_files_zip,
+        databinding_info = databinding_info,
     ))
     return _ResourcesPackageContextInfo(**packaged_resources_ctx)
 
@@ -779,182 +840,7 @@ def _make_aar(
         busybox = busybox,
         host_javabase = host_javabase,
     )
-
     return aar
-
-def _process_v3(
-        ctx,
-        java_package = None,
-        manifest = None,
-        assets = None,
-        assets_dir = None,
-        resource_files = None,
-        deps = [],
-        exports = [],
-        neverlink = False,
-        android_jar = None,
-        aapt = None,
-        android_kit = None,
-        busybox = None,
-        dummy_manifest = None,
-        dummy_r_txt = None,
-        java_toolchain = None,
-        host_javabase = None):
-    """Processes Android Resources v3.
-
-    Args:
-      ctx: The rules context.
-      java_package: string. Java package for which java sources will be
-        generated. By default the package is inferred from the directory where
-        the BUILD file containing the rule is.
-      manifest: File. The AndroidManifest.xml file.
-      assets: sequence of Files. A list of Android assets files to be processed.
-      assets_dir: String. The name of the assets directory.
-      resource_files: sequence of Files. A list of Android resource files to be
-        processed.
-      deps: sequence of Targets. The list of other libraries targets to link
-        against.
-      exports: sequence of Targets. The closure of all rules reached via exports
-        attributes are considered direct dependencies of any rule that directly
-        depends on the target with exports. The exports are not direct deps of
-        the rule they belong to.
-      neverlink: Boolean. Determines whether the compiled resources in the
-        transitive of the target should be propagated.
-      android_jar: File. The android Jar.
-      aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
-      android_kit: FilesToRunProvider. The android_kit executable or
-        FilesToRunProvider.
-      busybox: FilesToRunProvider. The ResourceBusyBox executable or
-        FilesToRunprovider
-      dummy_manifest: A File. A dummy AndroidManifest.xml. Preferrably, it
-        should be the same file for every call.
-      dummy_r_txt: A File. A dummy R.txt. Preferrably, it should be the same
-        file for every call.
-      java_toolchain: The java_toolchain Target.
-      host_javabase: Target. The host javabase.
-
-    Returns:
-      A tuple of (AndroidResourcesV3Info, JavaInfo for the R.jar, File for resource apk).
-    """
-
-    # TODO(b/141378086): Sanitizing the Java package is required for compiling the
-    # R.srcjar. When fixed, this can be deleted.
-    java_package = utils.sanitize_java_package(java_package)
-
-    transitive_busybox_flags = []
-    transitive_compiled_resources = []
-    transitive_manifests = []
-    transitive_r_pbs = []
-    transitive_r_txts = []
-    transitive_resource_files = []
-    transitive_assets = []
-    for info in utils.collect_providers(AndroidResourcesV3Info, deps, exports):
-        transitive_busybox_flags.append(
-            depset(
-                [info.direct_busybox_flag] if info.direct_busybox_flag else [],
-                transitive = info.transitive_busybox_flags,
-            ),
-        )
-        transitive_compiled_resources.append(info.transitive_compiled_resources)
-        transitive_manifests.append(info.transitive_manifests)
-        transitive_r_pbs.append(info.transitive_r_pbs)
-        transitive_r_txts.append(info.transitive_r_txts)
-        transitive_resource_files.append(info.transitive_resource_files)
-        transitive_assets.append(info.transitive_assets)
-
-    r_java = None
-    r_txt = None
-    apk = None
-    r_java_info = None
-    busybox_flag = None
-    r_pb = None
-    compiled_resources = None
-    if resource_files and not manifest:
-        _log.error(_MANIFEST_MISSING_ERROR % ctx.label)
-    if resource_files or manifest:
-        # When there are no resource_files, we still want to compile the symbols
-        # because the ResourceProcessorBusyBox expects the presence of at least
-        # a single compiled file. This scenario manifests itself when an
-        # AndroidManifest is defined without any Android resources being defined
-        # in the transitive closure of the target.
-        compiled_resources = ctx.actions.declare_file(
-            ctx.label.name + "_symbols/symbols_v3.zip",
-        )
-        r_pb = ctx.actions.declare_file(ctx.label.name + "/resources/R.pb")
-        _compile(
-            ctx,
-            out_compiled_resources = compiled_resources,
-            out_r_pb = r_pb,
-            resource_files = resource_files,
-            aapt = aapt,
-            android_kit = android_kit,
-            busybox = busybox,
-            host_javabase = host_javabase,
-        )
-        r_java = _fastr(
-            ctx,
-            depset([r_pb] if r_pb else [], transitive = transitive_r_pbs),
-            java_package,
-            manifest,
-            android_kit,
-        )
-        if resource_files or assets:
-            busybox_flag = _busybox.make_resources_flag(
-                assets = assets,
-                assets_dir = assets_dir,
-                resource_files = resource_files,
-                manifest = dummy_manifest,
-                r_txt = dummy_r_txt,
-                symbols = compiled_resources,
-            )
-
-        # When a R is generated, compile it.
-        if r_java:
-            r_java_info = _java.compile(
-                ctx,
-                output_jar = ctx.actions.declare_file(ctx.label.name + "_resources_v3.jar"),
-                srcs = [r_java],
-                strict_deps = "DEFAULT",
-                constraints = ["android"],
-                javac_opts = ["-XepAllErrorsAsWarnings"],
-                java_toolchain = java_toolchain,
-                host_javabase = host_javabase,
-            )
-
-    resources_v3_info = AndroidResourcesV3Info(
-        direct_r_pb = r_pb,
-        transitive_r_pbs = depset(
-            [r_pb] if r_pb else [],
-            transitive = transitive_r_pbs,
-            order = "preorder",
-        ),
-        direct_busybox_flag = busybox_flag,
-        transitive_busybox_flags = transitive_busybox_flags,
-        transitive_compiled_resources = depset(
-            [compiled_resources] if compiled_resources else [],
-            transitive = transitive_compiled_resources,
-            order = "preorder",
-        ),
-        transitive_r_txts = depset(
-            [r_txt] if r_txt else [],
-            transitive = transitive_r_txts,
-        ),
-        transitive_manifests = depset(
-            [manifest] if manifest else [],
-            transitive = transitive_manifests,
-        ),
-        transitive_resource_files = depset(
-            [dummy_r_txt, dummy_manifest] + resource_files,
-            transitive = transitive_resource_files,
-        ),
-        transitive_assets = depset(
-            assets,
-            transitive = transitive_assets,
-        ),
-    )
-    if neverlink:
-        return _EMPTY_RESOURCES_V3_INFO, r_java_info, apk
-    return resources_v3_info, r_java_info, apk
 
 def _validate(ctx, manifest, defined_assets, defined_assets_dir):
     if ((defined_assets and not defined_assets_dir) or
@@ -1069,6 +955,7 @@ def _process_starlark(
         resource_files = None,
         neverlink = False,
         enable_data_binding = False,
+        android_test_migration = False,
         fix_resource_transitivity = False,
         aapt = None,
         android_jar = None,
@@ -1115,6 +1002,9 @@ def _process_starlark(
         expressions in layout resources included through the resource_files
         parameter is enabled. Without this setting, data binding expressions
         produce build failures.
+      android_test_migration: boolean. If true, the target is part of the android
+      test to android instrumentation test migration and should not propagate
+      any Android Resource providers.
       fix_resource_transitivity: Whether to ensure that transitive resources are
         correctly marked as transitive.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
@@ -1293,7 +1183,6 @@ def _process_starlark(
             resources_ctx[_STARLARK_PROCESSED_RESOURCES] = resource_files
 
     else:
-
         if stamp_manifest:
             stamped_manifest = ctx.actions.declare_file(
                 "_migrated/_renamed/" + ctx.label.name + "/AndroidManifest.xml",
@@ -1308,6 +1197,19 @@ def _process_starlark(
                 host_javabase = host_javabase,
             )
             manifest = stamped_manifest
+
+        if instrument_xslt:
+            g3itr_manifest = ctx.actions.declare_file(
+                "_migrated/" + ctx.label.name + "_g3itr_manifest/AndroidManifest.xml",
+            )
+            _add_g3itr(
+                ctx,
+                out_manifest = g3itr_manifest,
+                manifest = manifest,
+                xsltproc = xsltproc,
+                instrument_xslt = instrument_xslt,
+            )
+            manifest = g3itr_manifest
 
         parsed_assets = ctx.actions.declare_file(
             "_migrated/" + ctx.label.name + "_symbols/assets.bin",
@@ -1433,7 +1335,7 @@ def _process_starlark(
                 transitive = transitive_compiled_resources,
                 order = "preorder",
             ),
-            android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,
+            android_jar = android_jar,
             busybox = busybox,
             host_javabase = host_javabase,
         )
@@ -1466,14 +1368,14 @@ def _process_starlark(
             host_javabase = host_javabase,
         )
         resources_ctx[_RESOURCES_APK] = apk
-        resources_ctx[_R_JAVA] = java_common.add_constraints(
-            JavaInfo(
-                output_jar = out_class_jar,
-                compile_jar = out_class_jar,
-                source_jar = r_java,
-            ),
-            constraints = ["android"],
+
+        java_info = JavaInfo(
+            output_jar = out_class_jar,
+            compile_jar = out_class_jar,
+            source_jar = r_java,
         )
+
+        resources_ctx[_R_JAVA] = java_info
 
         # In a normal build, the outputs of _busybox.validate_and_link are unused. However we need
         # this action to run to support resource visibility checks.
@@ -1615,259 +1517,34 @@ def _process_starlark(
                 order = "preorder",
             ),
         ))
-    return resources_ctx
 
-def _process_native(
-        ctx,
-        manifest = None,
-        resource_files = None,
-        defined_assets = False,
-        assets = None,
-        defined_assets_dir = False,
-        assets_dir = None,
-        exports_manifest = False,
-        java_package = None,
-        custom_package = None,
-        neverlink = False,
-        enable_data_binding = False,
-        deps = [],
-        exports = [],
-        android_jar = None,
-        android_kit = None,
-        aapt = None,
-        busybox = None,
-        java_toolchain = None,
-        host_javabase = None,
-        enable_res_v3 = False,
-        res_v3_dummy_manifest = None,
-        res_v3_dummy_r_txt = None,
-        fix_resource_transitivity = False,
-        fix_export_exporting = False):
-    """Processes Android Resources.
+    # Do not collect resources and R.java for test apk
+    if android_test_migration:
+        resources_ctx[_R_JAVA] = None
+        resources_ctx[_PROVIDERS] = []
 
-    Args:
-      ctx: The rules context.
-      manifest: File. The AndroidManifest.xml file.
-      resource_files: sequence of Targets. A list of Android resource file
-        targets that contain the resource file to be processed.
-      defined_assets: Bool. Signifies that the assets attribute was set, even
-        if the value is an empty list.
-      assets: sequence of Files. A list of assets to be packaged. All files be
-        under the assets_dir directory in the corresponding package.
-      defined_assets_dir: Bool. Signifies that the assets dir attribute was set,
-        even if the value is an empty string.
-      assets_dir: string. A string giving the path to the files in assets. The
-        pair assets and assets_dir describe packaged assets and either both
-        parameters should be provided or none of them.
-      exports_manifest: boolean. Whether to export manifest entries to the
-        android_binary targets that depend on this target.
-        NOTE: "uses-permissions" attributes are never exported.
-      java_package: string. Java package. This is a fully resolved value and
-        should not be confused with custom_package. The two values may be the
-        same.
-        TODO(djwhang): Remove custom_package and use the Java package.
-      custom_package: string. Java package for which java sources will be
-        generated. By default the package is inferred from the directory where
-        the BUILD file containing the rule is. Specifying a different package is
-        highly discouraged since it can introduce classpath conflicts with other
-        libraries that will only be detected at runtime.
-      neverlink: boolean. Only use this library for compilation and not runtime.
-        The outputs of a rule marked as neverlink will not be used in .apk
-        creation. Useful if the library will be provided by the runtime
-        environment during execution.
-      enable_data_binding: boolean. If true, processesing the data binding
-        expressions in layout resources included through the resource_files
-        parameter is enabled. Without this setting, data binding expressions
-        produce build failures.
-      deps: sequence of Targets. The list of other libraries targets to link
-        against.
-      exports: sequence of Targets. The closure of all rules reached via exports
-        attributes are considered direct dependencies of any rule that directly
-        depends on the target with exports. The exports are not direct deps of
-        the rule they belong to (TODO(b/144134042): make this so).
-      android_jar: File. The Android jar.
-      android_kit: FilesToRunProvider. The Android Kit executable or
-        FilesToRunProvider.
-      aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
-      busybox: A FilesToRunProvider. The ResourceProcessorBusyBox executable.
-      java_toolchain: The java_toolchain Target.
-      host_javabase: The host_javabase Target.
-      enable_res_v3: Whether to enable resource processing v3.
-      res_v3_dummy_manifest: A File. A dummy AndroidManifest.xml when res_v3 is
-        enabled. Preferrably, it should be the same file for every call.
-      res_v3_dummy_r_txt: A File. A dummy R.txt when res_v3 is enabled.
-        Preferrably, it should be the same file for every call.
-      fix_resource_transitivity: Whether to ensure that transitive resources are
-        correctly marked as transitive.
-      fix_export_exporting: Whether exports should actually be exported.
-
-    Returns:
-      A dict containing _ResourcesProcessContextInfo provider fields.
-    """
-
-    defines_resources = bool(
-        manifest or
-        resource_files or
-        defined_assets or
-        defined_assets_dir or
-        exports_manifest,
-    )
-
-    # TODO(djwhang): Clean up the difference between neverlink the attribute used
-    # by Java compilation and resources neverlink.
-    resources_neverlink = (
-        neverlink and (
-            defines_resources or
-            ctx.fragments.android.fixed_resource_neverlinking
-        )
-    )
-
-    # The Android Resources context object.
-    resources_ctx = {
-        _ASSETS_PROVIDER: None,
-        _DEFINES_RESOURCES: defines_resources,
-        _DIRECT_ANDROID_RESOURCES: depset(),
-        _MERGED_MANIFEST: None,
-        _PROVIDERS: [],
-        _R_JAVA: None,
-        _RESOURCES_APK: None,
-        _RESOURCES_PROVIDER: None,
-        _RESOURCES_V3_APK: None,
-        _RESOURCES_V3_PROVIDER: None,
-        _VALIDATION_RESULTS: [],
-    }
-
-    actx = android_data.make_context(ctx.actions, ctx.attr)
-    assets_infos = utils.collect_providers(
-        AndroidAssetsInfo,
-        deps,
-        exports,  # TODO(b/144134042): remove this; exports are not deps.
-    )
-    resources_infos = utils.collect_providers(
-        AndroidResourcesInfo,
-        deps,
-        exports,  # TODO(b/144134042): remove this; exports are not deps.
-    )
-    if not defines_resources:
-        assets_info = android_data.assets_from_deps(
-            deps = assets_infos,
-            neverlink = resources_neverlink,
-        )
-        resources_info = android_data.resources_from_deps(
-            actx,
-            deps = resources_infos,
-            assets = assets_infos,
-            neverlink = resources_neverlink,
-            custom_package = java_package if java_package else ctx.label.package.replace("/", "."),
-        )
-
-        if fix_resource_transitivity:
-            assets_info = _make_direct_assets_transitive(assets_info)
-            resources_info = _make_direct_resources_transitive(resources_info)
-
-        # Create an empty _resource.jar
-        if hasattr(ctx.outputs, "resources_jar"):
-            _java.singlejar(
-                ctx,
-                inputs = [],
-                output = ctx.outputs.resources_jar,
-                java_toolchain = _common.get_java_toolchain(ctx),
-            )
-    else:
-        # Validate the resources.
-        _validate(ctx, manifest, defined_assets, defined_assets_dir)
-
-        base_manifest_info = android_data.stamp_manifest(
-            actx,
-            manifest = manifest,
-            custom_package = custom_package or None,
-            exports_manifest = exports_manifest,
-        )
-        assets_info = android_data.merge_assets(
-            actx,
-            assets = assets,
-            assets_dir = assets_dir,
-            deps = assets_infos,
-            neverlink = resources_neverlink,
-        )
-        validated_android_data = android_data.merge_res(
-            actx,
-            base_manifest_info,
-            resources = resource_files,
-            deps = resources_infos,
-            neverlink = resources_neverlink,
-            enable_data_binding = enable_data_binding,
-        )
-        resources_info = validated_android_data.to_provider
-
-        resources_ctx[_DIRECT_ANDROID_RESOURCES] = \
-            resources_info.direct_android_resources
-        resources_ctx[_MERGED_MANIFEST] = \
-            resources_info.manifest.manifest
-        resources_ctx[_R_JAVA] = java_common.add_constraints(
-            JavaInfo(
-                output_jar = validated_android_data.java_class_jar,
-                compile_jar = validated_android_data.java_class_jar,
-                source_jar = validated_android_data.java_source_jar,
+    # TODO(b/69552500): In the Starlark Android Rules, the R compile time
+    # JavaInfo is added as a runtime dependency to the JavaInfo. Stop
+    # adding the R.jar as a runtime dependency.
+    resources_ctx[_PROVIDERS].append(
+        AndroidLibraryResourceClassJarProvider(
+            depset(
+                (resources_ctx[_R_JAVA].runtime_output_jars if resources_ctx[_R_JAVA] else []),
+                transitive = [
+                    p.jars
+                    for p in utils.collect_providers(
+                        AndroidLibraryResourceClassJarProvider,
+                        deps,
+                        exports,
+                    )
+                ],
+                order = "preorder",
             ),
-            constraints = ["android"],
-        )
-        resources_ctx[_RESOURCES_APK] = validated_android_data.apk
-        if assets_info.validation_result:
-            resources_ctx[_VALIDATION_RESULTS].append(assets_info.validation_result)
-
-    if exports and fix_export_exporting:
-        assets_info = _export_assets(assets_info, exports)
-        resources_info = _export_resources(resources_info, exports)
-
-    # TODO(djwhang): Add support for strict resource deps.
-    resources_v3_info, r_java_info, resources_v3_apk = _process_v3(
-        ctx,
-        java_package = java_package,
-        manifest = manifest,
-        resource_files = [
-            f
-            for target in resource_files
-            for f in target.files.to_list()
-        ],
-        assets = [f for target in assets for f in target.files.to_list()],
-        assets_dir = assets_dir,
-        deps = deps,
-        exports = exports,
-        neverlink = resources_neverlink,
-        android_jar = android_jar,
-        aapt = aapt,
-        android_kit = android_kit,
-        busybox = busybox,
-        java_toolchain = java_toolchain,
-        host_javabase = host_javabase,
-        dummy_manifest = res_v3_dummy_manifest,
-        dummy_r_txt = res_v3_dummy_r_txt,
+        ),
     )
-    resources_ctx[_RESOURCES_V3_APK] = resources_v3_apk
 
-    # If enabled, v3 artifacts are part of the critical Java compilation path.
-    if enable_res_v3:
-        resources_ctx[_R_JAVA] = r_java_info
-
-    resources_ctx[_PROVIDERS].extend([
-        assets_info,
-        resources_info,
-        resources_v3_info,
-    ])
-    if defines_resources:
-        resources_ctx[_PROVIDERS].append(resources_info.manifest)
-
-    # TODO(djwhang): The android_library aar generation requires direct access
-    # to providers. Remove once aar is its own rule.
-    resources_ctx[_ASSETS_PROVIDER] = assets_info
-    resources_ctx[_RESOURCES_PROVIDER] = resources_info
-
-    # TODO(djwhang): Used for testing and comparing AndroidResourcesV3Info with
-    # AndroidResourcesInfo. Once native resource processing is removed delete
-    # and make v3 default.
-    resources_ctx[_RESOURCES_V3_PROVIDER] = resources_v3_info
     return resources_ctx
+
 
 def _process(
         ctx,
@@ -1898,36 +1575,8 @@ def _process(
         fix_resource_transitivity = False,
         fix_export_exporting = False,
         android_test_migration = False,
-        diff_stub_script = None,
         zip_tool = None):
-    native_res_ctx = _process_native(
-        ctx,
-        manifest = manifest,
-        resource_files = resource_files,
-        defined_assets = defined_assets,
-        assets = assets,
-        defined_assets_dir = defined_assets_dir,
-        assets_dir = assets_dir,
-        exports_manifest = exports_manifest,
-        java_package = java_package,
-        custom_package = custom_package,
-        neverlink = neverlink,
-        enable_data_binding = enable_data_binding,
-        deps = deps,
-        exports = exports,
-        android_jar = android_jar,
-        android_kit = android_kit,
-        aapt = aapt,
-        busybox = busybox,
-        java_toolchain = java_toolchain,
-        host_javabase = host_javabase,
-        enable_res_v3 = enable_res_v3,
-        res_v3_dummy_manifest = res_v3_dummy_manifest,
-        res_v3_dummy_r_txt = res_v3_dummy_r_txt,
-        fix_resource_transitivity = fix_resource_transitivity,
-        fix_export_exporting = fix_export_exporting,
-    )
-    starlark_res_ctx = _process_starlark(
+    out_ctx = _process_starlark(
         ctx,
         java_package = java_package,
         manifest = manifest,
@@ -1947,6 +1596,7 @@ def _process(
         enable_data_binding = enable_data_binding,
         fix_resource_transitivity = fix_resource_transitivity,
         neverlink = neverlink,
+        android_test_migration = android_test_migration,
         android_jar = android_jar,
         aapt = aapt,
         android_kit = android_kit,
@@ -1958,60 +1608,19 @@ def _process(
         zip_tool = zip_tool,
     )
 
-    starlark_android_resources_info = starlark_res_ctx[_PROVIDERS][-1]
-    if acls.in_android_library_starlark_resources(str(ctx.label)):
-        starlark_res_ctx[_ASSETS_PROVIDER] = native_res_ctx[_ASSETS_PROVIDER]
-        starlark_res_ctx[_RESOURCES_PROVIDER] = native_res_ctx[_RESOURCES_PROVIDER]
-        starlark_res_ctx[_PROVIDERS].extend(native_res_ctx[_PROVIDERS])
-        out_ctx = starlark_res_ctx
-    else:
-        native_res_ctx[_STARLARK_PROCESSED_MANIFEST] = starlark_res_ctx[_STARLARK_PROCESSED_MANIFEST]
-        native_res_ctx[_STARLARK_R_TXT] = starlark_res_ctx[_STARLARK_R_TXT]
-        native_res_ctx[_STARLARK_PROCESSED_RESOURCES] = starlark_res_ctx[_STARLARK_PROCESSED_RESOURCES]
-        native_res_ctx[_PROVIDERS].extend(starlark_res_ctx[_PROVIDERS])
-        out_ctx = native_res_ctx
 
     if _VALIDATION_OUTPUTS not in out_ctx:
         out_ctx[_VALIDATION_OUTPUTS] = []
-
-    if _flags.get(ctx).android_enable_starlark_resource_diff:
-        _testing.diff_resources_provider_ordering(
-            ctx,
-            native_res_ctx[_RESOURCES_PROVIDER],
-            starlark_android_resources_info,
-        )
-        if _java.invalid_java_package(custom_package, java_package):
-            pass  # Skip the test if using an invalid java_package.
-        elif starlark_res_ctx[_RESOURCES_APK]:
-            validation_output = ctx.actions.declare_file(ctx.label.name + "/.validation")
-            _testing.diff_resource_apk(
-                ctx,
-                out_validation = validation_output,
-                resources_apk = starlark_res_ctx[_RESOURCES_APK],
-                native_apk = native_res_ctx[_RESOURCES_APK],
-                aapt = aapt,
-                diff_stub_script = diff_stub_script,
-            )
-            out_ctx[_VALIDATION_OUTPUTS].append(validation_output)
-        elif native_res_ctx[_RESOURCES_APK]:
-            fail("Failed to diff: native resources_apk was produced but starlark resources_apk was not produced")
-
-    # Do not collect resources and R.java for test apk
-    if android_test_migration:
-        out_ctx[_R_JAVA] = None
-        out_ctx[_PROVIDERS] = []
 
     return _ResourcesProcessContextInfo(**out_ctx)
 
 resources = struct(
     process = _process,
-    process_native = _process_native,
     process_starlark = _process_starlark,
     package = _package,
     make_aar = _make_aar,
 
     # Exposed for mobile-install
-    process_v3 = _process_v3,
     compile = _compile,
     legacy_merge_manifests = _legacy_merge_manifests,
 
@@ -2020,6 +1629,7 @@ resources = struct(
 )
 
 testing = struct(
+    add_g3itr = _add_g3itr,
     filter_multi_cpu_configuration_targets = _filter_multi_cpu_configuration_targets,
     get_legacy_mergee_manifests = _get_legacy_mergee_manifests,
     make_databinding_outputs = _make_databinding_outputs,

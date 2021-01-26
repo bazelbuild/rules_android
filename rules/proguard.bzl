@@ -28,13 +28,13 @@ def _validate_proguard_spec(
         ctx,
         out_validated_proguard_spec,
         proguard_spec,
-        proguard_whitelister):
+        proguard_allowlister):
     args = ctx.actions.args()
     args.add("--path", proguard_spec)
     args.add("--output", out_validated_proguard_spec)
 
     ctx.actions.run(
-        executable = proguard_whitelister,
+        executable = proguard_allowlister,
         arguments = [args],
         inputs = [proguard_spec],
         outputs = [out_validated_proguard_spec],
@@ -48,7 +48,7 @@ def _process(
         ctx,
         proguard_configs = [],
         proguard_spec_providers = [],
-        proguard_whitelister = None):
+        proguard_allowlister = None):
     """Processes Proguard Specs
 
     Args:
@@ -58,7 +58,7 @@ def _process(
       proguard_spec_providers: sequence of ProguardSpecProvider providers. A
         list of providers from the dependencies, exports, plugins,
         exported_plugins, etc. Optional.
-      proguard_whitelister: The proguard_whitelister exeutable provider.
+      proguard_allowlister: The proguard_allowlister exeutable provider.
 
     Returns:
       A _ProguardContextInfo provider.
@@ -76,7 +76,7 @@ def _process(
             ctx,
             validated_proguard_spec,
             proguard_spec,
-            proguard_whitelister,
+            proguard_allowlister,
         )
         validated_proguard_configs.append(validated_proguard_spec)
 

@@ -22,30 +22,29 @@ load(
     "@rules_android//rules:common.bzl",
     _common = "common",
 )
+load("@rules_android//rules:intellij.bzl", "intellij")
 load(
     "@rules_android//rules:java.bzl",
     _java = "java",
 )
+load("@rules_android//rules:providers.bzl", "AndroidLintRulesInfo")
 load(
     "@rules_android//rules:resources.bzl",
     _resources = "resources",
-)
-load(
-    "@rules_android//rules:testing.bzl",
-    _testing = "testing",
 )
 load(
     "@rules_android//rules:utils.bzl",
     _get_android_toolchain = "get_android_toolchain",
     _utils = "utils",
 )
-load(
-    "@rules_android//rules/flags:flags.bzl",
-    _flags = "flags",
-)
 
 RULE_PREFIX = "_aar"
 ANDROID_MANIFEST = "AndroidManifest.xml"
+LINT_JAR = "lint.jar"
+_UNEXPECTED_LINT_JAR_ERROR = (
+    "In target %s, has_lint_jar attribute is required when the aar contains " +
+    "a lint.jar file."
+)
 
 def _create_aar_artifact(ctx, name):
     return ctx.actions.declare_file("%s/%s/%s" % (RULE_PREFIX, ctx.label.name, name))
@@ -115,12 +114,10 @@ def _extract_native_libs(
 def _process_resources(
         ctx,
         aar,
+        manifest,
         deps,
         aar_resources_extractor_tool,
         unzip_tool):
-    providers = []
-    validation_outputs = []
-
     # Extract resources and assets, if they exist.
     resources = _create_aar_tree_artifact(ctx, "resources")
     assets = _create_aar_tree_artifact(ctx, "assets")
@@ -132,39 +129,16 @@ def _process_resources(
         aar_resources_extractor_tool,
     )
 
-    # Extract the AndroidManifest.xml from the AAR.
-    android_manifest = _create_aar_artifact(ctx, ANDROID_MANIFEST)
-    _extract_single_file(
+    resources_ctx = _resources.process_starlark(
         ctx,
-        android_manifest,
-        aar,
-        ANDROID_MANIFEST,
-        unzip_tool,
-    )
-
-    data_ctx = android_data.make_context(ctx.actions, ctx.attr)
-    resource_apk = android_data.process_aar_import_data(
-        data_ctx,
-        resources,
-        assets,
-        android_manifest,
-        deps = deps,
-    )
-
-    validated_resources = _utils.only(
-        resource_apk[AndroidResourcesInfo].direct_android_resources.to_list(),
-    )
-
-    starlark_resources_ctx = _resources.process_starlark(
-        ctx,
-        manifest = android_manifest,
+        manifest = manifest,
         assets = [assets],
         assets_dir = assets.path,
         resource_files = [resources],
         stamp_manifest = False,
         deps = ctx.attr.deps,
         exports = ctx.attr.exports,
-        exports_manifest = True,
+        exports_manifest = getattr(ctx.attr, "exports_manifest", True),
 
         # Tool and Processing related inputs
         aapt = _get_android_toolchain(ctx).aapt2.files_to_run,
@@ -176,31 +150,26 @@ def _process_resources(
         instrument_xslt = _utils.only(_get_android_toolchain(ctx).add_g3itr_xslt.files.to_list()),
         xsltproc = _get_android_toolchain(ctx).xsltproc_tool.files_to_run,
     )
-    if _acls.in_aar_propagate_resources(str(ctx.label)):
-        providers.append(resource_apk[AndroidResourcesInfo])
-        providers.append(resource_apk[AndroidAssetsInfo])
-        providers.extend(starlark_resources_ctx["providers"])
 
-    # Reusing the same ACL as android_library
-    if (_acls.in_android_library_starlark_resources(str(ctx.label)) and
-        starlark_resources_ctx["validation_results"]):
-        validation_outputs.extend(starlark_resources_ctx["validation_results"])
+    # TODO: replace android_data
+    # data_ctx = android_data.make_context(ctx.actions, ctx.attr)
+    # resource_apk = android_data.process_aar_import_data(
+    #     data_ctx,
+    #     resources,
+    #     assets,
+    #     manifest,
+    #     deps = deps,
+    # )
+    # resources_ctx["validation_results"].append(
+    #     _utils.only(resource_apk[AndroidResourcesInfo].direct_android_resources.to_list()).java_class_jar,
+    # )
+    # resources_ctx["providers"].append(resource_apk[AndroidResourcesInfo])
+    # resources_ctx["providers"].append(resource_apk[AndroidAssetsInfo])
 
-    if _flags.get(ctx).android_enable_starlark_resource_diff:
-        if starlark_resources_ctx["resources_apk"]:
-            validation_output = ctx.actions.declare_file(ctx.label.name + "/.validation")
-            _testing.diff_resource_apk(
-                ctx,
-                out_validation = validation_output,
-                resources_apk = starlark_resources_ctx["resources_apk"],
-                native_apk = validated_resources.apk,
-                aapt = _get_android_toolchain(ctx).aapt2.files_to_run,
-                diff_stub_script = ctx.file._diff_test_validation_stub_script,
-            )
-            validation_outputs.append(validation_output)
+    if not _acls.in_aar_propagate_resources(str(ctx.label)):
+        resources_ctx["providers"] = []
 
-    validation_outputs.append(validated_resources.java_class_jar)
-    return providers, validation_outputs, validated_resources.java_class_jar
+    return struct(**resources_ctx)
 
 def _extract_jars(
         ctx,
@@ -310,7 +279,7 @@ def _process_jars(
         out_jar,
         aar,
         source_jar,
-        r_jar,
+        r_java,
         deps,
         exports,
         enable_desugar_java8,
@@ -323,7 +292,8 @@ def _process_jars(
         java_toolchain,
         host_javabase):
     providers = []
-    validation_outputs = []
+    validation_results = []
+    r_java_info = [r_java] if r_java else []
 
     # An aar may have multple Jar files, extract and merge into a single jar.
     _extract_and_merge_jars(
@@ -342,11 +312,11 @@ def _process_jars(
             bootclasspath,
         ])
 
-    merged_java_info = java_common.merge(java_infos)
+    merged_java_info = java_common.merge(java_infos + r_java_info)
     jdeps_artifact = _create_aar_artifact(ctx, "jdeps.proto")
     _create_import_deps_check(
         ctx,
-        [out_jar, r_jar],
+        [out_jar],
         merged_java_info.compile_jars,
         merged_java_info.transitive_compile_time_jars,
         bootclasspath,
@@ -355,27 +325,87 @@ def _process_jars(
         host_javabase,
     )
     if enable_imports_deps_check:
-        validation_outputs.append(jdeps_artifact)
+        validation_results.append(jdeps_artifact)
 
-    providers.append(
-        JavaInfo(
-            out_jar,
-            compile_jar = java_common.stamp_jar(
-                actions = ctx.actions,
-                jar = out_jar,
-                target_label = ctx.label,
-                java_toolchain = java_toolchain,
-            ),
-            source_jar = source_jar,
-            neverlink = False,
-            deps = java_infos,  # TODO(djwhang): Exports are not deps.
-            exports = java_infos,  # TODO(djwhang): Deps are not exports.
-            # TODO(djwhang): AarImportTest is not expecting jdeps, enable or remove it completely
-            # jdeps = jdeps_artifact,
+    java_info = JavaInfo(
+        out_jar,
+        compile_jar = java_common.stamp_jar(
+            actions = ctx.actions,
+            jar = out_jar,
+            target_label = ctx.label,
+            java_toolchain = java_toolchain,
         ),
+        source_jar = source_jar,
+        neverlink = False,
+        deps = r_java_info + java_infos,  # TODO(djwhang): Exports are not deps.
+        exports =
+            (r_java_info if _acls.in_aar_import_exports_r_java(str(ctx.label)) else []) +
+            java_infos,  # TODO(djwhang): Deps are not exports.
+        # TODO(djwhang): AarImportTest is not expecting jdeps, enable or remove it completely
+        # jdeps = jdeps_artifact,
+    )
+    providers.append(java_info)
+
+    return struct(
+        java_info = java_info,
+        providers = providers,
+        validation_results = validation_results,
     )
 
-    return providers, validation_outputs
+def _validate_rule(
+        ctx,
+        aar,
+        manifest,
+        checks):
+    package = _java.resolve_package_from_label(ctx.label, ctx.attr.package)
+    validation_output = ctx.actions.declare_file("%s_validation_output" % ctx.label.name)
+
+    args = ctx.actions.args()
+    args.add("-aar", aar)
+    inputs = [aar]
+    args.add("-label", str(ctx.label))
+    if _acls.in_aar_import_pkg_check(str(ctx.label)):
+        args.add("-pkg", package)
+        args.add("-manifest", manifest)
+        inputs.append(manifest)
+    if ctx.attr.has_lint_jar:
+        args.add("-has_lint_jar")
+    args.add("-output", validation_output)
+
+    ctx.actions.run(
+        executable = checks,
+        arguments = [args],
+        inputs = inputs,
+        outputs = [validation_output],
+        mnemonic = "ValidateAAR",
+        progress_message = "Validating aar_import %s" % str(ctx.label),
+    )
+    return validation_output
+
+def _process_lint_rules(
+        ctx,
+        aar,
+        unzip_tool):
+    providers = []
+
+    if ctx.attr.has_lint_jar:
+        lint_jar = _create_aar_artifact(ctx, LINT_JAR)
+        _extract_single_file(
+            ctx,
+            lint_jar,
+            aar,
+            LINT_JAR,
+            unzip_tool,
+        )
+        providers.append(AndroidLintRulesInfo(
+            lint_jar = lint_jar,
+        ))
+
+    providers.extend(_utils.collect_providers(
+        AndroidLintRulesInfo,
+        ctx.attr.exports,
+    ))
+    return providers
 
 def impl(ctx):
     """The rule implementation.
@@ -390,25 +420,37 @@ def impl(ctx):
     validation_outputs = []
 
     aar = _utils.only(ctx.files.aar)
+    unzip_tool = _get_android_toolchain(ctx).unzip_tool.files_to_run
 
-    res_providers, res_validations, r_jar = _process_resources(
+    # Extract the AndroidManifest.xml from the AAR.
+    android_manifest = _create_aar_artifact(ctx, ANDROID_MANIFEST)
+    _extract_single_file(
+        ctx,
+        android_manifest,
+        aar,
+        ANDROID_MANIFEST,
+        unzip_tool,
+    )
+
+    resources_ctx = _process_resources(
         ctx,
         aar = aar,
+        manifest = android_manifest,
         deps = ctx.attr.deps,
         aar_resources_extractor_tool =
             _get_android_toolchain(ctx).aar_resources_extractor.files_to_run,
-        unzip_tool = _get_android_toolchain(ctx).unzip_tool.files_to_run,
+        unzip_tool = unzip_tool,
     )
-    providers.extend(res_providers)
+    providers.extend(resources_ctx.providers)
 
     merged_jar = _create_aar_artifact(ctx, "classes_and_libs_merged.jar")
-    jar_providers, jar_validations = _process_jars(
+    jvm_ctx = _process_jars(
         ctx,
         out_jar = merged_jar,
         aar = aar,
         source_jar = ctx.file.srcjar,
         deps = _utils.collect_providers(JavaInfo, ctx.attr.deps),
-        r_jar = r_jar,
+        r_java = resources_ctx.r_java,
         exports = _utils.collect_providers(JavaInfo, ctx.attr.exports),
         enable_desugar_java8 = ctx.fragments.android.desugar_java8,
         enable_imports_deps_check =
@@ -427,8 +469,8 @@ def impl(ctx):
             ctx.attr._java_toolchain[java_common.JavaToolchainInfo],
         host_javabase = ctx.attr._host_javabase,
     )
-    providers.extend(jar_providers)
-    validation_outputs.extend(jar_validations)
+    providers.extend(jvm_ctx.providers)
+    validation_outputs.extend(jvm_ctx.validation_results)
 
     native_libs = _create_aar_artifact(ctx, "native_libs.zip")
     _extract_native_libs(
@@ -453,6 +495,38 @@ def impl(ctx):
         ),
     )
 
+    lint_providers = _process_lint_rules(
+        ctx,
+        aar = aar,
+        unzip_tool = unzip_tool,
+    )
+    providers.extend(lint_providers)
+
+    validation_outputs.append(_validate_rule(
+        ctx,
+        aar = aar,
+        manifest = android_manifest,
+        checks = _get_android_toolchain(ctx).aar_import_checks.files_to_run,
+    ))
+
+    providers.append(
+        intellij.make_android_ide_info(
+            ctx,
+            java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.package),
+            manifest = resources_ctx.merged_manifest,
+            defines_resources = resources_ctx.defines_resources,
+            merged_manifest = resources_ctx.merged_manifest,
+            resources_apk = resources_ctx.resources_apk,
+            r_jar = _utils.only(resources_ctx.r_java.outputs.jars) if resources_ctx.r_java else None,
+            java_info = jvm_ctx.java_info,
+            signed_apk = None,  # signed_apk, always empty for aar_import
+            apks_under_test = [],  # apks_under_test, always empty for aar_import
+            native_libs = dict(),  # nativelibs, always empty for aar_import
+            idlclass = _get_android_toolchain(ctx).idlclass.files_to_run,
+            host_javabase = _common.get_host_javabase(ctx),
+        ),
+    )
+
     providers.append(OutputGroupInfo(_validation = depset(validation_outputs)))
 
     # There isn't really any use case for building an aar_import target on its own, so the files to
@@ -460,7 +534,7 @@ def impl(ctx):
     # Bazel developers so that `bazel build java/com/my_aar_import` will fail if the resource
     # processing or JAR merging steps fail.
     files_to_build = []
-    files_to_build.extend(res_validations)  # TODO(djwhang): This should be validation.
+    files_to_build.extend(resources_ctx.validation_results)  # TODO(djwhang): This should be validation.
     files_to_build.append(merged_jar)
 
     providers.append(

@@ -1,8 +1,19 @@
 # Android support in Bazel
 
-## Overview
+## Disclaimer
 
-NOTE: This branch contains a development preview of the Starlark implementation of Android rules for Bazel. This code is incomplete and will not function as-is.
+NOTE: This branch contains a development preview of the Starlark implementation of Android rules for Bazel. This code is incomplete and may not function as-is.
+
+Bazel 4.0.0 or newer and the following flags are necessary to use these rules:
+```
+--experimental_enable_android_migration_apis
+--experimental_google_legacy_api
+--incompatible_java_common_parameters
+--android_databinding_use_v3_4_args
+--experimental_android_databinding_v2
+```
+
+## Overview
 
 This repository contains the Starlark implementation of Android rules in Bazel.
 

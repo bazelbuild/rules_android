@@ -21,10 +21,14 @@ load("@rules_android//rules:data_binding.bzl", _data_binding = "data_binding")
 load("@rules_android//rules:idl.bzl", _idl = "idl")
 load("@rules_android//rules:intellij.bzl", _intellij = "intellij")
 load("@rules_android//rules:java.bzl", _java = "java")
+load(
+    "@rules_android//rules:processing_pipeline.bzl",
+    "ProviderInfo",
+    "processing_pipeline",
+)
 load("@rules_android//rules:proguard.bzl", _proguard = "proguard")
 load("@rules_android//rules:resources.bzl", _resources = "resources")
-load("@rules_android//rules:testing.bzl", _testing = "testing")
-load("@rules_android//rules:utils.bzl", "get_android_toolchain", "log", "utils")
+load("@rules_android//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("@rules_android//rules/flags:flags.bzl", _flags = "flags")
 
 _USES_DEPRECATED_IMPLICIT_EXPORT_ERROR = (
@@ -111,20 +115,11 @@ def _validate_rule_context(ctx):
         enable_deps_without_srcs = _check_deps_without_java_srcs(ctx),
     )
 
-# TODO(djwhang): When a provider type can be retrieved from a Starlark provider
-# ProviderInfo is necessary. Once this is possible, processor methods can have a
-# uniform method signature foo(ctx, target_ctx) where we can pull the provider
-# off the target_ctx using the provider type.
-#
-# Yes, this effectively leads to producing a build rule like system within a
-# build rule, rather than resorting to rule based composition.
-ProviderInfo = provider(
-    "Stores metadata about the actual Starlark provider returned.",
-    fields = dict(
-        name = "The type of the provider",
-        value = "The actual provider",
-    ),
-)
+def _exceptions_processor(ctx, **unused_ctxs):
+    return ProviderInfo(
+        name = "exceptions_ctx",
+        value = _validate_rule_context(ctx),
+    )
 
 def _process_resources(ctx, java_package, **unused_ctxs):
     # exports_manifest can be overridden by a bazel flag.
@@ -160,10 +155,9 @@ def _process_resources(ctx, java_package, **unused_ctxs):
 
         # Tool and Processing related inputs
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
-        android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,
+        android_jar = get_android_sdk(ctx).android_jar,
         android_kit = get_android_toolchain(ctx).android_kit.files_to_run,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
-        diff_stub_script = ctx.file._diff_test_validation_stub_script,
         java_toolchain = _common.get_java_toolchain(ctx),
         host_javabase = _common.get_host_javabase(ctx),
         instrument_xslt = utils.only(get_android_toolchain(ctx).add_g3itr_xslt.files.to_list()),
@@ -186,25 +180,6 @@ def _process_resources(ctx, java_package, **unused_ctxs):
                 log.error(_SRCS_CONTAIN_RESOURCE_LABEL_ERROR %
                           src[AndroidResourcesInfo].label)
 
-    # TODO(b/69552500): In the Starlark Android Library rules, the R compile time
-    # JavaInfo is added as a runtime dependency to the JavaInfo. Stop adding the
-    # R.jar as a runtime dependency.
-    resources_ctx.providers.append(
-        AndroidLibraryResourceClassJarProvider(
-            depset(
-                (resources_ctx.r_java.runtime_output_jars if resources_ctx.r_java else []),
-                transitive = [
-                    p.jars
-                    for p in utils.collect_providers(
-                        AndroidLibraryResourceClassJarProvider,
-                        ctx.attr.deps,
-                        ctx.attr.exports,
-                    )
-                ],
-                order = "preorder",
-            ),
-        ),
-    )
     return ProviderInfo(
         name = "resources_ctx",
         value = resources_ctx,
@@ -222,9 +197,9 @@ def _process_idl(ctx, **unused_sub_ctxs):
             idl_preprocessed = ctx.files.idl_preprocessed,
             deps = utils.collect_providers(AndroidIdlInfo, ctx.attr.deps),
             exports = utils.collect_providers(AndroidIdlInfo, ctx.attr.exports),
-            aidl = ctx.attr._android_sdk[AndroidSdkInfo].aidl,
-            aidl_lib = ctx.attr._android_sdk[AndroidSdkInfo].aidl_lib,
-            aidl_framework = ctx.attr._android_sdk[AndroidSdkInfo].framework_aidl,
+            aidl = get_android_sdk(ctx).aidl,
+            aidl_lib = get_android_sdk(ctx).aidl_lib,
+            aidl_framework = get_android_sdk(ctx).framework_aidl,
         ),
     )
 
@@ -260,12 +235,12 @@ def _process_proguard(ctx, idl_ctx, **unused_sub_ctxs):
                 ctx.attr.exported_plugins,
                 idl_ctx.idl_deps,
             ),
-            proguard_whitelister =
-                get_android_toolchain(ctx).proguard_whitelister.files_to_run,
+            proguard_allowlister =
+                get_android_toolchain(ctx).proguard_allowlister.files_to_run,
         ),
     )
 
-def _process_jvm(ctx, exceptions, resources_ctx, idl_ctx, db_ctx, **unused_sub_ctxs):
+def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_sub_ctxs):
     java_info = _java.compile_android(
         ctx,
         ctx.outputs.lib_jar,
@@ -290,11 +265,10 @@ def _process_jvm(ctx, exceptions, resources_ctx, idl_ctx, db_ctx, **unused_sub_c
         annotation_processor_additional_inputs = (
             db_ctx.java_annotation_processor_additional_inputs
         ),
-        enable_deps_without_srcs = exceptions.enable_deps_without_srcs,
+        enable_deps_without_srcs = exceptions_ctx.enable_deps_without_srcs,
         neverlink = ctx.attr.neverlink,
         strict_deps = "DEFAULT",
         java_toolchain = _common.get_java_toolchain(ctx),
-        host_javabase = _common.get_host_javabase(ctx),
     )
 
     return ProviderInfo(
@@ -311,65 +285,33 @@ def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
         _VALIDATION_OUTPUTS: [],
     }
 
-    if acls.in_android_library_starlark_resources(str(ctx.label)):
-        starlark_aar = _resources.make_aar(
-            ctx,
-            manifest = resources_ctx.starlark_processed_manifest,
-            assets = ctx.files.assets,
-            assets_dir = ctx.attr.assets_dir,
-            resource_files = resources_ctx.starlark_processed_resources if not ctx.attr.neverlink else [],
-            class_jar = ctx.outputs.lib_jar,
-            r_txt = resources_ctx.starlark_r_txt,
-            proguard_specs = proguard_ctx.proguard_configs,
-            busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
-            host_javabase = _common.get_host_javabase(ctx),
-        )
-        if _flags.get(ctx).android_enable_starlark_resource_diff:
-            if _java.invalid_java_package(ctx.attr.custom_package, java_package):
-                pass  # Skip the test if using an invalid java_package.
-            elif starlark_aar:
-                aar_validation_output = ctx.actions.declare_file(ctx.label.name + "/.aar_validation")
-                _testing.diff_aar(
-                    ctx,
-                    out_validation = aar_validation_output,
-                    starlark_aar = starlark_aar,
-                    native_aar = ctx.outputs.aar,
-                )
-                aar_ctx[_VALIDATION_OUTPUTS].append(aar_validation_output)
+    starlark_aar = _resources.make_aar(
+        ctx,
+        manifest = resources_ctx.starlark_processed_manifest,
+        assets = ctx.files.assets,
+        assets_dir = ctx.attr.assets_dir,
+        resource_files = resources_ctx.starlark_processed_resources if not ctx.attr.neverlink else [],
+        class_jar = ctx.outputs.lib_jar,
+        r_txt = resources_ctx.starlark_r_txt,
+        proguard_specs = proguard_ctx.proguard_configs,
+        busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
+        host_javabase = _common.get_host_javabase(ctx),
+    )
 
-        # TODO(b/170409221): Clean this up once Starlark migration is complete. Create and propagate
-        # a native aar info provider with the Starlark artifacts to avoid breaking downstream
-        # targets.
-        if not ctx.attr.neverlink:
-            aar_ctx[_PROVIDERS].append(AndroidLibraryAarInfo(
-                aar = starlark_aar,
-                manifest = resources_ctx.starlark_processed_manifest,
-                aars_from_deps = utils.collect_providers(
-                    AndroidLibraryAarInfo,
-                    ctx.attr.deps,
-                    ctx.attr.exports,
-                ),
-                defines_local_resources = resources_ctx.defines_resources,
-            ))
-    else:
-        # This method always needs to run, even if neverlink is True.
-        native_aar_info = android_data.make_aar(
-            android_data.make_context(ctx.actions, ctx.attr),
-            resources_ctx.resources_provider,
-            resources_ctx.assets_provider,
-            ctx.outputs.lib_jar,
-            local_proguard_specs = proguard_ctx.proguard_configs,
-            deps = utils.collect_providers(
+    # TODO(b/170409221): Clean this up once Starlark migration is complete. Create and propagate
+    # a native aar info provider with the Starlark artifacts to avoid breaking downstream
+    # targets.
+    if not ctx.attr.neverlink:
+        aar_ctx[_PROVIDERS].append(AndroidLibraryAarInfo(
+            aar = starlark_aar,
+            manifest = resources_ctx.starlark_processed_manifest,
+            aars_from_deps = utils.collect_providers(
                 AndroidLibraryAarInfo,
                 ctx.attr.deps,
                 ctx.attr.exports,
             ),
-            # android_library should always produce an aar, the provider will only
-            # be propagated when neverlink is not True.
-            neverlink = False,
-        )
-        if not ctx.attr.neverlink:
-            aar_ctx[_PROVIDERS].append(native_aar_info)
+            defines_local_resources = resources_ctx.defines_resources,
+        ))
 
     return ProviderInfo(
         name = "aar_ctx",
@@ -395,31 +337,31 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
                     ),
                 ),
                 AndroidCcLinkParamsInfo(
-                    cc_common.link_params_merge(
-                        [
-                            info.cc_info
-                            for info in utils.collect_providers(
-                                JavaCcLinkParamsInfo,
-                                ctx.attr.deps,
-                                ctx.attr.exports,
-                                idl_ctx.idl_deps,
-                            )
-                        ] +
-                        [
-                            info.link_params
-                            for info in utils.collect_providers(
-                                AndroidCcLinkParamsInfo,
-                                ctx.attr.deps,
-                                ctx.attr.exports,
-                                idl_ctx.idl_deps,
-                            )
-                        ] +
-                        utils.collect_providers(
-                            CcInfo,
-                            ctx.attr.deps,
-                            ctx.attr.exports,
-                            idl_ctx.idl_deps,
-                        ),
+                    cc_common.merge_cc_infos(
+                        cc_infos = [
+                                       info.cc_info
+                                       for info in utils.collect_providers(
+                                           JavaCcLinkParamsInfo,
+                                           ctx.attr.deps,
+                                           ctx.attr.exports,
+                                           idl_ctx.idl_deps,
+                                       )
+                                   ] +
+                                   [
+                                       info.link_params
+                                       for info in utils.collect_providers(
+                                           AndroidCcLinkParamsInfo,
+                                           ctx.attr.deps,
+                                           ctx.attr.exports,
+                                           idl_ctx.idl_deps,
+                                       )
+                                   ] +
+                                   utils.collect_providers(
+                                       CcInfo,
+                                       ctx.attr.deps,
+                                       ctx.attr.exports,
+                                       idl_ctx.idl_deps,
+                                   ),
                     ),
                 ),
             ],
@@ -440,7 +382,7 @@ def _process_intellij(ctx, java_package, resources_ctx, idl_ctx, jvm_ctx, **unus
         idl_java_srcs = idl_ctx.idl_java_srcs,
         java_info = jvm_ctx.java_info,
         signed_apk = None,  # signed_apk, always empty for android_library.
-        aar = ctx.outputs.aar,
+        aar = getattr(ctx.outputs, "aar", None),  # Deprecate aar for android_library.
         apks_under_test = [],  # apks_under_test, always empty for android_library
         native_libs = dict(),  # nativelibs, always empty for android_library
         idlclass = get_android_toolchain(ctx).idlclass.files_to_run,
@@ -454,7 +396,76 @@ def _process_intellij(ctx, java_package, resources_ctx, idl_ctx, jvm_ctx, **unus
         ),
     )
 
-def _process_outputs(ctx, resources_ctx, jvm_ctx, proguard_ctx, validation_outputs, **unused_ctx):
+def _process_coverage(ctx, **unused_ctx):
+    return ProviderInfo(
+        name = "coverage_ctx",
+        value = struct(
+            providers = [
+                coverage_common.instrumented_files_info(
+                    ctx,
+                    dependency_attributes = ["assets", "deps", "exports"],
+                ),
+            ],
+        ),
+    )
+
+# Order dependent, as providers will not be available to downstream processors
+# that may depend on the provider. Iteration order for a dictionary is based on
+# insertion.
+PROCESSORS = dict(
+    ExceptionsProcessor = _exceptions_processor,
+    ResourceProcessor = _process_resources,
+    IdlProcessor = _process_idl,
+    DataBindingProcessor = _process_data_binding,
+    JvmProcessor = _process_jvm,
+    ProguardProcessor = _process_proguard,
+    AarProcessor = _process_aar,
+    NativeProcessor = _process_native,
+    IntelliJProcessor = _process_intellij,
+    CoverageProcessor = _process_coverage,
+)
+
+# TODO(b/119560471): Deprecate the usage of legacy providers.
+def _make_legacy_provider(intellij_ctx, jvm_ctx, providers):
+    return struct(
+        android = _intellij.make_legacy_android_provider(intellij_ctx.android_ide_info),
+        java = struct(
+            annotation_processing = jvm_ctx.java_info.annotation_processing,
+            compilation_info = jvm_ctx.java_info.compilation_info,
+            outputs = jvm_ctx.java_info.outputs,
+            source_jars = depset(jvm_ctx.java_info.source_jars),
+            transitive_deps = jvm_ctx.java_info.transitive_compile_time_jars,
+            transitive_exports = jvm_ctx.java_info.transitive_exports,
+            transitive_runtime_deps = jvm_ctx.java_info.transitive_runtime_jars,
+            transitive_source_jars = jvm_ctx.java_info.transitive_source_jars,
+        ),
+        providers = providers,
+    )
+
+def finalize(
+        ctx,
+        resources_ctx,
+        intellij_ctx,
+        jvm_ctx,
+        proguard_ctx,
+        providers,
+        validation_outputs,
+        **unused_ctxs):
+    """Creates the DefaultInfo and OutputGroupInfo providers.
+
+    Args:
+      ctx: The context.
+      resources_ctx: ProviderInfo. The resources ctx.
+      intellij_ctx: ProviderInfo. The intellij ctx.
+      jvm_ctx: ProviderInfo. The jvm ctx.
+      proguard_ctx: ProviderInfo. The proguard ctx.
+      providers: sequence of providers. The providers to propagate.
+      validation_outputs: sequence of Files. The validation outputs.
+      **unused_ctxs: Unused ProviderInfo.
+
+    Returns:
+      A struct with Android and Java legacy providers and a list of providers.
+    """
     transitive_runfiles = []
     if not ctx.attr.neverlink:
         for p in utils.collect_providers(
@@ -477,95 +488,38 @@ def _process_outputs(ctx, resources_ctx, jvm_ctx, proguard_ctx, validation_outpu
         files.append(ctx.outputs.resources_src_jar)
     if getattr(ctx.outputs, "resources_jar", None):
         files.append(ctx.outputs.resources_jar)
-    return ProviderInfo(
-        name = "output_ctx",
-        value = struct(
-            providers = [
-                DefaultInfo(
-                    files = depset(files),
-                    runfiles = runfiles,
-                ),
-                OutputGroupInfo(
-                    compilation_outputs = depset([ctx.outputs.lib_jar]),
-                    _source_jars = depset(
-                        [ctx.outputs.lib_src_jar],
-                        transitive = [jvm_ctx.java_info.transitive_source_jars],
-                    ),
-                    _hidden_top_level_INTERNAL_ = depset(
-                        resources_ctx.validation_results,
-                        transitive = [
-                            info._hidden_top_level_INTERNAL_
-                            for info in utils.collect_providers(
-                                OutputGroupInfo,
-                                ctx.attr.deps,
-                                ctx.attr.exports,
-                            )
-                        ] + [proguard_ctx.transitive_proguard_configs],
-                    ),
-                    _validation = depset(validation_outputs),
-                ),
-            ],
-        ),
-    )
 
-# Order dependent, as providers will not be available to downstream processors
-# that may depend on the provider. Iteration order for a dictionary is based on
-# insertion.
-PROCESSING_PIPELINE = dict(
-    ResourceProcessor = _process_resources,
-    IdlProcessor = _process_idl,
-    DataBindingProcessor = _process_data_binding,
-    JvmProcessor = _process_jvm,
-    ProguardProcessor = _process_proguard,
-    AarProcessor = _process_aar,
-    NativeProcessor = _process_native,
-    IntelliJProcessor = _process_intellij,
-    OutputProcessor = _process_outputs,
+    providers.extend([
+        DefaultInfo(
+            files = depset(files),
+            runfiles = runfiles,
+        ),
+        OutputGroupInfo(
+            compilation_outputs = depset([ctx.outputs.lib_jar]),
+            _source_jars = depset(
+                [ctx.outputs.lib_src_jar],
+                transitive = [jvm_ctx.java_info.transitive_source_jars],
+            ),
+            _hidden_top_level_INTERNAL_ = depset(
+                resources_ctx.validation_results,
+                transitive = [
+                    info._hidden_top_level_INTERNAL_
+                    for info in utils.collect_providers(
+                        OutputGroupInfo,
+                        ctx.attr.deps,
+                        ctx.attr.exports,
+                    )
+                ] + [proguard_ctx.transitive_proguard_configs],
+            ),
+            _validation = depset(validation_outputs),
+        ),
+    ])
+    return _make_legacy_provider(intellij_ctx, jvm_ctx, providers)
+
+_PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
+    processors = PROCESSORS,
+    finalize = finalize,
 )
-
-def init_target_ctx(ctx):
-    """Creates and initializes the target context.
-
-    Args:
-      ctx: The context.
-
-    Returns:
-      A dictionary which represents the target context that will be built up by the
-      processing pipeline.
-    """
-    return dict(
-        java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package),
-        exceptions = _validate_rule_context(ctx),
-        providers = [],
-        validation_outputs = [],
-    )
-
-def run(ctx, target_ctx, processing_pipeline):
-    for execute in processing_pipeline.values():
-        info = execute(ctx, **target_ctx)
-        if info.name in target_ctx:
-            fail("%s provider already registered in target context" % info.name)
-        target_ctx[info.name] = info.value
-        target_ctx["providers"].extend(info.value.providers)
-        target_ctx[_VALIDATION_OUTPUTS].extend(getattr(info.value, _VALIDATION_OUTPUTS, []))
-    return struct(**target_ctx)
-
-# TODO(b/119560471): Deprecate the usage of legacy providers.
-def make_legacy_provider(target_ctx):
-    return struct(
-        android = _intellij.make_legacy_android_provider(target_ctx.intellij_ctx.android_ide_info),
-        java = struct(
-            annotation_processing = target_ctx.jvm_ctx.java_info.annotation_processing,
-            compilation_info = target_ctx.jvm_ctx.java_info.compilation_info,
-            outputs = target_ctx.jvm_ctx.java_info.outputs,
-            source_jars = depset(target_ctx.jvm_ctx.java_info.source_jars),
-            transitive_deps = target_ctx.jvm_ctx.java_info.transitive_compile_time_jars,
-            transitive_exports = target_ctx.jvm_ctx.java_info.transitive_exports,
-            transitive_runtime_deps = target_ctx.jvm_ctx.java_info.transitive_runtime_jars,
-            transitive_source_jars = target_ctx.jvm_ctx.java_info.transitive_source_jars,
-        ),
-        providers = target_ctx.providers,
-    )
 
 def impl(ctx):
     """The rule implementation.
@@ -576,5 +530,5 @@ def impl(ctx):
     Returns:
       A legacy struct provider.
     """
-    target_ctx = run(ctx, init_target_ctx(ctx), PROCESSING_PIPELINE)
-    return make_legacy_provider(target_ctx)
+    java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package)
+    return processing_pipeline.run(ctx, java_package, _PROCESSING_PIPELINE)

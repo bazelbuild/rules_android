@@ -67,11 +67,6 @@ ATTRS = _attrs.add(
         _flags = attr.label(
             default = "@rules_android//rules/flags",
         ),
-        _diff_test_validation_stub_script = attr.label(
-            allow_single_file = True,
-            cfg = "host",
-            default = "@rules_android//test/rules/resources:test_stub_script.sh",
-        ),
     ),
     _attrs.COMPILATION,
     _attrs.DATA_CONTEXT,

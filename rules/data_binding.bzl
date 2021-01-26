@@ -94,14 +94,25 @@ def _setup_dependent_lib_artifacts(ctx, output_dir, deps):
         for artifact in (info.transitive_br_files.to_list() +
                          info.setter_stores +
                          info.class_infos):
+            # short_path might contain a parent directory reference if the
+            # databinding artifact is from an external repository (e.g. an aar
+            # from Maven). If that's the case, just remove the parent directory
+            # reference, otherwise the "dependent-lib-artifacts" directory will
+            # get removed by the "..".
+            path = artifact.short_path
+            if path.startswith("../"):
+                path = path[3:]
             dep_lib_artifact = ctx.actions.declare_file(
-                output_dir + "dependent-lib-artifacts/" + artifact.short_path,
+                output_dir + "dependent-lib-artifacts/" + path,
             )
 
             # Copy file to a location required by the DataBinding annotation
             # processor.
             # TODO(djwhang): Look into SymlinkAction.
-            _utils.copy_file(ctx, artifact, dep_lib_artifact)
+            if artifact.is_directory:
+                _utils.copy_dir(ctx, artifact, dep_lib_artifact)
+            else:
+                _utils.copy_file(ctx, artifact, dep_lib_artifact)
             dep_lib_artifacts.append(dep_lib_artifact)
     return dep_lib_artifacts
 
@@ -196,7 +207,7 @@ def _process(
         ]
         return struct(**db_info)
 
-    output_dir = "databinding/%s/" % ctx.label.name
+    output_dir = "_migrated/databinding/%s/" % ctx.label.name
 
     db_info[_JAVA_SRCS].append(_copy_annotation_file(
         ctx,

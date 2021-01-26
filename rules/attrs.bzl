@@ -79,7 +79,7 @@ _tristate = struct(
 _JAVA_RUNTIME = dict(
     _host_javabase = attr.label(
         cfg = "host",
-        default = Label("//tools/jdk:current_java_runtime"),
+        default = Label("@rules_android//rules:current_java_runtime"),
     ),
 )
 
@@ -138,11 +138,26 @@ _COMPILATION = _add(
 _DATA_CONTEXT = _add(
     dict(
         # Additional attrs needed for AndroidDataContext
+        _add_g3itr_xslt = attr.label(
+            cfg = "host",
+            default = Label("//tools/android/xslt:add_g3itr.xslt"),
+            allow_single_file = True,
+        ),
+        _android_manifest_merge_tool = attr.label(
+            cfg = "host",
+            default = Label("//tools/android:merge_manifests"),
+            executable = True,
+        ),
         # TODO(b/145617058) Switching back to head RPBB until the Android rules release process is improved
         _android_resources_busybox = attr.label(
             cfg = "host",
-            default = Label("//third_party/bazel/src/tools/android/java/com/google/devtools/build/android:ResourceProcessorBusyBox"),
+            default = Label("@rules_android//rules:ResourceProcessorBusyBox"),
             executable = True,
+        ),
+        _xsltproc_tool = attr.label(
+            cfg = "host",
+            default = Label("//tools/android/xslt:xslt"),
+            allow_files = True,
         ),
     ),
     _ANDROID_SDK,
@@ -258,8 +273,6 @@ ANDROID_SDK_ATTRS = dict(
 )
 
 ANDROID_TOOLS_DEFAULTS_JAR_ATTRS = _add(_ANDROID_SDK)
-
-
 
 
 attrs = struct(

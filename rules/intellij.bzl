@@ -84,7 +84,12 @@ def _make_android_ide_info(
     # for the idl generated java.
     idl_jar = None
     idl_srcjar = None
-    if idl_java_srcs:
+
+    # TODO(djwhang): JavaInfo.outputs.jar.manifest_proto is not created by
+    # Kotlin compile. Determine if this is the same manifest_proto produced
+    # by turbine, this could be pulled during annotation processing.
+    jar = _utils.only(java_info.outputs.jars)
+    if idl_java_srcs and jar.manifest_proto:
         idl_jar = ctx.actions.declare_file("lib%s-idl.jar" % ctx.label.name)
         idl_srcjar = \
             ctx.actions.declare_file("lib%s-idl.srcjar" % ctx.label.name)

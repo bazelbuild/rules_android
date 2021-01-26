@@ -196,12 +196,26 @@ def _only(collection):
     return _first(collection)
 
 def _copy_file(ctx, src, dest):
+    if src.is_directory or dest.is_directory:
+        fail("Cannot use copy_file with directories")
     ctx.actions.run_shell(
         command = "cp --reflink=auto $1 $2",
         arguments = [src.path, dest.path],
         inputs = [src],
         outputs = [dest],
         mnemonic = "CopyFile",
+        progress_message = "Copy %s to %s" % (src.short_path, dest.short_path),
+    )
+
+def _copy_dir(ctx, src, dest):
+    if not src.is_directory:
+        fail("copy_dir src must be a directory")
+    ctx.actions.run_shell(
+        command = "cp -r --reflink=auto $1 $2",
+        arguments = [src.path, dest.path],
+        inputs = [src],
+        outputs = [dest],
+        mnemonic = "CopyDir",
         progress_message = "Copy %s to %s" % (src.short_path, dest.short_path),
     )
 
@@ -388,6 +402,12 @@ VALIDATION_OUT={validation_out}
 def get_android_toolchain(ctx):
     return ctx.toolchains["@rules_android//toolchains/android:toolchain_type"]
 
+def get_android_sdk(ctx):
+    if hasattr(ctx.fragments.android, "incompatible_use_toolchain_resolution") and ctx.fragments.android.incompatible_use_toolchain_resolution:
+        return ctx.toolchains["@rules_android//toolchains/android_sdk:toolchain_type"].android_sdk_info
+    else:
+        return ctx.attr._android_sdk[AndroidSdkInfo]
+
 def _get_compilation_mode(ctx):
     """Retrieves the compilation mode from the context.
 
@@ -407,6 +427,7 @@ utils = struct(
     check_for_failures = _check_for_failures,
     collect_providers = _collect_providers,
     copy_file = _copy_file,
+    copy_dir = _copy_dir,
     expand_make_vars = _expand_make_vars,
     first = _first,
     get_runfiles = _get_runfiles,

@@ -187,8 +187,7 @@ def _compile_android(
         neverlink = False,
         constraints = ["android"],
         strict_deps = "Error",
-        java_toolchain = None,
-        host_javabase = None):
+        java_toolchain = None):
     """Compiles the Java and IDL sources for Android.
 
     Args:
@@ -217,7 +216,7 @@ def _compile_android(
         target. Optional. By default [].
       strict_deps: string. A string that specifies how to handle strict deps.
         Possible values: 'OFF', 'ERROR','WARN' and 'DEFAULT'. For more details
-        see https://docs.bazel.build/versions/master/bazel-user-manual.html#flag--strict_java_deps.
+        see https://docs.bazel.build/versions/master/user-manual.html#flag--strict_java_deps.
         By default 'ERROR'.
       java_toolchain: The java_toolchain Target.
       host_javabase: The host_javabase Target.
@@ -271,7 +270,6 @@ def _compile_android(
         constraints = constraints,
         strict_deps = strict_deps,
         java_toolchain = java_toolchain,
-        host_javabase = host_javabase,
     )
     return java_info
 
@@ -291,8 +289,7 @@ def _compile(
         neverlink = False,
         constraints = [],
         strict_deps = "Error",
-        java_toolchain = None,
-        host_javabase = None):
+        java_toolchain = None):
     """Compiles the Java and IDL sources for Android.
 
     Args:
@@ -321,7 +318,7 @@ def _compile(
         target. Optional. By default [].
       strict_deps: string. A string that specifies how to handle strict deps.
         Possible values: 'OFF', 'ERROR','WARN' and 'DEFAULT'. For more details
-        see https://docs.bazel.build/versions/master/bazel-user-manual.html#flag--strict_java_deps.
+        see https://docs.bazel.build/versions/master/user-manual.html#flag--strict_java_deps.
         By default 'ERROR'.
       java_toolchain: The java_toolchain Target.
       host_javabase: The host_javabase Target.
@@ -365,7 +362,6 @@ def _compile(
         neverlink = neverlink,
         strict_deps = strict_deps,
         java_toolchain = java_toolchain[java_common.JavaToolchainInfo],
-        host_javabase = host_javabase[java_common.JavaRuntimeInfo],
     )
 
 def _singlejar(
@@ -425,12 +421,12 @@ def _run(
     java_runtime = host_javabase[java_common.JavaRuntimeInfo]
     args["executable"] = java_runtime.java_executable_exec_path
 
-    # tools can be a list or a depset of files
-    tools = args.get("tools", default = [])
-    if type(tools) == type([]):
-        args["tools"] = depset(tools + [jar], transitive = [java_runtime.files])
-    else:
-        args["tools"] = depset([jar], transitive = [tools, java_runtime.files])
+    # inputs can be a list or a depset of File
+    inputs = args.get("inputs", default = [])
+    if type(inputs) == type([]):
+        args["inputs"] = depset(direct = inputs + [jar], transitive = [java_runtime.files])
+    else:  # inputs is a depset
+        args["inputs"] = depset(direct = [jar], transitive = [inputs, java_runtime.files])
 
     jar_args = ctx.actions.args()
     jar_args.add("-jar", jar)

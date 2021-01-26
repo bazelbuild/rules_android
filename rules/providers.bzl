@@ -29,6 +29,7 @@ AndroidAppsInfo = provider(
 
 
 
+
 AndroidJavaInfo = provider(
     doc = "Provides outputs for the Android Java Compilation",
     fields = dict(
@@ -54,23 +55,6 @@ StarlarkApkInfo = provider(
         signing_lineage = "Optional sigining lineage file",
         signed_apk = "Signed APK",
         unsigned_apk = "Unsigned APK",
-    ),
-)
-
-AndroidResourcesV3Info = provider(
-    fields = dict(
-        # For fastr
-        direct_r_pb = "Direct Android Resource protos",
-        transitive_r_pbs = "Transitive Android Resource protos",
-
-        # For the ResourceProcessorBusyBox
-        direct_busybox_flag = "Direct busybox flag, formatted as a single string as busybox requires",
-        transitive_busybox_flags = "Transitive busybox flags, each formatted as busybox requires",
-        transitive_compiled_resources = "Transitive Android Resource flats",
-        transitive_r_txts = "Transitive R txt files",
-        transitive_resource_files = "Transitive Resource files",
-        transitive_manifests = "Transitive Android manifest files",
-        transitive_assets = "Transitive Asset files",
     ),
 )
 
@@ -111,9 +95,24 @@ StarlarkAndroidResourcesInfo = provider(
     ),
 )
 
+AndroidLintRulesInfo = provider(
+    doc = "Provides extra lint rules to use with AndroidLint.",
+    fields = dict(
+        lint_jar = "A file, a lint jar found in an aar.",
+    ),
+)
+
+
 
 FailureInfo = provider(
     fields = dict(
         error = "Error message",
+    ),
+)
+
+AndroidBundleInfo = provider(
+    doc = "Provides .aab outputs from a rule.",
+    fields = dict(
+        unsigned_aab = "File, the unsigned .aab",
     ),
 )

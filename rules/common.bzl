@@ -15,7 +15,7 @@
 """Bazel common library for the Android rules."""
 
 load(":java.bzl", _java = "java")
-load(":utils.bzl", _log = "log")
+load(":utils.bzl", "get_android_sdk", "get_android_toolchain", _log = "log")
 
 # TODO(ostonge): Remove once kotlin/jvm_library.internal.bzl
 # is updated and released to use the java.resolve_package function
@@ -53,11 +53,13 @@ def _sign_apk(ctx, unsigned_apk, signed_apk, keystore = None, signing_keys = [],
 
     if signing_keys:
         inputs.extend(signing_keys)
-        signer_args.add_joined(
-            [key.path for key in signing_keys],
-            join_with = "--next-signer",
-            format_each = "--ks %s --ks-pass pass:android",
-        )
+        for i, key in enumerate(signing_keys):
+            if i > 0:
+                signer_args.add("--next-signer")
+            signer_args.add("--ks")
+            signer_args.add(key.path)
+            signer_args.add("--ks-pass")
+            signer_args.add("pass:android")
         if signing_lineage:
             inputs.append(signing_lineage)
             signer_args.add("--lineage", signing_lineage.path)
@@ -72,7 +74,7 @@ def _sign_apk(ctx, unsigned_apk, signed_apk, keystore = None, signing_keys = [],
     signer_args.add("--out", signed_apk.path)
     signer_args.add(unsigned_apk.path)
     ctx.actions.run(
-        executable = ctx.attr._android_sdk[AndroidSdkInfo].apk_signer,
+        executable = get_android_sdk(ctx).apk_signer,
         inputs = inputs,
         outputs = [signed_apk],
         arguments = [signer_args],
@@ -81,10 +83,29 @@ def _sign_apk(ctx, unsigned_apk, signed_apk, keystore = None, signing_keys = [],
     )
     return signed_apk
 
+def _filter_zip(ctx, in_zip, out_zip, filters = []):
+    """Creates a copy of a zip file with files that match filters."""
+    args = ctx.actions.args()
+    args.add("-q")
+    args.add(in_zip.path)
+    args.add_all(filters)
+    args.add("--copy")
+    args.add("--out")
+    args.add(out_zip.path)
+    ctx.actions.run(
+        executable = get_android_toolchain(ctx).zip_tool.files_to_run,
+        arguments = [args],
+        inputs = [in_zip],
+        outputs = [out_zip],
+        mnemonic = "FilterZip",
+        progress_message = "Filtering %s" % in_zip.short_path,
+    )
+
 common = struct(
     check_rule = _check_rule,
     get_host_javabase = _get_host_javabase,
     get_java_toolchain = _get_java_toolchain,
+    filter_zip = _filter_zip,
     java_package = _java_package,
     sign_apk = _sign_apk,
 )
