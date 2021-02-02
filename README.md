@@ -13,6 +13,15 @@ Bazel 4.0.0 or newer and the following flags are necessary to use these rules:
 --experimental_android_databinding_v2
 ```
 
+Also, register the Android toolchains in the `WORKSPACE` file with:
+```
+register_toolchains(
+  "@rules_android//toolchains/android:android_default_toolchain",
+  "@rules_android//toolchains/android_sdk:android_sdk_tools",
+)
+```
+(Assuming that the Android rules repository in the `WORKSPACE` file is named `rules_android`.)
+
 ## Overview
 
 This repository contains the Starlark implementation of Android rules in Bazel.
