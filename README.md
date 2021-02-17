@@ -45,7 +45,7 @@ To use the new Bazel Android rules, add the following to your WORKSPACE file:
 
 Then, in your BUILD files, import and use the rules:
 
-    load("@build_bazel_rules_android//android:rules.bzl", "android_library")
+    load("@build_bazel_rules_android//rules:rules.bzl", "android_library")
     android_library(
         ...
     )
