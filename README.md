@@ -16,11 +16,11 @@ Bazel 4.0.0 or newer and the following flags are necessary to use these rules:
 Also, register the Android toolchains in the `WORKSPACE` file with:
 ```
 register_toolchains(
-  "@rules_android//toolchains/android:android_default_toolchain",
-  "@rules_android//toolchains/android_sdk:android_sdk_tools",
+  "@build_bazel_rules_android//toolchains/android:android_default_toolchain",
+  "@build_bazel_rules_android//toolchains/android_sdk:android_sdk_tools",
 )
 ```
-(Assuming that the Android rules repository in the `WORKSPACE` file is named `rules_android`.)
+(Assuming that the Android rules repository in the `WORKSPACE` file is named `build_bazel_rules_android`.)
 
 ## Overview
 
