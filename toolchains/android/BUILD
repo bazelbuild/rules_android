@@ -12,7 +12,10 @@ filegroup(
 )
 
 # Android Toolchain Type
-toolchain_type(name = "toolchain_type")
+toolchain_type(
+    name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
 
 # Default Android Toolchain
 android_toolchain(
@@ -44,9 +47,11 @@ EOF
 sh_binary(
     name = "zip",
     srcs = [":zip.sh"],
+    visibility = ["//visibility:public"],
 )
 
 sh_binary(
     name = "unzip",
     srcs = [":unzip.sh"],
+    visibility = ["//visibility:public"],
 )

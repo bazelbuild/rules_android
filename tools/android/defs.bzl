@@ -21,7 +21,20 @@ def _android_jar_impl(ctx):
 
 android_jar = rule(
     implementation = _android_jar_impl,
+    # TODO: Should use a toolchain instead of a configuration_field on
+    # --android_sdk as below, however that appears to be broken when used
+    # from an local_repository: b/183060658.
+    #toolchains = [
+    #    "//toolchains/android_sdk:toolchain_type",
+    #],
     attrs = {
-        "_sdk": attr.label(default = "@androidsdk//:sdk"),
+        "_sdk": attr.label(
+            allow_rules = ["android_sdk"],
+            default = configuration_field(
+                fragment = "android",
+                name = "android_sdk_label",
+            ),
+            providers = [AndroidSdkInfo],
+        ),
     },
 )
