@@ -9,7 +9,10 @@ filegroup(
 )
 
 # Android SDK Toolchain Type
-toolchain_type(name = "toolchain_type")
+toolchain_type(
+    name = "toolchain_type",
+    visibility = ["//visibility:public"],
+)
 
 toolchain(
     name = "android_sdk_tools",
