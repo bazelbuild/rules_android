@@ -76,6 +76,7 @@ _VERSION_CODE = "versionCode"
 
 # Resources context attributes.
 _ASSETS_PROVIDER = "assets_provider"
+_DATA_BINDING_LAYOUT_INFO = "data_binding_layout_info"
 _DEFINES_RESOURCES = "defines_resources"
 _DIRECT_ANDROID_RESOURCES = "direct_android_resources"
 _MERGED_MANIFEST = "merged_manifest"
@@ -97,6 +98,7 @@ _ResourcesProcessContextInfo = provider(
         _MERGED_MANIFEST: "Merged manifest.",
         _PROVIDERS: "The list of all providers to propagate.",
         _R_JAVA: "JavaInfo for R.jar.",
+        _DATA_BINDING_LAYOUT_INFO: "Databinding layout info file.",
         _RESOURCES_APK: "ResourcesApk.",
         _VALIDATION_RESULTS: "List of validation results.",
         _VALIDATION_OUTPUTS: "List of outputs given to OutputGroupInfo _validation group",
@@ -125,6 +127,7 @@ _ResourcesPackageContextInfo = provider(
         _PACKAGED_CLASS_JAR: "R class jar.",
         _PACKAGED_VALIDATION_RESULT: "Validation result.",
         _R_JAVA: "JavaInfo for R.jar",
+        _DATA_BINDING_LAYOUT_INFO: "Databinding layout info file.",
         _PROVIDERS: "The list of all providers to propagate.",
     },
 )
@@ -490,9 +493,6 @@ def _package(
     """
     _validate_resources(resource_files)
 
-    # Filtering is necessary if a build is requested with multiple CPU configurations.
-    deps = _filter_multi_cpu_configuration_targets(deps)
-
     packaged_resources_ctx = {
         _PROVIDERS: [],
     }
@@ -520,6 +520,7 @@ def _package(
     transitive_compiled_resources = []
     transitive_manifests = []
     transitive_r_txts = []
+    packages_to_r_txts_depset = dict()
     for dep in utils.collect_providers(StarlarkAndroidResourcesInfo, deps):
         direct_resources_nodes.append(dep.direct_resources_nodes)
         transitive_resources_nodes.append(dep.transitive_resources_nodes)
@@ -530,6 +531,8 @@ def _package(
         transitive_compiled_resources.append(dep.transitive_compiled_resources)
         transitive_manifests.append(dep.transitive_manifests)
         transitive_r_txts.append(dep.transitive_r_txts)
+        for pkg, r_txts in dep.packages_to_r_txts.items():
+            packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
 
     mergee_manifests = depset([
         node_info.manifest
@@ -574,16 +577,16 @@ def _package(
             )
 
     processed_resources = resource_files
-    databinding_info = None
+    data_binding_layout_info = None
     if enable_data_binding:
-        databinding_info = ctx.actions.declare_file("_migrated/databinding/" + ctx.label.name + "/layout-info.zip")
+        data_binding_layout_info = ctx.actions.declare_file("_migrated/databinding/" + ctx.label.name + "/layout-info.zip")
         processed_resources, resources_dirname = _make_databinding_outputs(
             ctx,
             resource_files,
         )
         _busybox.process_databinding(
             ctx,
-            out_databinding_info = databinding_info,
+            out_databinding_info = data_binding_layout_info,
             out_databinding_processed_resources = processed_resources,
             databinding_resources_dirname = resources_dirname,
             resource_files = resource_files,
@@ -688,6 +691,29 @@ def _package(
     )
 
     packaged_resources_ctx[_R_JAVA] = java_info
+    packaged_resources_ctx[_DATA_BINDING_LAYOUT_INFO] = data_binding_layout_info
+
+    packages_to_r_txts_depset.setdefault(java_package, []).append(depset([r_txt]))
+
+    packages_to_r_txts = dict()
+    for pkg, depsets in packages_to_r_txts_depset.items():
+        packages_to_r_txts[pkg] = depset(transitive = depsets)
+
+    # Adding empty depsets to unused fields of StarlarkAndroidResourcesInfo.
+    # Some root targets may depends on other root targets and try to access those fields.
+    packaged_resources_ctx[_PROVIDERS].append(StarlarkAndroidResourcesInfo(
+        direct_resources_nodes = depset(),
+        transitive_resources_nodes = depset(),
+        transitive_assets = depset(),
+        transitive_assets_symbols = depset(),
+        transitive_compiled_assets = depset(),
+        transitive_resource_files = depset(),
+        direct_compiled_resources = depset(),
+        transitive_compiled_resources = depset(),
+        transitive_manifests = depset(),
+        transitive_r_txts = depset(),
+        packages_to_r_txts = packages_to_r_txts,
+    ))
 
     packaged_resources_ctx[_PROVIDERS].append(AndroidApplicationResourceInfo(
         resource_apk = resource_apk,
@@ -698,7 +724,7 @@ def _package(
         main_dex_proguard_config = main_dex_proguard_cfg,
         r_txt = r_txt,
         resources_zip = resource_files_zip,
-        databinding_info = databinding_info,
+        databinding_info = data_binding_layout_info,
     ))
     return _ResourcesPackageContextInfo(**packaged_resources_ctx)
 
@@ -955,7 +981,7 @@ def _process_starlark(
         resource_files = None,
         neverlink = False,
         enable_data_binding = False,
-        android_test_migration = False,
+        propagate_resources = True,
         fix_resource_transitivity = False,
         aapt = None,
         android_jar = None,
@@ -1002,9 +1028,9 @@ def _process_starlark(
         expressions in layout resources included through the resource_files
         parameter is enabled. Without this setting, data binding expressions
         produce build failures.
-      android_test_migration: boolean. If true, the target is part of the android
-      test to android instrumentation test migration and should not propagate
-      any Android Resource providers.
+      propagate_resources: boolean. If false, the target will no longer propagate
+        providers required for Android Resource processing/packaging. But will
+        continue to propagate others (AndroidLibraryResourceClassJarProvider).
       fix_resource_transitivity: Whether to ensure that transitive resources are
         correctly marked as transitive.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
@@ -1056,6 +1082,7 @@ def _process_starlark(
         _VALIDATION_RESULTS: [],
         _DEFINES_RESOURCES: defines_resources,
         _R_JAVA: None,
+        _DATA_BINDING_LAYOUT_INFO: None,
         _MERGED_MANIFEST: None,
         _STARLARK_PROCESSED_MANIFEST: None,
         _STARLARK_R_TXT: None,
@@ -1078,6 +1105,7 @@ def _process_starlark(
     transitive_resources_files = []
     transitive_manifests = []
     transitive_r_txts = []
+    packages_to_r_txts_depset = dict()
 
     for dep in utils.collect_providers(StarlarkAndroidResourcesInfo, deps):
         direct_resources_nodes.append(dep.direct_resources_nodes)
@@ -1090,6 +1118,8 @@ def _process_starlark(
         transitive_resources_files.append(dep.transitive_resource_files)
         transitive_manifests.append(dep.transitive_manifests)
         transitive_r_txts.append(dep.transitive_r_txts)
+        for pkg, r_txts in dep.packages_to_r_txts.items():
+            packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
 
     exports_direct_resources_nodes = []
     exports_transitive_resources_nodes = []
@@ -1112,6 +1142,8 @@ def _process_starlark(
         exports_transitive_resources_files.append(dep.transitive_resource_files)
         exports_transitive_manifests.append(dep.transitive_manifests)
         exports_transitive_r_txts.append(dep.transitive_r_txts)
+        for pkg, r_txts in dep.packages_to_r_txts.items():
+            packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
 
     # TODO(b/144134042): Don't merge exports; exports are not deps.
     direct_resources_nodes.extend(exports_direct_resources_nodes)
@@ -1130,6 +1162,7 @@ def _process_starlark(
     compiled_resources = None
     out_aapt2_r_txt = None
     r_txt = None
+    data_binding_layout_info = None
     processed_resources = resource_files
     processed_manifest = None
     if not defines_resources:
@@ -1140,8 +1173,9 @@ def _process_starlark(
             )
             _generate_dummy_manifest(
                 ctx,
-                generated_manifest,
-                java_package if java_package else ctx.label.package.replace("/", "."),
+                out_manifest = generated_manifest,
+                java_package = java_package if java_package else ctx.label.package.replace("/", "."),
+                min_sdk_version = 14,
             )
             r_txt = ctx.actions.declare_file(
                 "_migrated/" + ctx.label.name + "_symbols/R.txt",
@@ -1261,7 +1295,7 @@ def _process_starlark(
             )
 
         if enable_data_binding:
-            out_databinding_info = ctx.actions.declare_file(
+            data_binding_layout_info = ctx.actions.declare_file(
                 "_migrated/databinding/" + ctx.label.name + "/layout-info.zip",
             )
             processed_resources, resources_dirname = _make_databinding_outputs(
@@ -1270,7 +1304,7 @@ def _process_starlark(
             )
             _busybox.process_databinding(
                 ctx,
-                out_databinding_info = out_databinding_info,
+                out_databinding_info = data_binding_layout_info,
                 out_databinding_processed_resources = processed_resources,
                 databinding_resources_dirname = resources_dirname,
                 resource_files = resource_files,
@@ -1375,7 +1409,10 @@ def _process_starlark(
             source_jar = r_java,
         )
 
+        packages_to_r_txts_depset.setdefault(java_package, []).append(depset([out_aapt2_r_txt]))
+
         resources_ctx[_R_JAVA] = java_info
+        resources_ctx[_DATA_BINDING_LAYOUT_INFO] = data_binding_layout_info
 
         # In a normal build, the outputs of _busybox.validate_and_link are unused. However we need
         # this action to run to support resource visibility checks.
@@ -1405,6 +1442,10 @@ def _process_starlark(
         # TODO(b/144163743): If the resource transitivity fix is disabled and resources-related
         # inputs are missing, we implicitly export deps here. This legacy behavior must exist in the
         # Starlark resource processing pipeline until we can clean up the depot.
+
+    packages_to_r_txts = dict()
+    for pkg, depsets in packages_to_r_txts_depset.items():
+        packages_to_r_txts[pkg] = depset(transitive = depsets)
 
     # TODO(b/159916013): Audit neverlink behavior. Some processing can likely be skipped if the target is neverlink.
     # TODO(b/69668042): Don't propagate exported providers/artifacts. Exports should respect neverlink.
@@ -1452,6 +1493,7 @@ def _process_starlark(
                 transitive = exports_transitive_r_txts,
                 order = "preorder",
             ),
+            packages_to_r_txts = packages_to_r_txts,
         ))
     else:
         # Depsets are ordered below to match the order in the legacy native rules.
@@ -1516,10 +1558,10 @@ def _process_starlark(
                 transitive = transitive_r_txts + exports_transitive_r_txts,
                 order = "preorder",
             ),
+            packages_to_r_txts = packages_to_r_txts,
         ))
 
-    # Do not collect resources and R.java for test apk
-    if android_test_migration:
+    if not propagate_resources:
         resources_ctx[_R_JAVA] = None
         resources_ctx[_PROVIDERS] = []
 
@@ -1574,7 +1616,7 @@ def _process(
         res_v3_dummy_r_txt = None,
         fix_resource_transitivity = False,
         fix_export_exporting = False,
-        android_test_migration = False,
+        propagate_resources = True,
         zip_tool = None):
     out_ctx = _process_starlark(
         ctx,
@@ -1596,7 +1638,7 @@ def _process(
         enable_data_binding = enable_data_binding,
         fix_resource_transitivity = fix_resource_transitivity,
         neverlink = neverlink,
-        android_test_migration = android_test_migration,
+        propagate_resources = propagate_resources,
         android_jar = android_jar,
         aapt = aapt,
         android_kit = android_kit,

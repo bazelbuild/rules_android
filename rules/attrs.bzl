@@ -79,7 +79,7 @@ _tristate = struct(
 _JAVA_RUNTIME = dict(
     _host_javabase = attr.label(
         cfg = "host",
-        default = Label("@rules_android//rules:current_java_runtime"),
+        default = Label("@rules_android//tools/jdk:current_java_runtime"),
     ),
 )
 
@@ -115,7 +115,7 @@ _COMPILATION = _add(
             allow_files = True,
         ),
         plugins = attr.label_list(
-            allow_rules = ["java_plugin"],
+            providers = [JavaPluginInfo],
             cfg = "host",
         ),
         javacopts = attr.string_list(),
@@ -228,6 +228,11 @@ ANDROID_SDK_ATTRS = dict(
         cfg = "host",
         mandatory = True,
     ),
+    legacy_main_dex_list_generator = attr.label(
+        allow_files = True,
+        cfg = "host",
+        executable = True,
+    ),
     main_dex_classes = attr.label(
         allow_single_file = True,
         cfg = "host",
@@ -248,7 +253,6 @@ ANDROID_SDK_ATTRS = dict(
     shrinked_android_jar = attr.label(
         allow_single_file = True,
         cfg = "host",
-        mandatory = True,
     ),
     source_properties = attr.label(
         allow_single_file = True,

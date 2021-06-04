@@ -15,7 +15,7 @@
 """Bazel rule for building an APK."""
 
 load(":migration_tag_DONOTUSE.bzl", "add_migration_tag")
-load("@rules_android//rules/android_packaged_resources:rule.bzl", "android_packaged_resources_macro")
+load("@rules_android//rules/android_binary_internal:rule.bzl", "android_binary_internal_macro")
 
 def android_binary(**attrs):
     """Bazel android_binary rule.
@@ -25,11 +25,11 @@ def android_binary(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    packaged_resources_name = ":%s_RESOURCES_DO_NOT_USE" % attrs["name"]
-    android_packaged_resources_macro(
+    android_binary_internal_name = ":%s_RESOURCES_DO_NOT_USE" % attrs["name"]
+    android_binary_internal_macro(
         **dict(
             attrs,
-            name = packaged_resources_name[1:],
+            name = android_binary_internal_name[1:],
             visibility = ["//visibility:private"],
         )
     )
@@ -37,6 +37,6 @@ def android_binary(**attrs):
     attrs.pop("$enable_manifest_merging", None)
 
     native.android_binary(
-        application_resources = packaged_resources_name,
+        application_resources = android_binary_internal_name,
         **add_migration_tag(attrs)
     )

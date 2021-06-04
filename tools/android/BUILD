@@ -23,3 +23,10 @@ sh_binary(
   name = "fail",
   srcs =[":fail.sh"],
 )
+
+java_binary(
+    name = "bundletool",
+    main_class = "com.android.tools.build.bundletool.BundleToolMain",
+    runtime_deps = ["@rules_android_maven//:com_android_tools_build_bundletool"],
+    visibility = ["//visibility:public"],
+)

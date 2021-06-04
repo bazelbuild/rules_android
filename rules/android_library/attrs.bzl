@@ -29,8 +29,8 @@ ATTRS = _attrs.add(
         ),
         enable_data_binding = attr.bool(default = False),
         exported_plugins = attr.label_list(
-            allow_rules = [
-                "java_plugin",
+            providers = [
+                [JavaPluginInfo],
             ],
             cfg = "host",
         ),
@@ -59,7 +59,6 @@ ATTRS = _attrs.add(
         _defined_idl_srcs = attr.bool(default = False),
         _defined_local_resources = attr.bool(default = False),
         _java_toolchain = attr.label(
-            cfg = "host",
             default = Label("//tools/jdk:toolchain_android_only"),
         ),
         # TODO(str): Remove when fully migrated to android_instrumentation_test

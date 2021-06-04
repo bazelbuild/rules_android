@@ -19,10 +19,22 @@ _ATTRS = dict(
         allow_files = True,
         default = "@androidsdk//:aapt2_binary",
     ),
+    aar_import_checks = attr.label(
+        allow_single_file = True,
+        cfg = "host",
+        default = "//src/validations/aar_import_checks",
+        executable = True,
+    ),
     aar_embedded_jars_extractor = attr.label(
         allow_files = True,
         cfg = "host",
         default = "@bazel_tools//tools/android:aar_embedded_jars_extractor",
+        executable = True,
+    ),
+    aar_embedded_proguard_extractor = attr.label(
+        allow_files = True,
+        cfg = "host",
+        default = "@bazel_tools//tools/android:aar_embedded_proguard_extractor",
         executable = True,
     ),
     aar_native_libs_zip_creator = attr.label(
@@ -48,6 +60,24 @@ _ATTRS = dict(
         default = Label("//tools/android/xslt:add_g3itr.xslt"),
         allow_files = True,
     ),
+    android_archive_jar_optimization_inputs_validator = attr.label(
+        allow_files = True,
+        default = "@androidsdk//:fail",
+        cfg = "host",
+        executable = True,
+    ),
+    android_archive_manifest_package_validator = attr.label(
+        allow_files = True,
+        default = "@androidsdk//:fail",
+        cfg = "host",
+        executable = True,
+    ),
+    android_archive_packages_validator = attr.label(
+        allow_files = True,
+        default = "@androidsdk//:fail",
+        cfg = "host",
+        executable = True,
+    ),
     android_kit = attr.label(
         allow_files = True,
         cfg = "host",
@@ -69,7 +99,7 @@ _ATTRS = dict(
     bundletool = attr.label(
         allow_files = True,
         cfg = "host",
-        default = "@androidsdk//:fail",
+        default = "//tools/android:bundletool_deploy.jar",
         executable = True,
     ),
     data_binding_annotation_processor = attr.label(
@@ -121,6 +151,12 @@ _ATTRS = dict(
     proguard_allowlister = attr.label(
         cfg = "host",
         default = "@bazel_tools//tools/jdk:proguard_whitelister",
+        executable = True,
+    ),
+    proto_map_generator = attr.label(
+        cfg = "host",
+        default = "@androidsdk//:fail",
+        allow_files = True,
         executable = True,
     ),
     res_v3_dummy_manifest = attr.label(

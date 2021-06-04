@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Allow list for checking the package value with the manifest."""
-AAR_IMPORT_PKG_CHECK_ROLLOUT = [
-    "//:__subpackages__",
-]
+"""Denylist for rules that are not allowed in android_archive excluded_deps."""
 
-AAR_IMPORT_PKG_CHECK_FALLBACK = [
+# keep sorted
+ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST = [
+    # Failure test support.
+    "@rules_android//test/rules/android_archive/java/com/testdata/denied:__pkg__",
 ]

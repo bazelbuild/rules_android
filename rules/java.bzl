@@ -14,6 +14,7 @@
 
 """Bazel Java APIs for the Android rules."""
 
+load(":acls.bzl", "acls")
 load(":path.bzl", _path = "path")
 load(":utils.bzl", "log")
 
@@ -168,6 +169,29 @@ def _invalid_java_package(custom_package, java_package):
         (not custom_package and _check_for_invalid_java_package(java_package))
     )
 
+def _set_default_applicationid(fqn, attrs):
+    """Sets the manifest value applicationId to the package.
+
+    If applicationId is missing from the manifest_values, set it
+    to the package as a default value to avoid using library packages
+    when merging manifests.
+    """
+    if not acls.in_fix_application_id(fqn):
+        return attrs
+    new_attrs = {}
+    new_attrs.update(attrs)
+    package_string = _resolve_package_from_label(Label(fqn), None)
+
+    # TODO(timpeut): handle select()s
+    mv_attr = attrs.get("manifest_values", None) or {}
+    if type(mv_attr) == "dict" and "applicationId" not in mv_attr:
+        manifest_values = {}
+        manifest_values.update(mv_attr)
+        manifest_values.update({"__INTERNAL_PKG_DO_NOT_USE__": package_string})
+        new_attrs["manifest_values"] = manifest_values
+
+    return new_attrs
+
 # The Android specific Java compile.
 def _compile_android(
         ctx,
@@ -219,7 +243,6 @@ def _compile_android(
         see https://docs.bazel.build/versions/master/user-manual.html#flag--strict_java_deps.
         By default 'ERROR'.
       java_toolchain: The java_toolchain Target.
-      host_javabase: The host_javabase Target.
 
     Returns:
       A JavaInfo provider representing the Java compilation.
@@ -321,7 +344,6 @@ def _compile(
         see https://docs.bazel.build/versions/master/user-manual.html#flag--strict_java_deps.
         By default 'ERROR'.
       java_toolchain: The java_toolchain Target.
-      host_javabase: The host_javabase Target.
 
     Returns:
       A JavaInfo provider representing the Java compilation.
@@ -385,7 +407,7 @@ def _singlejar(
         args.add_all(inputs)
 
     ctx.actions.run(
-        executable = java_toolchain.java_toolchain.single_jar,
+        executable = java_toolchain[java_common.JavaToolchainInfo].single_jar,
         arguments = [args],
         inputs = inputs,
         outputs = [output],
@@ -396,12 +418,14 @@ def _singlejar(
 def _run(
         ctx,
         host_javabase,
+        jvm_flags = [],
         **args):
     """Run a java binary
 
     Args:
       ctx: The context.
       host_javabase: Target. The host_javabase.
+      jvm_flags: Additional arguments to the JVM itself.
       **args: Additional arguments to pass to ctx.actions.run(). Some will get modified.
     """
 
@@ -410,6 +434,10 @@ def _run(
 
     if type(host_javabase) != "Target":
         fail("Expected type Target for argument host_javabase, got %s" % type(host_javabase))
+
+    # Set reasonable max heap default. Required to prevent runaway memory usage.
+    # Can still be overridden by callers of this method.
+    jvm_flags = ["-Xmx4G", "-XX:+ExitOnOutOfMemoryError"] + jvm_flags
 
     # executable should be a File or a FilesToRunProvider
     jar = args.get("executable")
@@ -431,7 +459,7 @@ def _run(
     jar_args = ctx.actions.args()
     jar_args.add("-jar", jar)
 
-    args["arguments"] = [jar_args] + args.get("arguments", default = [])
+    args["arguments"] = jvm_flags + [jar_args] + args.get("arguments", default = [])
 
     ctx.actions.run(**args)
 
@@ -441,6 +469,7 @@ java = struct(
     resolve_package = _resolve_package,
     resolve_package_from_label = _resolve_package_from_label,
     root = _root,
+    set_default_applicationid = _set_default_applicationid,
     invalid_java_package = _invalid_java_package,
     run = _run,
     singlejar = _singlejar,

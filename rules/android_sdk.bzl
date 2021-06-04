@@ -39,6 +39,7 @@ def _impl(ctx):
         # Passing the 'system' here is only necessary to support native android_binary.
         # TODO(b/149114743): remove this after the migration to android_application.
         ctx.attr._system[java_common.BootClassPathInfo] if ctx.attr._system and java_common.BootClassPathInfo in ctx.attr._system else None,
+        ctx.attr.legacy_main_dex_list_generator.files_to_run if ctx.attr.legacy_main_dex_list_generator else None,
     )
     return [
         android_sdk_info,

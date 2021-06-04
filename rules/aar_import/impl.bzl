@@ -46,6 +46,10 @@ _UNEXPECTED_LINT_JAR_ERROR = (
     "a lint.jar file."
 )
 
+# Resources context dict fields.
+_PROVIDERS = "providers"
+_VALIDATION_RESULTS = "validation_results"
+
 def _create_aar_artifact(ctx, name):
     return ctx.actions.declare_file("%s/%s/%s" % (RULE_PREFIX, ctx.label.name, name))
 
@@ -114,6 +118,7 @@ def _extract_native_libs(
 def _process_resources(
         ctx,
         aar,
+        package,
         manifest,
         deps,
         aar_resources_extractor_tool,
@@ -139,6 +144,7 @@ def _process_resources(
         deps = ctx.attr.deps,
         exports = ctx.attr.exports,
         exports_manifest = getattr(ctx.attr, "exports_manifest", True),
+        propagate_resources = _acls.in_aar_propagate_resources(str(ctx.label)),
 
         # Tool and Processing related inputs
         aapt = _get_android_toolchain(ctx).aapt2.files_to_run,
@@ -151,23 +157,15 @@ def _process_resources(
         xsltproc = _get_android_toolchain(ctx).xsltproc_tool.files_to_run,
     )
 
-    # TODO: replace android_data
-    # data_ctx = android_data.make_context(ctx.actions, ctx.attr)
-    # resource_apk = android_data.process_aar_import_data(
-    #     data_ctx,
-    #     resources,
-    #     assets,
-    #     manifest,
-    #     deps = deps,
-    # )
-    # resources_ctx["validation_results"].append(
-    #     _utils.only(resource_apk[AndroidResourcesInfo].direct_android_resources.to_list()).java_class_jar,
-    # )
-    # resources_ctx["providers"].append(resource_apk[AndroidResourcesInfo])
-    # resources_ctx["providers"].append(resource_apk[AndroidAssetsInfo])
+    native_android_manifest = manifest
+    if not getattr(ctx.attr, "exports_manifest", True):
+        # Write an empty manifest, for the native pipeline.
+        native_android_manifest = ctx.actions.declare_file(ctx.label.name + "_aar/AndroidManifest.xml")
+        ctx.actions.write(native_android_manifest, content = """<?xml version="1.0" encoding="utf-8"?>
+<manifest package="%s">
+</manifest>
+""" % package)
 
-    if not _acls.in_aar_propagate_resources(str(ctx.label)):
-        resources_ctx["providers"] = []
 
     return struct(**resources_ctx)
 
@@ -355,19 +353,16 @@ def _process_jars(
 def _validate_rule(
         ctx,
         aar,
+        package,
         manifest,
         checks):
-    package = _java.resolve_package_from_label(ctx.label, ctx.attr.package)
     validation_output = ctx.actions.declare_file("%s_validation_output" % ctx.label.name)
 
     args = ctx.actions.args()
     args.add("-aar", aar)
-    inputs = [aar]
     args.add("-label", str(ctx.label))
-    if _acls.in_aar_import_pkg_check(str(ctx.label)):
-        args.add("-pkg", package)
-        args.add("-manifest", manifest)
-        inputs.append(manifest)
+    args.add("-pkg", package)
+    args.add("-manifest", manifest)
     if ctx.attr.has_lint_jar:
         args.add("-has_lint_jar")
     args.add("-output", validation_output)
@@ -375,7 +370,7 @@ def _validate_rule(
     ctx.actions.run(
         executable = checks,
         arguments = [args],
-        inputs = inputs,
+        inputs = [aar, manifest],
         outputs = [validation_output],
         mnemonic = "ValidateAAR",
         progress_message = "Validating aar_import %s" % str(ctx.label),
@@ -407,6 +402,27 @@ def _process_lint_rules(
     ))
     return providers
 
+def _collect_proguard(
+        ctx,
+        out_proguard,
+        aar,
+        aar_embedded_proguard_extractor):
+    args = ctx.actions.args()
+    args.add("--input_aar", aar)
+    args.add("--output_proguard_file", out_proguard)
+    ctx.actions.run(
+        executable = aar_embedded_proguard_extractor,
+        arguments = [args],
+        inputs = [aar],
+        outputs = [out_proguard],
+        mnemonic = "AarEmbeddedProguardExtractor",
+        progress_message = "Extracting proguard spec from %s" % aar.basename,
+    )
+    transitive_proguard_specs = []
+    for p in _utils.collect_providers(ProguardSpecProvider, ctx.attr.deps, ctx.attr.exports):
+        transitive_proguard_specs.append(p.specs)
+    return ProguardSpecProvider(depset([out_proguard], transitive = transitive_proguard_specs))
+
 def impl(ctx):
     """The rule implementation.
 
@@ -421,6 +437,7 @@ def impl(ctx):
 
     aar = _utils.only(ctx.files.aar)
     unzip_tool = _get_android_toolchain(ctx).unzip_tool.files_to_run
+    package = _java.resolve_package_from_label(ctx.label, ctx.attr.package)
 
     # Extract the AndroidManifest.xml from the AAR.
     android_manifest = _create_aar_artifact(ctx, ANDROID_MANIFEST)
@@ -435,6 +452,7 @@ def impl(ctx):
     resources_ctx = _process_resources(
         ctx,
         aar = aar,
+        package = package,
         manifest = android_manifest,
         deps = ctx.attr.deps,
         aar_resources_extractor_tool =
@@ -495,6 +513,15 @@ def impl(ctx):
         ),
     )
 
+    # Will be empty if there's no proguard.txt file in the aar
+    proguard_spec = _create_aar_artifact(ctx, "proguard.txt")
+    providers.append(_collect_proguard(
+        ctx,
+        proguard_spec,
+        aar,
+        _get_android_toolchain(ctx).aar_embedded_proguard_extractor.files_to_run,
+    ))
+
     lint_providers = _process_lint_rules(
         ctx,
         aar = aar,
@@ -505,6 +532,7 @@ def impl(ctx):
     validation_outputs.append(_validate_rule(
         ctx,
         aar = aar,
+        package = package,
         manifest = android_manifest,
         checks = _get_android_toolchain(ctx).aar_import_checks.files_to_run,
     ))

@@ -44,7 +44,7 @@ def _process_resources(ctx, java_package, **unused_ctxs):
         should_throw_on_conflict = not acls.in_allow_resource_conflicts(str(ctx.label)),
         enable_data_binding = ctx.attr.enable_data_binding,
         enable_manifest_merging = ctx.attr._enable_manifest_merging,
-        deps = ctx.attr.deps,
+        deps = utils.dedupe_split_attr(ctx.split_attr.deps),
         instruments = ctx.attr.instruments,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,

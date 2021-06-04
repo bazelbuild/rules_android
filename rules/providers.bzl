@@ -92,6 +92,7 @@ StarlarkAndroidResourcesInfo = provider(
         transitive_manifests = "Depset of transitive manifests",
         transitive_r_txts = "Depset of transitive R.txt files",
         transitive_resource_files = "Depset of transitive resource files",
+        packages_to_r_txts = "Map of packages to depset of r_txt files",
     ),
 )
 
@@ -102,7 +103,37 @@ AndroidLintRulesInfo = provider(
     ),
 )
 
+AndroidFeatureModuleInfo = provider(
+    doc = "Contains data required to build an Android feature split.",
+    fields = dict(
+        binary = "String, target of the underlying split android_binary target",
+        feature_name = "String, the name of the feature module. If unspecified, the target name will be used.",
+        fused = "Boolean, whether the split is \"fused\" for the system image and for pre-L devices.",
+        library = "String, target of the underlying split android_library target",
+        manifest = "Optional AndroidManifest.xml file to use for this feature.",
+        min_sdk_version = "String, the min SDK version for this feature.",
+        title_id = "String, resource identifier for the split title.",
+        title_lib = "String, target of the split title android_library.",
+    ),
+)
 
+
+Dex2OatApkInfo = provider(
+    doc = "Contains data about artifacts generated through host dex2oat.",
+    fields = dict(
+        signed_apk = "Signed APK",
+        oat_file = "Oat file generated through dex2oat.",
+        vdex_file = "Vdex file generated through dex2oat.",
+        art_file = "ART file generated through dex2oat.",
+    ),
+)
+
+InstrumentedAppInfo = provider(
+    doc = "Contains data about an android_binary's instrumented android_binary.",
+    fields = dict(
+        android_ide_info = "AndroidIdeInfo provider from the instrumented android_binary.",
+    ),
+)
 
 FailureInfo = provider(
     fields = dict(

@@ -86,6 +86,7 @@ def define_flags():
         description = "",
     )
 
+
     flags.EXPOSE_native_bool(
         name = "stamp",
         description = "Accesses the native --stamp CLI flag",

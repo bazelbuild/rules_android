@@ -151,7 +151,7 @@ def _process_resources(ctx, java_package, **unused_ctxs):
         # misbehavior on the Java side.
         fix_resource_transitivity = bool(ctx.attr.srcs),
         fix_export_exporting = acls.in_fix_export_exporting_rollout(str(ctx.label)),
-        android_test_migration = ctx.attr._android_test_migration,
+        propagate_resources = not ctx.attr._android_test_migration,
 
         # Tool and Processing related inputs
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
@@ -211,6 +211,7 @@ def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
             defines_resources = resources_ctx.defines_resources,
             enable_data_binding = ctx.attr.enable_data_binding,
             java_package = java_package,
+            layout_info = resources_ctx.data_binding_layout_info,
             deps = utils.collect_providers(DataBindingV2Info, ctx.attr.deps),
             exports = utils.collect_providers(DataBindingV2Info, ctx.attr.exports),
             data_binding_exec = get_android_toolchain(ctx).data_binding_exec.files_to_run,
@@ -252,11 +253,11 @@ def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_s
             utils.collect_providers(JavaInfo, ctx.attr.deps, idl_ctx.idl_deps),
         exports = utils.collect_providers(JavaInfo, ctx.attr.exports),
         plugins = (
-            utils.collect_providers(JavaInfo, ctx.attr.plugins) +
+            utils.collect_providers(JavaPluginInfo, ctx.attr.plugins) +
             db_ctx.java_plugins
         ),
         exported_plugins = utils.collect_providers(
-            JavaInfo,
+            JavaPluginInfo,
             ctx.attr.exported_plugins,
         ),
         annotation_processor_additional_outputs = (
@@ -339,9 +340,9 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
                 AndroidCcLinkParamsInfo(
                     cc_common.merge_cc_infos(
                         cc_infos = [
-                                       info.cc_info
+                                       info.cc_link_params_info
                                        for info in utils.collect_providers(
-                                           JavaCcLinkParamsInfo,
+                                           JavaInfo,
                                            ctx.attr.deps,
                                            ctx.attr.exports,
                                            idl_ctx.idl_deps,
@@ -431,11 +432,9 @@ def _make_legacy_provider(intellij_ctx, jvm_ctx, providers):
         android = _intellij.make_legacy_android_provider(intellij_ctx.android_ide_info),
         java = struct(
             annotation_processing = jvm_ctx.java_info.annotation_processing,
-            compilation_info = jvm_ctx.java_info.compilation_info,
             outputs = jvm_ctx.java_info.outputs,
             source_jars = depset(jvm_ctx.java_info.source_jars),
             transitive_deps = jvm_ctx.java_info.transitive_compile_time_jars,
-            transitive_exports = jvm_ctx.java_info.transitive_exports,
             transitive_runtime_deps = jvm_ctx.java_info.transitive_runtime_jars,
             transitive_source_jars = jvm_ctx.java_info.transitive_source_jars,
         ),
@@ -500,6 +499,7 @@ def finalize(
                 [ctx.outputs.lib_src_jar],
                 transitive = [jvm_ctx.java_info.transitive_source_jars],
             ),
+            _direct_source_jars = depset([ctx.outputs.lib_src_jar]),
             _hidden_top_level_INTERNAL_ = depset(
                 resources_ctx.validation_results,
                 transitive = [

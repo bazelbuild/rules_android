@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Starlark Resource Packaging for Android Rules."""
+"""Starlark Android Binary for Android Rules."""
 
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
@@ -25,7 +25,6 @@ _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_
 
 _DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
 
-# TODO(b/167721629): Rename android_packaged_resources to android_binary_internal.
 def make_rule(
         attrs = ATTRS,
         implementation = impl,
@@ -52,17 +51,17 @@ def make_rule(
         ],
     )
 
-_android_packaged_resources = make_rule()
+android_binary_internal = make_rule()
 
 def sanitize_attrs(attrs, allowed_attrs = ATTRS.keys()):
     """Sanitizes the attributes.
 
-    The android_packaged_resources has a subset of the android_binary attributes, but is
+    The android_binary_internal has a subset of the android_binary attributes, but is
     called from the android_binary macro with the same full set of attributes. This removes
     any unnecessary attributes.
 
     Args:
-      attrs: A dict. The attributes for the android_packaged_resources rule.
+      attrs: A dict. The attributes for the android_binary_internal rule.
       allowed_attrs: The list of attribute keys to keep.
 
     Returns:
@@ -82,10 +81,10 @@ def sanitize_attrs(attrs, allowed_attrs = ATTRS.keys()):
 
     return attrs
 
-def android_packaged_resources_macro(**attrs):
-    """android_packaged_resources rule.
+def android_binary_internal_macro(**attrs):
+    """android_binary_internal rule.
 
     Args:
       **attrs: Rule attributes
     """
-    _android_packaged_resources(**sanitize_attrs(attrs))
+    android_binary_internal(**sanitize_attrs(attrs))

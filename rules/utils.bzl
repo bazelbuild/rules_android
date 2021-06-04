@@ -278,6 +278,12 @@ def _expand_make_vars(ctx, vals):
         res[k] = _expand_var(ctx.var, v)
     return res
 
+def _dedupe_split_attr(attr):
+    if not attr:
+        return []
+    arch = _first(sorted(attr.keys()))
+    return attr[arch]
+
 def _get_runfiles(ctx, attrs):
     runfiles = ctx.runfiles()
     for attr in attrs:
@@ -430,6 +436,7 @@ utils = struct(
     copy_dir = _copy_dir,
     expand_make_vars = _expand_make_vars,
     first = _first,
+    dedupe_split_attr = _dedupe_split_attr,
     get_runfiles = _get_runfiles,
     join_depsets = _join_depsets,
     only = _only,
