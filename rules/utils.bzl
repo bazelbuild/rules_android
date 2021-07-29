@@ -195,6 +195,14 @@ def _only(collection):
         _error("Expected one element, has %s." % len(collection))
     return _first(collection)
 
+def _list_or_depset_to_list(list_or_depset):
+    if type(list_or_depset) == "list":
+        return list_or_depset
+    elif type(list_or_depset) == "depset":
+        return list_or_depset.to_list()
+    else:
+        return _error("Expected a list or a depset. Got %s" % type(list_or_depset))
+
 def _copy_file(ctx, src, dest):
     if src.is_directory or dest.is_directory:
         fail("Cannot use copy_file with directories")
@@ -444,6 +452,7 @@ utils = struct(
     sanitize_string = _sanitize_string,
     sanitize_java_package = _sanitize_java_package,
     hex = _hex,
+    list_or_depset_to_list = _list_or_depset_to_list,
 )
 
 log = struct(

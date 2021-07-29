@@ -66,15 +66,27 @@ def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_
     args.add("-zipSourceOutput", "true")
     args.add("-useAndroidX", "false")
 
-    class_infos = []
-    for info in deps:
-        class_infos.extend(info.class_infos)
+    if deps:
+        if type(deps[0].class_infos) == "depset":
+            class_infos = depset(transitive = [info.class_infos for info in deps])
+            inputs = depset(direct = [layout_info], transitive = [class_infos])
+        elif type(deps[0].class_infos) == "list":
+            class_infos = []
+            for info in deps:
+                class_infos.extend(info.class_infos)
+            inputs = class_infos + [layout_info]
+        else:
+            fail("Expected list or depset. Got %s" % type(deps[0].class_infos))
+    else:
+        class_infos = []
+        inputs = [layout_info]
+
     args.add_all(class_infos, before_each = "-dependencyClassInfoList")
 
     ctx.actions.run(
         executable = data_binding_exec,
         arguments = ["GEN_BASE_CLASSES", args],
-        inputs = class_infos + [layout_info],
+        inputs = inputs,
         outputs = [class_info, srcjar],
         mnemonic = "GenerateDataBindingBaseClasses",
         progress_message = (
@@ -91,8 +103,8 @@ def _setup_dependent_lib_artifacts(ctx, output_dir, deps):
     for info in deps:
         # Yes, DataBinding requires depsets iterations.
         for artifact in (info.transitive_br_files.to_list() +
-                         info.setter_stores +
-                         info.class_infos):
+                         _utils.list_or_depset_to_list(info.setter_stores) +
+                         _utils.list_or_depset_to_list(info.class_infos)):
             # short_path might contain a parent directory reference if the
             # databinding artifact is from an external repository (e.g. an aar
             # from Maven). If that's the case, just remove the parent directory
