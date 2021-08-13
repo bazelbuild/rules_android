@@ -26,6 +26,7 @@ For the list of Android rules, see the Bazel [documentation](https://docs.bazel.
 ## Getting Started
 To use the new Bazel Android rules, add the following to your WORKSPACE file:
 
+    load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
     http_archive(
         name = "build_bazel_rules_android",
         urls = ["https://github.com/bazelbuild/rules_android/archive/refs/heads/pre-alpha.zip"],
