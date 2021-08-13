@@ -16,7 +16,7 @@
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
-def rules_android_workspace(name):
+def rules_android_workspace():
   """ Sets up workspace dependencies for rules_android."""
 
   native.register_toolchains(
