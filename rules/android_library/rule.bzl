@@ -57,6 +57,8 @@ def make_rule(
     Args:
       attrs: A dict. The attributes for the rule.
       implementation: A function. The rule's implementation method.
+      outputs: A dict, function, or None. The rule's outputs.
+      additional_toolchains: A list. Additional toolchains passed to pass to rule(toolchains).
 
     Returns:
       A rule.
