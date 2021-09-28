@@ -1,0 +1,26 @@
+#!/bin/bash --posix
+
+bundletool="%bundletool_path%"
+aab="%aab%"
+key="%key%"
+tmp="$(mktemp /tmp/XXXXbundle.apks)"
+
+function cleanup {
+  rm  -r "$tmp"
+}
+trap cleanup EXIT
+
+java -jar "$bundletool" build-apks \
+  --bundle="$aab" \
+  --output="$tmp" \
+  --overwrite \
+  --local-testing \
+  --ks="$key" \
+  --ks-pass=pass:android \
+  --ks-key-alias=androiddebugkey \
+  --key-pass=pass:android || exit
+
+java -jar "$bundletool" install-apks \
+  --adb="$(which adb)" \
+  --apks "$tmp" \
+  --modules=_ALL_ || exit
