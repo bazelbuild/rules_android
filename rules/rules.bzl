@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Skylark rules for building Android apps."""
+"""Starlark rules for building Android apps."""
 
 load(
     "//rules/aar_import:rule.bzl",
