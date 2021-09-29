@@ -316,6 +316,7 @@ def _fix_databinding_compiled_resources(
       ctx: The context.
       out_compiled_resources: File. The modified compiled_resources output.
       compiled_resources: File. The compiled_resources zip.
+      zip_tool: FilesToRunProvider. The zip tool executable or FilesToRunProvider
     """
     ctx.actions.run_shell(
         outputs = [out_compiled_resources],
