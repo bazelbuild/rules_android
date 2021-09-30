@@ -800,7 +800,7 @@ def _merge_manifests(
         fail("Unexpected manifest merge type: " + merge_type)
 
     outputs = [out_file]
-    directs = [manifest]
+    directs = [manifest] if manifest else []
     transitives = [mergee_manifests]
 
     # Args for busybox
@@ -808,7 +808,8 @@ def _merge_manifests(
     args.use_param_file("@%s", use_always = True)
     args.add("--tool", "MERGE_MANIFEST")
     args.add("--")
-    args.add("--manifest", manifest)
+    if manifest:
+        args.add("--manifest", manifest)
     args.add_all(
         "--mergeeManifests",
         [mergee_manifests],
