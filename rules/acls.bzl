@@ -67,6 +67,7 @@ load(
 )
 load("@rules_android//rules/acls:kt_android_library_rollout.bzl", "KT_ANDROID_LIBRARY_FALLBACK", "KT_ANDROID_LIBRARY_ROLLOUT")
 load("@rules_android//rules/acls:android_instrumentation_test_manifest_check_rollout.bzl", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT")
+load("@rules_android//rules/acls:android_instrumentation_derived_test_class_rollout.bzl", "ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_ROLLOUT")
 
 def _in_aar_import_deps_checker(fqn):
     return not _matches(fqn, AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT) and _matches(fqn, AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT)
@@ -184,6 +185,9 @@ def _in_kt_android_library_rollout(fqn):
 def _in_android_instrumentation_test_manifest_check_rollout(fqn):
     return not _matches(fqn, ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK_DICT) and _matches(fqn, ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT_DICT)
 
+def _in_android_instrumentation_test_derived_test_class_rollout(fqn):
+    return not _matches(fqn, ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_FALLBACK_DICT) and _matches(fqn, ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_ROLLOUT_DICT)
+
 def _make_dict(lst):
     """Do not use this method outside of this file."""
     return {t: True for t in lst}
@@ -249,6 +253,8 @@ KT_ANDROID_LIBRARY_ROLLOUT_DICT = _make_dict(KT_ANDROID_LIBRARY_ROLLOUT)
 KT_ANDROID_LIBRARY_FALLBACK_DICT = _make_dict(KT_ANDROID_LIBRARY_FALLBACK)
 ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT_DICT = _make_dict(ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT)
 ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK_DICT = _make_dict(ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK)
+ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_ROLLOUT_DICT = _make_dict(ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_ROLLOUT)
+ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_FALLBACK_DICT = _make_dict(ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_FALLBACK)
 
 def _matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -324,6 +330,7 @@ acls = struct(
     in_partial_jetification_targets = _in_partial_jetification_targets,
     in_kt_android_library_rollout = _in_kt_android_library_rollout,
     in_android_instrumentation_test_manifest_check_rollout = _in_android_instrumentation_test_manifest_check_rollout,
+    in_android_instrumentation_test_derived_test_class_rollout = _in_android_instrumentation_test_derived_test_class_rollout,
 )
 
 # Visible for testing
