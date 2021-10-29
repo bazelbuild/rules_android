@@ -21,89 +21,89 @@ _ATTRS = dict(
     ),
     aar_import_checks = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
         default = "//src/validations/aar_import_checks",
         executable = True,
     ),
     aar_embedded_jars_extractor = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//tools/android:aar_embedded_jars_extractor",
         executable = True,
     ),
     aar_embedded_proguard_extractor = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//tools/android:aar_embedded_proguard_extractor",
         executable = True,
     ),
     aar_native_libs_zip_creator = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//tools/android:aar_native_libs_zip_creator",
         executable = True,
     ),
     aar_resources_extractor = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//tools/android:aar_resources_extractor",
         executable = True,
     ),
     adb = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@androidsdk//:platform-tools/adb",
         executable = True,
     ),
     add_g3itr_xslt = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = Label("//tools/android/xslt:add_g3itr.xslt"),
         allow_files = True,
     ),
     android_archive_jar_optimization_inputs_validator = attr.label(
         allow_files = True,
         default = "@androidsdk//:fail",
-        cfg = "host",
+        cfg = "exec",
         executable = True,
     ),
     android_archive_manifest_package_validator = attr.label(
         allow_files = True,
         default = "@androidsdk//:fail",
-        cfg = "host",
+        cfg = "exec",
         executable = True,
     ),
     android_archive_packages_validator = attr.label(
         allow_files = True,
         default = "@androidsdk//:fail",
-        cfg = "host",
+        cfg = "exec",
         executable = True,
     ),
     android_kit = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@androidsdk//:fail",  # TODO: "//src/tools/ak", needs Go
         executable = True,
     ),
     android_resources_busybox = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ResourceProcessorBusyBox_deploy.jar",
         executable = True,
     ),
     apk_to_bundle_tool = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@androidsdk//:fail",
         executable = True,
     ),
     bundletool = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "//tools/android:bundletool_deploy.jar",
         executable = True,
     ),
     data_binding_annotation_processor = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = "@//tools/android:compiler_annotation_processor",  # TODO: processor rules should be moved into rules_android
     ),
     data_binding_annotation_template = attr.label(
@@ -111,25 +111,25 @@ _ATTRS = dict(
         allow_files = True,
     ),
     data_binding_exec = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//tools/android:databinding_exec",
         executable = True,
     ),
     desugar_java8_extra_bootclasspath = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//tools/android:desugar_java8_extra_bootclasspath",
         executable = True,
     ),
     idlclass = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//tools/android:IdlClass",  # _deploy.jar?
         executable = True,
     ),
     import_deps_checker = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         default = "@android_tools//:ImportDepsChecker_deploy.jar",
         executable = True,
     ),
@@ -143,18 +143,18 @@ _ATTRS = dict(
     ),
     jdeps_tool = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         # used in android_local_test
         default = "@androidsdk//:fail",  # TODO: "//src/tools/jdeps", needs Go
         executable = True,
     ),
     proguard_allowlister = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = "@bazel_tools//tools/jdk:proguard_whitelister",
         executable = True,
     ),
     proto_map_generator = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = "@androidsdk//:fail",
         allow_files = True,
         executable = True,
@@ -175,18 +175,18 @@ _ATTRS = dict(
         default = "@androidsdk//:fail",
     ),
     unzip_tool = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = "//toolchains/android:unzip",
         executable = True,
     ),
     xsltproc_tool = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = Label("//tools/android/xslt:xslt"),
         allow_files = True,
         executable = True,
     ),
     zip_tool = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = "//toolchains/android:zip",
         executable = True,
     ),
