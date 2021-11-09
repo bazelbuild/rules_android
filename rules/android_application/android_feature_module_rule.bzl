@@ -121,6 +121,7 @@ def android_feature_module_macro(_android_binary, _android_library, **attrs):
     tags = getattr(attrs, "tags", [])
     transitive_configs = getattr(attrs, "transitive_configs", [])
     visibility = getattr(attrs, "visibility", None)
+    testonly = getattr(attrs, "testonly", None)
 
     # Create strings.xml containing split title
     title_id = "split_" + str(hash(fqn)).replace("-", "N")
@@ -164,6 +165,7 @@ EOF
         tags = tags,
         transitive_configs = transitive_configs,
         visibility = visibility,
+        testonly = testonly,
     )
 
     # Wrap any deps in an android_binary. Will be validated to ensure does not contain any dexes
@@ -178,6 +180,7 @@ EOF
         "visibility": visibility,
         "feature_flags": getattr(attrs, "feature_flags", None),
         "$enable_manifest_merging": False,
+        "testonly": testonly,
     }
     _android_binary(**binary_attrs)
 
@@ -193,4 +196,5 @@ EOF
         tags = tags,
         transitive_configs = transitive_configs,
         visibility = visibility,
+        testonly = testonly,
     )
