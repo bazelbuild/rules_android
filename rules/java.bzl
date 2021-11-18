@@ -88,8 +88,7 @@ def _resolve_package(path):
 
 def _resolve_package_from_label(
         label,
-        custom_package = None,
-        fallback = True):
+        custom_package = None):
     """Resolves the Java package from a Label.
 
     When no legal Java package can be resolved from the label, None will be
@@ -110,15 +109,7 @@ def _resolve_package_from_label(
         [label.package] +
         _path.split(label.name)[:-1],
     )
-    java_package = _resolve_package(label_path)
-
-    if java_package != None:  # "" is a valid result.
-        return java_package
-
-    if fallback:
-        return label.package.replace("/", ".")
-
-    return None
+    return _resolve_package(label_path)
 
 def _root(path):
     """Determines the Java root from the given path.

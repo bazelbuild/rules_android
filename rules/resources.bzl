@@ -60,11 +60,6 @@ _ASSET_DEFINITION_ERROR = (
     "both empty or non-empty."
 )
 
-_JAVA_PACKAGE_MISSING_ERROR = (
-    "In target %s, a java package is required when stamping " +
-    "the manifest."
-)
-
 _INCORRECT_RESOURCE_LAYOUT_ERROR = (
     "'%s' is not in the expected resource directory structure of " +
     "<resource directory>/{%s}/<file>" % (",").join(_RESOURCE_FOLDER_TYPES)
@@ -1099,9 +1094,6 @@ def _process_starlark(
 
     if resource_files and not manifest:
         _log.error(_MANIFEST_MISSING_ERROR % ctx.label)
-
-    if stamp_manifest and not java_package:
-        _log.error(_JAVA_PACKAGE_MISSING_ERROR % ctx.label)
 
     direct_resources_nodes = []
     transitive_resources_nodes = []
