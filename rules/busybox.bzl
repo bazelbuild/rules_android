@@ -380,7 +380,8 @@ def _package(
         args.add("--versionName", version_name)
     if version_code:
         args.add("--versionCode", version_code)
-    args.add("--packageForR", java_package)
+    if java_package:
+        args.add("--packageForR", java_package)
 
     _java.run(
         ctx = ctx,
@@ -821,7 +822,8 @@ def _merge_manifests(
             ",".join(["%s:%s" % (_escape_mv(k), _escape_mv(v)) for k, v in manifest_values.items()]),
         )
     args.add("--mergeType", merge_type)
-    args.add("--customPackage", java_package)
+    if java_package:
+        args.add("--customPackage", java_package)
     args.add("--manifestOutput", out_file)
     if out_log_file:
         args.add("--log", out_log_file)
@@ -928,7 +930,8 @@ def _generate_binary_r(
     args.add("--")
     args.add("--primaryRTxt", r_txt)
     args.add("--primaryManifest", manifest)
-    args.add("--packageForR", package_for_r)
+    if package_for_r:
+        args.add("--packageForR", package_for_r)
     args.add_all(
         resources_nodes,
         map_each = _make_generate_binay_r_flags,
