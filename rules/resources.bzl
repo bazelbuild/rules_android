@@ -134,7 +134,7 @@ def _generate_dummy_manifest(
         min_sdk_version = None):
     content = """<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="%s">""" % java_package
+    package="%s">""" % (java_package or "com.default")
 
     if min_sdk_version:
         content = content + """
