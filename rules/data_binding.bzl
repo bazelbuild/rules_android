@@ -130,6 +130,7 @@ def _setup_dependent_lib_artifacts(ctx, output_dir, deps):
 def _get_javac_opts(
         ctx,
         java_package,
+        artifact_type,
         dependency_artifacts_dir,
         aar_out_dir,
         class_info_path,
@@ -145,7 +146,7 @@ def _get_javac_opts(
                       dependency_artifacts_dir)
     javac_opts.append("-Aandroid.databinding.aarOutDir=" + aar_out_dir)
     javac_opts.append("-Aandroid.databinding.sdkDir=/not/used")
-    javac_opts.append("-Aandroid.databinding.artifactType=LIBRARY")
+    javac_opts.append("-Aandroid.databinding.artifactType=" + artifact_type)
     javac_opts.append("-Aandroid.databinding.exportClassListOutFile=" +
                       "/tmp/exported_classes")
     javac_opts.append("-Aandroid.databinding.modulePackage=" + java_package)
@@ -169,6 +170,7 @@ def _process(
         enable_data_binding = False,
         java_package = None,
         layout_info = None,
+        artifact_type = "LIBRARY",
         deps = [],
         exports = [],
         data_binding_exec = None,
@@ -183,10 +185,11 @@ def _process(
       enable_data_binding: boolean. Determines whether Data Binding should be
         enabled.
       java_package: String. The Java package.
+      layout_info: A file. The layout-info zip file.
+      artifact_type: String. Either LIBRARY or APPLICATION.
       deps: sequence of DataBindingV2Info providers. A list of deps. Optional.
       exports: sequence of DataBindingV2Info providers. A list of exports.
         Optional.
-      layout_info: A file. The layout-info zip file.
       data_binding_exec: The DataBinding executable.
       data_binding_annotation_processor: JavaInfo. The JavaInfo for the
         annotation processor.
@@ -196,6 +199,9 @@ def _process(
     Returns:
       A DataBindingContextInfo provider.
     """
+
+    if artifact_type not in ["LIBRARY", "APPLICATION"]:
+        fail("Unexpected artifact type: " + artifact_type)
 
     # TODO(b/154513292): Clean up bad usages of context objects.
     if resources_ctx:
@@ -267,6 +273,7 @@ def _process(
     db_info[_JAVAC_OPTS] = _get_javac_opts(
         ctx,
         java_package,
+        artifact_type,
         (
             br_out.path.rpartition(br_out.short_path)[0] +
             ctx.label.package +

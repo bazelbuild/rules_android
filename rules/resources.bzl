@@ -425,6 +425,7 @@ def _package(
         should_throw_on_conflict = True,
         enable_data_binding = False,
         enable_manifest_merging = True,
+        should_compile_java_srcs = True,
         aapt = None,
         android_jar = None,
         legacy_merger = None,
@@ -478,6 +479,7 @@ def _package(
         parameter is enabled. Without this setting, data binding expressions
         produce build failures.
       enable_manifest_merging: boolean. If true, manifest merging will be performed.
+      should_compile_java_srcs: boolean. If native android_binary should perform java compilation.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       android_jar: File. The Android jar.
       legacy_merger: FilesToRunProvider. The legacy manifest merger executable.
@@ -728,6 +730,7 @@ def _package(
         r_txt = r_txt,
         resources_zip = resource_files_zip,
         databinding_info = data_binding_layout_info,
+        should_compile_java_srcs = should_compile_java_srcs,
     ))
     return _ResourcesPackageContextInfo(**packaged_resources_ctx)
 
