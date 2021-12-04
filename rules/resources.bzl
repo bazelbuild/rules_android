@@ -599,6 +599,15 @@ def _package(
             host_javabase = host_javabase,
         )
 
+    resource_shrinking_enabled = _is_resource_shrinking_enabled(
+        shrink_resources,
+        use_android_resource_shrinking,
+    )
+    shrink_resource_cycles = _should_shrink_resource_cycles(
+        use_android_resource_cycle_shrinking,
+        resource_shrinking_enabled,
+    )
+
     resource_apk = ctx.actions.declare_file(ctx.label.name + "_migrated/.ap_")
     r_java = ctx.actions.declare_file("_migrated/" + ctx.label.name + ".srcjar")
     r_txt = ctx.actions.declare_file(ctx.label.name + "_migrated/_symbols/R.txt")
@@ -643,6 +652,7 @@ def _package(
         densities = densities,
         nocompress_extensions = nocompress_extensions,
         java_package = java_package,
+        shrink_resource_cycles = shrink_resource_cycles,
         version_name = manifest_values[_VERSION_NAME] if _VERSION_NAME in manifest_values else None,
         version_code = manifest_values[_VERSION_CODE] if _VERSION_CODE in manifest_values else None,
         android_jar = android_jar,
@@ -655,15 +665,6 @@ def _package(
     packaged_resources_ctx[_PACKAGED_FINAL_MANIFEST] = processed_manifest
     packaged_resources_ctx[_PACKAGED_RESOURCE_APK] = resource_apk
     packaged_resources_ctx[_PACKAGED_VALIDATION_RESULT] = resource_files_zip
-
-    resource_shrinking_enabled = _is_resource_shrinking_enabled(
-        shrink_resources,
-        use_android_resource_shrinking,
-    )
-    shrink_resource_cycles = _should_shrink_resource_cycles(
-        use_android_resource_cycle_shrinking,
-        resource_shrinking_enabled,
-    )
 
     # Fix class jar name because some tests depend on {label_name}_resources.jar being the suffix of
     # the path, with _RESOURCES_DO_NOT_USE removed from the label name.

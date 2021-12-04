@@ -203,6 +203,7 @@ def _package(
         additional_apks_to_link_against = [],
         nocompress_extensions = [],
         proto_format = False,
+        shrink_resource_cycles = False,
         version_name = None,
         version_code = None,
         android_jar = None,
@@ -257,6 +258,8 @@ def _package(
       nocompress_extensions: A list of strings. File extension to leave uncompressed
         in the apk.
       proto_format: Boolean, whether to generate the resource table in proto format.
+      shrink_resource_cycles: Boolean, flag that enables more shrinking of
+        code and resources by instructing AAPT2 to emit conditional Proguard keep rules.
       version_name: A string. The version name to stamp the generated manifest with. Optional.
       version_code: A string. The version code to stamp the generated manifest with. Optional.
       android_jar: A File. The Android Jar.
@@ -376,6 +379,8 @@ def _package(
         args.add_joined("--uncompressedExtensions", nocompress_extensions, join_with = ",")
     if proto_format:
         args.add("--resourceTableAsProto")
+    if shrink_resource_cycles:
+        args.add("--conditionalKeepRules=yes")
     if version_name:
         args.add("--versionName", version_name)
     if version_code:
