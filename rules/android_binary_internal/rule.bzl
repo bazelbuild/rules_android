@@ -67,7 +67,7 @@ def sanitize_attrs(attrs, allowed_attrs = ATTRS.keys()):
     Returns:
       A dictionary containing valid attributes.
     """
-    for attr_name in attrs.keys():
+    for attr_name in list(attrs.keys()):
         if attr_name not in allowed_attrs and attr_name not in _DEFAULT_ALLOWED_ATTRS:
             attrs.pop(attr_name, None)
 
