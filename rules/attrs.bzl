@@ -102,14 +102,36 @@ _COMPILATION = _add(
         assets = attr.label_list(
             allow_files = True,
             cfg = "target",
+            doc = ("The list of assets to be packaged. This is typically a glob of " +
+                   "all files under the assets directory. You can also reference " +
+                   "other rules (any rule that produces files) or exported files in " +
+                   "the other packages, as long as all those files are under the " +
+                   "assets_dir directory in the corresponding package."),
         ),
-        assets_dir = attr.string(),
-        custom_package = attr.string(),
+        assets_dir = attr.string(
+            doc = ("The string giving the path to the files in assets. " +
+                   "The pair assets and assets_dir describe packaged assets and either both " +
+                   "attributes should be provided or none of them."),
+        ),
+        custom_package = attr.string(
+            doc = ("Java package for which java sources will be generated. " +
+                   "By default the package is inferred from the directory where the BUILD file " +
+                   "containing the rule is. You can specify a different package but this is " +
+                   "highly discouraged since it can introduce classpath conflicts with other " +
+                   "libraries that will only be detected at runtime."),
+        ),
         manifest = attr.label(
             allow_single_file = [".xml"],
+            doc = ("The name of the Android manifest file, normally " +
+                   "AndroidManifest.xml. Must be defined if resource_files or assets are defined."),
         ),
         resource_files = attr.label_list(
             allow_files = True,
+            doc = ("The list of resources to be packaged. This " +
+                   "is typically a glob of all files under the res directory. Generated files " +
+                   "(from genrules) can be referenced by Label here as well. The only " +
+                   "restriction is that the generated outputs must be under the same \"res\" " +
+                   "directory as any other resource files that are included."),
         ),
         data = attr.label_list(
             allow_files = True,
@@ -277,7 +299,6 @@ ANDROID_SDK_ATTRS = dict(
 )
 
 ANDROID_TOOLS_DEFAULTS_JAR_ATTRS = _add(_ANDROID_SDK)
-
 
 attrs = struct(
     ANDROID_SDK = _ANDROID_SDK,
