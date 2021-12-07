@@ -17,10 +17,26 @@
 load(":attrs.bzl", _ATTRS = "ATTRS")
 load(":impl.bzl", _impl = "impl")
 
+RULE_DOC = """
+#### Examples
+
+The following example shows how to use `aar_import`.
+<pre><code>aar_import(
+    name = "hellobazellib",
+    aar = "lib.aar",
+    package = "bazel.hellobazellib",
+    deps = [
+        "//java/bazel/hellobazellib/activities",
+        "//java/bazel/hellobazellib/common",
+    ],
+)</code></pre>
+"""
+
 aar_import = rule(
     attrs = _ATTRS,
     fragments = ["android"],
     implementation = _impl,
+    doc = RULE_DOC,
     provides = [
         AndroidIdeInfo,
         AndroidLibraryResourceClassJarProvider,
