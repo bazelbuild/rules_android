@@ -15,7 +15,7 @@
 """Bazel common library for the Android rules."""
 
 load(":java.bzl", _java = "java")
-load(":utils.bzl", "get_android_sdk", "get_android_toolchain", _log = "log")
+load(":utils.bzl", "get_android_toolchain", _log = "log")
 
 # TODO(ostonge): Remove once kotlin/jvm_library.internal.bzl
 # is updated and released to use the java.resolve_package function
@@ -45,44 +45,6 @@ def _get_host_javabase(ctx):
         _log.error("Missing _host_javabase attr")
     return ctx.attr._host_javabase
 
-def _sign_apk(ctx, unsigned_apk, signed_apk, keystore = None, signing_keys = [], signing_lineage = None):
-    """Signs an apk. Usage of keystore is deprecated. Prefer using signing_keys."""
-    inputs = [unsigned_apk]
-    signer_args = ctx.actions.args()
-    signer_args.add("sign")
-
-    if signing_keys:
-        inputs.extend(signing_keys)
-        for i, key in enumerate(signing_keys):
-            if i > 0:
-                signer_args.add("--next-signer")
-            signer_args.add("--ks")
-            signer_args.add(key.path)
-            signer_args.add("--ks-pass")
-            signer_args.add("pass:android")
-        if signing_lineage:
-            inputs.append(signing_lineage)
-            signer_args.add("--lineage", signing_lineage.path)
-    elif keystore:
-        inputs.append(keystore)
-        signer_args.add("--ks", keystore.path)
-        signer_args.add("--ks-pass", "pass:android")
-
-    signer_args.add("--v1-signing-enabled", ctx.fragments.android.apk_signing_method_v1)
-    signer_args.add("--v1-signer-name", "CERT")
-    signer_args.add("--v2-signing-enabled", ctx.fragments.android.apk_signing_method_v2)
-    signer_args.add("--out", signed_apk.path)
-    signer_args.add(unsigned_apk.path)
-    ctx.actions.run(
-        executable = get_android_sdk(ctx).apk_signer,
-        inputs = inputs,
-        outputs = [signed_apk],
-        arguments = [signer_args],
-        mnemonic = "ApkSignerTool",
-        progress_message = "Signing APK for %s" % unsigned_apk.path,
-    )
-    return signed_apk
-
 def _filter_zip(ctx, in_zip, out_zip, filters = []):
     """Creates a copy of a zip file with files that match filters."""
     args = ctx.actions.args()
@@ -107,5 +69,4 @@ common = struct(
     get_java_toolchain = _get_java_toolchain,
     filter_zip = _filter_zip,
     java_package = _java_package,
-    sign_apk = _sign_apk,
 )
