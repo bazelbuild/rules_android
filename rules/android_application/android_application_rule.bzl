@@ -382,4 +382,5 @@ def android_application_macro(_android_binary, **attrs):
         transitive_configs = attrs.get("transitive_configs", []),
         feature_modules = feature_modules,
         application_id = attrs["manifest_values"]["applicationId"],
+        visibility = attrs.get("visibility", None),
     )
