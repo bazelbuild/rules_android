@@ -14,13 +14,7 @@
 
 """Bazel common library for the Android rules."""
 
-load(":java.bzl", _java = "java")
 load(":utils.bzl", "get_android_toolchain", _log = "log")
-
-# TODO(ostonge): Remove once kotlin/jvm_library.internal.bzl
-# is updated and released to use the java.resolve_package function
-def _java_package(label, custom_package):
-    return _java.resolve_package_from_label(label, custom_package)
 
 # Validates that the packages listed under "deps" all have the given constraint. If a package
 # does not have this attribute, an error is generated.
@@ -68,5 +62,4 @@ common = struct(
     get_host_javabase = _get_host_javabase,
     get_java_toolchain = _get_java_toolchain,
     filter_zip = _filter_zip,
-    java_package = _java_package,
 )
