@@ -217,6 +217,15 @@ def _create_feature_manifest(
 
     return manifest
 
+def _create_signer_properties(ctx, oldest_key):
+    properties = ctx.actions.declare_file("%s/keystore.properties" % ctx.label.name)
+    ctx.actions.expand_template(
+        template = ctx.file._bundle_keystore_properties,
+        output = properties,
+        substitutions = {"%oldest_key%": oldest_key.short_path},
+    )
+    return properties
+
 def _impl(ctx):
     # Convert base apk to .proto_ap_
     base_apk = ctx.attr.base_module[ApkInfo].unsigned_apk
@@ -284,11 +293,25 @@ def _impl(ctx):
     )
 
     # Create `blaze run` script
+    base_apk_info = ctx.attr.base_module[ApkInfo]
+    deploy_script_files = [base_apk_info.signing_keys[-1]]
     subs = {
         "%bundletool_path%": get_android_toolchain(ctx).bundletool.files_to_run.executable.short_path,
         "%aab%": ctx.outputs.unsigned_aab.short_path,
-        "%key%": ctx.attr.base_module[ApkInfo].signing_keys[0].short_path,
+        "%newest_key%": base_apk_info.signing_keys[-1].short_path,
     }
+    if base_apk_info.signing_lineage:
+        signer_properties = _create_signer_properties(ctx, base_apk_info.signing_keys[0])
+        subs["%oldest_signer_properties%"] = signer_properties.short_path
+        subs["%lineage%"] = base_apk_info.signing_lineage.short_path
+        subs["%min_rotation_api%"] = base_apk_info.signing_min_v3_rotation_api_version
+        deploy_script_files.extend(
+            [signer_properties, base_apk_info.signing_lineage, base_apk_info.signing_keys[0]],
+        )
+    else:
+        subs["%oldest_signer_properties%"] = ""
+        subs["%lineage%"] = ""
+        subs["%min_rotation_api%"] = ""
     ctx.actions.expand_template(
         template = ctx.file._bundle_deploy,
         output = ctx.outputs.deploy_script,
@@ -304,9 +327,8 @@ def _impl(ctx):
             executable = ctx.outputs.deploy_script,
             runfiles = ctx.runfiles([
                 ctx.outputs.unsigned_aab,
-                ctx.attr.base_module[ApkInfo].signing_keys[0],
                 get_android_toolchain(ctx).bundletool.files_to_run.executable,
-            ]),
+            ] + deploy_script_files),
         ),
     ]
 
