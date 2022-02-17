@@ -57,8 +57,18 @@ def _filter_zip(ctx, in_zip, out_zip, filters = []):
         progress_message = "Filtering %s" % in_zip.short_path,
     )
 
+def _create_signer_properties(ctx, oldest_key):
+    properties = ctx.actions.declare_file("%s/keystore.properties" % ctx.label.name)
+    ctx.actions.expand_template(
+        template = ctx.file._bundle_keystore_properties,
+        output = properties,
+        substitutions = {"%oldest_key%": oldest_key.short_path},
+    )
+    return properties
+
 common = struct(
     check_rule = _check_rule,
+    create_signer_properties = _create_signer_properties,
     get_host_javabase = _get_host_javabase,
     get_java_toolchain = _get_java_toolchain,
     filter_zip = _filter_zip,
