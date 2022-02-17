@@ -217,15 +217,6 @@ def _create_feature_manifest(
 
     return manifest
 
-def _create_signer_properties(ctx, oldest_key):
-    properties = ctx.actions.declare_file("%s/keystore.properties" % ctx.label.name)
-    ctx.actions.expand_template(
-        template = ctx.file._bundle_keystore_properties,
-        output = properties,
-        substitutions = {"%oldest_key%": oldest_key.short_path},
-    )
-    return properties
-
 def _impl(ctx):
     # Convert base apk to .proto_ap_
     base_apk = ctx.attr.base_module[ApkInfo].unsigned_apk
@@ -301,7 +292,7 @@ def _impl(ctx):
         "%newest_key%": base_apk_info.signing_keys[-1].short_path,
     }
     if base_apk_info.signing_lineage:
-        signer_properties = _create_signer_properties(ctx, base_apk_info.signing_keys[0])
+        signer_properties = _common.create_signer_properties(ctx, base_apk_info.signing_keys[0])
         subs["%oldest_signer_properties%"] = signer_properties.short_path
         subs["%lineage%"] = base_apk_info.signing_lineage.short_path
         subs["%min_rotation_api%"] = base_apk_info.signing_min_v3_rotation_api_version

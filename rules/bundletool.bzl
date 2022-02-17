@@ -14,6 +14,7 @@
 
 """Bazel Bundletool Commands."""
 
+load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 
 _density_mapping = {
@@ -199,6 +200,9 @@ def _bundle_to_apks(
         universal = False,
         device_spec = None,
         keystore = None,
+        oldest_signer = None,
+        lineage = None,
+        rotation_min_sdk = None,
         modules = None,
         aapt2 = None,
         bundletool = None,
@@ -218,6 +222,19 @@ def _bundle_to_apks(
         args.add("--ks-pass", "pass:android")
         args.add("--ks-key-alias", "AndroidDebugKey")
         inputs.append(keystore)
+
+    if lineage:
+        if not oldest_signer:
+            fail("Key rotation requires oldest_signer in %s" % ctx.label)
+        oldest_signer_properties = _common.create_signer_properties(ctx, oldest_signer)
+        args.add("--oldest-signer", oldest_signer_properties.path)
+        args.add("--lineage", lineage.short_path)
+        inputs.append(oldest_signer_properties)
+        inputs.append(oldest_signer)
+        inputs.append(lineage)
+
+    if rotation_min_sdk:
+        args.add("--rotation-min-sdk-version", rotation_min_sdk)
 
     if device_spec:
         args.add("--device-spec", device_spec)

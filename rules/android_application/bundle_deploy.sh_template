@@ -33,7 +33,7 @@ if [[ ! -z "$oldest_signer_properties" ]]; then
 fi
 
 if [[ ! -z "$min_rotation_api" ]]; then
-  args+=(--min-v3-rotation-api-version="$min_rotation_api")
+  args+=(--rotation-min-sdk-version="$min_rotation_api")
 fi
 
 java -jar "$bundletool" build-apks "${args[@]}" || exit
