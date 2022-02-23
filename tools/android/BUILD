@@ -30,3 +30,13 @@ java_binary(
     visibility = ["//visibility:public"],
     runtime_deps = ["@rules_android_maven//:com_android_tools_build_bundletool"],
 )
+
+java_plugin(
+    name = "compiler_annotation_processor",
+    generates_api = True,
+    processor_class = "android.databinding.annotationprocessor.ProcessDataBinding",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:all_android_tools",
+    ],
+)

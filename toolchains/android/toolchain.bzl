@@ -104,7 +104,7 @@ _ATTRS = dict(
     ),
     data_binding_annotation_processor = attr.label(
         cfg = "exec",
-        default = "@//tools/android:compiler_annotation_processor",  # TODO: processor rules should be moved into rules_android
+        default = "//tools/android:compiler_annotation_processor",
     ),
     data_binding_annotation_template = attr.label(
         default = "//rules:data_binding_annotation_template.txt",
