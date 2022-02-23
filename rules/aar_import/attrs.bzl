@@ -38,7 +38,7 @@ ATTRS = _attrs.add(
         ),
         exports = attr.label_list(
             allow_files = False,
-            allow_rules = ["aar_import", "java_import"],
+            allow_rules = ["aar_import", "java_import", "kt_jvm_import"],
             doc = "The closure of all rules reached via `exports` attributes are considered " +
                   "direct dependencies of any rule that directly depends on the target with " +
                   "`exports`. The `exports` are not direct deps of the rule they belong to.",
