@@ -1,0 +1,39 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+android_sdk_repository(
+    name = "androidsdk",
+)
+
+android_ndk_repository(
+    name = "androidndk",
+)
+
+http_archive(
+    name = "rules_jvm_external",
+    strip_prefix = "rules_jvm_external-fa73b1a8e4846cee88240d0019b8f80d39feb1c3",
+    sha256 = "7e13e48b50f9505e8a99cc5a16c557cbe826e9b68d733050cd1e318d69f94bb5",
+    url = "https://github.com/bazelbuild/rules_jvm_external/archive/fa73b1a8e4846cee88240d0019b8f80d39feb1c3.zip",
+)
+
+http_archive(
+    name = "bazel_skylib",
+    urls = [
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+    ],
+    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+)
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+bazel_skylib_workspace()
+
+local_repository(
+    name = "rules_android",
+    path = "../..", # rules_android's WORKSPACE relative to this inner workspace
+)
+load("@rules_android//:defs.bzl", "rules_android_workspace")
+rules_android_workspace()
+register_toolchains(
+    "@rules_android//toolchains/android:android_default_toolchain",
+    "@rules_android//toolchains/android_sdk:android_sdk_tools",
+)
+
