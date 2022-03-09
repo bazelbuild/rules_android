@@ -41,10 +41,6 @@ load(
 RULE_PREFIX = "_aar"
 ANDROID_MANIFEST = "AndroidManifest.xml"
 LINT_JAR = "lint.jar"
-_UNEXPECTED_LINT_JAR_ERROR = (
-    "In target %s, has_lint_jar attribute is required when the aar contains " +
-    "a lint.jar file."
-)
 
 # Resources context dict fields.
 _PROVIDERS = "providers"
