@@ -69,6 +69,7 @@ load(
 load("@rules_android//rules/acls:kt_android_library_rollout.bzl", "KT_ANDROID_LIBRARY_FALLBACK", "KT_ANDROID_LIBRARY_ROLLOUT")
 load("@rules_android//rules/acls:android_instrumentation_test_manifest_check_rollout.bzl", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT")
 load("@rules_android//rules/acls:android_instrumentation_test_prebuilt_test_apk.bzl", "ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK")
+load("@rules_android//rules/acls:android_rules_with_kt_rollout.bzl", "ANDROID_RULES_WITH_KT_ROLLOUT")
 
 def _in_aar_import_deps_checker(fqn):
     return not matches(fqn, AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT) and matches(fqn, AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT)
@@ -192,6 +193,9 @@ def _in_android_instrumentation_test_manifest_check_rollout(fqn):
 def _in_android_instrumentation_test_prebuilt_test_apk(fqn):
     return matches(fqn, ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_DICT)
 
+def _in_android_rules_with_kt_rollout(fqn):
+    return matches(fqn, ANDROID_RULES_WITH_KT_ROLLOUT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -223,6 +227,8 @@ ANDROID_LINT_CHECKS_FALLBACK_DICT = make_dict(ANDROID_LINT_CHECKS_FALLBACK)
 ANDROID_LINT_CHECKS_ROLLOUT_DICT = make_dict(ANDROID_LINT_CHECKS_ROLLOUT)
 ANDROID_LINT_FALLBACK_DICT = make_dict(ANDROID_LINT_FALLBACK)
 ANDROID_LINT_ROLLOUT_DICT = make_dict(ANDROID_LINT_ROLLOUT)
+ANDROID_RULES_WITH_KT_ROLLOUT_DICT = make_dict(ANDROID_RULES_WITH_KT_ROLLOUT)
+
 LINT_REGISTRY_FALLBACK_DICT = make_dict(LINT_REGISTRY_FALLBACK)
 LINT_REGISTRY_ROLLOUT_DICT = make_dict(LINT_REGISTRY_ROLLOUT)
 ANDROID_BUILD_STAMPING_ROLLOUT_DICT = make_dict(ANDROID_BUILD_STAMPING_ROLLOUT)
@@ -337,6 +343,7 @@ acls = struct(
     in_kt_android_library_rollout = _in_kt_android_library_rollout,
     in_android_instrumentation_test_manifest_check_rollout = _in_android_instrumentation_test_manifest_check_rollout,
     in_android_instrumentation_test_prebuilt_test_apk = _in_android_instrumentation_test_prebuilt_test_apk,
+    in_android_rules_with_kt_rollout = _in_android_rules_with_kt_rollout,
 )
 
 # Visible for testing
