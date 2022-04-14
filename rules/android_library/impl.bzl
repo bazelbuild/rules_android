@@ -216,7 +216,7 @@ def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
             exports = utils.collect_providers(DataBindingV2Info, ctx.attr.exports),
             data_binding_exec = get_android_toolchain(ctx).data_binding_exec.files_to_run,
             data_binding_annotation_processor =
-                get_android_toolchain(ctx).data_binding_annotation_processor[JavaPluginInfo],
+                get_android_toolchain(ctx).data_binding_annotation_processor,
             data_binding_annotation_template =
                 utils.only(get_android_toolchain(ctx).data_binding_annotation_template.files.to_list()),
         ),
