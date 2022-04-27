@@ -53,22 +53,32 @@ def _create_aar_tree_artifact(ctx, name):
     return ctx.actions.declare_directory("%s/unzipped/%s/%s" % (RULE_PREFIX, name, ctx.label.name))
 
 # Create an action to extract a file (specified by the parameter filename) from an AAR file.
+# Will optionally create an empty output if the requested file does not exist..
 def _extract_single_file(
         ctx,
         out_file,
         aar,
         filename,
-        unzip_tool):
-    args = ctx.actions.args()
-    args.add(aar)
-    args.add(filename)
-    args.add("-d", out_file.dirname)
-
-    ctx.actions.run(
-        executable = unzip_tool,
-        arguments = [args],
+        unzip_tool,
+        create_empty_file = False):
+    ctx.actions.run_shell(
+        tools = [unzip_tool],
         inputs = [aar],
         outputs = [out_file],
+        command =
+            """
+           if ! {create_empty_file} || {unzip_tool} -l {aar} {file} 2>/dev/null; then
+              {unzip_tool} {aar} {file} -d {dirname};
+           else
+               touch {dirname}/{file};
+           fi
+        """.format(
+                unzip_tool = unzip_tool.executable.path,
+                aar = aar.path,
+                file = out_file.basename,
+                dirname = out_file.dirname,
+                create_empty_file = str(create_empty_file).lower(),
+            ),
         mnemonic = "AarFileExtractor",
         progress_message = "Extracting %s from %s" % (filename, aar.basename),
     )
