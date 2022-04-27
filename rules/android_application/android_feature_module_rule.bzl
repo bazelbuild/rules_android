@@ -140,7 +140,7 @@ EOF
     )
 
     # Create AndroidManifest.xml
-    min_sdk_version = getattr(attrs, "min_sdk_version", "14") or "14"
+    min_sdk_version = getattr(attrs, "min_sdk_version", "21") or "21"
     package = _java.resolve_package_from_label(Label(fqn), getattr(attrs, "custom_package", None))
     native.genrule(
         name = targets.manifest_lib.name,
