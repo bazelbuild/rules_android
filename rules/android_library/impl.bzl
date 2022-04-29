@@ -252,10 +252,7 @@ def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_s
         deps =
             utils.collect_providers(JavaInfo, ctx.attr.deps, idl_ctx.idl_deps),
         exports = utils.collect_providers(JavaInfo, ctx.attr.exports),
-        plugins = (
-            utils.collect_providers(JavaPluginInfo, ctx.attr.plugins) +
-            db_ctx.java_plugins
-        ),
+        plugins = utils.collect_providers(JavaPluginInfo, ctx.attr.plugins, db_ctx.java_plugins),
         exported_plugins = utils.collect_providers(
             JavaPluginInfo,
             ctx.attr.exported_plugins,
