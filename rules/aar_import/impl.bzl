@@ -67,8 +67,8 @@ def _extract_single_file(
         outputs = [out_file],
         command =
             """
-           if ! {create_empty_file} || {unzip_tool} -l {aar} {file} 2>/dev/null; then
-              {unzip_tool} {aar} {file} -d {dirname};
+            if ! {create_empty_file} || {unzip_tool} -l {aar} | grep -q {file}; then
+              {unzip_tool} -q {aar} {file} -d {dirname};
            else
                touch {dirname}/{file};
            fi
