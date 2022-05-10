@@ -401,6 +401,7 @@ def _process_coverage(ctx, **unused_ctx):
             providers = [
                 coverage_common.instrumented_files_info(
                     ctx,
+                    source_attributes = ["srcs"],
                     dependency_attributes = ["assets", "deps", "exports"],
                 ),
             ],
