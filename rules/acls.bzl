@@ -36,6 +36,7 @@ load("@rules_android//rules/acls:ait_virtual_device.bzl", "AIT_VIRTUAL_DEVICE_FA
 load("@rules_android//rules/acls:allow_resource_conflicts.bzl", "ALLOW_RESOURCE_CONFLICTS")
 load("@rules_android//rules/acls:android_archive_dogfood.bzl", "ANDROID_ARCHIVE_DOGFOOD")
 load("@rules_android//rules/acls:android_archive_excluded_deps_denylist.bzl", "ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST")
+load("@rules_android//rules/acls:android_archive_exposed_package_allowlist.bzl", "ANDROID_ARCHIVE_EXPOSED_PACKAGE_ALLOWLIST")
 load("@rules_android//rules/acls:android_test_lockdown.bzl", "ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS", "ANDROID_TEST_LOCKDOWN_TARGETS")
 load("@rules_android//rules/acls:android_device_plugin_rollout.bzl", "ANDROID_DEVICE_PLUGIN_FALLBACK", "ANDROID_DEVICE_PLUGIN_ROLLOUT")
 load("@rules_android//rules/acls:android_instrumentation_binary_starlark_resources.bzl", "ANDROID_INSTRUMENTATION_BINARY_STARLARK_RESOURCES_FALLBACK", "ANDROID_INSTRUMENTATION_BINARY_STARLARK_RESOURCES_ROLLOUT")
@@ -196,6 +197,9 @@ def _in_android_instrumentation_test_prebuilt_test_apk(fqn):
 def _in_android_rules_with_kt_rollout(fqn):
     return matches(fqn, ANDROID_RULES_WITH_KT_ROLLOUT)
 
+def _get_android_archive_exposed_package_allowlist(fqn):
+    return ANDROID_ARCHIVE_EXPOSED_PACKAGE_ALLOWLIST.get(fqn, [])
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -303,6 +307,7 @@ def matches(fqn, dct):
     return False
 
 acls = struct(
+    get_android_archive_exposed_package_allowlist = _get_android_archive_exposed_package_allowlist,
     in_aar_import_deps_checker = _in_aar_import_deps_checker,
     in_aar_import_explicit_exports_manifest = _in_aar_import_explicit_exports_manifest,
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
