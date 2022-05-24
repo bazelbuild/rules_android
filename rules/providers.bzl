@@ -99,7 +99,7 @@ StarlarkAndroidResourcesInfo = provider(
 AndroidLintRulesInfo = provider(
     doc = "Provides extra lint rules to use with AndroidLint.",
     fields = dict(
-        lint_jar = "A file, a lint jar found in an aar.",
+        lint_jars = "A depset of lint rule jars found in AARs and exported by a target.",
     ),
 )
 
