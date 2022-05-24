@@ -390,7 +390,10 @@ def _process_lint_rules(
         ctx,
         aar,
         unzip_tool):
-    providers = []
+    transitive_lint_jars = [info.lint_jars for info in _utils.collect_providers(
+        AndroidLintRulesInfo,
+        ctx.attr.exports,
+    )]
 
     if ctx.attr.has_lint_jar:
         lint_jar = create_aar_artifact(ctx, LINT_JAR)
@@ -401,15 +404,17 @@ def _process_lint_rules(
             LINT_JAR,
             unzip_tool,
         )
-        providers.append(AndroidLintRulesInfo(
-            lint_jar = lint_jar,
-        ))
-
-    providers.extend(_utils.collect_providers(
-        AndroidLintRulesInfo,
-        ctx.attr.exports,
-    ))
-    return providers
+        return [
+            AndroidLintRulesInfo(
+                lint_jars = depset(direct = [lint_jar], transitive = transitive_lint_jars),
+            ),
+        ]
+    elif transitive_lint_jars:
+        return [
+            AndroidLintRulesInfo(lint_jars = depset(transitive = transitive_lint_jars)),
+        ]
+    else:
+        return []
 
 def _collect_proguard(
         ctx,
