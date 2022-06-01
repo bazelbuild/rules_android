@@ -27,6 +27,7 @@ load(
     "processing_pipeline",
 )
 load("@rules_android//rules:proguard.bzl", _proguard = "proguard")
+load("@rules_android//rules:providers.bzl", "AndroidLintRulesInfo")
 load("@rules_android//rules:resources.bzl", _resources = "resources")
 load("@rules_android//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("@rules_android//rules/flags:flags.bzl", _flags = "flags")
@@ -269,11 +270,25 @@ def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_s
         java_toolchain = _common.get_java_toolchain(ctx),
     )
 
+    providers = [java_info]
+
+    # Propagate Lint rule Jars from any exported AARs (b/229993446)
+    android_lint_rules = [info.lint_jars for info in utils.collect_providers(
+        AndroidLintRulesInfo,
+        ctx.attr.exports,
+    )]
+    if android_lint_rules:
+        providers.append(
+            AndroidLintRulesInfo(
+                lint_jars = depset(transitive = android_lint_rules),
+            ),
+        )
+
     return ProviderInfo(
         name = "jvm_ctx",
         value = struct(
             java_info = java_info,
-            providers = [java_info],
+            providers = providers,
         ),
     )
 
