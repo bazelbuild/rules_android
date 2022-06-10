@@ -148,6 +148,12 @@ _ATTRS = dict(
         default = "@androidsdk//:fail",  # TODO: "//src/tools/jdeps", needs Go
         executable = True,
     ),
+    object_method_rewriter = attr.label(
+        allow_files = True,
+        cfg = "exec",
+        default = "@androidsdk//:fail",
+        executable = True,
+    ),
     proguard_allowlister = attr.label(
         cfg = "exec",
         default = "@bazel_tools//tools/jdk:proguard_whitelister",
