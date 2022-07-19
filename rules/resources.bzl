@@ -69,6 +69,9 @@ _INCORRECT_RESOURCE_LAYOUT_ERROR = (
 _VERSION_NAME = "versionName"
 _VERSION_CODE = "versionCode"
 
+# Min SDK floor
+_MIN_SDK_FLOOR = 14
+
 # Resources context attributes.
 _ASSETS_PROVIDER = "assets_provider"
 _DATA_BINDING_LAYOUT_INFO = "data_binding_layout_info"
@@ -124,6 +127,23 @@ _ResourcesPackageContextInfo = provider(
         _R_JAVA: "JavaInfo for R.jar",
         _DATA_BINDING_LAYOUT_INFO: "Databinding layout info file.",
         _PROVIDERS: "The list of all providers to propagate.",
+    },
+)
+
+# Manifest context attributes
+_MIN_SDK_BUMPED_MANIFEST = "min_sdk_bumped_manifest"
+
+_ManifestContextInfo = provider(
+    "Manifest context object",
+    fields = {
+        _MIN_SDK_BUMPED_MANIFEST: "The manifest with the min SDK bumped to the floor.",
+    },
+)
+
+_ManifestValidationContextInfo = provider(
+    "Manifest validation context object",
+    fields = {
+        _VALIDATION_OUTPUTS: "List of outputs given to OutputGroupInfo _validation group.",
     },
 )
 
@@ -973,6 +993,99 @@ def _validate_resources(resource_files = None):
             if res_type not in _RESOURCE_FOLDER_TYPES:
                 fail(_INCORRECT_RESOURCE_LAYOUT_ERROR % resource_file)
 
+def _bump_min_sdk(
+        ctx,
+        enforce_min_sdk_floor_tool,
+        manifest,
+        floor = _MIN_SDK_FLOOR):
+    """Bumps the min SDK attribute of AndroidManifest to the floor.
+
+    Args:
+      ctx: The rules context.
+      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
+        FilesToRunprovider
+      manifest: File. The AndroidManifest.xml file.
+      floor: int. The min SDK floor.
+
+    Returns:
+      A dict containing _MinSdkFloorEnforcedContextInfo provider fields.
+    """
+    manifest_ctx = {}
+    if not manifest:
+        manifest_ctx[_MIN_SDK_BUMPED_MANIFEST] = manifest
+        return _ManifestContextInfo(**manifest_ctx)
+
+    args = ctx.actions.args()
+    args.add("-action", "bump")
+    args.add("-manifest", manifest)
+    args.add("-min_sdk_floor", floor)
+
+    out_dir = "_migrated/_min_sdk_bumped/" + ctx.label.name + "/"
+    log = ctx.actions.declare_file(
+        out_dir + "log.txt",
+    )
+    args.add("-log", log.path)
+
+    out_manifest = ctx.actions.declare_file(
+        out_dir + "AndroidManifest.xml",
+    )
+    args.add("-output", out_manifest.path)
+    ctx.actions.run(
+        executable = enforce_min_sdk_floor_tool,
+        inputs = [manifest],
+        outputs = [out_manifest, log],
+        arguments = [args],
+        mnemonic = "BumpMinSdkFloor",
+        progress_message = "Bumping up AndroidManifest min SDK %s" % str(ctx.label),
+    )
+    manifest_ctx[_MIN_SDK_BUMPED_MANIFEST] = out_manifest
+
+    return _ManifestContextInfo(**manifest_ctx)
+
+def _validate_min_sdk(
+        ctx,
+        enforce_min_sdk_floor_tool,
+        manifest,
+        floor = _MIN_SDK_FLOOR):
+    """Validates that the min SDK attribute of AndroidManifest is at least at the floor.
+
+    Args:
+      ctx: The rules context.
+      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
+        FilesToRunprovider
+      manifest: File. The AndroidManifest.xml file.
+      floor: int. The min SDK floor.
+
+    Returns:
+      A dict containing _MinSdkFloorEnforcedContextInfo provider fields.
+    """
+    manifest_validation_ctx = {_VALIDATION_OUTPUTS: []}
+    if not manifest:
+        return _ManifestValidationContextInfo(**manifest_validation_ctx)
+
+    args = ctx.actions.args()
+    args.add("-action", "validate")
+    args.add("-manifest", manifest)
+    args.add("-min_sdk_floor", floor)
+
+    out_dir = "_migrated/_min_sdk_validated/" + ctx.label.name + "/"
+    log = ctx.actions.declare_file(
+        out_dir + "log.txt",
+    )
+    args.add("-log", log.path)
+
+    ctx.actions.run(
+        executable = enforce_min_sdk_floor_tool,
+        inputs = [manifest],
+        outputs = [log],
+        arguments = [args],
+        mnemonic = "ValidateMinSdkFloor",
+        progress_message = "Validating AndroidManifest min SDK %s" % str(ctx.label),
+    )
+    manifest_validation_ctx[_VALIDATION_OUTPUTS].append(log)
+
+    return _ManifestValidationContextInfo(**manifest_validation_ctx)
+
 def _process_starlark(
         ctx,
         java_package = None,
@@ -1672,6 +1785,12 @@ resources = struct(
 
     # Exposed for android_local_test and android_library
     generate_dummy_manifest = _generate_dummy_manifest,
+
+    # Exposed for android_library, aar_import, and android_binary
+    bump_min_sdk = _bump_min_sdk,
+
+    # Exposed for android_binary
+    validate_min_sdk = _validate_min_sdk,
 )
 
 testing = struct(
