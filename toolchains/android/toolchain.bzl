@@ -122,6 +122,7 @@ _ATTRS = dict(
         executable = True,
     ),
     enforce_min_sdk_floor_tool = attr.label(
+        allow_files = True,
         cfg = "exec",
         default = "//src/tools/enforce_min_sdk_floor",
         executable = True,
