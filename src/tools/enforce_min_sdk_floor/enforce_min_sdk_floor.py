@@ -87,7 +87,7 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
   if uses_sdk is None:
     ET.SubElement(root, USES_SDK, {MIN_SDK_ATTRIB: str(min_sdk_floor)})
     return (
-        ET.tostring(root, encoding="utf-8"),
+        ET.tostring(root, encoding="utf-8", xml_declaration=True),
         "No uses-sdk element found while floor is specified "
         + f"({min_sdk_floor}). Min SDK added.")
 
@@ -95,7 +95,7 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
   if min_sdk is None:
     uses_sdk.set(MIN_SDK_ATTRIB, str(min_sdk_floor))
     return (
-        ET.tostring(root, encoding="utf-8"),
+        ET.tostring(root, encoding="utf-8", xml_declaration=True),
         "No minSdkVersion attribute found while floor is specified"
         + f"({min_sdk_floor}). Min SDK added.")
 
@@ -110,7 +110,7 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
   if min_sdk_int < min_sdk_floor:
     uses_sdk.set(MIN_SDK_ATTRIB, str(min_sdk_floor))
     return (
-        ET.tostring(root, encoding="utf-8"),
+        ET.tostring(root, encoding="utf-8", xml_declaration=True),
         f"minSdkVersion attribute specified in the manifest ({min_sdk}) "
         + f"is less than the floor ({min_sdk_floor}). Min SDK replaced.")
   return (
