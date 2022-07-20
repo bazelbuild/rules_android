@@ -1005,13 +1005,13 @@ def _bump_min_sdk(
       enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
         FilesToRunprovider
       manifest: File. The AndroidManifest.xml file.
-      floor: int. The min SDK floor.
+      floor: int. The min SDK floor. Manifest is unchanged if floor <= 0.
 
     Returns:
-      A dict containing _MinSdkFloorEnforcedContextInfo provider fields.
+      A dict containing _ManifestContextInfo provider fields.
     """
     manifest_ctx = {}
-    if not manifest:
+    if not manifest or floor <= 0:
         manifest_ctx[_MIN_SDK_BUMPED_MANIFEST] = manifest
         return _ManifestContextInfo(**manifest_ctx)
 
@@ -1054,13 +1054,13 @@ def _validate_min_sdk(
       enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
         FilesToRunprovider
       manifest: File. The AndroidManifest.xml file.
-      floor: int. The min SDK floor.
+      floor: int. The min SDK floor. No validation is done if floor <= 0.
 
     Returns:
-      A dict containing _MinSdkFloorEnforcedContextInfo provider fields.
+      A dict containing _ManifestValidationContextInfo provider fields.
     """
     manifest_validation_ctx = {_VALIDATION_OUTPUTS: []}
-    if not manifest:
+    if not manifest or floor <= 0:
         return _ManifestValidationContextInfo(**manifest_validation_ctx)
 
     args = ctx.actions.args()
