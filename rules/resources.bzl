@@ -31,6 +31,9 @@ load(
     _log = "log",
 )
 
+# Depot-wide min SDK floor
+_DEPOT_MIN_SDK_FLOOR = 14
+
 _RESOURCE_FOLDER_TYPES = [
     "anim",
     "animator",
@@ -68,9 +71,6 @@ _INCORRECT_RESOURCE_LAYOUT_ERROR = (
 # Keys for manifest_values
 _VERSION_NAME = "versionName"
 _VERSION_CODE = "versionCode"
-
-# Min SDK floor
-_MIN_SDK_FLOOR = 14
 
 # Resources context attributes.
 _ASSETS_PROVIDER = "assets_provider"
@@ -995,17 +995,17 @@ def _validate_resources(resource_files = None):
 
 def _bump_min_sdk(
         ctx,
-        enforce_min_sdk_floor_tool,
         manifest,
-        floor = _MIN_SDK_FLOOR):
+        floor,
+        enforce_min_sdk_floor_tool):
     """Bumps the min SDK attribute of AndroidManifest to the floor.
 
     Args:
       ctx: The rules context.
-      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
-        FilesToRunprovider
       manifest: File. The AndroidManifest.xml file.
       floor: int. The min SDK floor. Manifest is unchanged if floor <= 0.
+      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
+        FilesToRunprovider
 
     Returns:
       A dict containing _ManifestContextInfo provider fields.
@@ -1044,17 +1044,17 @@ def _bump_min_sdk(
 
 def _validate_min_sdk(
         ctx,
-        enforce_min_sdk_floor_tool,
         manifest,
-        floor = _MIN_SDK_FLOOR):
+        floor,
+        enforce_min_sdk_floor_tool):
     """Validates that the min SDK attribute of AndroidManifest is at least at the floor.
 
     Args:
       ctx: The rules context.
-      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
-        FilesToRunprovider
       manifest: File. The AndroidManifest.xml file.
       floor: int. The min SDK floor. No validation is done if floor <= 0.
+      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
+        FilesToRunprovider
 
     Returns:
       A dict containing _ManifestValidationContextInfo provider fields.
@@ -1791,6 +1791,9 @@ resources = struct(
 
     # Exposed for android_binary
     validate_min_sdk = _validate_min_sdk,
+
+    # Exposed for android_library, aar_import, and android_binary
+    DEPOT_MIN_SDK_FLOOR = _DEPOT_MIN_SDK_FLOOR,
 )
 
 testing = struct(
