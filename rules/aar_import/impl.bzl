@@ -463,11 +463,19 @@ def impl(ctx):
         unzip_tool,
     )
 
+    # Bump min SDK to floor
+    manifest_ctx = _resources.bump_min_sdk(
+        ctx,
+        manifest = android_manifest,
+        floor = _resources.DEPOT_MIN_SDK_FLOOR if _acls.in_enforce_min_sdk_floor_rollout(str(ctx.label)) else 0,
+        enforce_min_sdk_floor_tool = _get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
+    )
+
     resources_ctx = _process_resources(
         ctx,
         aar = aar,
         package = package,
-        manifest = android_manifest,
+        manifest = manifest_ctx.min_sdk_bumped_manifest,
         deps = ctx.attr.deps,
         aar_resources_extractor_tool =
             _get_android_toolchain(ctx).aar_resources_extractor.files_to_run,
@@ -547,7 +555,7 @@ def impl(ctx):
         ctx,
         aar = aar,
         package = package,
-        manifest = android_manifest,
+        manifest = manifest_ctx.min_sdk_bumped_manifest,
         checks = _get_android_toolchain(ctx).aar_import_checks.files_to_run,
     ))
 
