@@ -24,13 +24,26 @@ load(
 load("@rules_android//rules:resources.bzl", _resources = "resources")
 load("@rules_android//rules:utils.bzl", "compilation_mode", "get_android_toolchain", "utils")
 
-def _process_resources(ctx, java_package, **unused_ctxs):
+def _process_manifest(ctx, **unused_ctxs):
+    manifest_ctx = _resources.bump_min_sdk(
+        ctx,
+        manifest = ctx.file.manifest,
+        floor = _resources.DEPOT_MIN_SDK_FLOOR if (_is_test_binary(ctx) and acls.in_enforce_min_sdk_floor_rollout(str(ctx.label))) else 0,
+        enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
+    )
+
+    return ProviderInfo(
+        name = "manifest_ctx",
+        value = manifest_ctx,
+    )
+
+def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
     packaged_resources_ctx = _resources.package(
         ctx,
         assets = ctx.files.assets,
         assets_dir = ctx.attr.assets_dir,
         resource_files = ctx.files.resource_files,
-        manifest = ctx.file.manifest,
+        manifest = manifest_ctx.min_sdk_bumped_manifest,
         manifest_values = utils.expand_make_vars(ctx, ctx.attr.manifest_values),
         resource_configs = ctx.attr.resource_configuration_filters,
         densities = ctx.attr.densities,
@@ -57,6 +70,19 @@ def _process_resources(ctx, java_package, **unused_ctxs):
     return ProviderInfo(
         name = "packaged_resources_ctx",
         value = packaged_resources_ctx,
+    )
+
+def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
+    manifest_validation_ctx = _resources.validate_min_sdk(
+        ctx,
+        manifest = packaged_resources_ctx.processed_manifest,
+        floor = _resources.DEPOT_MIN_SDK_FLOOR if acls.in_enforce_min_sdk_floor_rollout(str(ctx.label)) else 0,
+        enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
+    )
+
+    return ProviderInfo(
+        name = "manifest_validation_ctx",
+        value = manifest_validation_ctx,
     )
 
 def use_legacy_manifest_merger(ctx):
@@ -86,11 +112,24 @@ def finalize(ctx, providers, validation_outputs, **unused_ctxs):
     )
     return providers
 
+def _is_test_binary(ctx):
+    """Whether this android_binary target is a test binary.
+
+    Args:
+      ctx: The context.
+
+    Returns:
+      Boolean indicating whether the target is a test target.
+    """
+    return ctx.attr.testonly or ctx.attr.instruments or str(ctx.label).find("/javatests/") >= 0
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
 PROCESSORS = dict(
+    ManifestProcessor = _process_manifest,
     ResourceProcessor = _process_resources,
+    ValidateManifestProcessor = _validate_manifest,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
