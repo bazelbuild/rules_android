@@ -122,7 +122,20 @@ def _exceptions_processor(ctx, **unused_ctxs):
         value = _validate_rule_context(ctx),
     )
 
-def _process_resources(ctx, java_package, **unused_ctxs):
+def _process_manifest(ctx, **unused_ctxs):
+    manifest_ctx = _resources.bump_min_sdk(
+        ctx,
+        manifest = ctx.file.manifest,
+        floor = _resources.DEPOT_MIN_SDK_FLOOR if acls.in_enforce_min_sdk_floor_rollout(str(ctx.label)) else 0,
+        enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
+    )
+
+    return ProviderInfo(
+        name = "manifest_ctx",
+        value = manifest_ctx,
+    )
+
+def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
     # exports_manifest can be overridden by a bazel flag.
     if ctx.attr.exports_manifest == _attrs.tristate.auto:
         exports_manifest = ctx.fragments.android.get_exports_manifest_default
@@ -132,7 +145,7 @@ def _process_resources(ctx, java_package, **unused_ctxs):
     # Process Android Resources
     resources_ctx = _resources.process(
         ctx,
-        manifest = ctx.file.manifest,
+        manifest = manifest_ctx.min_sdk_bumped_manifest,
         resource_files = ctx.attr.resource_files,
         defined_assets = ctx.attr._defined_assets,
         assets = ctx.attr.assets,
@@ -381,11 +394,11 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
         ),
     )
 
-def _process_intellij(ctx, java_package, resources_ctx, idl_ctx, jvm_ctx, **unused_sub_ctxs):
+def _process_intellij(ctx, java_package, manifest_ctx, resources_ctx, idl_ctx, jvm_ctx, **unused_sub_ctxs):
     android_ide_info = _intellij.make_android_ide_info(
         ctx,
         java_package = java_package,
-        manifest = ctx.file.manifest,
+        manifest = manifest_ctx.min_sdk_bumped_manifest,
         defines_resources = resources_ctx.defines_resources,
         merged_manifest = resources_ctx.merged_manifest,
         resources_apk = resources_ctx.resources_apk,
@@ -428,6 +441,7 @@ def _process_coverage(ctx, **unused_ctx):
 # insertion.
 PROCESSORS = dict(
     ExceptionsProcessor = _exceptions_processor,
+    ManifestProcessor = _process_manifest,
     ResourceProcessor = _process_resources,
     IdlProcessor = _process_idl,
     DataBindingProcessor = _process_data_binding,
