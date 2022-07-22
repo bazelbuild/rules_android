@@ -80,7 +80,10 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
   ns_parser.feed(xml_content)
   ns_parser.close()
   for _, ns_tuple in ns_parser.read_events():
-    ET.register_namespace(ns_tuple[0], ns_tuple[1])
+    try:
+      ET.register_namespace(ns_tuple[0], ns_tuple[1])
+    except ValueError:
+      pass
 
   root = ET.fromstring(xml_content)
   uses_sdk = root.find(USES_SDK)
