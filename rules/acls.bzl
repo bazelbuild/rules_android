@@ -70,7 +70,7 @@ load(
 load("@rules_android//rules/acls:kt_android_library_rollout.bzl", "KT_ANDROID_LIBRARY_FALLBACK", "KT_ANDROID_LIBRARY_ROLLOUT")
 load("@rules_android//rules/acls:android_instrumentation_test_manifest_check_rollout.bzl", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT")
 load("@rules_android//rules/acls:android_instrumentation_test_prebuilt_test_apk.bzl", "ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK")
-load("@rules_android//rules/acls:android_rules_with_kt_rollout.bzl", "ANDROID_RULES_WITH_KT_ROLLOUT")
+load("@rules_android//rules/acls:android_rules_with_kt_rollout.bzl", "ANDROID_RULES_WITH_KT_FALLBACK", "ANDROID_RULES_WITH_KT_ROLLOUT")
 load("@rules_android//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("@rules_android//rules/acls:enforce_min_sdk_floor_rollout.bzl", "ENFORCE_MIN_SDK_FLOOR_FALLBACK", "ENFORCE_MIN_SDK_FLOOR_ROLLOUT")
 
@@ -197,7 +197,7 @@ def _in_android_instrumentation_test_prebuilt_test_apk(fqn):
     return matches(fqn, ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_DICT)
 
 def _in_android_rules_with_kt_rollout(fqn):
-    return matches(fqn, ANDROID_RULES_WITH_KT_ROLLOUT)
+    return not matches(fqn, ANDROID_RULES_WITH_KT_FALLBACK_DICT) and matches(fqn, ANDROID_RULES_WITH_KT_ROLLOUT_DICT)
 
 def _get_android_archive_exposed_package_allowlist(fqn):
     return ANDROID_ARCHIVE_EXPOSED_PACKAGE_ALLOWLIST.get(fqn, [])
@@ -240,6 +240,7 @@ ANDROID_LINT_CHECKS_ROLLOUT_DICT = make_dict(ANDROID_LINT_CHECKS_ROLLOUT)
 ANDROID_LINT_FALLBACK_DICT = make_dict(ANDROID_LINT_FALLBACK)
 ANDROID_LINT_ROLLOUT_DICT = make_dict(ANDROID_LINT_ROLLOUT)
 ANDROID_RULES_WITH_KT_ROLLOUT_DICT = make_dict(ANDROID_RULES_WITH_KT_ROLLOUT)
+ANDROID_RULES_WITH_KT_FALLBACK_DICT = make_dict(ANDROID_RULES_WITH_KT_FALLBACK)
 
 LINT_REGISTRY_FALLBACK_DICT = make_dict(LINT_REGISTRY_FALLBACK)
 LINT_REGISTRY_ROLLOUT_DICT = make_dict(LINT_REGISTRY_ROLLOUT)
