@@ -16,8 +16,22 @@
 set -e
 set -x
 
-bazel="${KOKORO_GFILE_DIR}/bazel-${bazel_version}-linux-x86_64"
+source "${KOKORO_GFILE_DIR}/download_bazel.sh"
+echo "== installing bazel ========================================="
+bazel_install_dir=$(mktemp -d)
+BAZEL_VERSION="latest-with-prereleases"
+DownloadBazel "$BAZEL_VERSION" linux x86_64 "$bazel_install_dir"
+bazel="$bazel_install_dir/install/bin/bazel"
 chmod +x "$bazel"
+bazel_detected_version=$("$bazel" version | grep "Build label" | awk -F": " '{print $2}')
+echo "============================================================="
+
+function Cleanup() {
+  # Clean up all temporary directories: bazel install, sandbox, and
+  # android_tools.
+  rm -rf "$bazel_install_dir"
+}
+trap Cleanup EXIT
 
 # Kokoro is no longer updating toolchains in their images, so install newer
 # android build tools, because the latest one installed (26.0.2) has some bug
