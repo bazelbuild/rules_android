@@ -18,7 +18,7 @@ This file exists to inject the correct version of android_binary.
 """
 
 load(":android_application_rule.bzl", _android_application_macro = "android_application_macro")
-load("@rules_android//rules:android_binary.bzl", _android_binary = "android_binary")
+load("//rules:android_binary.bzl", _android_binary = "android_binary")
 
 def android_application(**attrs):
     """Rule to build an Android Application (app bundle).

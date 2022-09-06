@@ -28,5 +28,5 @@ android_tools_defaults_jar = rule(
     attrs = ANDROID_TOOLS_DEFAULTS_JAR_ATTRS,
     implementation = _impl,
     fragments = ["android"],
-    toolchains = ["@rules_android//toolchains/android_sdk:toolchain_type"],
+    toolchains = ["//toolchains/android_sdk:toolchain_type"],
 )

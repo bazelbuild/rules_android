@@ -15,7 +15,7 @@ bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
     deps = [
-        "@rules_android//rules:common_bzl",
-        "@rules_android//rules/flags:bzl",
+        "//rules:common_bzl",
+        "//rules/flags:bzl",
     ],
 )

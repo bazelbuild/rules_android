@@ -15,7 +15,7 @@
 """Attributes."""
 
 load(
-    "@rules_android//rules:attrs.bzl",
+    "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 

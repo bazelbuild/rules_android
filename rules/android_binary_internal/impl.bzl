@@ -14,15 +14,15 @@
 
 """Implementation."""
 
-load("@rules_android//rules:acls.bzl", "acls")
-load("@rules_android//rules:java.bzl", "java")
+load("//rules:acls.bzl", "acls")
+load("//rules:java.bzl", "java")
 load(
-    "@rules_android//rules:processing_pipeline.bzl",
+    "//rules:processing_pipeline.bzl",
     "ProviderInfo",
     "processing_pipeline",
 )
-load("@rules_android//rules:resources.bzl", _resources = "resources")
-load("@rules_android//rules:utils.bzl", "compilation_mode", "get_android_toolchain", "utils")
+load("//rules:resources.bzl", _resources = "resources")
+load("//rules:utils.bzl", "compilation_mode", "get_android_toolchain", "utils")
 
 def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(

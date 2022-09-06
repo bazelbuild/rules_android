@@ -15,7 +15,7 @@
 """Attributes for android_application."""
 
 load(
-    "@rules_android//rules:attrs.bzl",
+    "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 
@@ -48,7 +48,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         _bundle_keystore_properties = attr.label(
             allow_single_file = True,
-            default = "@rules_android//rules:bundle_keystore_properties.tmpl",
+            default = "//rules:bundle_keystore_properties.tmpl",
         ),
         _feature_manifest_script = attr.label(
             allow_single_file = True,

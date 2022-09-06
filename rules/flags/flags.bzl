@@ -14,7 +14,7 @@
 
 """Bazel Flags."""
 
-load("@rules_android//rules:utils.bzl", "utils")
+load("//rules:utils.bzl", "utils")
 
 _BoolFlagInfo = provider(
     doc = "Provides information about a boolean flag",

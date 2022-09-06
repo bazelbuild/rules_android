@@ -14,7 +14,7 @@
 
 """Flag definitions."""
 
-load("@rules_android//rules/flags:flags.bzl", "flags")
+load("//rules/flags:flags.bzl", "flags")
 
 def define_flags():
     flags.DEFINE_bool(

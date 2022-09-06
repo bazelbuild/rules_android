@@ -17,5 +17,5 @@
 # keep sorted
 ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST = [
     # Failure test support.
-    "@rules_android//test/rules/android_archive/java/com/testdata/denied:__pkg__",
+    "//test/rules/android_archive/java/com/testdata/denied:__pkg__",
 ]

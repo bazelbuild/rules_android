@@ -17,7 +17,7 @@
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
 load(
-    "@rules_android//rules:attrs.bzl",
+    "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 
@@ -43,7 +43,7 @@ def make_rule(
         attrs = attrs,
         implementation = implementation,
         provides = provides,
-        toolchains = ["@rules_android//toolchains/android:toolchain_type"],
+        toolchains = ["//toolchains/android:toolchain_type"],
         _skylark_testable = True,
         fragments = [
             "android",
