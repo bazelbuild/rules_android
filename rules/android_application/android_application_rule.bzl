@@ -17,33 +17,33 @@
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
 load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
 load(
-    "@rules_android//rules:aapt.bzl",
+    "//rules:aapt.bzl",
     _aapt = "aapt",
 )
 load(
-    "@rules_android//rules:bundletool.bzl",
+    "//rules:bundletool.bzl",
     _bundletool = "bundletool",
 )
 load(
-    "@rules_android//rules:busybox.bzl",
+    "//rules:busybox.bzl",
     _busybox = "busybox",
 )
 load(
-    "@rules_android//rules:common.bzl",
+    "//rules:common.bzl",
     _common = "common",
 )
 load(
-    "@rules_android//rules:java.bzl",
+    "//rules:java.bzl",
     _java = "java",
 )
 load(
-    "@rules_android//rules:providers.bzl",
+    "//rules:providers.bzl",
     "AndroidBundleInfo",
     "AndroidFeatureModuleInfo",
     "StarlarkAndroidResourcesInfo",
 )
 load(
-    "@rules_android//rules:utils.bzl",
+    "//rules:utils.bzl",
     "get_android_toolchain",
     _log = "log",
 )
@@ -335,7 +335,7 @@ android_application = rule(
         "deploy_script": "%{name}.sh",
         "unsigned_aab": "%{name}_unsigned.aab",
     },
-    toolchains = ["@rules_android//toolchains/android:toolchain_type"],
+    toolchains = ["//toolchains/android:toolchain_type"],
     _skylark_testable = True,
 )
 

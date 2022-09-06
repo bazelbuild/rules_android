@@ -14,11 +14,11 @@
 
 """android_library rule."""
 
-load("@rules_android//rules:acls.bzl", "acls")
+load("//rules:acls.bzl", "acls")
 load(":attrs.bzl", _ATTRS = "ATTRS")
 load(":impl.bzl", _impl = "impl")
 load(
-    "@rules_android//rules:attrs.bzl",
+    "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 
@@ -160,8 +160,8 @@ def make_rule(
         ],
         outputs = outputs,
         toolchains = [
-            "@rules_android//toolchains/android:toolchain_type",
-            "@rules_android//toolchains/android_sdk:toolchain_type",
+            "//toolchains/android:toolchain_type",
+            "//toolchains/android_sdk:toolchain_type",
         ] + additional_toolchains,
         _skylark_testable = True,
     )

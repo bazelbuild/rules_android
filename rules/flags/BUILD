@@ -1,7 +1,7 @@
 # Flags for Android rules and mobile-install
 
-load("@rules_android//rules/flags:flags.bzl", "flags")
-load("@rules_android//rules/flags:flag_defs.bzl", "define_flags")
+load("//rules/flags:flags.bzl", "flags")
+load("//rules/flags:flag_defs.bzl", "define_flags")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 

@@ -15,14 +15,14 @@
 """android_feature_module rule."""
 
 load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
-load("@rules_android//rules:java.bzl", _java = "java")
+load("//rules:java.bzl", _java = "java")
 load(
-    "@rules_android//rules:providers.bzl",
+    "//rules:providers.bzl",
     "AndroidFeatureModuleInfo",
 )
-load("@rules_android//rules:acls.bzl", "acls")
+load("//rules:acls.bzl", "acls")
 load(
-    "@rules_android//rules:utils.bzl",
+    "//rules:utils.bzl",
     "get_android_toolchain",
 )
 
@@ -77,7 +77,7 @@ android_feature_module = rule(
     ],
     implementation = _impl,
     provides = [AndroidFeatureModuleInfo],
-    toolchains = ["@rules_android//toolchains/android:toolchain_type"],
+    toolchains = ["//toolchains/android:toolchain_type"],
     _skylark_testable = True,
 )
 

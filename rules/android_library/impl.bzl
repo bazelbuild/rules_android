@@ -14,23 +14,23 @@
 
 """Implementation."""
 
-load("@rules_android//rules:acls.bzl", "acls")
-load("@rules_android//rules:attrs.bzl", _attrs = "attrs")
-load("@rules_android//rules:common.bzl", _common = "common")
-load("@rules_android//rules:data_binding.bzl", _data_binding = "data_binding")
-load("@rules_android//rules:idl.bzl", _idl = "idl")
-load("@rules_android//rules:intellij.bzl", _intellij = "intellij")
-load("@rules_android//rules:java.bzl", _java = "java")
+load("//rules:acls.bzl", "acls")
+load("//rules:attrs.bzl", _attrs = "attrs")
+load("//rules:common.bzl", _common = "common")
+load("//rules:data_binding.bzl", _data_binding = "data_binding")
+load("//rules:idl.bzl", _idl = "idl")
+load("//rules:intellij.bzl", _intellij = "intellij")
+load("//rules:java.bzl", _java = "java")
 load(
-    "@rules_android//rules:processing_pipeline.bzl",
+    "//rules:processing_pipeline.bzl",
     "ProviderInfo",
     "processing_pipeline",
 )
-load("@rules_android//rules:proguard.bzl", _proguard = "proguard")
-load("@rules_android//rules:providers.bzl", "AndroidLintRulesInfo")
-load("@rules_android//rules:resources.bzl", _resources = "resources")
-load("@rules_android//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
-load("@rules_android//rules/flags:flags.bzl", _flags = "flags")
+load("//rules:proguard.bzl", _proguard = "proguard")
+load("//rules:providers.bzl", "AndroidLintRulesInfo")
+load("//rules:resources.bzl", _resources = "resources")
+load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
+load("//rules/flags:flags.bzl", _flags = "flags")
 
 _USES_DEPRECATED_IMPLICIT_EXPORT_ERROR = (
     "The android_library rule will be deprecating the use of deps to export " +
