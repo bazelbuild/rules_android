@@ -33,9 +33,7 @@ load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "ut
 load("//rules/flags:flags.bzl", _flags = "flags")
 
 _USES_DEPRECATED_IMPLICIT_EXPORT_ERROR = (
-    "The android_library rule will be deprecating the use of deps to export " +
-    "targets implicitly. " +
-    "Please use android_library.exports to explicitly specify the exported " +
+    "Use android_library.exports to explicitly specify the exported " +
     "targets of %s."
 )
 
@@ -67,34 +65,23 @@ _AARContextInfo = provider(
 )
 
 def _uses_deprecated_implicit_export(ctx):
-    if not ctx.attr.deps:
-        return False
-    return not (ctx.files.srcs or
-                ctx.files.idl_srcs or
-                ctx.attr._defined_assets or
-                ctx.files.resource_files or
-                ctx.attr.manifest)
+    return (ctx.attr.deps and not (ctx.files.srcs or
+                                   ctx.files.idl_srcs or
+                                   ctx.attr._defined_assets or
+                                   ctx.files.resource_files or
+                                   ctx.attr.manifest))
 
 def _uses_resources_and_deps_without_srcs(ctx):
-    if not ctx.attr.deps:
-        return False
-    if not (ctx.attr._defined_assets or
-            ctx.files.resource_files or
-            ctx.attr.manifest):
-        return False
-    return not (ctx.files.srcs or ctx.files.idl_srcs)
+    return (ctx.attr.deps and
+            (ctx.attr._defined_assets or ctx.files.resource_files or ctx.attr.manifest) and
+            not (ctx.files.srcs or ctx.files.idl_srcs))
 
 def _check_deps_without_java_srcs(ctx):
     if not ctx.attr.deps or ctx.files.srcs or ctx.files.idl_srcs:
         return False
     gfn = getattr(ctx.attr, "generator_function", "")
     if _uses_deprecated_implicit_export(ctx):
-        if (acls.in_android_library_implicit_exports_generator_functions(gfn) or
-            acls.in_android_library_implicit_exports(str(ctx.label))):
-            return True
-        else:
-            # TODO(b/144163743): add a test for this.
-            log.error(_USES_DEPRECATED_IMPLICIT_EXPORT_ERROR % ctx.label)
+        log.error(_USES_DEPRECATED_IMPLICIT_EXPORT_ERROR % ctx.label)
     if _uses_resources_and_deps_without_srcs(ctx):
         if (acls.in_android_library_resources_without_srcs_generator_functions(gfn) or
             acls.in_android_library_resources_without_srcs(str(ctx.label))):
