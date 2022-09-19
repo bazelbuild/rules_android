@@ -1210,7 +1210,7 @@ def _process(
         resource_files = None,
         neverlink = False,
         enable_data_binding = False,
-        fix_resource_transitivity = False,
+        fix_resource_transitivity = True,
         crunch_png = True,
         aapt = None,
         android_jar = None,
