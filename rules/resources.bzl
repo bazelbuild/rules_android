@@ -1446,6 +1446,34 @@ def _process_starlark(
             busybox = busybox,
             host_javabase = host_javabase,
         )
+        processed_manifest = None
+
+        # when using namespaced r classes the compile action generated both
+        # R.txt and the resources.jar without merging with outputs produced
+        # by transitive deps. Doing this means less changes that invalidate 
+        # the action cache which in turn improves performance significantly.
+        if namespaced_r_class:
+            out_aapt2_r_txt = ctx.actions.declare_file(
+                "_migrated/" + ctx.label.name + "_symbols/R.txt",
+            )
+            _busybox.compile(
+                ctx,
+                out_file = compiled_resources,
+                out_class_jar = out_class_jar,
+                out_r_txt = out_aapt2_r_txt,
+                manifest = manifest,
+                android_jar = android_jar,
+                resource_files = processed_resources,
+                aapt = aapt,
+                busybox = busybox,
+                host_javabase = host_javabase,
+            )
+            r_txt = out_aapt2_r_txt
+            java_info = JavaInfo(
+                output_jar = out_class_jar,
+                compile_jar = out_class_jar,
+            )
+            processed_manifest = manifest
 
         # TODO(b/160907203): Remove this fix once the native resource processing pipeline is turned off.
         if enable_data_binding:

@@ -150,7 +150,7 @@ def _process_resources(
         deps = ctx.attr.deps,
         exports = ctx.attr.exports,
         exports_manifest = getattr(ctx.attr, "exports_manifest", True),
-        propagate_resources = _acls.in_aar_propagate_resources(str(ctx.label)),
+        propagate_resources = True,
 
         # Tool and Processing related inputs
         aapt = _get_android_toolchain(ctx).aapt2.files_to_run,
@@ -351,7 +351,16 @@ def _process_jars(
         # TODO(djwhang): AarImportTest is not expecting jdeps, enable or remove it completely
         # jdeps = jdeps_artifact,
     )
-    providers.append(java_info)
+
+    # Merge library java_info with the resource java_info
+    # Libraries that directly depend on an AAR can depend as well on the AAR resource class
+    # so it is not enough to simply return the resource info as a dependency.
+    # Note that adding r_java as an export is also not the correct behavior, since we only
+    # want to expose it as a direct dependency.
+    # see AarImport.java
+    # https://github.com/bazelbuild/bazel/blob/e0a9081f/src/main/java/com/google/devtools/build/lib/rules/android/AarImport.java#L166
+    combined_java_info = java_common.merge([java_info] + r_java_info)
+    providers.append(combined_java_info)
 
     return struct(
         java_info = java_info,
@@ -493,8 +502,7 @@ def impl(ctx):
         r_java = resources_ctx.r_java,
         exports = _utils.collect_providers(JavaInfo, ctx.attr.exports),
         enable_desugar_java8 = ctx.fragments.android.desugar_java8,
-        enable_imports_deps_check =
-            _acls.in_aar_import_deps_checker(str(ctx.label)),
+        enable_imports_deps_check = False,
         aar_embedded_jars_extractor_tool =
             _get_android_toolchain(ctx).aar_embedded_jars_extractor.files_to_run,
         bootclasspath =
