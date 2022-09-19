@@ -62,7 +62,6 @@ def _gen_java_from_idl(
         inputs = depset(
             [aidl_framework],
             transitive = [
-                aidl_lib.files,
                 transitive_idl_imports,
                 transitive_idl_preprocessed,
             ],
@@ -183,7 +182,7 @@ def _process(
     Returns:
       A IDLContextInfo provider.
     """
-    if idl_srcs and not (aidl and aidl_lib and aidl_framework):
+    if idl_srcs and not (aidl and aidl_framework):
         _log.error(_AIDL_TOOLCHAIN_MISSING_ERROR)
 
     transitive_idl_import_roots = []
@@ -230,7 +229,7 @@ def _process(
         idl_srcs = idl_srcs,
         idl_import_root = idl_import_root,
         idl_java_srcs = idl_java_srcs,
-        idl_deps = [aidl_lib] if idl_java_srcs else [],
+        idl_deps = [],
         providers = [
             # TODO(b/146216105): Make this a Starlark provider.
             AndroidIdlInfo(

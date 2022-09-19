@@ -48,7 +48,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         _bundle_keystore_properties = attr.label(
             allow_single_file = True,
-            default = "//rules:bundle_keystore_properties.tmpl",
+            default = None,
         ),
         _feature_manifest_script = attr.label(
             allow_single_file = True,
