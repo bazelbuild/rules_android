@@ -431,7 +431,17 @@ def _run(
 
     args["arguments"] = jvm_flags + [jar_args] + args.get("arguments", default = [])
 
-    ctx.actions.run(**args)
+    mnemonic = args.get("mnemonic")
+    supports_workers = args.pop("supports_workers", False)
+    supports_multiplex_workers = args.pop("supports_multiplex_workers", False)
+    execution_requirements = args.pop("execution_requirements", dict())
+    if supports_workers:
+        execution_requirements["worker-key-mnemonic"] = mnemonic
+        execution_requirements["supports-workers"] = "1"
+        if supports_multiplex_workers:
+            execution_requirements["supports-multiplex-workers"] = "1"
+
+    ctx.actions.run(execution_requirements = execution_requirements, **args)
 
 java = struct(
     compile = _compile,
