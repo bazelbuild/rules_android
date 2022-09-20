@@ -59,6 +59,12 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         _java_toolchain = attr.label(
             default = Label("//tools/jdk:toolchain_android_only"),
         ),
+        _merge_manifests = attr.label(
+            default = ":merge_feature_manifests.par",
+            allow_single_file = True,
+            cfg = "exec",
+            executable = True,
+        ),
         _priority_feature_manifest_script = attr.label(
             allow_single_file = True,
             cfg = "host",
