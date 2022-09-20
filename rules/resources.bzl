@@ -394,9 +394,7 @@ def _is_resource_shrinking_enabled(
 def _should_shrink_resource_cycles(
         use_android_resource_cycle_shrinking,
         resource_shrinking_enabled):
-    if use_android_resource_cycle_shrinking and not resource_shrinking_enabled:
-        fail("resource cycle shrinking can only be enabled when resource shrinking is enabled")
-    return use_android_resource_cycle_shrinking
+    return use_android_resource_cycle_shrinking and resource_shrinking_enabled
 
 def _filter_multi_cpu_configuration_targets(
         targets):
