@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//:def.bzl", "go_binary", "go_library", "go_test", "go_proto_library")
+# Description:
+#   Package for nativelib module
+package(default_visibility = ["//visibility:public"])
+
+licenses(["notice"])
+
+go_library(
+    name = "nativelib",
+    srcs = ["nativelib.go"],
+    deps = [
+        "//src/common/golang:fileutils",
+        "//src/common/golang:flags",
+        "//src/common/golang:ziputils",
+        "//src/tools/ak:types",
+    ],
+)
+
+go_binary(
+    name = "nativelib_bin",
+    srcs = ["nativelib_bin.go"],
+    deps = [
+        ":nativelib",
+        "//src/common/golang:flagfile",
+    ],
+)
+
+go_test(
+    name = "nativelib_test",
+    size = "small",
+    srcs = ["nativelib_test.go"],
+    data = [
+        "//src/tools/ak/nativelib/testdata:dummy_so",
+    ],
+    library = ":nativelib",
+)
