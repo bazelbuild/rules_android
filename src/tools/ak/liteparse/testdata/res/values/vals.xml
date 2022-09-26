@@ -1,0 +1,15 @@
+<resources>
+<string name="greeting">Hello <b> dear user </b></string>
+<item type="id" name="response"/>
+<declare-styleable name="absPieChart">
+  <attr name="bg" format="color"/>
+  <attr name="android:gravity"/>
+</declare-styleable>
+<attr name="size">
+  <enum name="small"/>
+  <enum name="large"/>
+</attr>
+<string name="version">alpha</string>
+<string name="title">title</string>
+<string name="title2">title2</string>
+</resources>
