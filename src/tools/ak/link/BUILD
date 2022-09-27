@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 # Description:
 #   Package for link module
 package(default_visibility = ["//visibility:public"])
