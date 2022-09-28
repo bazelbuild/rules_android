@@ -44,7 +44,6 @@ load("//rules/acls:android_binary_starlark_javac.bzl", "ANDROID_BINARY_STARLARK_
 load("//rules/acls:android_feature_splits_dogfood.bzl", "ANDROID_FEATURE_SPLITS_DOGFOOD")
 load("//rules/acls:android_library_resources_without_srcs.bzl", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS")
 load("//rules/acls:android_library_starlark_resource_outputs.bzl", "ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_FALLBACK", "ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_ROLLOUT")
-load("//rules/acls:android_lint_checks_rollout.bzl", "ANDROID_LINT_CHECKS_FALLBACK", "ANDROID_LINT_CHECKS_ROLLOUT")
 load("//rules/acls:android_lint_rollout.bzl", "ANDROID_LINT_FALLBACK", "ANDROID_LINT_ROLLOUT")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
 load("//rules/acls:android_build_stamping_rollout.bzl", "ANDROID_BUILD_STAMPING_FALLBACK", "ANDROID_BUILD_STAMPING_ROLLOUT")
@@ -105,9 +104,6 @@ def _in_android_binary_starlark_javac(fqn):
 
 def _in_android_feature_splits_dogfood(fqn):
     return matches(fqn, ANDROID_FEATURE_SPLITS_DOGFOOD_DICT)
-
-def _in_android_lint_checks_rollout(fqn):
-    return not matches(fqn, ANDROID_LINT_CHECKS_FALLBACK_DICT) and matches(fqn, ANDROID_LINT_CHECKS_ROLLOUT_DICT)
 
 def _in_android_lint_rollout(fqn):
     return not matches(fqn, ANDROID_LINT_FALLBACK_DICT) and matches(fqn, ANDROID_LINT_ROLLOUT_DICT)
@@ -226,8 +222,6 @@ ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_DICT = make_dict(ANDROID_LIBRARY_RESOURCE
 ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS_DICT = make_dict(ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS)
 ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_FALLBACK_DICT = make_dict(ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_FALLBACK)
 ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_ROLLOUT_DICT = make_dict(ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_ROLLOUT)
-ANDROID_LINT_CHECKS_FALLBACK_DICT = make_dict(ANDROID_LINT_CHECKS_FALLBACK)
-ANDROID_LINT_CHECKS_ROLLOUT_DICT = make_dict(ANDROID_LINT_CHECKS_ROLLOUT)
 ANDROID_LINT_FALLBACK_DICT = make_dict(ANDROID_LINT_FALLBACK)
 ANDROID_LINT_ROLLOUT_DICT = make_dict(ANDROID_LINT_ROLLOUT)
 ANDROID_RULES_WITH_KT_ROLLOUT_DICT = make_dict(ANDROID_RULES_WITH_KT_ROLLOUT)
@@ -327,7 +321,6 @@ acls = struct(
     in_android_library_starlark_resource_outputs_rollout = _in_android_library_starlark_resource_outputs_rollout,
     in_android_library_resources_without_srcs = _in_android_library_resources_without_srcs,
     in_android_library_resources_without_srcs_generator_functions = _in_android_library_resources_without_srcs_generator_functions,
-    in_android_lint_checks_rollout = _in_android_lint_checks_rollout,
     in_android_lint_rollout = _in_android_lint_rollout,
     in_lint_registry_rollout = _in_lint_registry_rollout,
     in_android_build_stamping_rollout = _in_android_build_stamping_rollout,
