@@ -1,4 +1,6 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
 # Description:
 #   Package for nativelib module
 package(default_visibility = ["//visibility:public"])
@@ -8,6 +10,7 @@ licenses(["notice"])
 go_library(
     name = "nativelib",
     srcs = ["nativelib.go"],
+    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/nativelib/nativelib",
     deps = [
         "//src/common/golang:fileutils",
         "//src/common/golang:flags",
@@ -32,5 +35,4 @@ go_test(
     data = [
         "//src/tools/ak/nativelib/testdata:dummy_so",
     ],
-    library = ":nativelib",
 )

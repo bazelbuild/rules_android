@@ -1,4 +1,6 @@
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
 # Description:
 #   Package for parse module
 package(default_visibility = ["//visibility:public"])
@@ -12,6 +14,7 @@ go_library(
         "non_values_parse.go",
         "values_parse.go",
     ],
+    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/liteparse/liteparse",
     deps = [
         "//src/common/golang:flags",
         "//src/common/golang:walk",
@@ -34,7 +37,6 @@ go_test(
         "values_parse_test.go",
     ],
     data = glob(["testdata/**"]),
-    library = ":liteparse",
     deps = [
         "//src/tools/ak/res",
         "//src/tools/ak/res/proto:res_data_go_proto",
