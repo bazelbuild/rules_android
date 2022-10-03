@@ -23,7 +23,6 @@ import os
 import sys
 
 import xml.etree.ElementTree as ET
-import google3
 from absl import app
 from absl import flags
 

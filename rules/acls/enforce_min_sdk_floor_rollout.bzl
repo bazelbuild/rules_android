@@ -15,8 +15,8 @@
 """Rollout list for enabling enforce min SDK floor."""
 
 ENFORCE_MIN_SDK_FLOOR_ROLLOUT = [
+    "//:__subpackages__",
 ]
 
 ENFORCE_MIN_SDK_FLOOR_FALLBACK = [
-    "//:__subpackages__",
 ]
