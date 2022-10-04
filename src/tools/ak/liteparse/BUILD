@@ -37,6 +37,7 @@ go_test(
         "values_parse_test.go",
     ],
     data = glob(["testdata/**"]),
+    embed = [":liteparse"],
     deps = [
         "//src/tools/ak/res",
         "//src/tools/ak/res/proto:res_data_go_proto",

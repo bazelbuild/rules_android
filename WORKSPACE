@@ -73,6 +73,13 @@ go_repository(
     version = "v0.5.9",
 )
 
+go_repository(
+  name = "org_golang_x_sync",
+  importpath = "golang.org/x/sync",
+  sum = "h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=",
+  version = "v0.0.0-20210220032951-036812b2e83c",
+)
+
 go_rules_dependencies()
 
 go_register_toolchains(version = "1.18.3")
