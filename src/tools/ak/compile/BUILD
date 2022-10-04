@@ -34,4 +34,5 @@ go_test(
     srcs = [
         "compile_test.go",
     ],
+    embed = [":compile"],
 )

@@ -35,4 +35,5 @@ go_test(
     data = [
         "//src/tools/ak/nativelib/testdata:dummy_so",
     ],
+    embed = [":nativelib"],
 )
