@@ -32,7 +32,6 @@ load("//rules/acls:aar_import_explicit_exports_manifest.bzl", "AAR_IMPORT_EXPLIC
 load("//rules/acls:aar_import_exports_r_java.bzl", "AAR_IMPORT_EXPORTS_R_JAVA")
 load("//rules/acls:aar_propagate_resources.bzl", "AAR_PROPAGATE_RESOURCES_FALLBACK", "AAR_PROPAGATE_RESOURCES_ROLLOUT")
 load("//rules/acls:ait_install_snapshots.bzl", "APP_INSTALLATION_SNAPSHOT", "APP_INSTALLATION_SNAPSHOT_FALLBACK")
-load("//rules/acls:ait_virtual_device.bzl", "AIT_VIRTUAL_DEVICE_FALLBACK", "AIT_VIRTUAL_DEVICE_ROLLOUT")
 load("//rules/acls:allow_resource_conflicts.bzl", "ALLOW_RESOURCE_CONFLICTS")
 load("//rules/acls:android_archive_dogfood.bzl", "ANDROID_ARCHIVE_DOGFOOD")
 load("//rules/acls:android_archive_excluded_deps_denylist.bzl", "ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST")
@@ -83,9 +82,6 @@ def _in_aar_import_exports_r_java(fqn):
 
 def _in_aar_propagate_resources(fqn):
     return not matches(fqn, AAR_PROPAGATE_RESOURCES_FALLBACK_DICT) and matches(fqn, AAR_PROPAGATE_RESOURCES_ROLLOUT_DICT)
-
-def _in_ait_virtual_device(fqn):
-    return not matches(fqn, AIT_VIRTUAL_DEVICE_FALLBACK_DICT) and matches(fqn, AIT_VIRTUAL_DEVICE_ROLLOUT_DICT)
 
 def _in_android_archive_dogfood(fqn):
     return matches(fqn, ANDROID_ARCHIVE_DOGFOOD_DICT)
@@ -207,8 +203,6 @@ AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT = make_dict(AAR_IMPORT_EXPLICIT_EXPORT
 AAR_IMPORT_EXPORTS_R_JAVA_DICT = make_dict(AAR_IMPORT_EXPORTS_R_JAVA)
 AAR_PROPAGATE_RESOURCES_FALLBACK_DICT = make_dict(AAR_PROPAGATE_RESOURCES_FALLBACK)
 AAR_PROPAGATE_RESOURCES_ROLLOUT_DICT = make_dict(AAR_PROPAGATE_RESOURCES_ROLLOUT)
-AIT_VIRTUAL_DEVICE_FALLBACK_DICT = make_dict(AIT_VIRTUAL_DEVICE_FALLBACK)
-AIT_VIRTUAL_DEVICE_ROLLOUT_DICT = make_dict(AIT_VIRTUAL_DEVICE_ROLLOUT)
 ANDROID_ARCHIVE_DOGFOOD_DICT = make_dict(ANDROID_ARCHIVE_DOGFOOD)
 ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST_DICT = make_dict(ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST)
 ANDROID_DEVICE_PLUGIN_ROLLOUT_DICT = make_dict(ANDROID_DEVICE_PLUGIN_ROLLOUT)
@@ -309,7 +303,6 @@ acls = struct(
     in_aar_import_explicit_exports_manifest = _in_aar_import_explicit_exports_manifest,
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
     in_aar_propagate_resources = _in_aar_propagate_resources,
-    in_ait_virtual_device = _in_ait_virtual_device,
     in_b122039567 = _in_b122039567,
     in_b123854163 = _in_b123854163,
     in_android_archive_dogfood = _in_android_archive_dogfood,
