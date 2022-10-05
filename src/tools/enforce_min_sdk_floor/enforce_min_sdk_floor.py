@@ -32,25 +32,27 @@ VALIDATE = "validate"
 USES_SDK = "uses-sdk"
 MIN_SDK_ATTRIB = "{http://schemas.android.com/apk/res/android}minSdkVersion"
 
-_ACTION = flags.DEFINE_enum(
+FLAGS = flags.FLAGS
+
+flags.DEFINE_enum(
     "action",
     None,
     [BUMP, VALIDATE],
     f"Action to perform, either {BUMP} or {VALIDATE}")
-_MANIFEST = flags.DEFINE_string(
+flags.DEFINE_string(
     "manifest",
     None,
     "AndroidManifest.xml of the instrumentation APK")
-_MIN_SDK_FLOOR = flags.DEFINE_integer(
+flags.DEFINE_integer(
     "min_sdk_floor",
     0,
     "Min SDK floor",
     lower_bound=0)
-_OUTPUT = flags.DEFINE_string(
+flags.DEFINE_string(
     "output",
     None,
     f"Output AndroidManifest.xml to generate, only needed for {BUMP}")
-_LOG = flags.DEFINE_string("log", None, "Path to write the log to")
+flags.DEFINE_string("log", None, "Path to write the log to")
 
 
 class MinSdkError(Exception):
@@ -162,30 +164,30 @@ def _ValidateMinSdk(xml_content, min_sdk_floor):
 
 
 def main(unused_argv):
-  manifest_path = _MANIFEST.value
+  manifest_path = FLAGS.manifest
   with open(manifest_path, "rb") as f:
     manifest = f.read()
 
-  if _ACTION.value == BUMP:
-    output_path = _OUTPUT.value
+  if FLAGS.action == BUMP:
+    output_path = FLAGS.output
     dirname = os.path.dirname(output_path)
     if not os.path.exists(dirname):
       os.makedirs(dirname)
 
-    out_contents, log_message = _BumpMinSdk(manifest, _MIN_SDK_FLOOR.value)
+    out_contents, log_message = _BumpMinSdk(manifest, FLAGS.min_sdk_floor)
     with open(output_path, "wb") as f:
       f.write(out_contents)
 
-  elif _ACTION.value == VALIDATE:
+  elif FLAGS.action == VALIDATE:
     try:
-      log_message = _ValidateMinSdk(manifest, _MIN_SDK_FLOOR.value)
+      log_message = _ValidateMinSdk(manifest, FLAGS.min_sdk_floor)
     except MinSdkError as e:
       sys.exit(str(e))
   else:
     sys.exit(f"Action must be either {BUMP} or {VALIDATE}")
 
-  if _LOG.value is not None:
-    log_path = _LOG.value
+  if FLAGS.log is not None:
+    log_path = FLAGS.log
     dirname = os.path.dirname(log_path)
     if not os.path.exists(dirname):
       os.makedirs(dirname)
