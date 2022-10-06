@@ -10,7 +10,7 @@ licenses(["notice"])
 go_library(
     name = "xml2",
     srcs = ["marshal.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/xml2",
+    importpath = "src/common/golang/xml2",
 )
 
 go_test(
@@ -25,7 +25,7 @@ go_test(
 go_library(
     name = "shard",
     srcs = ["shard.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/shard",
+    importpath = "src/common/golang/shard",
 )
 
 go_test(
@@ -41,26 +41,26 @@ go_test(
 go_library(
     name = "walk",
     srcs = ["walk.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/walk",
+    importpath = "src/common/golang/walk",
 )
 
 go_library(
     name = "ziputils",
     srcs = ["ziputils.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/ziputils",
+    importpath = "src/common/golang/ziputils",
     deps = ["@org_golang_x_sync//errgroup"],
 )
 
 go_library(
     name = "fileutils",
     srcs = ["fileutils.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/fileutils",
+    importpath = "src/common/golang/fileutils",
 )
 
 go_library(
     name = "flags",
     srcs = ["flags.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/flags",
+    importpath = "src/common/golang/flags",
 )
 
 go_test(
@@ -73,7 +73,7 @@ go_test(
 go_library(
     name = "ini",
     srcs = ["ini.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/ini",
+    importpath = "src/common/golang/ini",
 )
 
 go_test(
@@ -86,11 +86,11 @@ go_test(
 go_library(
     name = "pprint",
     srcs = ["pprint.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/pprint",
+    importpath = "src/common/golang/pprint",
 )
 
 go_library(
     name = "flagfile",
     srcs = ["flagfile.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/common/golang/flagfile",
+    importpath = "src/common/golang/flagfile",
 )

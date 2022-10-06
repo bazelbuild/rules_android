@@ -21,7 +21,7 @@ go_library(
     srcs = [
         "compile.go",
     ],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/compile/compile",
+    importpath = "src/tools/ak/compile/compile",
     deps = [
         "//src/common/golang:ziputils",
         "//src/tools/ak:types",

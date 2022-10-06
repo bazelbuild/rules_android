@@ -20,7 +20,7 @@ go_library(
     srcs = [
         "manifest.go",
     ],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/manifest/manifest",
+    importpath = "src/tools/ak/manifest/manifest",
     deps = [
         "//src/common/golang:flags",
         "//src/tools/ak:manifestutils",

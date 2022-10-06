@@ -14,7 +14,7 @@ go_library(
         "non_values_parse.go",
         "values_parse.go",
     ],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/liteparse/liteparse",
+    importpath = "src/tools/ak/liteparse/liteparse",
     deps = [
         "//src/common/golang:flags",
         "//src/common/golang:walk",
