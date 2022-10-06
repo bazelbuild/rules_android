@@ -21,7 +21,7 @@ go_library(
     srcs = [
         "link.go",
     ],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/link/link",
+    importpath = "src/tools/ak/link/link",
     deps = [
         "//src/common/golang:flags",
         "//src/common/golang:walk",

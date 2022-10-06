@@ -19,6 +19,6 @@ go_binary(
 go_library(
     name = "mindex",
     srcs = ["mindex.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/mindex/mindex",
+    importpath = "src/tools/ak/mindex/mindex",
     deps = ["//src/tools/ak:types"],
 )

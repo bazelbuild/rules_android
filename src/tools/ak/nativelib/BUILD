@@ -10,7 +10,7 @@ licenses(["notice"])
 go_library(
     name = "nativelib",
     srcs = ["nativelib.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/nativelib/nativelib",
+    importpath = "src/tools/ak/nativelib/nativelib",
     deps = [
         "//src/common/golang:fileutils",
         "//src/common/golang:flags",

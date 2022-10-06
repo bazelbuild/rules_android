@@ -35,19 +35,19 @@ go_binary(
 go_library(
     name = "types",
     srcs = ["types.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/types",
+    importpath = "src/tools/ak/types",
 )
 
 go_library(
     name = "akhelper",
     srcs = ["akhelper.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/akhelper",
+    importpath = "src/tools/ak/akhelper",
 )
 
 go_library(
     name = "manifestutils",
     srcs = ["manifestutils.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/manifestutils",
+    importpath = "src/tools/ak/manifestutils",
     deps = [
         "//src/common/golang:xml2",
     ],

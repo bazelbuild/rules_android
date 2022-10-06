@@ -18,7 +18,7 @@ go_binary(
 go_library(
     name = "dex",
     srcs = ["dex.go"],
-    importpath = "github.com/bazelbuild/rules_android/src/tools/ak/dex/dex",
+    importpath = "src/tools/ak/dex/dex",
     deps = [
         "//src/common/golang:flags",
         "//src/common/golang:shard",
