@@ -76,7 +76,7 @@ def define_flags():
 
     flags.DEFINE_bool(
         name = "mi_desugar_java8_libs",
-        default = False,
+        default = True,
         description = "Set True with --config=android_java8_libs",
     )
 
