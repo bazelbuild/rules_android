@@ -71,6 +71,7 @@ load("//rules/acls:android_instrumentation_test_prebuilt_test_apk.bzl", "ANDROID
 load("//rules/acls:android_rules_with_kt_rollout.bzl", "ANDROID_RULES_WITH_KT_FALLBACK", "ANDROID_RULES_WITH_KT_ROLLOUT")
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("//rules/acls:enforce_min_sdk_floor_rollout.bzl", "ENFORCE_MIN_SDK_FLOOR_FALLBACK", "ENFORCE_MIN_SDK_FLOOR_ROLLOUT")
+load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
 
 def _in_aar_import_deps_checker(fqn):
     return not matches(fqn, AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT) and matches(fqn, AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT)
@@ -197,6 +198,9 @@ def _in_baseline_profiles_rollout(fqn):
 def _in_enforce_min_sdk_floor_rollout(fqn):
     return not matches(fqn, ENFORCE_MIN_SDK_FLOOR_FALLBACK_DICT) and matches(fqn, ENFORCE_MIN_SDK_FLOOR_ROLLOUT_DICT)
 
+def _in_android_apk_to_bundle_features(fqn):
+    return matches(fqn, ANDROID_APK_TO_BUNDLE_FEATURES_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -267,6 +271,7 @@ ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_DICT = make_dict(ANDROID_INSTRUME
 BASELINE_PROFILES_ROLLOUT_DICT = make_dict(BASELINE_PROFILES_ROLLOUT)
 ENFORCE_MIN_SDK_FLOOR_ROLLOUT_DICT = make_dict(ENFORCE_MIN_SDK_FLOOR_ROLLOUT)
 ENFORCE_MIN_SDK_FLOOR_FALLBACK_DICT = make_dict(ENFORCE_MIN_SDK_FLOOR_FALLBACK)
+ANDROID_APK_TO_BUNDLE_FEATURES_DICT = make_dict(ANDROID_APK_TO_BUNDLE_FEATURES)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -345,6 +350,7 @@ acls = struct(
     in_android_rules_with_kt_rollout = _in_android_rules_with_kt_rollout,
     in_baseline_profiles_rollout = _in_baseline_profiles_rollout,
     in_enforce_min_sdk_floor_rollout = _in_enforce_min_sdk_floor_rollout,
+    in_android_apk_to_bundle_features = _in_android_apk_to_bundle_features,
 )
 
 # Visible for testing
