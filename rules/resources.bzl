@@ -393,8 +393,11 @@ def _is_resource_shrinking_enabled(
 
 def _should_shrink_resource_cycles(
         use_android_resource_cycle_shrinking,
-        resource_shrinking_enabled):
-    return use_android_resource_cycle_shrinking and resource_shrinking_enabled
+        resource_shrinking_enabled,
+        has_local_proguard_specs):
+    return (use_android_resource_cycle_shrinking and
+            resource_shrinking_enabled and
+            has_local_proguard_specs)
 
 def _filter_multi_cpu_configuration_targets(
         targets):
@@ -445,6 +448,7 @@ def _package(
         enable_manifest_merging = True,
         should_compile_java_srcs = True,
         aapt = None,
+        has_local_proguard_specs = False,
         android_jar = None,
         legacy_merger = None,
         xsltproc = None,
@@ -624,6 +628,7 @@ def _package(
     shrink_resource_cycles = _should_shrink_resource_cycles(
         use_android_resource_cycle_shrinking,
         resource_shrinking_enabled,
+        has_local_proguard_specs,
     )
 
     resource_apk = ctx.actions.declare_file(ctx.label.name + "_migrated/.ap_")
