@@ -88,3 +88,4 @@ gazelle_dependencies()
 # gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
 rules_android_workspace()
 
+# foobar
