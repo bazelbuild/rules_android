@@ -118,6 +118,10 @@ def _make_resources_flag(
         ],
     )
 
+def _disable_warnings(args):
+    # Disable warnings - this are output to stdin/stderr which breaks worker mode
+    args.add("--logWarnings=false")
+
 def _path(f):
     return f.path
 
@@ -389,11 +393,13 @@ def _package(
     if java_package:
         args.add("--packageForR", java_package)
 
+    _disable_warnings(args)
+
     _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [aapt],
+        tools = [aapt, busybox],
         arguments = [args],
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
@@ -433,6 +439,8 @@ def _parse(
         ),
     )
     args.add("--output", out_symbols)
+
+    _disable_warnings(args)
 
     _java.run(
         ctx = ctx,
@@ -517,6 +525,8 @@ def _merge_assets(
         join_with = "&",
     )
 
+    _disable_warnings(args)
+
     _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
@@ -598,6 +608,8 @@ def _validate_and_link(
     args.add("--staticLibraryOut", out_file)
     output_files.append(out_file)
 
+    _disable_warnings(args)
+
     _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
@@ -654,6 +666,8 @@ def _compile(
         ),
     )
     args.add("--output", out_file)
+
+    _disable_warnings(args)
 
     _java.run(
         ctx = ctx,
@@ -759,6 +773,8 @@ def _merge_compiled(
         )
         transitive_input_files.append(transitive_compiled_resources)
 
+    _disable_warnings(args)
+
     _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
@@ -855,6 +871,8 @@ def _merge_manifests(
         args.add("--log", out_log_file)
         outputs.append(out_log_file)
 
+    _disable_warnings(args)
+
     _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
@@ -909,6 +927,8 @@ def _process_databinding(
     args.add_all(res_dirs, before_each = "--resource_root")
     args.add("--dataBindingInfoOut", out_databinding_info)
     args.add("--appId", java_package)
+
+    _disable_warnings(args)
 
     _java.run(
         ctx = ctx,
@@ -981,6 +1001,8 @@ def _generate_binary_r(
     args.add("--classJarOutput", out_class_jar)
     args.add("--targetLabel", str(ctx.label))
 
+    _disable_warnings(args)
+
     _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
@@ -1047,6 +1069,8 @@ def _make_aar(
     args.add_all(proguard_specs, before_each = "--proguardSpec")
     if should_throw_on_conflict:
         args.add("--throwOnResourceConflict")
+
+    _disable_warnings(args)
 
     _java.run(
         ctx = ctx,
