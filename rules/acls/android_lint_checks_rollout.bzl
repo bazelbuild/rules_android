@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Allow list for enabling Android Lint checks in the Android Rules."""
+"""Allow list for using the "fully enabled" lint check config."""
 
 # keep sorted
 ANDROID_LINT_CHECKS_ROLLOUT = [

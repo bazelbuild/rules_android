@@ -197,7 +197,8 @@ def _bundle_to_apks(
         ctx,
         out = None,
         bundle = None,
-        universal = False,
+        mode = None,
+        system_apk_options = None,
         device_spec = None,
         keystore = None,
         oldest_signer = None,
@@ -214,8 +215,13 @@ def _bundle_to_apks(
     args.add("--bundle", bundle)
     args.add("--aapt2", aapt2.executable.path)
 
-    if universal:
-        args.add("--mode=universal")
+    if mode:
+        args.add("--mode", mode)
+
+    if system_apk_options:
+        if mode != "SYSTEM":
+            fail("Unexpected system_apk_options specified, requires SYSTEM mode but got %s" % mode)
+        args.add_joined("--system-apk-options", system_apk_options, join_with = ",")
 
     if keystore:
         args.add("--ks", keystore.path)

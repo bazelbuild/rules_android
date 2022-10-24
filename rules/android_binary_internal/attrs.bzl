@@ -15,7 +15,7 @@
 """Attributes."""
 
 load(
-    "@rules_android//rules:attrs.bzl",
+    "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 
@@ -50,6 +50,7 @@ ATTRS = _attrs.replace(
                 allow_files = False,
                 allow_rules = ["android_binary", "android_test"],
             ),
+            proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
             resource_configuration_filters = attr.string_list(),
             densities = attr.string_list(),
             nocompress_extensions = attr.string_list(),

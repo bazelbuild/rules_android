@@ -16,8 +16,22 @@
 set -e
 set -x
 
-bazel="${KOKORO_GFILE_DIR}/bazel-${bazel_version}-linux-x86_64"
+source "${KOKORO_GFILE_DIR}/download_bazel.sh"
+echo "== installing bazel ========================================="
+bazel_install_dir=$(mktemp -d)
+BAZEL_VERSION="latest-with-prereleases"
+DownloadBazel "$BAZEL_VERSION" linux x86_64 "$bazel_install_dir"
+bazel="$bazel_install_dir/install/bin/bazel"
 chmod +x "$bazel"
+bazel_detected_version=$("$bazel" version | grep "Build label" | awk -F": " '{print $2}')
+echo "============================================================="
+
+function Cleanup() {
+  # Clean up all temporary directories: bazel install, sandbox, and
+  # android_tools.
+  rm -rf "$bazel_install_dir"
+}
+trap Cleanup EXIT
 
 # Kokoro is no longer updating toolchains in their images, so install newer
 # android build tools, because the latest one installed (26.0.2) has some bug
@@ -32,9 +46,6 @@ yes | tools/bin/sdkmanager --licenses &>/dev/null
 # ANDROID_HOME is already in the environment.
 export ANDROID_NDK_HOME="/opt/android-ndk-r16b"
 
-# Go to basic app workspace in the source tree
-cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
-
 # Create a tmpfs in the sandbox at "/tmp/hsperfdata_$USERNAME" to avoid the
 # problems described in https://github.com/bazelbuild/bazel/issues/3236
 # Basically, the JVM creates a file at /tmp/hsperfdata_$USERNAME/$PID, but
@@ -45,9 +56,19 @@ cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
 hsperfdata_dir="/tmp/hsperfdata_$(whoami)_rules_android"
 mkdir "$hsperfdata_dir"
 
-"$bazel" build \
-    --sandbox_tmpfs_path="$hsperfdata_dir" \
-    --verbose_failures \
-    --experimental_google_legacy_api \
-    --experimental_enable_android_migration_apis \
-    //java/com/basicapp:basic_app
+COMMON_ARGS=(
+  "--sandbox_tmpfs_path=$hsperfdata_dir"
+  "--verbose_failures"
+  "--experimental_google_legacy_api"
+  "--experimental_enable_android_migration_apis"
+)
+
+# Go to rules_android workspace and run relevant tests.
+cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
+"$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
+  //src/tools/ak/{compile,dex,finalrjar,generatemanifest,link,manifest,mindex,rjar}/...
+
+# Go to basic app workspace in the source tree
+cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
+"$bazel" build "${COMMON_ARGS[@]}" //java/com/basicapp:basic_app
+

@@ -17,33 +17,33 @@
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
 load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
 load(
-    "@rules_android//rules:aapt.bzl",
+    "//rules:aapt.bzl",
     _aapt = "aapt",
 )
 load(
-    "@rules_android//rules:bundletool.bzl",
+    "//rules:bundletool.bzl",
     _bundletool = "bundletool",
 )
 load(
-    "@rules_android//rules:busybox.bzl",
+    "//rules:busybox.bzl",
     _busybox = "busybox",
 )
 load(
-    "@rules_android//rules:common.bzl",
+    "//rules:common.bzl",
     _common = "common",
 )
 load(
-    "@rules_android//rules:java.bzl",
+    "//rules:java.bzl",
     _java = "java",
 )
 load(
-    "@rules_android//rules:providers.bzl",
+    "//rules:providers.bzl",
     "AndroidBundleInfo",
     "AndroidFeatureModuleInfo",
     "StarlarkAndroidResourcesInfo",
 )
 load(
-    "@rules_android//rules:utils.bzl",
+    "//rules:utils.bzl",
     "get_android_toolchain",
     _log = "log",
 )
@@ -204,15 +204,16 @@ def _create_feature_manifest(
         progress_message = "Generating Priority AndroidManifest.xml for " + feature_target.label.name,
     )
 
-    _busybox.merge_manifests(
-        ctx,
-        out_file = manifest,
-        manifest = priority_manifest,
-        mergee_manifests = depset([info.manifest]),
-        java_package = java_package,
-        busybox = android_resources_busybox.files_to_run,
-        host_javabase = host_javabase,
-        manifest_values = {"MODULE_TITLE": "@string/" + info.title_id},
+    args = ctx.actions.args()
+    args.add("--main_manifest", priority_manifest.path)
+    args.add("--feature_manifest", info.manifest.path)
+    args.add("--feature_title", "@string/" + info.title_id)
+    args.add("--out", manifest.path)
+    ctx.actions.run(
+        executable = ctx.attr._merge_manifests.files_to_run,
+        inputs = [priority_manifest, info.manifest],
+        outputs = [manifest],
+        arguments = [args],
     )
 
     return manifest
@@ -335,7 +336,7 @@ android_application = rule(
         "deploy_script": "%{name}.sh",
         "unsigned_aab": "%{name}_unsigned.aab",
     },
-    toolchains = ["@rules_android//toolchains/android:toolchain_type"],
+    toolchains = ["//toolchains/android:toolchain_type"],
     _skylark_testable = True,
 )
 

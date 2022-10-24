@@ -1,4 +1,4 @@
-# Copyright 2020 The Bazel Authors. All rights reserved.
+# Copyright 2022 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Allow list for b/144163743 - deprecated implicit exports."""
+"""A workaround to expose android_common native module in android/common.bzl.
 
-# These macros can create android_library targets with deps and no srcs with no way for
-# their users to control this.
-ANDROID_LIBRARY_IMPLICIT_EXPORTS_GENERATOR_FUNCTIONS = [
-]
+Redefine native symbols with a new name as a workaround for
+exporting them in `rules:common.bzl` with their original name.
+"""
 
-ANDROID_LIBRARY_IMPLICIT_EXPORTS = [
-]
+native_android_common = android_common

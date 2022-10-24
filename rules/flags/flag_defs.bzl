@@ -14,7 +14,7 @@
 
 """Flag definitions."""
 
-load("@rules_android//rules/flags:flags.bzl", "flags")
+load("//rules/flags:flags.bzl", "flags")
 
 def define_flags():
     flags.DEFINE_bool(
@@ -76,7 +76,7 @@ def define_flags():
 
     flags.DEFINE_bool(
         name = "mi_desugar_java8_libs",
-        default = False,
+        default = True,
         description = "Set True with --config=android_java8_libs",
     )
 

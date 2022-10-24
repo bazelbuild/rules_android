@@ -414,11 +414,11 @@ VALIDATION_OUT={validation_out}
     )
 
 def get_android_toolchain(ctx):
-    return ctx.toolchains["@rules_android//toolchains/android:toolchain_type"]
+    return ctx.toolchains["//toolchains/android:toolchain_type"]
 
 def get_android_sdk(ctx):
     if hasattr(ctx.fragments.android, "incompatible_use_toolchain_resolution") and ctx.fragments.android.incompatible_use_toolchain_resolution:
-        return ctx.toolchains["@rules_android//toolchains/android_sdk:toolchain_type"].android_sdk_info
+        return ctx.toolchains["//toolchains/android_sdk:toolchain_type"].android_sdk_info
     else:
         return ctx.attr._android_sdk[AndroidSdkInfo]
 

@@ -15,6 +15,7 @@
 """Bazel common library for the Android rules."""
 
 load(":utils.bzl", "get_android_toolchain", _log = "log")
+load("//rules/android_common:reexport_android_common.bzl", _native_android_common = "native_android_common")
 
 # Validates that the packages listed under "deps" all have the given constraint. If a package
 # does not have this attribute, an error is generated.
@@ -73,3 +74,5 @@ common = struct(
     get_java_toolchain = _get_java_toolchain,
     filter_zip = _filter_zip,
 )
+
+android_common = _native_android_common

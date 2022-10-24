@@ -14,7 +14,7 @@
 
 """Rollout list for enabling test class derivation in android_instrumentation_test,"""
 
-load("@rules_android//rules:acls.bzl", "make_dict", "matches")
+load("//rules:acls.bzl", "make_dict", "matches")
 
 _ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_ROLLOUT = [
     "//:__subpackages__",

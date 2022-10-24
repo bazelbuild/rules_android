@@ -18,5 +18,5 @@
 # exposed package checks.
 # keep sorted
 ANDROID_ARCHIVE_EXPOSED_PACKAGE_ALLOWLIST = {
-    "@rules_android//test/rules/android_archive/java/com/testdata:archive_denied_package_allowlisted": ["androidx.test"],
+    "//test/rules/android_archive/java/com/testdata:archive_denied_package_allowlisted": ["androidx.test"],
 }
