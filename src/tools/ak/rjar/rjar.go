@@ -231,8 +231,8 @@ func compileRJar(srcs []string, rjar, jdk, jartool string, targetLabel string) e
 	defer os.Remove(control.Name())
 
 	args := []string{"--javacopts",
-		"-source", "7",
-		"-target", "7",
+		"-source", "8",
+		"-target", "8",
 		"-nowarn", "--", "--sources"}
 	args = append(args, srcs...)
 	args = append(args, []string{
