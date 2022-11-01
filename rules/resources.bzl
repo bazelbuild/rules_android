@@ -690,11 +690,10 @@ def _package(
     packaged_resources_ctx[_PACKAGED_VALIDATION_RESULT] = resource_files_zip
 
     # Fix class jar name because some tests depend on {label_name}_resources.jar being the suffix of
-    # the path, with _RESOURCES_DO_NOT_USE removed from the label name.
-    _RESOURCES_SUFFIX = "_RESOURCES_DO_NOT_USE"
+    # the path, with _common.PACKAGED_RESOURCES_SUFFIX removed from the label name.
     class_jar_name = ctx.label.name + "_migrated/_resources.jar"
-    if ctx.label.name.endswith(_RESOURCES_SUFFIX):
-        label_name = ctx.label.name[:-len(_RESOURCES_SUFFIX)]
+    if ctx.label.name.endswith(_common.PACKAGED_RESOURCES_SUFFIX):
+        label_name = ctx.label.name.removesuffix(_common.PACKAGED_RESOURCES_SUFFIX)
         class_jar_name = ctx.label.name + "_migrated/" + label_name + "_resources.jar"
 
     class_jar = ctx.actions.declare_file(class_jar_name)
