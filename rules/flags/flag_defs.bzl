@@ -91,3 +91,9 @@ def define_flags():
         name = "stamp",
         description = "Accesses the native --stamp CLI flag",
     )
+
+    flags.DEFINE_bool(
+        name = "use_studio_deployer",
+        default = True,
+        description = "Use Studio Deployer to install apks",
+    )
