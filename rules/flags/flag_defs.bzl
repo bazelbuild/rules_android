@@ -94,6 +94,6 @@ def define_flags():
 
     flags.DEFINE_bool(
         name = "use_studio_deployer",
-        default = True,
+        default = False,
         description = "Use Studio Deployer to install apks",
     )
