@@ -1,0 +1,14 @@
+syntax = "proto2";
+
+package tools.android.ak.res.proto;
+
+// Describes a stylable view.
+// Corresponds to R.styleable
+// Next ID: 5
+message StyleableMetaData {
+  // The name of the style - eg AbsListView or PieChart
+  optional string name = 1;
+
+  // pkg:attr_name form.
+  repeated string fqn_attributes = 2;
+}

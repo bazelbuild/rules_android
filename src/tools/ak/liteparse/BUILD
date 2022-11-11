@@ -24,7 +24,7 @@ go_library(
         "//src/tools/ak/res/proto:res_meta_go_proto",
         "//src/tools/ak/res/respipe",
         "//src/tools/ak/res/resxml",
-        "@com_github_golang_protobuf//proto",
+        "@org_golang_google_protobuf//proto",
     ],
 )
 
