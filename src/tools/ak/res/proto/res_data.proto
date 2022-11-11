@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package tools.android.ak.res.proto;
+
+import "src/tools/ak/res/proto/res_meta.proto";
+
+// A Resource file including its values.
+// Next ID: 4
+// From frameworks/base/tools/aapt2/Resource.h,
+message Resource {
+  // Next ID: 26
+  enum Type {
+    ANIM = 0;
+    ANIMATOR = 1;
+    ARRAY = 2;
+    ATTR = 3;
+    ATTR_PRIVATE = 4;
+    BOOL = 5;
+    COLOR = 6;
+    CONFIG_VARYING = 7;
+    DIMEN = 8;
+    DRAWABLE = 9;
+    FONT = 10;
+    FRACTION = 11;
+    ID = 12;
+    INTEGER = 13;
+    INTERPOLATOR = 14;
+    LAYOUT = 15;
+    MENU = 16;
+    MIPMAP = 17;
+    NAVIGATION = 18;
+    PLURALS = 19;
+    RAW = 20;
+    STRING = 21;
+    STYLE = 22;
+    STYLEABLE = 23;
+    TRANSITION = 24;
+    XML = 25;
+  }
+
+  // name of the resource, e.g.:
+  // for strings its the "name" attribute of the <string> entry
+  // for layouts its the layout file name.
+  string name = 1;
+  Type resource_type = 2;
+  StyleableMetaData styleable_value = 3;  // set if resource_type = STYLEABLE
+}
+
+// Ideally we could just use a recordio file for this. But not opensource.
+message Resources {
+  string pkg = 1;
+  repeated Resource resource = 2;
+}

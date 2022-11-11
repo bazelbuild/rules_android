@@ -5,6 +5,27 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 maybe(
     http_archive,
+    name = "remote_java_tools_for_rules_android",
+    sha256 = "8fb4d3138bd92a9d3324dae29c9f70d91ca2db18cd0bf1997446eed4657d19b3",
+    urls = [
+            "https://mirror.bazel.build/bazel_java_tools/releases/java/v11.8/java_tools-v11.8.zip",
+            "https://github.com/bazelbuild/java_tools/releases/download/java_v11.8/java_tools-v11.8.zip",
+    ],
+)
+
+maybe(
+    http_archive,
+    name = "com_google_protobuf",
+    sha256 = "87407cd28e7a9c95d9f61a098a53cf031109d451a7763e7dd1253abf8b4df422",
+    strip_prefix = "protobuf-3.19.1",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.19.1.tar.gz"],
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
+
+maybe(
+    http_archive,
     name = "rules_jvm_external",
     strip_prefix = "rules_jvm_external-fa73b1a8e4846cee88240d0019b8f80d39feb1c3",
     sha256 = "7e13e48b50f9505e8a99cc5a16c557cbe826e9b68d733050cd1e318d69f94bb5",
@@ -58,12 +79,18 @@ maybe(
 
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+go_rules_dependencies()
+
+go_register_toolchains(version = "1.18.3")
+
+gazelle_dependencies()
+# gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
 
 go_repository(
-    name = "com_github_golang_protobuf",
-    importpath = "github.com/golang/protobuf",
-    sum = "h1:ROPKBNFfQgOUMifHyP+KYbvpjbdoFNs+aK7DXlji0Tw=",
-    version = "v1.5.2",
+    name = "org_golang_google_protobuf",
+    importpath = "google.golang.org/protobuf",
+    sum = "h1:d0NfwRgPtno5B1Wa6L2DAG+KivqkdutMf1UhdNx175w=",
+    version = "v1.28.1",
 )
 
 go_repository(
@@ -80,11 +107,5 @@ go_repository(
   version = "v0.0.0-20210220032951-036812b2e83c",
 )
 
-go_rules_dependencies()
-
-go_register_toolchains(version = "1.18.3")
-
-gazelle_dependencies()
-# gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
 rules_android_workspace()
 

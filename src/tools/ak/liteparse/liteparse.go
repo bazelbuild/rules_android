@@ -37,7 +37,7 @@ import (
 	"src/tools/ak/res/respipe/respipe"
 	"src/tools/ak/res/resxml/resxml"
 	"src/tools/ak/types"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 var (
