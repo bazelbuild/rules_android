@@ -38,20 +38,20 @@ emulator_toolchain = rule(
     attrs = {
         "emulator": attr.label(
             allow_files = True,
-            cfg = "host",
+            cfg = "exec",
             mandatory = True,
         ),
         "emulator_deps": attr.label_list(
             allow_files = True,
-            cfg = "host",
+            cfg = "exec",
         ),
         "emulator_head": attr.label(
             allow_files = True,
-            cfg = "host",
+            cfg = "exec",
         ),
         "emulator_head_deps": attr.label_list(
             allow_files = True,
-            cfg = "host",
+            cfg = "exec",
         ),
         "emulator_suffix": attr.string(default = ""),
         "emulator_head_suffix": attr.string(default = ""),
