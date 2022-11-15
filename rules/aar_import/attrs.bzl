@@ -64,7 +64,7 @@ ATTRS = _attrs.add(
             default = Label("//tools/jdk:toolchain_android_only"),
         ),
         _host_javabase = attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label("//tools/jdk:current_java_runtime"),
         ),
     ),

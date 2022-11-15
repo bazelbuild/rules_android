@@ -54,7 +54,7 @@ ATTRS = _attrs.add(
             providers = [
                 [JavaPluginInfo],
             ],
-            cfg = "host",
+            cfg = "exec",
             doc = (
                 "The list of [java_plugin](https://docs.bazel.build/versions/main/be/java.html#java_plugin)s " +
                 "(e.g. annotation processors) to export to libraries that directly depend on this library. " +

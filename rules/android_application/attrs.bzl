@@ -52,7 +52,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         _feature_manifest_script = attr.label(
             allow_single_file = True,
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = ":gen_android_feature_manifest.sh",
         ),
@@ -67,12 +67,12 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         _priority_feature_manifest_script = attr.label(
             allow_single_file = True,
-            cfg = "host",
+            cfg = "exec",
             executable = True,
             default = ":gen_priority_android_feature_manifest.sh",
         ),
         _host_javabase = attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label("//tools/jdk:current_java_runtime"),
         ),
     ),
@@ -92,7 +92,7 @@ ANDROID_FEATURE_MODULE_ATTRS = dict(
     title_lib = attr.string(),
     _feature_module_validation_script = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         default = ":feature_module_validation.sh",
     ),

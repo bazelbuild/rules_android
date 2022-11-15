@@ -78,7 +78,7 @@ _tristate = struct(
 
 _JAVA_RUNTIME = dict(
     _host_javabase = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = Label("//tools/jdk:current_java_runtime"),
     ),
 )
@@ -152,7 +152,7 @@ _COMPILATION = _add(
         ),
         plugins = attr.label_list(
             providers = [JavaPluginInfo],
-            cfg = "host",
+            cfg = "exec",
             doc = (
                 "Java compiler plugins to run at compile-time. " +
                 "Every `java_plugin` specified in the plugins attribute will be run whenever this rule is built. " +
@@ -188,23 +188,23 @@ _DATA_CONTEXT = _add(
     dict(
         # Additional attrs needed for AndroidDataContext
         _add_g3itr_xslt = attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label("//tools/android/xslt:add_g3itr.xslt"),
             allow_single_file = True,
         ),
         _android_manifest_merge_tool = attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label("//tools/android:merge_manifests"),
             executable = True,
         ),
         # TODO(b/145617058) Switching back to head RPBB until the Android rules release process is improved
         _android_resources_busybox = attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label("//rules:ResourceProcessorBusyBox"),
             executable = True,
         ),
         _xsltproc_tool = attr.label(
-            cfg = "host",
+            cfg = "exec",
             default = Label("//tools/android/xslt:xslt"),
             allow_files = True,
         ),
@@ -221,18 +221,18 @@ _DATA_CONTEXT = _add(
 ANDROID_SDK_ATTRS = dict(
     aapt = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     aapt2 = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
     ),
     aidl = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         mandatory = True,
     ),
@@ -241,80 +241,80 @@ ANDROID_SDK_ATTRS = dict(
     ),
     android_jar = attr.label(
         allow_single_file = [".jar"],
-        cfg = "host",
+        cfg = "exec",
         mandatory = True,
     ),
     annotations_jar = attr.label(
         allow_single_file = [".jar"],
-        cfg = "host",
+        cfg = "exec",
     ),
     apkbuilder = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
     ),
     apksigner = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     adb = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     build_tools_version = attr.string(),
     dx = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     framework_aidl = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
         mandatory = True,
     ),
     legacy_main_dex_list_generator = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
     ),
     main_dex_classes = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
         mandatory = True,
     ),
     main_dex_list_creator = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     proguard = attr.label(
         allow_files = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     shrinked_android_jar = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
     ),
     source_properties = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
     ),
     zipalign = attr.label(
         allow_single_file = True,
-        cfg = "host",
+        cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     _proguard = attr.label(
-        cfg = "host",
+        cfg = "exec",
         default = configuration_field(
             fragment = "java",
             name = "proguard_top",
