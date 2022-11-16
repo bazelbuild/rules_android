@@ -53,7 +53,7 @@ ATTRS = _attrs.add(
                   "This needs to be the same value as the manifest's package.",
         ),
         srcjar = attr.label(
-            allow_single_file = [".srcjar"],
+            allow_single_file = ["sources.jar", ".srcjar"],
             doc = "A srcjar file that contains the source code for the JVM " +
                   "artifacts stored within the AAR.",
         ),
