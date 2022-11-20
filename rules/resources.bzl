@@ -1220,7 +1220,8 @@ def _process(
         host_javabase = None,
         instrument_xslt = None,
         xsltproc = None,
-        zip_tool = None):
+        zip_tool = None,
+        namespaced_r_class = False):
     """Processes Android Resources.
 
     Args:
@@ -1534,15 +1535,34 @@ def _process(
             )
 
         compiled_resources = ctx.actions.declare_file(ctx.label.name + "_symbols/symbols.zip")
-        _busybox.compile(
-            ctx,
-            out_file = compiled_resources,
-            resource_files = processed_resources,
-            crunch_png = crunch_png,
-            aapt = aapt,
-            busybox = busybox,
-            host_javabase = host_javabase,
-        )
+        out_class_jar = ctx.actions.declare_file(ctx.label.name + "_resources.jar")
+        processed_manifest = None
+
+        # when using namespaced r classes the compile action generated both
+        # R.txt and the resources.jar without merging with outputs produced
+        # by transitive deps. Doing this means less changes that invalidate
+        # the action cache which in turn improves performance significantly.
+        if namespaced_r_class:
+            out_aapt2_r_txt = ctx.actions.declare_file(ctx.label.name + "_symbols/R.txt")
+            _busybox.compile(
+                ctx,
+                out_file = compiled_resources,
+                out_class_jar = out_class_jar,
+                out_r_txt = out_aapt2_r_txt,
+                manifest = manifest,
+                android_jar = android_jar,
+                resource_files = processed_resources,
+                crunch_png = crunch_png,
+                aapt = aapt,
+                busybox = busybox,
+                host_javabase = host_javabase,
+            )
+            r_txt = out_aapt2_r_txt
+            java_info = JavaInfo(
+                output_jar = out_class_jar,
+                compile_jar = out_class_jar,
+            )
+            processed_manifest = manifest
 
         # TODO(b/160907203): Remove this fix once the native resource processing pipeline is turned off.
         if enable_data_binding:
@@ -1557,70 +1577,82 @@ def _process(
             )
             compiled_resources = fixed_compiled_resources
 
-        out_class_jar = ctx.actions.declare_file(ctx.label.name + "_resources.jar")
-        processed_manifest = ctx.actions.declare_file(
-            ctx.label.name + "_processed_manifest/AndroidManifest.xml",
-        )
-        out_aapt2_r_txt = ctx.actions.declare_file(
-            ctx.label.name + "_symbols/R.aapt2.txt",
-        )
-        _busybox.merge_compiled(
-            ctx,
-            out_class_jar = out_class_jar,
-            out_manifest = processed_manifest,
-            out_aapt2_r_txt = out_aapt2_r_txt,
-            java_package = java_package,
-            manifest = manifest,
-            compiled_resources = compiled_resources,
-            direct_resources_nodes =
-                depset(transitive = direct_resources_nodes, order = "preorder"),
-            transitive_resources_nodes = depset(
-                transitive = transitive_resources_nodes,
-                order = "preorder",
-            ),
-            direct_compiled_resources = depset(
-                transitive = direct_compiled_resources,
-                order = "preorder",
-            ),
-            transitive_compiled_resources = depset(
-                transitive = transitive_compiled_resources,
-                order = "preorder",
-            ),
-            android_jar = android_jar,
-            busybox = busybox,
-            host_javabase = host_javabase,
-        )
+        if not namespaced_r_class:
+            processed_manifest = ctx.actions.declare_file(
+                ctx.label.name + "_processed_manifest/AndroidManifest.xml",
+            )
+            out_aapt2_r_txt = ctx.actions.declare_file(
+                ctx.label.name + "_symbols/R.aapt2.txt",
+            )
+            _busybox.compile(
+                ctx,
+                out_file = compiled_resources,
+                manifest = manifest,
+                android_jar = android_jar,
+                resource_files = processed_resources,
+                crunch_png = crunch_png,
+                aapt = aapt,
+                busybox = busybox,
+                host_javabase = host_javabase,
+            )
+
+            _busybox.merge_compiled(
+                ctx,
+                out_class_jar = out_class_jar,
+                out_manifest = processed_manifest,
+                out_aapt2_r_txt = out_aapt2_r_txt,
+                java_package = java_package,
+                manifest = manifest,
+                compiled_resources = compiled_resources,
+                direct_resources_nodes =
+                    depset(transitive = direct_resources_nodes, order = "preorder"),
+                transitive_resources_nodes = depset(
+                    transitive = transitive_resources_nodes,
+                    order = "preorder",
+                ),
+                direct_compiled_resources = depset(
+                    transitive = direct_compiled_resources,
+                    order = "preorder",
+                ),
+                transitive_compiled_resources = depset(
+                    transitive = transitive_compiled_resources,
+                    order = "preorder",
+                ),
+                android_jar = android_jar,
+                busybox = busybox,
+                host_javabase = host_javabase,
+            )
+
+            apk = ctx.actions.declare_file(ctx.label.name + "_files/library.ap_")
+            r_java = ctx.actions.declare_file(ctx.label.name + ".srcjar")
+            r_txt = ctx.actions.declare_file(ctx.label.name + "_symbols/R.txt")
+            _busybox.validate_and_link(
+                ctx,
+                out_r_src_jar = r_java,
+                out_r_txt = r_txt,
+                out_file = apk,
+                compiled_resources = compiled_resources,
+                transitive_compiled_resources = depset(
+                    transitive = transitive_compiled_resources,
+                    order = "preorder",
+                ),
+                java_package = java_package,
+                manifest = processed_manifest,
+                feature_flags = feature_flags,
+                android_jar = android_jar,
+                aapt = aapt,
+                busybox = busybox,
+                host_javabase = host_javabase,
+                resource_apks = resource_apks,
+            )
+            resources_ctx[_RESOURCES_APK] = apk
+            java_info = JavaInfo(
+                output_jar = out_class_jar,
+                compile_jar = out_class_jar,
+                source_jar = r_java,
+            )
+
         resources_ctx[_MERGED_MANIFEST] = processed_manifest
-
-        apk = ctx.actions.declare_file(ctx.label.name + "_files/library.ap_")
-        r_java = ctx.actions.declare_file(ctx.label.name + ".srcjar")
-        r_txt = ctx.actions.declare_file(ctx.label.name + "_symbols/R.txt")
-        _busybox.validate_and_link(
-            ctx,
-            out_r_src_jar = r_java,
-            out_r_txt = r_txt,
-            out_file = apk,
-            compiled_resources = compiled_resources,
-            transitive_compiled_resources = depset(
-                transitive = transitive_compiled_resources,
-                order = "preorder",
-            ),
-            java_package = java_package,
-            manifest = processed_manifest,
-            feature_flags = feature_flags,
-            android_jar = android_jar,
-            aapt = aapt,
-            busybox = busybox,
-            host_javabase = host_javabase,
-            resource_apks = resource_apks,
-        )
-        resources_ctx[_RESOURCES_APK] = apk
-
-        java_info = JavaInfo(
-            output_jar = out_class_jar,
-            compile_jar = out_class_jar,
-            source_jar = r_java,
-        )
 
         packages_to_r_txts_depset.setdefault(java_package, []).append(depset([out_aapt2_r_txt]))
 

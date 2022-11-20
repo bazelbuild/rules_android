@@ -673,12 +673,16 @@ def _validate_and_link(
 def _compile(
         ctx,
         out_file = None,
+        out_class_jar = None,
+        out_r_txt = None,
+        manifest = None,
         assets = [],
         assets_dir = None,
         resource_files = [],
         crunch_png = True,
         busybox = None,
         aapt = None,
+        android_jar = None,
         host_javabase = None):
     """Compile and store resources in a single archive.
 
@@ -719,14 +723,31 @@ def _compile(
 
     _set_warning_level(ctx, args)
 
+    optional_outputs = []
+    if out_class_jar:
+        args.add("--classJarOutput", out_class_jar)
+        optional_outputs.append(out_class_jar)
+    if out_r_txt:
+        args.add("--rTxtOut", out_r_txt)
+        optional_outputs.append(out_r_txt)
+
+    args.add("--targetLabel", ctx.label)
+    optional_inputs = []
+    if manifest:
+        args.add("--manifest", manifest)
+        optional_inputs = [manifest]
+    if android_jar:
+        args.add("--androidJar", android_jar)
+        optional_inputs.append(android_jar)
+
     _java_run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
         tools = [aapt],
         arguments = [args],
-        inputs = resource_files + assets,
-        outputs = [out_file],
+        inputs = resource_files + assets + optional_inputs,
+        outputs = [out_file] + optional_outputs,
         mnemonic = "CompileAndroidResources",
         progress_message = "Compiling Android Resources in %s" % out_file.short_path,
         jvm_flags = _C1_ONLY_FLAGS,
@@ -1400,6 +1421,7 @@ busybox = struct(
     shrink = _shrink,
     convert_resources_to_apk = _convert_resources_to_apk,
     optimize = _optimize,
+    ANDROID_RESOURCES_STRICT_DEPS = _ANDROID_RESOURCES_STRICT_DEPS,
 
     # Exposed for testing
     mergee_manifests_flag = _mergee_manifests_flag,

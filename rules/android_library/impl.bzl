@@ -31,6 +31,7 @@ load("//rules:proguard.bzl", _proguard = "proguard")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
@@ -177,6 +178,7 @@ def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_
         # TODO(b/144163743): remove fix_resource_transitivity, which was only added to emulate
         # misbehavior on the Java side.
         fix_resource_transitivity = True,
+        namespaced_r_class = _flags.get(ctx).namespaced_r_class,
 
         # Tool and Processing related inputs
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,

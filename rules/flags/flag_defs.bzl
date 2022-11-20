@@ -82,7 +82,6 @@ def define_flags():
         description = "",
     )
 
-
     flags.DEFINE_bool(
         name = "use_studio_deployer",
         default = True,
@@ -107,4 +106,10 @@ def define_flags():
         default = False,
         description = "When enabled, aar_import extracts R8-targeted proguard rules from " +
                       "META-INF/com.android.tools/ inside classes.jar in addition to proguard.txt.",
+    )
+
+    flags.DEFINE_bool(
+        name = "namespaced_r_class",
+        default = False,
+        description = "Enables namespaced R class generation",
     )
