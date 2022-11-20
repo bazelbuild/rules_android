@@ -628,11 +628,15 @@ def _validate_and_link(
 def _compile(
         ctx,
         out_file = None,
+        out_class_jar = None,
+        out_r_txt = None,
+        manifest = None,
         assets = [],
         assets_dir = None,
         resource_files = [],
         busybox = None,
         aapt = None,
+        android_jar = None,
         host_javabase = None):
     """Compile and store resources in a single archive.
 
@@ -667,6 +671,23 @@ def _compile(
     )
     args.add("--output", out_file)
 
+    optional_outputs = []
+    if out_class_jar:
+        args.add("--classJarOutput", out_class_jar)
+        optional_outputs.append(out_class_jar)
+    if out_r_txt:
+        args.add("--rTxtOut", out_r_txt)
+        optional_outputs.append(out_r_txt)
+
+    args.add("--targetLabel", ctx.label)
+    optional_inputs = []
+    if manifest:
+        args.add("--manifest", manifest)
+        optional_inputs = [manifest]
+    if android_jar:
+        args.add("--androidJar", android_jar)
+        optional_inputs.append(android_jar) 
+
     _disable_warnings(args)
 
     _java.run(
@@ -675,8 +696,8 @@ def _compile(
         executable = busybox,
         tools = [aapt],
         arguments = [args],
-        inputs = resource_files + assets,
-        outputs = [out_file],
+        inputs = resource_files + assets +  optional_inputs,
+        outputs = [out_file] + optional_outputs,
         mnemonic = "CompileAndroidResources",
         progress_message = "Compiling Android Resources in %s" % out_file.short_path,
         supports_workers = True,
@@ -1103,6 +1124,7 @@ busybox = struct(
     process_databinding = _process_databinding,
     generate_binary_r = _generate_binary_r,
     make_aar = _make_aar,
+    ANDROID_RESOURCES_STRICT_DEPS = _ANDROID_RESOURCES_STRICT_DEPS,
 
     # Exposed for testing
     mergee_manifests_flag = _mergee_manifests_flag,
