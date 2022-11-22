@@ -52,6 +52,10 @@ _IDL_SRC_FROM_DIFFERENT_PACKAGE_ERROR = (
     "package or depend on an appropriate rule there."
 )
 
+_IDL_USES_AOSP_COMPILER_ERROR = (
+    "Use of `idl_uses_aosp_compiler` is not allowed for %s."
+)
+
 # Android library AAR context attributes.
 _PROVIDERS = "providers"
 _VALIDATION_OUTPUTS = "validation_outputs"
@@ -98,6 +102,11 @@ def _validate_rule_context(ctx):
     for idl_src in ctx.attr.idl_srcs:
         if ctx.label.package != idl_src.label.package:
             log.error(_IDL_SRC_FROM_DIFFERENT_PACKAGE_ERROR % idl_src.label)
+
+    # Ensure that the AOSP AIDL compiler is used only in allowlisted packages
+    if (ctx.attr.idl_uses_aosp_compiler and
+        not acls.in_android_library_use_aosp_aidl_compiler_allowlist(str(ctx.label))):
+        log.error(_IDL_USES_AOSP_COMPILER_ERROR % ctx.label)
 
     return struct(
         enable_deps_without_srcs = _check_deps_without_java_srcs(ctx),
@@ -201,6 +210,7 @@ def _process_idl(ctx, **unused_sub_ctxs):
             aidl = get_android_sdk(ctx).aidl,
             aidl_lib = get_android_sdk(ctx).aidl_lib,
             aidl_framework = get_android_sdk(ctx).framework_aidl,
+            uses_aosp_compiler = ctx.attr.idl_uses_aosp_compiler,
         ),
     )
 

@@ -44,6 +44,7 @@ load("//rules/acls:android_binary_starlark_javac.bzl", "ANDROID_BINARY_STARLARK_
 load("//rules/acls:android_feature_splits_dogfood.bzl", "ANDROID_FEATURE_SPLITS_DOGFOOD")
 load("//rules/acls:android_library_resources_without_srcs.bzl", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS")
 load("//rules/acls:android_library_starlark_resource_outputs.bzl", "ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_FALLBACK", "ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_ROLLOUT")
+load("//rules/acls:android_library_use_aosp_aidl_compiler.bzl", "ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST")
 load("//rules/acls:android_lint_checks_rollout.bzl", "ANDROID_LINT_CHECKS_FALLBACK", "ANDROID_LINT_CHECKS_ROLLOUT")
 load("//rules/acls:android_lint_rollout.bzl", "ANDROID_LINT_FALLBACK", "ANDROID_LINT_ROLLOUT")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
@@ -135,6 +136,9 @@ def _in_android_library_resources_without_srcs_generator_functions(gfn):
 
 def _in_android_library_starlark_resource_outputs_rollout(fqn):
     return not matches(fqn, ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_FALLBACK_DICT) and matches(fqn, ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_ROLLOUT_DICT)
+
+def _in_android_library_use_aosp_aidl_compiler_allowlist(fqn):
+    return matches(fqn, ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST_DICT)
 
 def _in_app_installation_snapshot(fqn):
     return not matches(fqn, APP_INSTALLATION_SNAPSHOT_FALLBACK_DICT) and matches(fqn, APP_INSTALLATION_SNAPSHOT_DICT)
@@ -276,6 +280,7 @@ BASELINE_PROFILES_ROLLOUT_DICT = make_dict(BASELINE_PROFILES_ROLLOUT)
 ENFORCE_MIN_SDK_FLOOR_ROLLOUT_DICT = make_dict(ENFORCE_MIN_SDK_FLOOR_ROLLOUT)
 ENFORCE_MIN_SDK_FLOOR_FALLBACK_DICT = make_dict(ENFORCE_MIN_SDK_FLOOR_FALLBACK)
 ANDROID_APK_TO_BUNDLE_FEATURES_DICT = make_dict(ANDROID_APK_TO_BUNDLE_FEATURES)
+ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST_DICT = make_dict(ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -330,6 +335,7 @@ acls = struct(
     in_android_library_starlark_resource_outputs_rollout = _in_android_library_starlark_resource_outputs_rollout,
     in_android_library_resources_without_srcs = _in_android_library_resources_without_srcs,
     in_android_library_resources_without_srcs_generator_functions = _in_android_library_resources_without_srcs_generator_functions,
+    in_android_library_use_aosp_aidl_compiler_allowlist = _in_android_library_use_aosp_aidl_compiler_allowlist,
     in_android_lint_checks_rollout = _in_android_lint_checks_rollout,
     in_android_lint_rollout = _in_android_lint_rollout,
     in_lint_registry_rollout = _in_lint_registry_rollout,

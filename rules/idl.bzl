@@ -47,9 +47,16 @@ def _gen_java_from_idl(
         transitive_idl_preprocessed = [],
         aidl = None,
         aidl_lib = None,
-        aidl_framework = None):
+        aidl_framework = None,
+        uses_aosp_compiler = False):
     args = ctx.actions.args()
-    args.add("-b")
+
+    # Note: at the moment (2022/11/07), the flags that the AOSP compiler accepts is a superset of
+    # the Google3 compiler, but that might not be true in the future.
+    if uses_aosp_compiler:
+        args.add("--use-aosp-compiler")
+
+    args.add("-b")  # fail on parcelable
     args.add_all(transitive_idl_import_roots, format_each = "-I%s")
     args.add(aidl_framework, format = "-p%s")
     args.add_all(transitive_idl_preprocessed, format_each = "-p%s")
@@ -129,7 +136,8 @@ def _process(
         exports = [],
         aidl = None,
         aidl_lib = None,
-        aidl_framework = None):
+        aidl_framework = None,
+        uses_aosp_compiler = False):
     """Processes Android IDL.
 
     Args:
@@ -179,6 +187,12 @@ def _process(
         Optional, unless idl_srcs are supplied.
       aidl_framework: Target. A target pointing to the aidl framework. Optional,
         unless idl_srcs are supplied.
+      uses_aosp_compiler: boolean. If True, the upstream AOSP AIDL compiler is
+        used instead of the Google3-only AIDL compiler. This allows wider range
+        of AIDL language features including the structured parcelable, enum,
+        union, and many more. On the other hand, using this may cause noticeable
+        regression in terms of code size and performance as the compiler doesn't
+        implement several optimization techniques that the Google3 compiler has.
 
     Returns:
       A IDLContextInfo provider.
@@ -224,6 +238,7 @@ def _process(
             aidl = aidl,
             aidl_lib = aidl_lib,
             aidl_framework = aidl_framework,
+            uses_aosp_compiler = uses_aosp_compiler,
         )
 
     return IDLContextInfo(
