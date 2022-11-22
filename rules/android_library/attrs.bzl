@@ -137,6 +137,21 @@ ATTRS = _attrs.add(
                 "for information about what this means."
             ),
         ),
+        idl_uses_aosp_compiler = attr.bool(
+            default = False,
+            doc = (
+                "Use the upstream AOSP compiler to generate Java files out of `idl_srcs`." +
+                "The upstream AOSP compiler provides several new language features that the " +
+                "Google3-only compiler doesn't provide. For example: structured parcelables, " +
+                "unions, enums, nested type declarations, constant expressions, annotations, " +
+                "and more. " +
+                "See [AIDL Doc](https://source.android.com/docs/core/architecture/aidl/overview) " +
+                "for more details. " +
+                "Note: the use of the AOSP compiler in google3 is restricted due to performance " +
+                "considerations. This should not be broadly used unless these features are " +
+                "strictly required."
+            ),
+        ),
         neverlink = attr.bool(
             default = False,
             doc = (
