@@ -57,7 +57,7 @@ def _verify_attrs(attrs, fqn):
         if hasattr(attrs, attr):
             _log.error("Unsupported attr: %s in android_application" % attr)
 
-    if not attrs.get("manifest_values", default = {}).get("applicationId"):
+    if not attrs.get("manifest_values", {}).get("applicationId"):
         _log.error("%s missing required applicationId in manifest_values" % fqn)
 
     for attr in ["deps"]:
@@ -351,8 +351,8 @@ def android_application_macro(_android_binary, **attrs):
     fqn = "//%s:%s" % (native.package_name(), attrs["name"])
 
     # Must pop these because android_binary does not have these attributes.
-    app_integrity_config = attrs.pop("app_integrity_config", default = None)
-    rotation_config = attrs.pop("rotation_config", default = None)
+    app_integrity_config = attrs.pop("app_integrity_config", None)
+    rotation_config = attrs.pop("rotation_config", None)
 
     # Simply fall back to android_binary if no feature splits or bundle_config
     if not attrs.get("feature_modules", None) and not (attrs.get("bundle_config", None) or attrs.get("bundle_config_file", None)):
@@ -366,9 +366,9 @@ def android_application_macro(_android_binary, **attrs):
     base_split_name = "%s_base" % name
 
     # default to [] if feature_modules = None is passed
-    feature_modules = attrs.pop("feature_modules", default = []) or []
-    bundle_config = attrs.pop("bundle_config", default = None)
-    bundle_config_file = attrs.pop("bundle_config_file", default = None)
+    feature_modules = attrs.pop("feature_modules", []) or []
+    bundle_config = attrs.pop("bundle_config", None)
+    bundle_config_file = attrs.pop("bundle_config_file", None)
 
     # bundle_config is deprecated in favor of bundle_config_file
     # In the future bundle_config will accept a build rule rather than a raw file.
