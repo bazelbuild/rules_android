@@ -28,3 +28,18 @@ use_repo(
     "com_github_google_go_cmp",
     "org_golang_x_sync",
 )
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "rules_android_maven",
+    artifacts = [
+        "com.android.tools.build:bundletool:1.6.1",
+    ],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(
+    maven,
+    "rules_android_maven"
+)
