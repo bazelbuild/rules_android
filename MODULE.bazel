@@ -43,3 +43,6 @@ use_repo(
     maven,
     "rules_android_maven"
 )
+
+remote_android_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "remote_android_tools_extensions")
+use_repo(remote_android_extensions, "android_tools", "android_gmaven_r8")
