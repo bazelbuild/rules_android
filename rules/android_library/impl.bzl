@@ -68,9 +68,11 @@ _AARContextInfo = provider(
     },
 )
 
+def _has_srcs(ctx):
+    return ctx.files.srcs or ctx.files.idl_srcs or getattr(ctx.files, "common_srcs", False)
+
 def _uses_deprecated_implicit_export(ctx):
-    return (ctx.attr.deps and not (ctx.files.srcs or
-                                   ctx.files.idl_srcs or
+    return (ctx.attr.deps and not (_has_srcs(ctx) or
                                    ctx.attr._defined_assets or
                                    ctx.files.resource_files or
                                    ctx.attr.manifest))
@@ -78,10 +80,10 @@ def _uses_deprecated_implicit_export(ctx):
 def _uses_resources_and_deps_without_srcs(ctx):
     return (ctx.attr.deps and
             (ctx.attr._defined_assets or ctx.files.resource_files or ctx.attr.manifest) and
-            not (ctx.files.srcs or ctx.files.idl_srcs))
+            not _has_srcs(ctx))
 
 def _check_deps_without_java_srcs(ctx):
-    if not ctx.attr.deps or ctx.files.srcs or ctx.files.idl_srcs:
+    if not ctx.attr.deps or _has_srcs(ctx):
         return False
     gfn = getattr(ctx.attr, "generator_function", "")
     if _uses_deprecated_implicit_export(ctx):
