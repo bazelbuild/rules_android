@@ -32,7 +32,10 @@ def _extract_idl_jars(
     args.add("--manifest_proto", manifest_proto)
     args.add("--output_class_jar", out_jar)
     args.add("--output_source_jar", out_srcjar)
-    args.add("--temp_dir", out_jar.dirname)
+
+    # tmp directory is removed by the idl tool before each invocation so create a unique dir.
+    # See src/main/java/com/google/devtools/build/lib/rules/android/AndroidIdlHelper.java
+    args.add("--temp_dir", "%s/%s_idl_tmp" % (out_jar.dirname, ctx.label.name))
     args.add_all(idl_java_srcs)
 
     _java.run(

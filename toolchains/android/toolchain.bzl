@@ -130,7 +130,7 @@ _ATTRS = dict(
     idlclass = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:IdlClass",  # _deploy.jar?
+        default = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/idlclass:IdlClass_deploy.jar",
         executable = True,
     ),
     import_deps_checker = attr.label(
