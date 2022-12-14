@@ -1,0 +1,48 @@
+module(
+    name = "bazel_build_rules_android",
+    version = "0.2.0",
+)
+
+bazel_dep(name = "platforms", version = "0.0.5")
+bazel_dep(name = "rules_java", version = "5.3.5")
+rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
+use_repo(rules_java_toolchains, "remote_java_tools")
+
+bazel_dep(name = "protobuf", version = "3.19.0", repo_name = "com_google_protobuf")
+bazel_dep(name = "rules_jvm_external", version = "4.5")
+bazel_dep(name = "bazel_skylib", version = "1.0.3")
+
+register_toolchains("//toolchains/android:all")
+register_toolchains("//toolchains/android_sdk:all")
+register_toolchains("//toolchains/emulator:all")
+
+# go-related dependency setup
+bazel_dep(name = "rules_go", version = "0.34.0", repo_name = "io_bazel_rules_go")
+bazel_dep(name = "gazelle", version = "0.28.0")
+go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
+go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+go_deps.from_file(go_mod = "//:go.mod")
+use_repo(
+    go_deps,
+    "org_golang_google_protobuf",
+    "com_github_google_go_cmp",
+    "org_golang_x_sync",
+)
+maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+maven.install(
+    name = "rules_android_maven",
+    artifacts = [
+        "com.android.tools.build:bundletool:1.6.1",
+    ],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(
+    maven,
+    "rules_android_maven"
+)
+
+remote_android_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "remote_android_tools_extensions")
+use_repo(remote_android_extensions, "android_tools", "android_gmaven_r8")
