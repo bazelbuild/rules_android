@@ -66,7 +66,7 @@ COMMON_ARGS=(
 # Go to rules_android workspace and run relevant tests.
 cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
 "$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
-  //src/tools/ak/{compile,dex,finalrjar,generatemanifest,link,manifest,mindex,res,rjar}/...
+  //src/tools/ak/{bucketize,compile,dex,extractaar,finalrjar,generatemanifest,link,manifest,mindex,res,rjar}/...
 
 # Go to basic app workspace in the source tree
 cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
