@@ -1287,18 +1287,21 @@ def _process_starlark(
     data_binding_layout_info = None
     processed_resources = resource_files
     processed_manifest = None
-    if not defines_resources:
-        if aapt:
-            # Generate an empty manifest with the right package
-            generated_manifest = ctx.actions.declare_file(
+    if not manifest:
+        # Generate an empty manifest with the right package
+        generated_manifest = ctx.actions.declare_file(
                 "_migrated/_generated/" + ctx.label.name + "/AndroidManifest.xml",
-            )
-            _generate_dummy_manifest(
+        )
+        _generate_dummy_manifest(
                 ctx,
                 out_manifest = generated_manifest,
                 java_package = java_package if java_package else ctx.label.package.replace("/", "."),
                 min_sdk_version = 14,
-            )
+        )
+        manifest = generated_manifest
+
+    if not defines_resources:
+        if aapt:
             r_txt = ctx.actions.declare_file(
                 "_migrated/" + ctx.label.name + "_symbols/R.txt",
             )
