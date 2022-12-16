@@ -14,10 +14,14 @@
 
 """Workspace setup macro for rules_android."""
 
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
+    protobuf_deps()
 
     maven_install(
         name = "rules_android_maven",
@@ -29,3 +33,33 @@ def rules_android_workspace():
             "https://repo1.maven.org/maven2",
         ],
     )
+
+    go_rules_dependencies()
+
+    go_register_toolchains(version = "1.18.3")
+
+    gazelle_dependencies()
+    # gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
+
+    go_repository(
+        name = "org_golang_google_protobuf",
+        importpath = "google.golang.org/protobuf",
+        sum = "h1:d0NfwRgPtno5B1Wa6L2DAG+KivqkdutMf1UhdNx175w=",
+        version = "v1.28.1",
+    )
+
+    go_repository(
+        name = "com_github_google_go_cmp",
+        importpath = "github.com/google/go-cmp",
+        sum = "h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=",
+        version = "v0.5.9",
+    )
+
+    go_repository(
+      name = "org_golang_x_sync",
+      importpath = "golang.org/x/sync",
+      sum = "h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=",
+      version = "v0.0.0-20210220032951-036812b2e83c",
+    )
+
+

@@ -32,9 +32,11 @@ To use the new Bazel Android rules, add the following to your WORKSPACE file:
         urls = ["https://github.com/bazelbuild/rules_android/archive/refs/heads/pre-alpha.zip"],
         strip_prefix = "rules_android-pre-alpha",
     )
+    load("@build_bazel_rules_android//:prereqs.bzl", "rules_android_prereqs")
+    rules_android_prereqs()
     load("@build_bazel_rules_android//:defs.bzl", "rules_android_workspace")
     rules_android_workspace()
-    
+
     register_toolchains(
       "@build_bazel_rules_android//toolchains/android:android_default_toolchain",
       "@build_bazel_rules_android//toolchains/android_sdk:android_sdk_tools",
