@@ -33,6 +33,8 @@ local_repository(
     name = "rules_android",
     path = "../..", # rules_android's WORKSPACE relative to this inner workspace
 )
+load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
+rules_android_prereqs()
 load("@rules_android//:defs.bzl", "rules_android_workspace")
 rules_android_workspace()
 register_toolchains(
