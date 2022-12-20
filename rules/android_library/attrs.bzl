@@ -152,6 +152,14 @@ ATTRS = _attrs.add(
                 "strictly required."
             ),
         ),
+        idlopts = attr.string_list(
+            mandatory = False,
+            allow_empty = True,
+            default = [],
+            doc = (
+                "Add these flags to the AIDL compiler command."
+            ),
+        ),
         neverlink = attr.bool(
             default = False,
             doc = (
