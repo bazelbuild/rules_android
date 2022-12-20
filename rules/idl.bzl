@@ -48,13 +48,17 @@ def _gen_java_from_idl(
         aidl = None,
         aidl_lib = None,
         aidl_framework = None,
-        uses_aosp_compiler = False):
+        uses_aosp_compiler = False,
+        idlopts = []):
     args = ctx.actions.args()
 
     # Note: at the moment (2022/11/07), the flags that the AOSP compiler accepts is a superset of
     # the Google3 compiler, but that might not be true in the future.
     if uses_aosp_compiler:
         args.add("--use-aosp-compiler")
+
+    for opt in idlopts:
+        args.add(opt)
 
     args.add("-b")  # fail on parcelable
     args.add_all(transitive_idl_import_roots, format_each = "-I%s")
@@ -137,7 +141,8 @@ def _process(
         aidl = None,
         aidl_lib = None,
         aidl_framework = None,
-        uses_aosp_compiler = False):
+        uses_aosp_compiler = False,
+        idlopts = []):
     """Processes Android IDL.
 
     Args:
@@ -193,6 +198,8 @@ def _process(
         union, and many more. On the other hand, using this may cause noticeable
         regression in terms of code size and performance as the compiler doesn't
         implement several optimization techniques that the Google3 compiler has.
+      idlopts: list of string. Additional flags to add to the AOSP AIDL compiler
+        invocation.
 
     Returns:
       A IDLContextInfo provider.
@@ -239,6 +246,7 @@ def _process(
             aidl_lib = aidl_lib,
             aidl_framework = aidl_framework,
             uses_aosp_compiler = uses_aosp_compiler,
+            idlopts = idlopts,
         )
 
     return IDLContextInfo(

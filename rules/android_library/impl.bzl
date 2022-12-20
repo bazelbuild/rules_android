@@ -56,6 +56,10 @@ _IDL_USES_AOSP_COMPILER_ERROR = (
     "Use of `idl_uses_aosp_compiler` is not allowed for %s."
 )
 
+_IDL_IDLOPTS_UNSUPPORTERD_ERROR = (
+    "`idlopts` is supported only if `idl_uses_aosp_compiler` is set to true."
+)
+
 # Android library AAR context attributes.
 _PROVIDERS = "providers"
 _VALIDATION_OUTPUTS = "validation_outputs"
@@ -109,6 +113,10 @@ def _validate_rule_context(ctx):
     if (ctx.attr.idl_uses_aosp_compiler and
         not acls.in_android_library_use_aosp_aidl_compiler_allowlist(str(ctx.label))):
         log.error(_IDL_USES_AOSP_COMPILER_ERROR % ctx.label)
+
+    # Check if idlopts is with idl_uses_aosp_compiler
+    if ctx.attr.idlopts and not ctx.attr.idl_uses_aosp_compiler:
+        log.error(_IDL_IDLOPTS_UNSUPPORTERD_ERROR)
 
     return struct(
         enable_deps_without_srcs = _check_deps_without_java_srcs(ctx),
@@ -213,6 +221,7 @@ def _process_idl(ctx, **unused_sub_ctxs):
             aidl_lib = get_android_sdk(ctx).aidl_lib,
             aidl_framework = get_android_sdk(ctx).framework_aidl,
             uses_aosp_compiler = ctx.attr.idl_uses_aosp_compiler,
+            idlopts = ctx.attr.idlopts,
         ),
     )
 
