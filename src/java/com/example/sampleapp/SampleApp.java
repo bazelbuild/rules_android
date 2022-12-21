@@ -28,9 +28,7 @@ public class SampleApp extends Activity {
   public void onCreate(Bundle state) {
     super.onCreate(state);
 
-    TextView view = new TextView(this);
-    view.setText(getString());
-    setContentView(view);
+    setContentView(R.layout.basic_activity);
   }
 
   public native String getString();
