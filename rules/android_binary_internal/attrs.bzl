@@ -18,6 +18,10 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load(
+    "//rules:native_deps.bzl",
+    "split_config_aspect",
+)
 
 ATTRS = _attrs.replace(
     _attrs.add(
@@ -59,6 +63,17 @@ ATTRS = _attrs.replace(
             ),
             _defined_resource_files = attr.bool(default = False),
             _enable_manifest_merging = attr.bool(default = True),
+            _cc_toolchain_split = attr.label(
+                cfg = android_common.multi_cpu_configuration,
+                default = "@bazel_tools//tools/cpp:current_cc_toolchain",
+                aspects = [split_config_aspect],
+            ),
+            _grep_includes = attr.label(
+                allow_single_file = True,
+                executable = True,
+                cfg = "exec",
+                default = Label("@@bazel_tools//tools/cpp:grep-includes"),
+            ),
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,
