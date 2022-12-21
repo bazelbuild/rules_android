@@ -48,6 +48,7 @@ def make_rule(
         fragments = [
             "android",
             "java",
+            "cpp",
         ],
     )
 

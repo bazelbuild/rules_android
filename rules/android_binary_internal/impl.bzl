@@ -23,6 +23,10 @@ load(
 )
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "compilation_mode", "get_android_toolchain", "utils")
+load(
+    "//rules:native_deps.bzl",
+    _process_native_deps = "process",
+)
 
 def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
@@ -85,6 +89,16 @@ def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
         value = manifest_validation_ctx,
     )
 
+def _process_native_libs(ctx, **_unusued_ctxs):
+    native_libs_info = _process_native_deps(
+        ctx,
+        filename = "nativedeps",
+    )
+    return ProviderInfo(
+        name = "native_libs_ctx",
+        value = struct(providers = [native_libs_info]),
+    )
+
 def use_legacy_manifest_merger(ctx):
     """Whether legacy manifest merging is enabled.
 
@@ -130,6 +144,7 @@ PROCESSORS = dict(
     ManifestProcessor = _process_manifest,
     ResourceProcessor = _process_resources,
     ValidateManifestProcessor = _validate_manifest,
+    NativeLibsProcessor = _process_native_libs,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
