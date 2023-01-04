@@ -98,7 +98,7 @@ def _get_runfiles(ctx, attrs):
 def _sanitize_string(s, replacement = ""):
     """Sanitizes a string by replacing all non-word characters.
 
-    This matches the \w regex character class [A_Za-z0-9_].
+    This matches the \\w regex character class [A_Za-z0-9_].
 
     Args:
       s: String to sanitize.
