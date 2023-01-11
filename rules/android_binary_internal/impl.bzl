@@ -90,13 +90,15 @@ def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
     )
 
 def _process_native_libs(ctx, **_unusued_ctxs):
-    native_libs_info = _process_native_deps(
-        ctx,
-        filename = "nativedeps",
-    )
+    providers = []
+    if acls.in_android_binary_starlark_split_transition(str(ctx.label)):
+        providers.append(_process_native_deps(
+            ctx,
+            filename = "nativedeps",
+        ))
     return ProviderInfo(
         name = "native_libs_ctx",
-        value = struct(providers = [native_libs_info]),
+        value = struct(providers = providers),
     )
 
 def use_legacy_manifest_merger(ctx):
