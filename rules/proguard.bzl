@@ -14,6 +14,8 @@
 
 """Bazel Android Proguard library for the Android rules."""
 
+load(":utils.bzl", "utils")
+
 _ProguardContextInfo = provider(
     doc = "Contains data from processing Proguard specs.",
     fields = dict(
@@ -100,11 +102,50 @@ def _process(
         ],
     )
 
+def _collect_transitive_proguard_specs(
+        specs_to_include,
+        local_proguard_specs,
+        proguard_deps):
+    if len(local_proguard_specs) == 0:
+        return []
+
+    proguard_specs = local_proguard_specs + specs_to_include
+    for dep in proguard_deps:
+        proguard_specs.extend(dep.specs.to_list())
+
+    return sorted(proguard_specs)
+
+def _get_proguard_specs(
+        ctx,
+        resource_proguard_config,
+        proguard_specs_for_manifest = []):
+    proguard_deps = utils.collect_providers(ProguardSpecProvider, utils.dedupe_split_attr(ctx.split_attr.deps))
+    if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
+        proguard_deps.append(ctx.attr._jacoco_runtime[ProguardSpecProvider])
+
+    local_proguard_specs = []
+    if ctx.files.proguard_specs:
+        local_proguard_specs = ctx.files.proguard_specs
+    proguard_specs = _collect_transitive_proguard_specs(
+        [resource_proguard_config],
+        local_proguard_specs,
+        proguard_deps,
+    )
+
+    if len(proguard_specs) > 0 and ctx.fragments.android.assume_min_sdk_version:
+        # NB: Order here is important. We're including generated Proguard specs before the user's
+        # specs so that they can override values.
+        proguard_specs = proguard_specs_for_manifest + proguard_specs
+
+    return proguard_specs
+
 proguard = struct(
     process = _process,
+    get_proguard_specs = _get_proguard_specs,
 )
 
 testing = struct(
     validate_proguard_spec = _validate_proguard_spec,
+    collect_transitive_proguard_specs = _collect_transitive_proguard_specs,
     ProguardContextInfo = _ProguardContextInfo,
 )

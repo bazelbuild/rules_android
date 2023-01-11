@@ -116,6 +116,7 @@ _PACKAGED_FINAL_MANIFEST = "processed_manifest"
 _PACKAGED_RESOURCE_APK = "resources_apk"
 _PACKAGED_CLASS_JAR = "class_jar"
 _PACKAGED_VALIDATION_RESULT = "validation_result"
+_RESOURCE_PROGUARD_CONFIG = "resource_proguard_config"
 
 _ResourcesPackageContextInfo = provider(
     "Packaged resources context object",
@@ -126,6 +127,7 @@ _ResourcesPackageContextInfo = provider(
         _PACKAGED_VALIDATION_RESULT: "Validation result.",
         _R_JAVA: "JavaInfo for R.jar",
         _DATA_BINDING_LAYOUT_INFO: "Databinding layout info file.",
+        _RESOURCE_PROGUARD_CONFIG: "Resource proguard config",
         _PROVIDERS: "The list of all providers to propagate.",
     },
 )
@@ -688,6 +690,7 @@ def _package(
     packaged_resources_ctx[_PACKAGED_FINAL_MANIFEST] = processed_manifest
     packaged_resources_ctx[_PACKAGED_RESOURCE_APK] = resource_apk
     packaged_resources_ctx[_PACKAGED_VALIDATION_RESULT] = resource_files_zip
+    packaged_resources_ctx[_RESOURCE_PROGUARD_CONFIG] = proguard_cfg
 
     # Fix class jar name because some tests depend on {label_name}_resources.jar being the suffix of
     # the path, with _common.PACKAGED_RESOURCES_SUFFIX removed from the label name.
