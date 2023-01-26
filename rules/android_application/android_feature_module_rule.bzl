@@ -24,6 +24,7 @@ load("//rules:acls.bzl", "acls")
 load(
     "//rules:utils.bzl",
     "get_android_toolchain",
+    "utils",
 )
 
 def _impl(ctx):
@@ -39,7 +40,7 @@ def _impl(ctx):
     args.add(ctx.attr.binary[ApkInfo].unsigned_apk.path)
     args.add(ctx.configuration.coverage_enabled)
     args.add(ctx.fragments.android.desugar_java8_libs)
-    args.add(ctx.attr.library.label)
+    args.add(utils.dedupe_split_attr(ctx.split_attr.library).label)
     args.add(get_android_toolchain(ctx).xmllint_tool.files_to_run.executable)
     args.add(get_android_toolchain(ctx).unzip_tool.files_to_run.executable)
 
@@ -59,7 +60,7 @@ def _impl(ctx):
     return [
         AndroidFeatureModuleInfo(
             binary = ctx.attr.binary,
-            library = ctx.attr.library,
+            library = utils.dedupe_split_attr(ctx.split_attr.library),
             title_id = ctx.attr.title_id,
             title_lib = ctx.attr.title_lib,
             feature_name = ctx.attr.feature_name,

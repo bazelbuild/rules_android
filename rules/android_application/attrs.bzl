@@ -84,6 +84,7 @@ ANDROID_FEATURE_MODULE_ATTRS = dict(
     feature_name = attr.string(),
     library = attr.label(
         allow_rules = ["android_library"],
+        cfg = android_common.multi_cpu_configuration,
         mandatory = True,
         doc = "android_library target to include as a feature split.",
     ),
