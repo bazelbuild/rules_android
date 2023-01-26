@@ -326,6 +326,7 @@ def _impl(ctx):
 
 android_application = rule(
     attrs = ANDROID_APPLICATION_ATTRS,
+    cfg = android_common.android_platforms_transition,
     fragments = [
         "android",
         "java",
