@@ -359,14 +359,14 @@ def _singlejar(
         output,
         mnemonic = "SingleJar",
         progress_message = "Merge into a single jar.",
-        exclude_build_data = False,
+        include_build_data = False,
         java_toolchain = None):
     args = ctx.actions.args()
     args.add("--output")
     args.add(output)
     args.add("--compression")
     args.add("--normalize")
-    if exclude_build_data:
+    if not include_build_data:
         args.add("--exclude_build_data")
     args.add("--warn_duplicate_resources")
     if inputs:
