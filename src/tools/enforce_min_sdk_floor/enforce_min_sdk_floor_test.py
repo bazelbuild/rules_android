@@ -17,6 +17,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _BumpMinSdk
+from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _SetDefaultMinSdk
 from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _ValidateMinSdk
 
 from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import MIN_SDK_ATTRIB
@@ -79,6 +80,20 @@ class EnforceMinSdkFloorTest(unittest.TestCase):
     out, _ = _BumpMinSdk(MANIFEST_MIN_SDK, 14)
     min_sdk = ET.fromstring(out).find(USES_SDK).get(MIN_SDK_ATTRIB)
     self.assertEqual(min_sdk, "14")
+
+  def test_set_default_no_uses(self):
+    out, _ = _SetDefaultMinSdk(MANIFEST_NO_USES_SDK, "11")
+    min_sdk = ET.fromstring(out).find(USES_SDK).get(MIN_SDK_ATTRIB)
+    self.assertEqual(min_sdk, "11")
+
+  def test_set_default_no_min_sdk(self):
+    out, _ = _SetDefaultMinSdk(MANIFEST_NO_USES_SDK, "current")
+    min_sdk = ET.fromstring(out).find(USES_SDK).get(MIN_SDK_ATTRIB)
+    self.assertEqual(min_sdk, "current")
+
+  def test_set_default_min_sdk_already_specified(self):
+    out, _ = _SetDefaultMinSdk(MANIFEST_MIN_SDK, "14")
+    self.assertEqual(out, MANIFEST_MIN_SDK)
 
   def test_validate_no_min_sdk_floor(self):
     _ = _ValidateMinSdk(MANIFEST_NO_USES_SDK, 0)
