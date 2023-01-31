@@ -28,6 +28,7 @@ from absl import flags
 
 BUMP = "bump"
 VALIDATE = "validate"
+SET_DEFAULT = "set_default"
 
 USES_SDK = "uses-sdk"
 MIN_SDK_ATTRIB = "{http://schemas.android.com/apk/res/android}minSdkVersion"
@@ -37,8 +38,8 @@ FLAGS = flags.FLAGS
 flags.DEFINE_enum(
     "action",
     None,
-    [BUMP, VALIDATE],
-    f"Action to perform, either {BUMP} or {VALIDATE}")
+    [BUMP, VALIDATE, SET_DEFAULT],
+    f"Action to perform, either {BUMP}, {VALIDATE}, or {SET_DEFAULT}")
 flags.DEFINE_string(
     "manifest",
     None,
@@ -48,6 +49,12 @@ flags.DEFINE_integer(
     0,
     "Min SDK floor",
     lower_bound=0)
+# Needed for SET_DEFAULT
+flags.DEFINE_string(
+    "default_min_sdk",
+    None,
+    "Default min SDK")
+# Needed for BUMP and  SET_DEFAULT
 flags.DEFINE_string(
     "output",
     None,
@@ -57,6 +64,22 @@ flags.DEFINE_string("log", None, "Path to write the log to")
 
 class MinSdkError(Exception):
   """Raised when there is a problem with the min SDK attribute in AndroidManifest.xml."""
+
+
+def ParseNamespaces(xml_content):
+  """Parse namespaces first to keep the prefix.
+
+  Args:
+    xml_content: str, the contents of the AndroidManifest.xml file
+  """
+  ns_parser = ET.XMLPullParser(events=["start-ns"])
+  ns_parser.feed(xml_content)
+  ns_parser.close()
+  for _, ns_tuple in ns_parser.read_events():
+    try:
+      ET.register_namespace(ns_tuple[0], ns_tuple[1])
+    except ValueError:
+      pass
 
 
 def _BumpMinSdk(xml_content, min_sdk_floor):
@@ -76,15 +99,7 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
   if min_sdk_floor == 0:
     return xml_content, "No min SDK floor specified. Manifest unchanged."
 
-  # Parse namespaces first to keep the prefix.
-  ns_parser = ET.XMLPullParser(events=["start-ns"])
-  ns_parser.feed(xml_content)
-  ns_parser.close()
-  for _, ns_tuple in ns_parser.read_events():
-    try:
-      ET.register_namespace(ns_tuple[0], ns_tuple[1])
-    except ValueError:
-      pass
+  ParseNamespaces(xml_content)
 
   root = ET.fromstring(xml_content)
   uses_sdk = root.find(USES_SDK)
@@ -163,6 +178,49 @@ def _ValidateMinSdk(xml_content, min_sdk_floor):
   return f"minSdkVersion = {min_sdk}\n min SDK floor = {min_sdk_floor}"
 
 
+def _SetDefaultMinSdk(xml_content, default_min_sdk):
+  """Checks the min SDK in xml_content and replaces with default_min_sdk if it is not already set.
+
+  Args:
+    xml_content: str, the contents of the AndroidManifest.xml file
+    default_min_sdk: str, can be set to either a number or an unreleased version
+      full name
+
+  Returns:
+    A tuple with the following elements:
+    - str: The xml contents of the manifest with the min SDK floor enforced.
+      This string will be equal to the input if the min SDK is already set.
+    - str: log message of action taken
+  """
+  if default_min_sdk is None:
+    return xml_content, ("No default min SDK floor specified. Manifest "
+                         "unchanged.")
+
+  ParseNamespaces(xml_content)
+
+  root = ET.fromstring(xml_content)
+  uses_sdk = root.find(USES_SDK)
+  if uses_sdk is None:
+    ET.SubElement(root, USES_SDK, {MIN_SDK_ATTRIB: default_min_sdk})
+    return (
+        ET.tostring(root, encoding="utf-8", xml_declaration=True),
+        "No uses-sdk element found while default is specified. "
+        + f"Min SDK ({default_min_sdk}) added.")
+
+  min_sdk = uses_sdk.get(MIN_SDK_ATTRIB)
+  if min_sdk is None:
+    uses_sdk.set(MIN_SDK_ATTRIB, str(default_min_sdk))
+    return (
+        ET.tostring(root, encoding="utf-8", xml_declaration=True),
+        "No minSdkVersion attribute found while default is specified"
+        + f"({default_min_sdk}). Min SDK set to default.")
+
+  return (
+      xml_content,
+      f"minSdkVersion attribute specified in the manifest ({min_sdk}) "
+      + ". Manifest unchanged.")
+
+
 def main(unused_argv):
   manifest_path = FLAGS.manifest
   with open(manifest_path, "rb") as f:
@@ -175,6 +233,18 @@ def main(unused_argv):
       os.makedirs(dirname)
 
     out_contents, log_message = _BumpMinSdk(manifest, FLAGS.min_sdk_floor)
+    with open(output_path, "wb") as f:
+      f.write(out_contents)
+
+  elif FLAGS.action == SET_DEFAULT:
+    output_path = FLAGS.output
+    dirname = os.path.dirname(output_path)
+    if not os.path.exists(dirname):
+      os.makedirs(dirname)
+
+    out_contents, log_message = _SetDefaultMinSdk(
+        manifest, FLAGS.default_min_sdk
+    )
     with open(output_path, "wb") as f:
       f.write(out_contents)
 
