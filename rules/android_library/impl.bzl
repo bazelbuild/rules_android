@@ -151,7 +151,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
     # Process Android Resources
     resources_ctx = _resources.process(
         ctx,
-        manifest = manifest_ctx.min_sdk_bumped_manifest,
+        manifest = manifest_ctx.processed_manifest,
         resource_files = ctx.attr.resource_files,
         defined_assets = ctx.attr._defined_assets,
         assets = ctx.attr.assets,
@@ -406,7 +406,7 @@ def _process_intellij(ctx, java_package, manifest_ctx, resources_ctx, idl_ctx, j
     android_ide_info = _intellij.make_android_ide_info(
         ctx,
         java_package = java_package,
-        manifest = manifest_ctx.min_sdk_bumped_manifest,
+        manifest = manifest_ctx.processed_manifest,
         defines_resources = resources_ctx.defines_resources,
         merged_manifest = resources_ctx.merged_manifest,
         resources_apk = resources_ctx.resources_apk,
