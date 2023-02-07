@@ -47,7 +47,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         assets = ctx.files.assets,
         assets_dir = ctx.attr.assets_dir,
         resource_files = ctx.files.resource_files,
-        manifest = manifest_ctx.min_sdk_bumped_manifest,
+        manifest = manifest_ctx.processed_manifest,
         manifest_values = utils.expand_make_vars(ctx, ctx.attr.manifest_values),
         resource_configs = ctx.attr.resource_configuration_filters,
         densities = ctx.attr.densities,

@@ -475,7 +475,7 @@ def impl(ctx):
         ctx,
         aar = aar,
         package = package,
-        manifest = manifest_ctx.min_sdk_bumped_manifest,
+        manifest = manifest_ctx.processed_manifest,
         deps = ctx.attr.deps,
         aar_resources_extractor_tool =
             _get_android_toolchain(ctx).aar_resources_extractor.files_to_run,
@@ -555,7 +555,7 @@ def impl(ctx):
         ctx,
         aar = aar,
         package = package,
-        manifest = manifest_ctx.min_sdk_bumped_manifest,
+        manifest = manifest_ctx.processed_manifest,
         checks = _get_android_toolchain(ctx).aar_import_checks.files_to_run,
     ))
 
