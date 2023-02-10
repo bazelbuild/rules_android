@@ -17,8 +17,9 @@ package com.basicapp;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
-
 
 /**
  * The main activity of the Basic Sample App.
@@ -29,6 +30,24 @@ public class BasicActivity extends Activity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.basic_activity);
+
+    final Button buttons[] = {
+      findViewById(R.id.button_id_fizz), findViewById(R.id.button_id_buzz),
+    };
+
+    for (Button b : buttons) {
+      b.setOnClickListener(
+          new View.OnClickListener() {
+            public void onClick(View v) {
+              TextView tv = findViewById(R.id.text_hello);
+              if (v.getId() == R.id.button_id_fizz) {
+                tv.setText("fizz");
+              } else if (v.getId() == R.id.button_id_buzz) {
+                tv.setText("buzz");
+              }
+            }
+          });
+    }
   }
 
   @Override

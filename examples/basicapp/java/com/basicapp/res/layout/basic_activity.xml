@@ -9,4 +9,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+     <Button
+        android:id="@+id/button_id_fizz"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="fizz" />
+     <Button
+        android:id="@+id/button_id_buzz"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="buzz" />
+
 </LinearLayout>
