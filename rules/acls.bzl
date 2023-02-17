@@ -75,6 +75,7 @@ load("//rules/acls:android_rules_with_kt_rollout.bzl", "ANDROID_RULES_WITH_KT_FA
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("//rules/acls:enforce_min_sdk_floor_rollout.bzl", "ENFORCE_MIN_SDK_FLOOR_FALLBACK", "ENFORCE_MIN_SDK_FLOOR_ROLLOUT")
 load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
+load("//rules/acls:android_local_test_jdk_sts_rollout.bzl", "ANDROID_LOCAL_TEST_JDK_STS_FALLBACK", "ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT")
 
 def _in_aar_import_deps_checker(fqn):
     return not matches(fqn, AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT) and matches(fqn, AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT)
@@ -213,6 +214,9 @@ def _in_android_apk_to_bundle_features(fqn):
 def _get_android_archive_duplicate_class_allowlist(fqn):
     return ANDROID_ARCHIVE_DUPLICATE_CLASS_ALLOWLIST.get(fqn, [])
 
+def _in_android_local_test_jdk_sts_rollout(fqn):
+    return not matches(fqn, ANDROID_LOCAL_TEST_JDK_STS_FALLBACK_DICT) and matches(fqn, ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -287,6 +291,8 @@ ENFORCE_MIN_SDK_FLOOR_ROLLOUT_DICT = make_dict(ENFORCE_MIN_SDK_FLOOR_ROLLOUT)
 ENFORCE_MIN_SDK_FLOOR_FALLBACK_DICT = make_dict(ENFORCE_MIN_SDK_FLOOR_FALLBACK)
 ANDROID_APK_TO_BUNDLE_FEATURES_DICT = make_dict(ANDROID_APK_TO_BUNDLE_FEATURES)
 ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST_DICT = make_dict(ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST)
+ANDROID_LOCAL_TEST_JDK_STS_FALLBACK_DICT = make_dict(ANDROID_LOCAL_TEST_JDK_STS_FALLBACK)
+ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT_DICT = make_dict(ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -369,6 +375,7 @@ acls = struct(
     in_baseline_profiles_rollout = _in_baseline_profiles_rollout,
     in_enforce_min_sdk_floor_rollout = _in_enforce_min_sdk_floor_rollout,
     in_android_apk_to_bundle_features = _in_android_apk_to_bundle_features,
+    in_android_local_test_jdk_sts_rollout = _in_android_local_test_jdk_sts_rollout,
 )
 
 # Visible for testing
