@@ -66,12 +66,6 @@ _ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-    android_archive_manifest_package_validator = attr.label(
-        allow_files = True,
-        default = "@androidsdk//:fail",
-        cfg = "exec",
-        executable = True,
-    ),
     android_archive_packages_validator = attr.label(
         allow_files = True,
         default = "@androidsdk//:fail",
@@ -100,6 +94,12 @@ _ATTRS = dict(
         allow_files = True,
         cfg = "exec",
         default = "//tools/android:bundletool_deploy.jar",
+        executable = True,
+    ),
+    centralize_r_class_tool = attr.label(
+        allow_files = True,
+        cfg = "exec",
+        default = "@androidsdk//:fail",
         executable = True,
     ),
     data_binding_annotation_processor = attr.label(
