@@ -145,12 +145,23 @@ def _contains_code_to_link(input):
         object_files = input.objects
     elif input.pic_objects:
         object_files = input.pic_objects
-    else:
+    elif _is_any_source_file(input.static_library, input.pic_static_library):
         # this is an opaque library so we're going to have to link it
         return True
+    else:
+        # if we reach here, this is a cc_library without sources generating an
+        # empty archive which does not need to be linked
+        # TODO(hvd): replace all such cc_library with exporting_cc_library
+        return False
     for obj in object_files:
         if not _is_shared_library(obj):
             # this library was built with a non-shared-library object so we should link it
+            return True
+    return False
+
+def _is_any_source_file(*files):
+    for file in files:
+        if file and file.is_source:
             return True
     return False
 
