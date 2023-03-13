@@ -9,26 +9,13 @@ licenses(["notice"])
 
 go_binary(
     name = "ak",
-    srcs = ["ak.go"],
+    srcs = [
+        "ak.go",
+    ],
     deps = [
+        ":akcommands",
         ":types",
         "//src/common/golang:flagfile",
-        "//src/tools/ak/bucketize",
-        "//src/tools/ak/compile",
-        "//src/tools/ak/dex",
-        "//src/tools/ak/extractaar",
-        "//src/tools/ak/finalrjar",
-        "//src/tools/ak/generatemanifest",
-        "//src/tools/ak/link",
-        "//src/tools/ak/liteparse",
-        "//src/tools/ak/manifest",
-        "//src/tools/ak/mindex",
-        "//src/tools/ak/nativelib",
-        "//src/tools/ak/patch",
-        "//src/tools/ak/repack",
-        "//src/tools/ak/rjar",
-        "//src/tools/ak/rstub",
-        "//src/tools/ak/shellapk",
     ],
 )
 
@@ -50,5 +37,29 @@ go_library(
     importpath = "src/tools/ak/manifestutils",
     deps = [
         "//src/common/golang:xml2",
+    ],
+)
+
+go_library(
+    name = "akcommands",
+    srcs = ["akcommands.go"],
+    importpath = "src/tools/ak/akcommands",
+    deps = [
+        ":types",
+        "//src/tools/ak/bucketize",
+        "//src/tools/ak/compile",
+        "//src/tools/ak/dex",
+        "//src/tools/ak/extractaar",
+        "//src/tools/ak/finalrjar",
+        "//src/tools/ak/generatemanifest",
+        "//src/tools/ak/link",
+        "//src/tools/ak/liteparse",
+        "//src/tools/ak/manifest",
+        "//src/tools/ak/mindex",
+        "//src/tools/ak/nativelib",
+        "//src/tools/ak/patch",
+        "//src/tools/ak/repack",
+        "//src/tools/ak/rjar",
+        "//src/tools/ak/shellapk",
     ],
 )
