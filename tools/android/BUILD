@@ -5,6 +5,12 @@ android_jar(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "sdk_toolchain_type",
+    actual = "@bazel_tools//tools/android:sdk_toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
 # TODO(b/175833857): This is a stub, should remove.
 alias(
     name = "merge_manifests",

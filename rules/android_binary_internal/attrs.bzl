@@ -84,6 +84,7 @@ ATTRS = _attrs.replace(
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,
+        _attrs.ANDROID_TOOLCHAIN_ATTRS,
     ),
     # TODO(b/167599192): don't override manifest attr to remove .xml file restriction.
     manifest = attr.label(
