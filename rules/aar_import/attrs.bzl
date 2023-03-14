@@ -69,4 +69,5 @@ ATTRS = _attrs.add(
         ),
     ),
     _attrs.DATA_CONTEXT,
+    _attrs.ANDROID_TOOLCHAIN_ATTRS,
 )

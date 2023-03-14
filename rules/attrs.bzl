@@ -325,6 +325,14 @@ ANDROID_SDK_ATTRS = dict(
     ),
 )
 
+# Attributes for resolving platform-based toolchains. Only needed by the native DexArchiveAspect.
+_ANDROID_TOOLCHAIN_ATTRS = dict(
+    _android_sdk_toolchain_type = attr.label(
+        allow_rules = ["toolchain_type"],
+        default = Label("//tools/android:sdk_toolchain_type"),
+    ),
+)
+
 ANDROID_TOOLS_DEFAULTS_JAR_ATTRS = _add(_ANDROID_SDK)
 
 attrs = struct(
@@ -332,6 +340,7 @@ attrs = struct(
     COMPILATION = _COMPILATION,
     DATA_CONTEXT = _DATA_CONTEXT,
     JAVA_RUNTIME = _JAVA_RUNTIME,
+    ANDROID_TOOLCHAIN_ATTRS = _ANDROID_TOOLCHAIN_ATTRS,
     tristate = _tristate,
     add = _add,
     replace = _replace,
