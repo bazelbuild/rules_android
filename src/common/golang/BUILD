@@ -94,3 +94,23 @@ go_library(
     srcs = ["flagfile.go"],
     importpath = "src/common/golang/flagfile",
 )
+
+genrule(
+    name = "a_txt",
+    outs = ["a.txt"],
+    cmd = "echo hello world > $@",
+)
+
+go_library(
+    name = "runfilelocation",
+    srcs = ["runfilelocation.go"],
+    importpath = "src/common/golang/runfilelocation",
+    deps = ["@io_bazel_rules_go//go/runfiles"],
+)
+
+go_test(
+    name = "runfilelocation_test",
+    srcs = ["runfilelocation_test.go"],
+    data = [":a_txt"],
+    embed = [":runfilelocation"],
+)
