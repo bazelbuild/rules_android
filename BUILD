@@ -1,6 +1,20 @@
 load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@rules_license//rules:license.bzl", "license")
 
-package(default_visibility = ["//visibility:public"])
+package(
+    default_visibility = ["//visibility:public"],
+    default_applicable_licenses = [":license"],
+)
+
+license(
+    name = "license",
+    package_name = "bazelbuild/rules_android",
+    copyright_notice = "Copyright © 2023 The Bazel Authors. All rights reserved.",
+    license_kinds = [
+        "@rules_license//licenses/spdx:Apache-2.0",
+    ],
+    license_text = "LICENSE",
+)
 
 # gazelle:prefix github.com/bazelbuild/rules_android
 gazelle(name = "gazelle")
