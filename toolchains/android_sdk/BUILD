@@ -18,7 +18,6 @@ toolchain(
     name = "android_sdk_tools",
     exec_compatible_with = [
         "@platforms//cpu:x86_64",
-        "@platforms//os:linux",
     ],
     # TODO(b/175833893): This causes the toolchain to not be selected, so
     # disable for now.
