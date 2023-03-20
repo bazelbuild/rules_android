@@ -1845,7 +1845,7 @@ resources = struct(
     bump_min_sdk = _bump_min_sdk,
 
     # Exposed for use in AOSP
-    set_default_sdk = _set_default_min_sdk,
+    set_default_min_sdk = _set_default_min_sdk,
 
     # Exposed for android_binary
     validate_min_sdk = _validate_min_sdk,
