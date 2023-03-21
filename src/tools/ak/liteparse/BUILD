@@ -39,6 +39,7 @@ go_test(
     data = glob(["testdata/**"]),
     embed = [":liteparse"],
     deps = [
+        "//src/common/golang:runfilelocation",
         "//src/tools/ak/res",
         "//src/tools/ak/res/proto:res_data_go_proto",
         "//src/tools/ak/res/respipe",

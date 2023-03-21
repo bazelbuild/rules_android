@@ -16,6 +16,7 @@ package runfilelocation
 
 import (
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -44,8 +45,14 @@ func TestInvalidRunfileLocation(t *testing.T) {
 	invalidRunfilePath := "src/common/golang/b.txt"
 
 	runfileLocationShouldNotExist, err := Find(invalidRunfilePath)
-	if err == nil {
-		// If no error, that means the library is not properly detecting invalid runfile paths
-		t.Errorf("Expected error: %v should not be a valid path. Returned %v", invalidRunfilePath, runfileLocationShouldNotExist)
+	if err != nil {
+		// Even if the path is invalid, runfilelocation.Find() should return the path to where it _thinks_
+		// the runfile should exist.
+		t.Errorf("Unexpected error: %v should have returned a runfile path. Instead got %v", invalidRunfilePath, err)
+	}
+
+	// Check that the invalid runfile path actually does not exist.
+	if _, err := os.Stat(runfileLocationShouldNotExist); err == nil {
+		t.Errorf("Expected error, file should not have been found: %v", runfileLocationShouldNotExist)
 	}
 }

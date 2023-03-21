@@ -31,10 +31,5 @@ func Find(runfilePath string) (string, error) {
 		return "", err
 	}
 
-	// Check if file exists
-	if _, err := os.Stat(runfileLocation); err != nil {
-		return "", err
-	}
-
 	return runfileLocation, err
 }
