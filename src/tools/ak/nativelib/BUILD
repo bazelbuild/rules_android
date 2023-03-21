@@ -36,4 +36,5 @@ go_test(
         "//src/tools/ak/nativelib/testdata:dummy_so",
     ],
     embed = [":nativelib"],
+    deps = ["//src/common/golang:runfilelocation"],
 )

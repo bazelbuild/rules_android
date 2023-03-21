@@ -20,9 +20,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
+
+	"src/common/golang/runfilelocation"
 )
 
 const (
@@ -55,13 +56,17 @@ func makeLibZip(t *testing.T, entry io.Reader, entryName, zipPath string) error 
 func TestCreateNativeLibZip(t *testing.T) {
 	tmpDir, err := ioutil.TempDir("", "shelltest")
 	if err != nil {
-		t.Fatalf("Error creating temp directory: %v", err)
+		t.Errorf("Error creating temp directory: %v", err)
 	}
 	defer os.RemoveAll(tmpDir)
 	out := filepath.Join(tmpDir, "lib.zip")
-	in := []string{"x86:" + path.Join(os.Getenv("TEST_SRCDIR"), dummyLib)}
+	dummyLibPath, err := runfilelocation.Find(dummyLib)
+	if err != nil {
+		t.Errorf("Error finding dummy lib runfile: %v", err)
+	}
+	in := []string{"x86:" + dummyLibPath}
 	if err := doWork(in, out); err != nil {
-		t.Fatalf("Error creating native lib zip: %v", err)
+		t.Errorf("Error creating native lib zip: %v", err)
 	}
 
 	z, err := zip.OpenReader(out)
