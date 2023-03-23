@@ -115,6 +115,8 @@ def _process_build_stamp(_unused_ctx, **_unused_ctxs):
     )
 
 def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_ctxs):
+    if ctx.attr.enable_data_binding and not acls.in_databinding_allowed(str(ctx.label)):
+        fail("This target is not allowed to use databinding and enable_data_binding is True.")
     return ProviderInfo(
         name = "db_ctx",
         value = data_binding.process(

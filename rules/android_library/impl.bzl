@@ -226,6 +226,8 @@ def _process_idl(ctx, **unused_sub_ctxs):
     )
 
 def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
+    if ctx.attr.enable_data_binding and not acls.in_databinding_allowed(str(ctx.label)):
+        fail("This target is not allowed to use databinding and enable_data_binding is True.")
     return ProviderInfo(
         name = "db_ctx",
         value = _data_binding.process(
