@@ -84,7 +84,20 @@ def process(ctx, filename):
         libs_name = ctx.actions.declare_file("nativedeps_filename/" + actual_target_name + "/" + filename)
         ctx.actions.write(output = libs_name, content = native_libs_basename)
 
-    return AndroidBinaryNativeLibsInfo(libs, libs_name)
+    transitive_native_libs = _get_transitive_native_libs(ctx)
+    return AndroidBinaryNativeLibsInfo(libs, libs_name, transitive_native_libs)
+
+# Collect all native shared libraries across split transitions. Some AARs
+# contain shared libraries across multiple architectures, e.g. x86 and
+# armeabi-v7a, and need to be packed into the APK.
+def _get_transitive_native_libs(ctx):
+    return depset(
+        transitive = [
+            dep[AndroidNativeLibsInfo].native_libs
+            for dep in ctx.attr.deps
+            if AndroidNativeLibsInfo in dep
+        ],
+    )
 
 def _all_inputs(cc_info):
     return [
