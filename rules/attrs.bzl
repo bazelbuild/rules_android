@@ -15,6 +15,7 @@
 """Common attributes for Android rules."""
 
 load(":utils.bzl", "log")
+load(":native_toolchain_attrs.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE_DEFAULT")
 
 def _add(attrs, *others):
     new = {}
@@ -325,11 +326,12 @@ ANDROID_SDK_ATTRS = dict(
     ),
 )
 
-# Attributes for resolving platform-based toolchains. Only needed by the native DexArchiveAspect.
+# Attributes for resolving platform-based toolchains. Only needed by the native
+# DexArchiveAspect.
 _ANDROID_TOOLCHAIN_ATTRS = dict(
     _android_sdk_toolchain_type = attr.label(
         allow_rules = ["toolchain_type"],
-        default = Label("//tools/android:sdk_toolchain_type"),
+        default = ANDROID_SDK_TOOLCHAIN_TYPE_DEFAULT,
     ),
 )
 
