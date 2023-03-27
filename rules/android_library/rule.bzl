@@ -26,7 +26,9 @@ _RULE_DOC = """
 #### Examples
 
 The following example shows how to use android libraries with resources.
-<pre><code>android_library(
+
+```starlark
+android_library(
     name = "hellobazellib",
     srcs = glob(["*.java"]),
     resource_files = glob(["res/**/*"]),
@@ -37,10 +39,13 @@ The following example shows how to use android libraries with resources.
         "//java/bazel/hellobazellib/math",
         "//java/bazel/hellobazellib/service",
     ],
-)</code></pre>
+)
+```
 
-The following example shows how to set `idl_import_root`. Let //java/bazel/helloandroid/BUILD contain:
-<pre><code>android_library(
+The following example shows how to set `idl_import_root`. Let `//java/bazel/helloandroid/BUILD` contain:
+
+```starlark
+android_library(
     name = "parcelable",
     srcs = ["MyParcelable.java"], # bazel.helloandroid.MyParcelable
     # MyParcelable.aidl will be used as import for other .aidl
@@ -51,6 +56,7 @@ The following example shows how to set `idl_import_root`. Let //java/bazel/hello
     # is present at java/bazel/helloandroid/MyParcelable.aidl
     # underneath a java root (java/).
 )
+
 android_library(
     name = "foreign_parcelable",
     srcs = ["src/android/helloandroid/OtherParcelable.java"], # android.helloandroid.OtherParcelable
@@ -65,7 +71,8 @@ android_library(
     # the aidl compiler will search for imported types.
     idl_import_root = "src",
 )
-\\# Here, OtherInterface.aidl has an "import android.helloandroid.CallbackInterface;" statement.
+
+# Here, OtherInterface.aidl has an "import android.helloandroid.CallbackInterface;" statement.
 android_library(
     name = "foreign_interface",
     idl_srcs = [
@@ -78,27 +85,30 @@ android_library(
     # to find CallbackInterface when it is imported.
     idl_import_root = "src",
 )
-\\# MyParcelable.aidl is imported by MyInterface.aidl, so the generated
-\\# MyInterface.java requires MyParcelable.class at compile time.
-\\# Depending on :parcelable ensures that aidl compilation of MyInterface.aidl
-\\# specifies the correct import roots and can access MyParcelable.aidl, and
-\\# makes MyParcelable.class available to Java compilation of MyInterface.java
-\\# as usual.
+
+# MyParcelable.aidl is imported by MyInterface.aidl, so the generated
+# MyInterface.java requires MyParcelable.class at compile time.
+# Depending on :parcelable ensures that aidl compilation of MyInterface.aidl
+# specifies the correct import roots and can access MyParcelable.aidl, and
+# makes MyParcelable.class available to Java compilation of MyInterface.java
+# as usual.
 android_library(
     name = "idl",
     idl_srcs = ["MyInterface.aidl"],
     deps = [":parcelable"],
 )
-\\# Here, ServiceParcelable uses and thus depends on ParcelableService,
-\\# when it's compiled, but ParcelableService also uses ServiceParcelable,
-\\# which creates a circular dependency.
-\\# As a result, these files must be compiled together, in the same android_library.
+
+# Here, ServiceParcelable uses and thus depends on ParcelableService,
+# when it's compiled, but ParcelableService also uses ServiceParcelable,
+# which creates a circular dependency.
+# As a result, these files must be compiled together, in the same android_library.
 android_library(
     name = "circular_dependencies",
     srcs = ["ServiceParcelable.java"],
     idl_srcs = ["ParcelableService.aidl"],
     idl_parcelables = ["ServiceParcelable.aidl"],
-)</code></pre>
+)
+```
 """
 
 def _outputs(name, _package_name, _defined_local_resources):
