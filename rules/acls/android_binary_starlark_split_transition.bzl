@@ -15,7 +15,7 @@
 """Allow and fallback lists for using the Starlark implementation of the android split transition"""
 
 ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_ROLLOUT = [
-    "//tools/build_defs/android/test/dev/android_binary_internal/java/com/nativelibs:__pkg__",
+    "//:__subpackages__",
 ]
 
 ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_FALLBACK = [
