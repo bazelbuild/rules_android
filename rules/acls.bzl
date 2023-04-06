@@ -303,8 +303,11 @@ DATABINDING_DISALLOWED_DICT = make_dict(DATABINDING_DISALLOWED)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
+    # For now, default external dependency ACLs to True to enable rollout features for all
+    # external users. See https://github.com/bazelbuild/rules_android/issues/68
+    # Note that this only affects Bazel builds with OSS rules_android.
     if fqn.startswith("@"):
-        return False
+        return True
 
     if not fqn.startswith("//"):
         fail("Fully qualified target should start with '//', got: " + fqn)
