@@ -15,4 +15,5 @@ bzl_library(
     deps = [
         "//rules:common_bzl",
     ],
+    visibility = ["//:__subpackages__"],
 )

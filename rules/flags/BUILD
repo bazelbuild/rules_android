@@ -4,7 +4,6 @@ load("//rules/flags:flags.bzl", "flags")
 load("//rules/flags:flag_defs.bzl", "define_flags")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-
 licenses(["notice"])
 
 filegroup(
@@ -15,6 +14,7 @@ filegroup(
 bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
+    visibility = ["//:__subpackages__"],
 )
 
 define_flags()
