@@ -23,6 +23,29 @@ load(
     "split_config_aspect",
 )
 
+def make_deps(allow_rules, providers):
+    return attr.label_list(
+        allow_files = True,
+        allow_rules = allow_rules,
+        providers = providers,
+        cfg = android_common.multi_cpu_configuration,
+    )
+
+DEPS_ALLOW_RULES = [
+    "aar_import",
+    "android_library",
+    "cc_library",
+    "java_import",
+    "java_library",
+    "java_lite_proto_library",
+]
+
+DEPS_PROVIDERS = [
+    [CcInfo],
+    [JavaInfo],
+    ["AndroidResourcesInfo", "AndroidAssetsInfo"],
+]
+
 ATTRS = _attrs.replace(
     _attrs.add(
         dict(
@@ -30,23 +53,7 @@ ATTRS = _attrs.replace(
                 # TODO(timpeut): Set PropertyFlag direct_compile_time_input
                 allow_files = [".java", ".srcjar"],
             ),
-            deps = attr.label_list(
-                allow_files = True,
-                allow_rules = [
-                    "aar_import",
-                    "android_library",
-                    "cc_library",
-                    "java_import",
-                    "java_library",
-                    "java_lite_proto_library",
-                ],
-                providers = [
-                    [CcInfo],
-                    [JavaInfo],
-                    ["AndroidResourcesInfo", "AndroidAssetsInfo"],
-                ],
-                cfg = android_common.multi_cpu_configuration,
-            ),
+            deps = make_deps(DEPS_ALLOW_RULES, DEPS_PROVIDERS),
             enable_data_binding = attr.bool(),
             instruments = attr.label(),
             manifest_values = attr.string_dict(),
