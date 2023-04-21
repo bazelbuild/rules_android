@@ -16,6 +16,7 @@
 
 # keep sorted
 ANDROID_RULES_WITH_KT_ROLLOUT = [
+    "//:__subpackages__",
 ]
 
 ANDROID_RULES_WITH_KT_FALLBACK = [
