@@ -120,7 +120,8 @@ def _make_resources_flag(
     )
 
 def _disable_warnings(ctx, args):
-    if _flags.get(ctx).persistent_android_resource_processor:
+    if (_flags.get(ctx).persistent_android_resource_processor or
+        _flags.get(ctx).persistent_multiplex_android_resource_processor):
         # Disable warnings - this are output to stdin/stderr which breaks worker mode
         args.add("--logWarnings=false")
 
@@ -794,8 +795,9 @@ def _merge_compiled(
 
 def _java_run(ctx, *args, **kwargs):
     enable_workers = _flags.get(ctx).persistent_android_resource_processor
-    kwargs["supports_workers"] = enable_workers
-    kwargs["supports_multiplex_workers"] = enable_workers
+    multiplex_workers = _flags.get(ctx).persistent_multiplex_android_resource_processor
+    kwargs["supports_workers"] = enable_workers or multiplex_workers
+    kwargs["supports_multiplex_workers"] = multiplex_workers 
     _java.run(ctx, *args, **kwargs)
 
 def _escape_mv(s):
