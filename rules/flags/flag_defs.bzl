@@ -97,3 +97,7 @@ def define_flags():
         default = True,
         description = "Use Studio Deployer to install apks",
     )
+    flags.DEFINE_bool(
+        name = "persistent_android_resource_processor",
+        default = False,
+        description = "Enables worker mode for Android resource busybox actions.",
