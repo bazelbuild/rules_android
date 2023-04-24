@@ -101,3 +101,4 @@ def define_flags():
         name = "persistent_android_resource_processor",
         default = False,
         description = "Enables worker mode for Android resource busybox actions.",
+    )
