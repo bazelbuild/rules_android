@@ -120,8 +120,9 @@ def _make_resources_flag(
     )
 
 def _disable_warnings(args):
-    # Disable warnings - this are output to stdin/stderr which breaks worker mode
-    args.add("--logWarnings=false")
+    if _flags.get(ctx).persistent_android_resource_processor:
+        # Disable warnings - this are output to stdin/stderr which breaks worker mode
+        args.add("--logWarnings=false")
 
 def _path(f):
     return f.path
