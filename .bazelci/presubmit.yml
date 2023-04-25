@@ -1,0 +1,67 @@
+---
+platforms:
+  ubuntu1604:
+    bazel: last_green
+    build_targets:
+    - "//src/..."
+    - "//test/..."
+    - "//android/..."
+    - "//rules/..."
+    - "-//src/java/com/example/sampleapp/..."
+    - "-//src/tools/ak/..."
+    - "//toolchains/..."
+    - "//tools/..."
+    test_targets:
+    - "//src/..."
+    - "//test/..."
+    - "-//src/tools/..."
+    - "-//src/java/com/example/sampleapp/..."
+  ubuntu1804:
+    bazel: last_green
+    build_targets:
+    - "//src/..."
+    - "//test/..."
+    - "//android/..."
+    - "//rules/..."
+    - "-//src/java/com/example/sampleapp/..."
+    - "-//src/tools/ak/..."
+    - "//toolchains/..."
+    - "//tools/..."
+    test_targets:
+    - "//src/..."
+    - "//test/..."
+    - "-//src/tools/..."
+    - "-//src/java/com/example/sampleapp/..."
+  macos:
+    bazel: last_green
+    build_targets:
+    - "//src/..."
+    - "//test/..."
+    - "//android/..."
+    - "//rules/..."
+    - "-//src/java/com/example/sampleapp/..."
+    - "-//src/tools/ak/..."
+    - "//toolchains/..."
+    - "//tools/..."
+    test_targets:
+    - "//src/..."
+    - "//test/..."
+    - "-//src/tools/..."
+    - "-//src/java/com/example/sampleapp/..."
+  windows:
+    bazel: last_green
+    build_targets:
+    - "//src/..."
+    - "//test/..."
+    - "//android/..."
+    - "//rules/..."
+    - "-//src/java/com/example/sampleapp/..."
+    - "-//src/tools/ak/..."
+    - "//toolchains/..."
+    - "//tools/..."
+    test_targets:
+    - "//src/..."
+    - "//test/..."
+    - "-//src/tools/..."
+    - "-//src/java/com/example/sampleapp/..."
+
