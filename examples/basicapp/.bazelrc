@@ -1,0 +1,3 @@
+# Flags needed while the Android rules are being migrated to Starlark.
+build --experimental_google_legacy_api
+build --experimental_enable_android_migration_apis
