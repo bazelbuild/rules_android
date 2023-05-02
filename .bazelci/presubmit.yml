@@ -1,67 +1,33 @@
 ---
-platforms:
-  ubuntu1604:
-    bazel: last_green
-    build_targets:
-    - "//src/..."
-    - "//test/..."
-    - "//android/..."
-    - "//rules/..."
-    - "-//src/java/com/example/sampleapp/..."
-    - "-//src/tools/ak/..."
-    - "//toolchains/..."
-    - "//tools/..."
-    test_targets:
-    - "//src/..."
-    - "//test/..."
-    - "-//src/tools/..."
-    - "-//src/java/com/example/sampleapp/..."
-  ubuntu1804:
-    bazel: last_green
-    build_targets:
-    - "//src/..."
-    - "//test/..."
-    - "//android/..."
-    - "//rules/..."
-    - "-//src/java/com/example/sampleapp/..."
-    - "-//src/tools/ak/..."
-    - "//toolchains/..."
-    - "//tools/..."
-    test_targets:
-    - "//src/..."
-    - "//test/..."
-    - "-//src/tools/..."
-    - "-//src/java/com/example/sampleapp/..."
-  macos:
-    bazel: last_green
-    build_targets:
-    - "//src/..."
-    - "//test/..."
-    - "//android/..."
-    - "//rules/..."
-    - "-//src/java/com/example/sampleapp/..."
-    - "-//src/tools/ak/..."
-    - "//toolchains/..."
-    - "//tools/..."
-    test_targets:
-    - "//src/..."
-    - "//test/..."
-    - "-//src/tools/..."
-    - "-//src/java/com/example/sampleapp/..."
-  windows:
-    bazel: last_green
-    build_targets:
-    - "//src/..."
-    - "//test/..."
-    - "//android/..."
-    - "//rules/..."
-    - "-//src/java/com/example/sampleapp/..."
-    - "-//src/tools/ak/..."
-    - "//toolchains/..."
-    - "//tools/..."
-    test_targets:
-    - "//src/..."
-    - "//test/..."
-    - "-//src/tools/..."
-    - "-//src/java/com/example/sampleapp/..."
 
+x_defaults:
+  common: &common
+    bazel: last_green
+    build_flags:
+    - "--enable_bzlmod"
+    build_targets:
+    - "//src/..."
+    - "//test/..."
+    - "//android/..."
+    - "//rules/..."
+    - "-//src/java/com/example/sampleapp/..."
+    - "-//src/tools/ak/..."
+    - "//toolchains/..."
+    - "//tools/..."
+    test_targets:
+    - "//src/..."
+    - "//test/..."
+    - "-//src/tools/..."
+    - "-//src/java/com/example/sampleapp/..."    
+
+tasks:
+  ubuntu1604:
+    <<: *common
+  ubuntu1804:
+    <<: *common
+  macos:
+    <<: *common
+  macos_arm64:
+    <<: *common
+  windows:
+    <<: *common
