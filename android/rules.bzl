@@ -15,7 +15,7 @@
 """Redirecting starlark rules to //rules/rules.bzl for easier migration to a new branch."""
 
 load(
-    "//rules/rules.bzl",
+    "//rules:rules.bzl",
     _aar_import = "aar_import",
     _android_archive = "android_archive",
     _android_binary = "android_binary",
