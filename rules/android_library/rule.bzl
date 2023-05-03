@@ -128,7 +128,6 @@ def _outputs(name, _package_name, _defined_local_resources):
             path_prefix = ""
         outputs.update(
             dict(
-                resources_src_jar = path_prefix + "%{name}.srcjar",
                 resources_txt = path_prefix + "%{name}_symbols/R.txt",
                 resources_jar = path_prefix + "%{name}_resources.jar",
             ),
