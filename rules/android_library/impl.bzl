@@ -27,7 +27,7 @@ load(
     "processing_pipeline",
 )
 load("//rules:proguard.bzl", _proguard = "proguard")
-load("//rules:providers.bzl", "AndroidLintRulesInfo")
+load("//rules:providers.bzl", "AndroidLintRulesInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules/flags:flags.bzl", _flags = "flags")
@@ -148,6 +148,10 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
     else:
         exports_manifest = ctx.attr.exports_manifest == _attrs.tristate.yes
 
+    resource_apks = []
+    for apk in utils.collect_providers(StarlarkApkInfo, ctx.attr.resource_apks):
+        resource_apks.append(apk.signed_apk)
+
     # Process Android Resources
     resources_ctx = _resources.process(
         ctx,
@@ -163,6 +167,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
         neverlink = ctx.attr.neverlink,
         enable_data_binding = ctx.attr.enable_data_binding,
         deps = ctx.attr.deps,
+        resource_apks = resource_apks,
         exports = ctx.attr.exports,
 
         # Processing behavior changing flags.

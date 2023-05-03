@@ -29,6 +29,7 @@ load(
     "//rules:native_deps.bzl",
     _process_native_deps = "process",
 )
+load("//rules:providers.bzl", "StarlarkApkInfo")
 
 def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
@@ -44,6 +45,10 @@ def _process_manifest(ctx, **unused_ctxs):
     )
 
 def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
+    resource_apks = []
+    for apk in utils.collect_providers(StarlarkApkInfo, ctx.attr.resource_apks):
+        resource_apks.append(apk.signed_apk)
+
     packaged_resources_ctx = _resources.package(
         ctx,
         assets = ctx.files.assets,
@@ -64,6 +69,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         enable_data_binding = ctx.attr.enable_data_binding,
         enable_manifest_merging = ctx.attr._enable_manifest_merging,
         deps = utils.dedupe_split_attr(ctx.split_attr.deps),
+        resource_apks = resource_apks,
         instruments = ctx.attr.instruments,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,

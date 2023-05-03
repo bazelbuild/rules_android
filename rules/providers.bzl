@@ -69,6 +69,9 @@ ResourcesNodeInfo = provider(
         assets_symbols = "A file, the merged assets",
         compiled_assets = "A file, the compiled assets",
 
+        # Dynamic resources field
+        resource_apks = "A depset of resource only apk files",
+
         # Resource related fields
         resource_files = "A depset of files, resource files of the target",
         compiled_resources = "A file, the compiled resources",
@@ -93,6 +96,7 @@ StarlarkAndroidResourcesInfo = provider(
         transitive_r_txts = "Depset of transitive R.txt files",
         transitive_resource_files = "Depset of transitive resource files",
         packages_to_r_txts = "Map of packages to depset of r_txt files",
+        transitive_resource_apks = "Depset of transitive resource only apk files",
     ),
 )
 

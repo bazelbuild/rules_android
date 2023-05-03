@@ -30,6 +30,7 @@ load(
     _compilation_mode = "compilation_mode",
     _log = "log",
 )
+load("//rules:acls.bzl", "acls")
 
 # Depot-wide min SDK floor
 _DEPOT_MIN_SDK_FLOOR = 14
@@ -431,6 +432,7 @@ def _package(
         assets = [],
         assets_dir = None,
         deps = [],
+        resource_apks = [],
         manifest = None,
         manifest_values = None,
         instruments = None,
@@ -468,6 +470,7 @@ def _package(
         parameters should be provided or none of them.
       deps: sequence of Targets. The list of other libraries targets to link
         against.
+      resource_apks: sequence of resource only apk files
       manifest: File. The input top-level AndroidManifest.xml.
       manifest_values: String dictionary. Manifest values to substitute.
       instruments: Optional target. The value of the "instruments" attr if set.
@@ -549,6 +552,8 @@ def _package(
     transitive_manifests = []
     transitive_r_txts = []
     packages_to_r_txts_depset = dict()
+    transitive_resource_apks = []
+
     for dep in utils.collect_providers(StarlarkAndroidResourcesInfo, deps):
         direct_resources_nodes.append(dep.direct_resources_nodes)
         transitive_resources_nodes.append(dep.transitive_resources_nodes)
@@ -561,12 +566,15 @@ def _package(
         transitive_r_txts.append(dep.transitive_r_txts)
         for pkg, r_txts in dep.packages_to_r_txts.items():
             packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
-
+        transitive_resource_apks.append(dep.transitive_resource_apks)
     mergee_manifests = depset([
         node_info.manifest
         for node_info in depset(transitive = transitive_resources_nodes + direct_resources_nodes).to_list()
         if node_info.exports_manifest
     ])
+
+    if (transitive_resource_apks or resource_apks) and not acls.in_shared_library_resource_linking_allowlist(str(ctx.label)):
+        fail(str(ctx.label) + " not in shared_library_resource_linking_allowlist")
 
     # TODO(b/156763506): Add analysis tests to verify logic around when manifest merging is configured.
     # TODO(b/154153771): Run the android merger if mergee_manifests or manifest values are present.
@@ -663,6 +671,7 @@ def _package(
         assets = assets,
         assets_dir = assets_dir,
         resource_files = processed_resources,
+        resource_apks = depset(resource_apks, transitive = transitive_resource_apks, order = "preorder"),
         direct_resources_nodes =
             depset(transitive = direct_resources_nodes, order = "preorder"),
         transitive_resources_nodes =
@@ -744,6 +753,7 @@ def _package(
         transitive_manifests = depset(),
         transitive_r_txts = depset(),
         packages_to_r_txts = packages_to_r_txts,
+        transitive_resource_apks = depset(),
     ))
 
     packaged_resources_ctx[_PROVIDERS].append(AndroidApplicationResourceInfo(
@@ -1152,6 +1162,7 @@ def _process_starlark(
         exports_manifest = False,
         stamp_manifest = True,
         deps = [],
+        resource_apks = [],
         exports = [],
         resource_files = None,
         neverlink = False,
@@ -1189,6 +1200,7 @@ def _process_starlark(
         the function.
       deps: sequence of Targets. The list of other libraries targets to link
         against.
+      resource_apks: sequence of resource apk files to link against.
       exports: sequence of Targets. The closure of all rules reached via exports
         attributes are considered direct dependencies of any rule that directly
         depends on the target with exports. The exports are not direct deps of
@@ -1278,6 +1290,7 @@ def _process_starlark(
     transitive_manifests = []
     transitive_r_txts = []
     packages_to_r_txts_depset = dict()
+    transitive_resource_apks = []
 
     for dep in utils.collect_providers(StarlarkAndroidResourcesInfo, deps):
         direct_resources_nodes.append(dep.direct_resources_nodes)
@@ -1292,7 +1305,7 @@ def _process_starlark(
         transitive_r_txts.append(dep.transitive_r_txts)
         for pkg, r_txts in dep.packages_to_r_txts.items():
             packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
-
+        transitive_resource_apks.append(dep.transitive_resource_apks)
     exports_direct_resources_nodes = []
     exports_transitive_resources_nodes = []
     exports_transitive_assets = []
@@ -1366,6 +1379,7 @@ def _process_starlark(
                 assets = assets,
                 assets_dir = assets_dir,
                 resource_files = resource_files,
+                resource_apks = depset(resource_apks, transitive = transitive_resource_apks, order = "preorder"),
                 direct_resources_nodes =
                     depset(transitive = direct_resources_nodes, order = "preorder"),
                 transitive_resources_nodes =
@@ -1572,6 +1586,7 @@ def _process_starlark(
             aapt = aapt,
             busybox = busybox,
             host_javabase = host_javabase,
+            resource_apks = resource_apks,
         )
         resources_ctx[_RESOURCES_APK] = apk
 
@@ -1666,6 +1681,11 @@ def _process_starlark(
                 order = "preorder",
             ),
             packages_to_r_txts = packages_to_r_txts,
+            transitive_resource_apks = depset(
+                resource_apks,
+                transitive = transitive_resource_apks,
+                order = "preorder",
+            ),
         ))
     else:
         # Depsets are ordered below to match the order in the legacy native rules.
@@ -1677,6 +1697,7 @@ def _process_starlark(
                     assets_dir = assets_dir,
                     assets_symbols = parsed_assets,
                     compiled_assets = compiled_assets,
+                    resource_apks = depset(resource_apks),
                     resource_files = depset(processed_resources),
                     compiled_resources = compiled_resources,
                     r_txt = out_aapt2_r_txt,
@@ -1731,6 +1752,11 @@ def _process_starlark(
                 order = "preorder",
             ),
             packages_to_r_txts = packages_to_r_txts,
+            transitive_resource_apks = depset(
+                resource_apks,
+                transitive = transitive_resource_apks,
+                order = "preorder",
+            ),
         ))
 
     if not propagate_resources:
@@ -1774,6 +1800,7 @@ def _process(
         neverlink = False,
         enable_data_binding = False,
         deps = [],
+        resource_apks = [],
         exports = [],
         android_jar = None,
         android_kit = None,
@@ -1805,6 +1832,7 @@ def _process(
         exports_manifest = exports_manifest,
         stamp_manifest = True if java_package else False,
         deps = deps,
+        resource_apks = resource_apks,
         exports = exports,
         resource_files = depset(transitive = [target.files for target in resource_files]).to_list(),
         enable_data_binding = enable_data_binding,

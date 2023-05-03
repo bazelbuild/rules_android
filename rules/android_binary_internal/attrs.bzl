@@ -22,6 +22,7 @@ load(
     "//rules:native_deps.bzl",
     "split_config_aspect",
 )
+load("//rules:providers.bzl", "StarlarkApkInfo")
 
 def make_deps(allow_rules, providers):
     return attr.label_list(
@@ -66,6 +67,15 @@ ATTRS = _attrs.replace(
                 allow_rules = ["android_binary", "android_test"],
             ),
             proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
+            resource_apks = attr.label_list(
+                allow_rules = ["apk_import"],
+                providers = [
+                    [StarlarkApkInfo],
+                ],
+                doc = (
+                    "List of resource only apks to link against."
+                ),
+            ),
             resource_configuration_filters = attr.string_list(),
             densities = attr.string_list(),
             nocompress_extensions = attr.string_list(),

@@ -18,6 +18,7 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load("//rules:providers.bzl", "StarlarkApkInfo")
 
 ATTRS = _attrs.add(
     dict(
@@ -178,6 +179,15 @@ ATTRS = _attrs.add(
                 "-dontwarn, assumenosideeffects, and rules that start with -keep. Other " +
                 "options can only appear in `android_binary`'s proguard_specs, to " +
                 "ensure non-tautological merges."
+            ),
+        ),
+        resource_apks = attr.label_list(
+            allow_rules = ["apk_import"],
+            providers = [
+                [StarlarkApkInfo],
+            ],
+            doc = (
+                "List of resource only apks to link against."
             ),
         ),
         srcs = attr.label_list(

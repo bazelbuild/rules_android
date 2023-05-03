@@ -201,6 +201,7 @@ def _package(
         transitive_compiled_resources = [],
         transitive_r_txts = [],
         additional_apks_to_link_against = [],
+        resource_apks = depset(),
         nocompress_extensions = [],
         proto_format = False,
         shrink_resource_cycles = False,
@@ -255,6 +256,7 @@ def _package(
       transitive_r_txts: List of Depsets. Depsets contain all transitive R txt files.
       additional_apks_to_link_against: A list of Files. Additional APKs to link
         against. Optional.
+      resource_apks: Depset of resource only apk files to link against.
       nocompress_extensions: A list of strings. File extension to leave uncompressed
         in the apk.
       proto_format: Boolean, whether to generate the resource table in proto format.
@@ -371,7 +373,7 @@ def _package(
         args.add_joined(
             "--additionalApksToLinkAgainst",
             additional_apks_to_link_against,
-            join_with = ",",
+            join_with = ":",
             map_each = _path,
         )
         input_files.extend(additional_apks_to_link_against)
@@ -387,6 +389,13 @@ def _package(
         args.add("--versionCode", version_code)
     if java_package:
         args.add("--packageForR", java_package)
+
+    args.add_joined(
+        "--resourceApks",
+        resource_apks,
+        join_with = ":",
+    )
+    transitive_input_files.append(resource_apks)
 
     _java.run(
         ctx = ctx,
@@ -534,6 +543,7 @@ def _validate_and_link(
         transitive_compiled_resources = depset(),
         java_package = None,
         manifest = None,
+        resource_apks = [],
         android_jar = None,
         busybox = None,
         host_javabase = None,
@@ -551,6 +561,7 @@ def _validate_and_link(
         compiled resources from the transitive dependencies of this target.
       java_package: A string. The Java package for the generated R.java.
       manifest: A File. The AndroidManifest.xml.
+      resource_apks: List of direct resource only apk files.
       android_jar: A File. The Android Jar.
       busybox: A FilesToRunProvider. The ResourceProcessorBusyBox executable.
       host_javabase: Target. The host javabase.
@@ -586,6 +597,12 @@ def _validate_and_link(
     output_files.append(out_r_txt)
     args.add("--staticLibraryOut", out_file)
     output_files.append(out_file)
+    args.add_joined(
+        "--resourceApks",
+        resource_apks,
+        join_with = ":",
+    )
+    input_files.extend(resource_apks)
 
     _java.run(
         ctx = ctx,

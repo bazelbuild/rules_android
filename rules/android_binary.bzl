@@ -37,6 +37,9 @@ def android_binary(**attrs):
 
     attrs.pop("$enable_manifest_merging", None)
 
+    # resource_apks is not used by the native android_binary
+    attrs.pop("resource_apks", None)
+
     native.android_binary(
         application_resources = android_binary_internal_name,
         **add_migration_tag(attrs)
