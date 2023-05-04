@@ -573,8 +573,20 @@ def _package(
         if node_info.exports_manifest
     ])
 
-    if (transitive_resource_apks or resource_apks) and not acls.in_shared_library_resource_linking_allowlist(str(ctx.label)):
-        fail(str(ctx.label) + " not in shared_library_resource_linking_allowlist")
+    if not acls.in_shared_library_resource_linking_allowlist(str(ctx.label)):
+        # to_list() safe to use as we expect this to be an empty depset in the non-error case
+        all_res_apks = depset(
+            resource_apks,
+            transitive = transitive_resource_apks,
+            order = "preorder",
+        ).to_list()
+        if all_res_apks:
+            fail(
+                "%s has resource apks in the transitive closure without being allowlisted.\n%s" % (
+                    ctx.label,
+                    all_res_apks,
+                ),
+            )
 
     # TODO(b/156763506): Add analysis tests to verify logic around when manifest merging is configured.
     # TODO(b/154153771): Run the android merger if mergee_manifests or manifest values are present.
