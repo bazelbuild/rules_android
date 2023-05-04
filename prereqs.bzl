@@ -92,6 +92,15 @@ def rules_android_prereqs():
           "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
       ],
       sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
-  )
+    )
 
+    maybe(
+        http_archive,
+        name = "py_absl",
+        sha256 = "0fb3a4916a157eb48124ef309231cecdfdd96ff54adf1660b39c0d4a9790a2c0",
+        urls = [
+            "https://github.com/abseil/abseil-py/archive/refs/tags/v1.4.0.tar.gz",
+        ],
+        strip_prefix = "abseil-py-1.4.0",
+    )
 
