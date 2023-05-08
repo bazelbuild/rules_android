@@ -115,10 +115,25 @@ _ATTRS = dict(
         default = "@bazel_tools//tools/android:databinding_exec",
         executable = True,
     ),
+    desugar = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:desugar_java8"),
+        executable = True,
+    ),
     desugar_java8_extra_bootclasspath = attr.label(
         allow_files = True,
         cfg = "exec",
         default = "@bazel_tools//tools/android:desugar_java8_extra_bootclasspath",
+        executable = True,
+    ),
+    dexbuilder = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:dexbuilder"),
+        executable = True,
+    ),
+    dexmerger = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:dexmerger"),
         executable = True,
     ),
     enforce_min_sdk_floor_tool = attr.label(
