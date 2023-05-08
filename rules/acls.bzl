@@ -76,6 +76,7 @@ load("//rules/acls:enforce_min_sdk_floor_rollout.bzl", "ENFORCE_MIN_SDK_FLOOR_FA
 load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
 load("//rules/acls:android_local_test_jdk_sts_rollout.bzl", "ANDROID_LOCAL_TEST_JDK_STS_FALLBACK", "ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT")
 load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
+load("//rules/acls:android_binary_starlark_dex_desugar_proguard.bzl", "ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK", "ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT")
 
 def _in_aar_import_deps_checker(fqn):
     return not matches(fqn, AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT) and matches(fqn, AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT)
@@ -217,6 +218,9 @@ def _in_android_local_test_jdk_sts_rollout(fqn):
 def _in_shared_library_resource_linking_allowlist(fqn):
     return matches(fqn, SHARED_LIBRARY_RESOURCE_LINKING_DICT)
 
+def _in_android_binary_starlark_dex_desugar_proguard(fqn):
+    return not matches(fqn, ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK_DICT) and matches(fqn, ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -293,6 +297,8 @@ ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT_DICT = make_dict(ANDROID_LOCAL_TEST_JDK_STS_R
 DATABINDING_ALLOWED_DICT = make_dict(DATABINDING_ALLOWED)
 DATABINDING_DISALLOWED_DICT = make_dict(DATABINDING_DISALLOWED)
 SHARED_LIBRARY_RESOURCE_LINKING_DICT = make_dict(SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST)
+ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT)
+ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -379,6 +385,7 @@ acls = struct(
     in_android_apk_to_bundle_features = _in_android_apk_to_bundle_features,
     in_android_local_test_jdk_sts_rollout = _in_android_local_test_jdk_sts_rollout,
     in_shared_library_resource_linking_allowlist = _in_shared_library_resource_linking_allowlist,
+    in_android_binary_starlark_dex_desugar_proguard = _in_android_binary_starlark_dex_desugar_proguard,
 )
 
 # Visible for testing
