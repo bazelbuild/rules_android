@@ -16,13 +16,13 @@
 import unittest
 import xml.etree.ElementTree as ET
 
-from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _BumpMinSdk
-from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _SetDefaultMinSdk
-from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _ValidateMinSdk
+from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _BumpMinSdk
+from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _SetDefaultMinSdk
+from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _ValidateMinSdk
 
-from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import MIN_SDK_ATTRIB
-from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import MinSdkError
-from google3.third_party.bazel_rules.rules_android.src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import USES_SDK
+from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import MIN_SDK_ATTRIB
+from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import MinSdkError
+from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import USES_SDK
 
 MANIFEST_NO_USES_SDK = """<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
