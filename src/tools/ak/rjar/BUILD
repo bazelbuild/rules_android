@@ -39,6 +39,7 @@ go_test(
     embed = [":rjar"],
     tags = [
         "manual",
+        "not_run:arm",
         "nozapfhahn",
     ],
 )
