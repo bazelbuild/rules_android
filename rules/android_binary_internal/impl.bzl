@@ -222,6 +222,7 @@ def _is_test_binary(ctx):
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
+# buildifier: leave-alone
 PROCESSORS = dict(
     ManifestProcessor = _process_manifest,
     StampProcessor = _process_build_stamp,
