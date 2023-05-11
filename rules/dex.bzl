@@ -14,6 +14,11 @@
 
 """Bazel Dex Commands."""
 
+load("@bazel_skylib//lib:collections.bzl", "collections")
+load("//rules:attrs.bzl", _attrs = "attrs")
+
+_tristate = _attrs.tristate
+
 def _dex(
         ctx,
         input,
@@ -56,6 +61,81 @@ def _dex(
         execution_requirements = execution_requirements,
     )
 
+def _get_dx_artifact(ctx, basename):
+    return ctx.actions.declare_file("_dx_migrated/" + ctx.label.name + "/" + basename)
+
+def _get_effective_incremental_dexing(
+        force_incremental_dexing = _tristate.auto,
+        has_forbidden_dexopts = False,
+        incremental_dexing_after_proguard_by_default = True,
+        incremental_dexing_shards_after_proguard = True,
+        is_binary_optimized = False,
+        use_incremental_dexing = True):
+    if (is_binary_optimized and
+        force_incremental_dexing == _tristate.yes and incremental_dexing_shards_after_proguard <= 0):
+        fail("Target cannot be incrementally dexed because it uses Proguard")
+
+    if force_incremental_dexing == _tristate.yes:
+        return True
+
+    if force_incremental_dexing == _tristate.no:
+        return False
+
+    # If there are incompatible dexopts and the incremental_dexing attr is not set, we silently don't run
+    # incremental dexing.
+    if has_forbidden_dexopts or (is_binary_optimized and not incremental_dexing_after_proguard_by_default):
+        return False
+
+    # use_incremental_dexing config flag will take effect if incremental_dexing attr is not set
+    return use_incremental_dexing
+
+def _dex_merge(
+        ctx,
+        output = None,
+        inputs = [],
+        multidex_strategy = "minimal",
+        main_dex_list = None,
+        dexopts = [],
+        dexmerger = None):
+    args = ctx.actions.args()
+    args.add("--multidex", multidex_strategy)
+    args.add_all(inputs, before_each = "--input")
+    args.add("--output", output)
+    args.add_all(_merger_dexopts(ctx, dexopts))
+
+    if main_dex_list:
+        inputs.append(main_dex_list)
+        args.add("-main_dex_list", main_dex_list)
+
+    ctx.actions.run(
+        executable = dexmerger,
+        arguments = [args],
+        inputs = inputs,
+        outputs = [output],
+        mnemonic = "DexMerger",
+        progress_message = "Assembling dex files into" + output.short_path,
+    )
+
+def _merger_dexopts(tokenized_dexopts, dexopts_supported_in_dex_merger):
+    return _normalize_dexopts(_filter_dexopts(tokenized_dexopts, dexopts_supported_in_dex_merger))
+
+def _incremental_dexopts(tokenized_dexopts, dexopts_supported_in_incremental_dexing):
+    return _normalize_dexopts(_filter_dexopts(tokenized_dexopts, dexopts_supported_in_incremental_dexing))
+
+def _filter_dexopts(candidates, allowed):
+    return [c for c in candidates if c in allowed]
+
+def _normalize_dexopts(tokenized_dexopts):
+    def _dx_to_dexbuilder(opt):
+        return opt.replace("--no-", "--no")
+
+    return collections.uniq(sorted([_dx_to_dexbuilder(token) for token in tokenized_dexopts]))
+
 dex = struct(
     dex = _dex,
+    dex_merge = _dex_merge,
+    get_dx_artifact = _get_dx_artifact,
+    get_effective_incremental_dexing = _get_effective_incremental_dexing,
+    incremental_dexopts = _incremental_dexopts,
+    normalize_dexopts = _normalize_dexopts,
 )
