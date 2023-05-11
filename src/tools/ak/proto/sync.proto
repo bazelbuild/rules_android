@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package tools.android.ak.proto;
+
+// A Sync message can be used to bring one or multiple applications up to date.
+message Sync {
+  // Absolute path to the source root directory.
+  string src_root = 1;
+  // Absolute path to the destination root directory.
+  string dst_root = 2;
+  // List of Applications to sync to destination.
+  repeated Application apps = 3;
+}
+
+// Application describes an entire Android application.
+message Application {
+  // Target from the build system
+  string target = 1;
+  // Android application identifier.
+  string app_id = 2;
+  // Specifies the base APK, from which all split APKs must be based off.
+  // If no split_apks are specified, this is a single APK.
+  File base_apk = 3;
+  // Potentially one or more split APKs for each feature/config split.
+  repeated File split_apks = 4;
+  // Additional files, that are required at runtime.
+  repeated File files = 5;
+}
+
+// File contains relative source and destination path, plus hash of content.
+message File {
+  // Relative path to the file source.
+  string src = 1;
+  // Relative path to the file destination.
+  string dst = 2;
+  // The hash value of the file content.
+  string hash = 3;
+}
