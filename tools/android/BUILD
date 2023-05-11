@@ -28,7 +28,7 @@ java_binary(
     name = "bundletool",
     main_class = "com.android.tools.build.bundletool.BundleToolMain",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@rules_android_maven//:com_android_tools_build_bundletool"],
+    runtime_deps = ["@bundletool_all//jar"],
 )
 
 java_plugin(
