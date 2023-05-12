@@ -62,3 +62,18 @@ use_repo(
 
 remote_android_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "remote_android_tools_extensions")
 use_repo(remote_android_extensions, "android_tools", "android_gmaven_r8")
+
+# integration test setup
+bazel_dep(
+    name = "rules_bazel_integration_test",
+    version = "0.15.0",
+    dev_dependency = True,
+)
+
+bazel_binaries = use_extension(
+    "@rules_bazel_integration_test//:extensions.bzl",
+    "bazel_binaries",
+    dev_dependency = True,
+)
+bazel_binaries.download(version = "6.3.0")
+use_repo(bazel_binaries, "bazel_binaries")

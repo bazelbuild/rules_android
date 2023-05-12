@@ -134,3 +134,20 @@ def rules_android_prereqs():
       sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
     )
 
+    maybe(
+        http_archive,
+        name = "rules_bazel_integration_test",
+        sha256 = "3d4a10fe1b4f87327833184c733e4d2400edde0757343254426799171b281d9a",
+        urls = [
+            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.15.0/rules_bazel_integration_test.v0.15.0.tar.gz",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "cgrindel_bazel_starlib",
+        sha256 = "ee0033d029b5eaddc21836b2944cf37c95eb5f214eb39834136a316dbc252a73",
+        urls = [
+            "https://github.com/cgrindel/bazel-starlib/releases/download/v0.16.0/bazel-starlib.v0.16.0.tar.gz",
+        ],
+    )
