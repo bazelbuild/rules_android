@@ -22,6 +22,20 @@ bzl_library(
 )
 
 bzl_library(
+    name = "android_sdk_repository_bzl",
+    srcs = [
+        "android_sdk_repository.bzl",
+        "android_sdk_repository.empty.template.bzl",
+        "android_sdk_repository.template.bzl",
+        "android_sdk_repository_helper.bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        ":android_revision_bzl",
+    ],
+)
+
+bzl_library(
     name = "common_bzl",
     srcs = [
         "aapt.bzl",
