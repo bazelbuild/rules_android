@@ -140,7 +140,6 @@ def _process_feature_module(
         ctx,
         inputs = [filtered_res, native_libs],
         output = out,
-        exclude_build_data = True,
         java_toolchain = _common.get_java_toolchain(ctx),
     )
 
@@ -326,6 +325,7 @@ def _impl(ctx):
 
 android_application = rule(
     attrs = ANDROID_APPLICATION_ATTRS,
+    cfg = android_common.android_platforms_transition,
     fragments = [
         "android",
         "java",

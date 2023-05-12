@@ -1,4 +1,4 @@
-# Copyright 2020 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Allow list to rollout the kt_android_library rule from rules_android."""
+"""Allow and fallback lists for using the latest JDK runtime in android_local_test."""
 
 # keep sorted
-KT_ANDROID_LIBRARY_ROLLOUT = [
-    "//:__subpackages__",
+ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT = [
 ]
 
 # keep sorted
-KT_ANDROID_LIBRARY_FALLBACK = [
+ANDROID_LOCAL_TEST_JDK_STS_FALLBACK = [
+    "//:__subpackages__",
 ]

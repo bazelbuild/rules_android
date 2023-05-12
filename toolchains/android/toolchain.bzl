@@ -66,12 +66,6 @@ _ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-    android_archive_manifest_package_validator = attr.label(
-        allow_files = True,
-        default = "@androidsdk//:fail",
-        cfg = "exec",
-        executable = True,
-    ),
     android_archive_packages_validator = attr.label(
         allow_files = True,
         default = "@androidsdk//:fail",
@@ -102,6 +96,12 @@ _ATTRS = dict(
         default = "//tools/android:bundletool_deploy.jar",
         executable = True,
     ),
+    centralize_r_class_tool = attr.label(
+        allow_files = True,
+        cfg = "exec",
+        default = "@androidsdk//:fail",
+        executable = True,
+    ),
     data_binding_annotation_processor = attr.label(
         cfg = "exec",
         default = "//tools/android:compiler_annotation_processor",
@@ -115,10 +115,25 @@ _ATTRS = dict(
         default = "@bazel_tools//tools/android:databinding_exec",
         executable = True,
     ),
+    desugar = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:desugar_java8"),
+        executable = True,
+    ),
     desugar_java8_extra_bootclasspath = attr.label(
         allow_files = True,
         cfg = "exec",
         default = "@bazel_tools//tools/android:desugar_java8_extra_bootclasspath",
+        executable = True,
+    ),
+    dexbuilder = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:dexbuilder"),
+        executable = True,
+    ),
+    dexmerger = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:dexmerger"),
         executable = True,
     ),
     enforce_min_sdk_floor_tool = attr.label(

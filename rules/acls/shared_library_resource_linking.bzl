@@ -1,4 +1,4 @@
-# Copyright 2022 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Allow and fallback lists for Kotlin Compilation in the Android Rules."""
+"""Allowlist for directly or transitively linking against shared resource apks."""
 
-# keep sorted
-ANDROID_RULES_WITH_KT_ROLLOUT = [
-]
-
-ANDROID_RULES_WITH_KT_FALLBACK = [
+SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST = [
+    "//tools/build_defs/android/test/dev/resources/shared_lib:app1_RESOURCES_DO_NOT_USE",
+    "//tools/build_defs/android/test/dev/resources/shared_lib:app2_RESOURCES_DO_NOT_USE",
+    "//tools/build_defs/android/test/dev/resources/shared_lib:app3_RESOURCES_DO_NOT_USE",
 ]

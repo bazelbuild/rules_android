@@ -30,6 +30,7 @@ load(
     _compilation_mode = "compilation_mode",
     _log = "log",
 )
+load("//rules:acls.bzl", "acls")
 
 # Depot-wide min SDK floor
 _DEPOT_MIN_SDK_FLOOR = 14
@@ -54,8 +55,8 @@ _RESOURCE_FOLDER_TYPES = [
 _RESOURCE_QUALIFIER_SEP = "-"
 
 _MANIFEST_MISSING_ERROR = (
-    "In target %s, manifest attribute is required when resource_files or " +
-    "assets are defined."
+    "In target %s, manifest attribute is required when resource_files, " +
+    "assets, or exports_manifest are specified."
 )
 
 _ASSET_DEFINITION_ERROR = (
@@ -133,12 +134,12 @@ _ResourcesPackageContextInfo = provider(
 )
 
 # Manifest context attributes
-_MIN_SDK_BUMPED_MANIFEST = "min_sdk_bumped_manifest"
+_PROCESSED_MANIFEST = "processed_manifest"
 
 _ManifestContextInfo = provider(
     "Manifest context object",
     fields = {
-        _MIN_SDK_BUMPED_MANIFEST: "The manifest with the min SDK bumped to the floor.",
+        _PROCESSED_MANIFEST: "The manifest after the min SDK has been changed as necessary.",
     },
 )
 
@@ -431,6 +432,7 @@ def _package(
         assets = [],
         assets_dir = None,
         deps = [],
+        resource_apks = [],
         manifest = None,
         manifest_values = None,
         instruments = None,
@@ -468,6 +470,7 @@ def _package(
         parameters should be provided or none of them.
       deps: sequence of Targets. The list of other libraries targets to link
         against.
+      resource_apks: sequence of resource only apk files
       manifest: File. The input top-level AndroidManifest.xml.
       manifest_values: String dictionary. Manifest values to substitute.
       instruments: Optional target. The value of the "instruments" attr if set.
@@ -549,6 +552,8 @@ def _package(
     transitive_manifests = []
     transitive_r_txts = []
     packages_to_r_txts_depset = dict()
+    transitive_resource_apks = []
+
     for dep in utils.collect_providers(StarlarkAndroidResourcesInfo, deps):
         direct_resources_nodes.append(dep.direct_resources_nodes)
         transitive_resources_nodes.append(dep.transitive_resources_nodes)
@@ -561,12 +566,27 @@ def _package(
         transitive_r_txts.append(dep.transitive_r_txts)
         for pkg, r_txts in dep.packages_to_r_txts.items():
             packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
-
+        transitive_resource_apks.append(dep.transitive_resource_apks)
     mergee_manifests = depset([
         node_info.manifest
         for node_info in depset(transitive = transitive_resources_nodes + direct_resources_nodes).to_list()
         if node_info.exports_manifest
     ])
+
+    if not acls.in_shared_library_resource_linking_allowlist(str(ctx.label)):
+        # to_list() safe to use as we expect this to be an empty depset in the non-error case
+        all_res_apks = depset(
+            resource_apks,
+            transitive = transitive_resource_apks,
+            order = "preorder",
+        ).to_list()
+        if all_res_apks:
+            fail(
+                "%s has resource apks in the transitive closure without being allowlisted.\n%s" % (
+                    ctx.label,
+                    all_res_apks,
+                ),
+            )
 
     # TODO(b/156763506): Add analysis tests to verify logic around when manifest merging is configured.
     # TODO(b/154153771): Run the android merger if mergee_manifests or manifest values are present.
@@ -663,6 +683,7 @@ def _package(
         assets = assets,
         assets_dir = assets_dir,
         resource_files = processed_resources,
+        resource_apks = depset(resource_apks, transitive = transitive_resource_apks, order = "preorder"),
         direct_resources_nodes =
             depset(transitive = direct_resources_nodes, order = "preorder"),
         transitive_resources_nodes =
@@ -744,6 +765,7 @@ def _package(
         transitive_manifests = depset(),
         transitive_r_txts = depset(),
         packages_to_r_txts = packages_to_r_txts,
+        transitive_resource_apks = depset(),
     ))
 
     packaged_resources_ctx[_PROVIDERS].append(AndroidApplicationResourceInfo(
@@ -1017,7 +1039,7 @@ def _bump_min_sdk(
     """
     manifest_ctx = {}
     if not manifest or floor <= 0:
-        manifest_ctx[_MIN_SDK_BUMPED_MANIFEST] = manifest
+        manifest_ctx[_PROCESSED_MANIFEST] = manifest
         return _ManifestContextInfo(**manifest_ctx)
 
     args = ctx.actions.args()
@@ -1043,7 +1065,57 @@ def _bump_min_sdk(
         mnemonic = "BumpMinSdkFloor",
         progress_message = "Bumping up AndroidManifest min SDK %s" % str(ctx.label),
     )
-    manifest_ctx[_MIN_SDK_BUMPED_MANIFEST] = out_manifest
+    manifest_ctx[_PROCESSED_MANIFEST] = out_manifest
+
+    return _ManifestContextInfo(**manifest_ctx)
+
+def _set_default_min_sdk(
+        ctx,
+        manifest,
+        default,
+        enforce_min_sdk_floor_tool):
+    """ Sets the min SDK attribute of AndroidManifest to default if it is not already set.
+
+    Args:
+      ctx: The rules context.
+      manifest: File. The AndroidManifest.xml file.
+      default: string. The default value for min SDK. The manifest is unchanged if it already
+        specifies a min SDK.
+      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
+        FilesToRunprovider
+
+    Returns:
+      A dict containing _ManifestContextInfo provider fields.
+    """
+    manifest_ctx = {}
+    if not manifest or not default:
+        manifest_ctx[_PROCESSED_MANIFEST] = manifest
+        return _ManifestContextInfo(**manifest_ctx)
+
+    args = ctx.actions.args()
+    args.add("-action", "set_default")
+    args.add("-manifest", manifest)
+    args.add("-default_min_sdk", default)
+
+    out_dir = "_migrated/_min_sdk_default_set/" + ctx.label.name + "/"
+    log = ctx.actions.declare_file(
+        out_dir + "log.txt",
+    )
+    args.add("-log", log.path)
+
+    out_manifest = ctx.actions.declare_file(
+        out_dir + "AndroidManifest.xml",
+    )
+    args.add("-output", out_manifest.path)
+    ctx.actions.run(
+        executable = enforce_min_sdk_floor_tool,
+        inputs = [manifest],
+        outputs = [out_manifest, log],
+        arguments = [args],
+        mnemonic = "SetDefaultMinSdkFloor",
+        progress_message = "Setting AndroidManifest min SDK to default %s" % str(ctx.label),
+    )
+    manifest_ctx[_PROCESSED_MANIFEST] = out_manifest
 
     return _ManifestContextInfo(**manifest_ctx)
 
@@ -1102,6 +1174,7 @@ def _process_starlark(
         exports_manifest = False,
         stamp_manifest = True,
         deps = [],
+        resource_apks = [],
         exports = [],
         resource_files = None,
         neverlink = False,
@@ -1139,6 +1212,7 @@ def _process_starlark(
         the function.
       deps: sequence of Targets. The list of other libraries targets to link
         against.
+      resource_apks: sequence of resource apk files to link against.
       exports: sequence of Targets. The closure of all rules reached via exports
         attributes are considered direct dependencies of any rule that directly
         depends on the target with exports. The exports are not direct deps of
@@ -1228,6 +1302,7 @@ def _process_starlark(
     transitive_manifests = []
     transitive_r_txts = []
     packages_to_r_txts_depset = dict()
+    transitive_resource_apks = []
 
     for dep in utils.collect_providers(StarlarkAndroidResourcesInfo, deps):
         direct_resources_nodes.append(dep.direct_resources_nodes)
@@ -1242,7 +1317,7 @@ def _process_starlark(
         transitive_r_txts.append(dep.transitive_r_txts)
         for pkg, r_txts in dep.packages_to_r_txts.items():
             packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
-
+        transitive_resource_apks.append(dep.transitive_resource_apks)
     exports_direct_resources_nodes = []
     exports_transitive_resources_nodes = []
     exports_transitive_assets = []
@@ -1316,6 +1391,7 @@ def _process_starlark(
                 assets = assets,
                 assets_dir = assets_dir,
                 resource_files = resource_files,
+                resource_apks = depset(resource_apks, transitive = transitive_resource_apks, order = "preorder"),
                 direct_resources_nodes =
                     depset(transitive = direct_resources_nodes, order = "preorder"),
                 transitive_resources_nodes =
@@ -1522,6 +1598,7 @@ def _process_starlark(
             aapt = aapt,
             busybox = busybox,
             host_javabase = host_javabase,
+            resource_apks = resource_apks,
         )
         resources_ctx[_RESOURCES_APK] = apk
 
@@ -1616,6 +1693,11 @@ def _process_starlark(
                 order = "preorder",
             ),
             packages_to_r_txts = packages_to_r_txts,
+            transitive_resource_apks = depset(
+                resource_apks,
+                transitive = transitive_resource_apks,
+                order = "preorder",
+            ),
         ))
     else:
         # Depsets are ordered below to match the order in the legacy native rules.
@@ -1627,6 +1709,7 @@ def _process_starlark(
                     assets_dir = assets_dir,
                     assets_symbols = parsed_assets,
                     compiled_assets = compiled_assets,
+                    resource_apks = depset(resource_apks),
                     resource_files = depset(processed_resources),
                     compiled_resources = compiled_resources,
                     r_txt = out_aapt2_r_txt,
@@ -1681,6 +1764,11 @@ def _process_starlark(
                 order = "preorder",
             ),
             packages_to_r_txts = packages_to_r_txts,
+            transitive_resource_apks = depset(
+                resource_apks,
+                transitive = transitive_resource_apks,
+                order = "preorder",
+            ),
         ))
 
     if not propagate_resources:
@@ -1724,6 +1812,7 @@ def _process(
         neverlink = False,
         enable_data_binding = False,
         deps = [],
+        resource_apks = [],
         exports = [],
         android_jar = None,
         android_kit = None,
@@ -1755,6 +1844,7 @@ def _process(
         exports_manifest = exports_manifest,
         stamp_manifest = True if java_package else False,
         deps = deps,
+        resource_apks = resource_apks,
         exports = exports,
         resource_files = depset(transitive = [target.files for target in resource_files]).to_list(),
         enable_data_binding = enable_data_binding,
@@ -1793,6 +1883,9 @@ resources = struct(
 
     # Exposed for android_library, aar_import, and android_binary
     bump_min_sdk = _bump_min_sdk,
+
+    # Exposed for use in AOSP
+    set_default_min_sdk = _set_default_min_sdk,
 
     # Exposed for android_binary
     validate_min_sdk = _validate_min_sdk,

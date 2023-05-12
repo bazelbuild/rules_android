@@ -15,6 +15,8 @@
 """Implementation."""
 
 load("//rules:acls.bzl", "acls")
+load("//rules:common.bzl", "common")
+load("//rules:data_binding.bzl", "data_binding")
 load("//rules:java.bzl", "java")
 load(
     "//rules:processing_pipeline.bzl",
@@ -27,6 +29,7 @@ load(
     "//rules:native_deps.bzl",
     _process_native_deps = "process",
 )
+load("//rules:providers.bzl", "StarlarkApkInfo")
 
 def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
@@ -42,12 +45,16 @@ def _process_manifest(ctx, **unused_ctxs):
     )
 
 def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
+    resource_apks = []
+    for apk in utils.collect_providers(StarlarkApkInfo, ctx.attr.resource_apks):
+        resource_apks.append(apk.signed_apk)
+
     packaged_resources_ctx = _resources.package(
         ctx,
         assets = ctx.files.assets,
         assets_dir = ctx.attr.assets_dir,
         resource_files = ctx.files.resource_files,
-        manifest = manifest_ctx.min_sdk_bumped_manifest,
+        manifest = manifest_ctx.processed_manifest,
         manifest_values = utils.expand_make_vars(ctx, ctx.attr.manifest_values),
         resource_configs = ctx.attr.resource_configuration_filters,
         densities = ctx.attr.densities,
@@ -62,6 +69,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         enable_data_binding = ctx.attr.enable_data_binding,
         enable_manifest_merging = ctx.attr._enable_manifest_merging,
         deps = utils.dedupe_split_attr(ctx.split_attr.deps),
+        resource_apks = resource_apks,
         instruments = ctx.attr.instruments,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,
@@ -99,6 +107,78 @@ def _process_native_libs(ctx, **_unusued_ctxs):
     return ProviderInfo(
         name = "native_libs_ctx",
         value = struct(providers = providers),
+    )
+
+def _process_build_stamp(_unused_ctx, **_unused_ctxs):
+    return ProviderInfo(
+        name = "stamp_ctx",
+        value = struct(
+            resource_files = [],
+            deps = [],
+            java_info = None,
+            providers = [],
+        ),
+    )
+
+def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_ctxs):
+    if ctx.attr.enable_data_binding and not acls.in_databinding_allowed(str(ctx.label)):
+        fail("This target is not allowed to use databinding and enable_data_binding is True.")
+    return ProviderInfo(
+        name = "db_ctx",
+        value = data_binding.process(
+            ctx,
+            defines_resources = True,
+            enable_data_binding = ctx.attr.enable_data_binding,
+            java_package = java_package,
+            layout_info = packaged_resources_ctx.data_binding_layout_info,
+            artifact_type = "APPLICATION",
+            deps = utils.collect_providers(DataBindingV2Info, utils.dedupe_split_attr(ctx.split_attr.deps)),
+            data_binding_exec = get_android_toolchain(ctx).data_binding_exec.files_to_run,
+            data_binding_annotation_processor =
+                get_android_toolchain(ctx).data_binding_annotation_processor[JavaPluginInfo],
+            data_binding_annotation_template =
+                utils.only(get_android_toolchain(ctx).data_binding_annotation_template.files.to_list()),
+        ),
+    )
+
+def _process_jvm(ctx, db_ctx, packaged_resources_ctx, stamp_ctx, **_unused_ctxs):
+    native_name = ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
+    java_info = java.compile_android(
+        ctx,
+        # Use the same format as the class jar from native android_binary.
+        # Some macros expect the class jar to be named like this.
+        ctx.actions.declare_file("%s/lib%s.jar" % (ctx.label.name, native_name)),
+        ctx.actions.declare_file(ctx.label.name + "-src.jar"),
+        srcs = ctx.files.srcs + db_ctx.java_srcs,
+        javac_opts = ctx.attr.javacopts + db_ctx.javac_opts,
+        r_java = packaged_resources_ctx.r_java,
+        enable_deps_without_srcs = True,
+        deps = utils.collect_providers(JavaInfo, utils.dedupe_split_attr(ctx.split_attr.deps) + stamp_ctx.deps),
+        plugins =
+            utils.collect_providers(JavaPluginInfo, ctx.attr.plugins) +
+            db_ctx.java_plugins,
+        annotation_processor_additional_outputs =
+            db_ctx.java_annotation_processor_additional_outputs,
+        annotation_processor_additional_inputs =
+            db_ctx.java_annotation_processor_additional_inputs,
+        strict_deps = "DEFAULT",
+        java_toolchain = common.get_java_toolchain(ctx),
+    )
+    java_info = java_common.add_constraints(
+        java_info,
+        constraints = ["android"],
+    )
+
+    providers = []
+    if acls.in_android_binary_starlark_javac(str(ctx.label)):
+        providers.append(java_info)
+
+    return ProviderInfo(
+        name = "jvm_ctx",
+        value = struct(
+            java_info = java_info,
+            providers = providers,
+        ),
     )
 
 def use_legacy_manifest_merger(ctx):
@@ -142,11 +222,15 @@ def _is_test_binary(ctx):
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
+# buildifier: leave-alone
 PROCESSORS = dict(
     ManifestProcessor = _process_manifest,
+    StampProcessor = _process_build_stamp,
     ResourceProcessor = _process_resources,
     ValidateManifestProcessor = _validate_manifest,
     NativeLibsProcessor = _process_native_libs,
+    DataBindingProcessor = _process_data_binding,
+    JvmProcessor = _process_jvm,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(

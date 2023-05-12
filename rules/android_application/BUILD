@@ -25,3 +25,22 @@ bzl_library(
         "//rules/flags:bzl",
     ],
 )
+
+py_binary(
+    name = "merge_feature_manifests",
+    srcs = ["merge_feature_manifests.py"],
+    python_version = "PY3",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@py_absl//absl:app",
+        "@py_absl//absl/flags",
+    ],
+)
+
+filegroup(
+    name = "merge_feature_manifests.par",
+    srcs = [":merge_feature_manifests"],
+    output_group = "python_zip_file",
+    visibility = ["//visibility:public"],
+)
+

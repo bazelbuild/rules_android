@@ -359,14 +359,14 @@ def _singlejar(
         output,
         mnemonic = "SingleJar",
         progress_message = "Merge into a single jar.",
-        exclude_build_data = False,
+        include_build_data = False,
         java_toolchain = None):
     args = ctx.actions.args()
     args.add("--output")
     args.add(output)
     args.add("--compression")
     args.add("--normalize")
-    if exclude_build_data:
+    if not include_build_data:
         args.add("--exclude_build_data")
     args.add("--warn_duplicate_resources")
     if inputs:
@@ -407,7 +407,7 @@ def _run(
 
     # Set reasonable max heap default. Required to prevent runaway memory usage.
     # Can still be overridden by callers of this method.
-    jvm_flags = ["-Xmx4G", "-XX:+ExitOnOutOfMemoryError"] + jvm_flags
+    jvm_flags = ["-Xms4G", "-Xmx4G", "-XX:+ExitOnOutOfMemoryError"] + jvm_flags
 
     # executable should be a File or a FilesToRunProvider
     jar = args.get("executable")

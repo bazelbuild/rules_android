@@ -21,7 +21,9 @@ RULE_DOC = """
 #### Examples
 
 The following example shows how to use `aar_import`.
-<pre><code>aar_import(
+
+```starlark
+aar_import(
     name = "hellobazellib",
     aar = "lib.aar",
     package = "bazel.hellobazellib",
@@ -29,7 +31,8 @@ The following example shows how to use `aar_import`.
         "//java/bazel/hellobazellib/activities",
         "//java/bazel/hellobazellib/common",
     ],
-)</code></pre>
+)
+```
 """
 
 aar_import = rule(

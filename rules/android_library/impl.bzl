@@ -27,7 +27,7 @@ load(
     "processing_pipeline",
 )
 load("//rules:proguard.bzl", _proguard = "proguard")
-load("//rules:providers.bzl", "AndroidLintRulesInfo")
+load("//rules:providers.bzl", "AndroidLintRulesInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules/flags:flags.bzl", _flags = "flags")
@@ -148,10 +148,14 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
     else:
         exports_manifest = ctx.attr.exports_manifest == _attrs.tristate.yes
 
+    resource_apks = []
+    for apk in utils.collect_providers(StarlarkApkInfo, ctx.attr.resource_apks):
+        resource_apks.append(apk.signed_apk)
+
     # Process Android Resources
     resources_ctx = _resources.process(
         ctx,
-        manifest = manifest_ctx.min_sdk_bumped_manifest,
+        manifest = manifest_ctx.processed_manifest,
         resource_files = ctx.attr.resource_files,
         defined_assets = ctx.attr._defined_assets,
         assets = ctx.attr.assets,
@@ -163,6 +167,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
         neverlink = ctx.attr.neverlink,
         enable_data_binding = ctx.attr.enable_data_binding,
         deps = ctx.attr.deps,
+        resource_apks = resource_apks,
         exports = ctx.attr.exports,
 
         # Processing behavior changing flags.
@@ -171,7 +176,6 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
         # misbehavior on the Java side.
         fix_resource_transitivity = bool(ctx.attr.srcs),
         fix_export_exporting = acls.in_fix_export_exporting_rollout(str(ctx.label)),
-        propagate_resources = not ctx.attr._android_test_migration,
 
         # Tool and Processing related inputs
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
@@ -226,6 +230,8 @@ def _process_idl(ctx, **unused_sub_ctxs):
     )
 
 def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
+    if ctx.attr.enable_data_binding and not acls.in_databinding_allowed(str(ctx.label)):
+        fail("This target is not allowed to use databinding and enable_data_binding is True.")
     return ProviderInfo(
         name = "db_ctx",
         value = _data_binding.process(
@@ -406,7 +412,7 @@ def _process_intellij(ctx, java_package, manifest_ctx, resources_ctx, idl_ctx, j
     android_ide_info = _intellij.make_android_ide_info(
         ctx,
         java_package = java_package,
-        manifest = manifest_ctx.min_sdk_bumped_manifest,
+        manifest = manifest_ctx.processed_manifest,
         defines_resources = resources_ctx.defines_resources,
         merged_manifest = resources_ctx.merged_manifest,
         resources_apk = resources_ctx.resources_apk,

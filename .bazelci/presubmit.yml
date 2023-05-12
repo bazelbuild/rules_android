@@ -1,0 +1,61 @@
+---
+
+x_defaults:
+  common: &common
+    bazel: last_green
+    build_targets:
+    - "//src/..."
+    - "//test/..."
+    - "//android/..."
+    - "//rules/..."
+    - "-//src/java/com/example/sampleapp/..."
+    - "-//src/tools/ak/..."
+    - "//toolchains/..."
+    - "//tools/..."
+    test_targets:
+    - "//src/..."
+    - "//test/..."
+    - "-//src/tools/..."
+    - "-//src/java/com/example/sampleapp/..."
+
+tasks:
+  ubuntu1604:
+    <<: *common
+  ubuntu1804:
+    <<: *common
+  macos:
+    <<: *common
+  macos_arm64:
+    <<: *common
+  windows:
+    <<: *common
+  ubuntu1604_bzlmod:
+    name: Bzlmod ubuntu1604
+    platform: ubuntu1604
+    build_flags:
+    - "--enable_bzlmod"
+    <<: *common
+  ubuntu1804_bzlmod:
+    name: Bzlmod ubuntu1804
+    platform: ubuntu1804
+    build_flags:
+    - "--enable_bzlmod"
+    <<: *common
+  macos_bzlmods:
+    name: Bzlmod macos
+    platform: macos
+    build_flags:
+    - "--enable_bzlmod"
+    <<: *common
+  macos_arm64_bzlmod:
+    name: Bzlmod macos_arm64
+    platform: macos_arm64
+    build_flags:
+    - "--enable_bzlmod"
+    <<: *common
+  windows_bzlmods:
+    name: Bzlmod windows
+    platform: windows
+    build_flags:
+    - "--enable_bzlmod"
+    <<: *common

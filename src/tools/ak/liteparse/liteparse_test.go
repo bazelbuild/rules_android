@@ -25,6 +25,7 @@ import (
 	"sort"
 	"testing"
 
+	"src/common/golang/runfilelocation"
 	rdpb "src/tools/ak/res/proto/res_data_go_proto"
 	"src/tools/ak/res/res"
 	"src/tools/ak/res/respipe/respipe"
@@ -317,7 +318,12 @@ func TestParseAllContents(t *testing.T) {
 
 // createResFile creates filename with the testdata as the base
 func createResFile(filename string) string {
-	return os.Getenv("TEST_SRCDIR") + "/" + os.Getenv("TEST_WORKSPACE") + "/" + testdata + filename
+	fullPath := testdata + filename
+	resFilePath, err := runfilelocation.Find(fullPath)
+	if err != nil {
+		log.Fatalf("Could not find the runfile at %v", resFilePath)
+	}
+	return resFilePath
 }
 
 // createResfiles creates filenames with the testdata as the base

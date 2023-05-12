@@ -59,10 +59,10 @@ def rules_android_prereqs():
     maybe(
         http_archive,
         name = "io_bazel_rules_go",
-        sha256 = "16e9fca53ed6bd4ff4ad76facc9b7b651a89db1689a2877d6fd7b82aa824e366",
+        sha256 = "dd926a88a564a9246713a9c00b35315f54cbd46b31a26d5d8fb264c07045f05d",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.34.0/rules_go-v0.34.0.zip",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.38.1/rules_go-v0.38.1.zip",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.38.1/rules_go-v0.38.1.zip",
         ],
     )
 
@@ -76,4 +76,31 @@ def rules_android_prereqs():
         ],
     )
 
+    maybe(
+        http_archive,
+        name = "robolectric",
+        urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.9.2.tar.gz"],
+        strip_prefix = "robolectric-bazel-4.9.2",
+        sha256 = "7e007fcfdca7b7228cb4de72707e8b317026ea95000f963e91d5ae365be52d0d",
+    )
+
+    maybe(
+      http_archive,
+      name = "rules_license",
+      urls = [
+          "https://github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
+          "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
+      ],
+      sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
+    )
+
+    maybe(
+        http_archive,
+        name = "py_absl",
+        sha256 = "0fb3a4916a157eb48124ef309231cecdfdd96ff54adf1660b39c0d4a9790a2c0",
+        urls = [
+            "https://github.com/abseil/abseil-py/archive/refs/tags/v1.4.0.tar.gz",
+        ],
+        strip_prefix = "abseil-py-1.4.0",
+    )
 
