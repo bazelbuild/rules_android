@@ -129,11 +129,11 @@ def _process_feature_module(
 
     # Extract libs/ from split binary
     native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
-    _common.filter_zip(ctx, binary, native_libs, ["lib/*"])
+    _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
 
     # Extract AndroidManifest.xml and assets from res-ap_
     filtered_res = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/filtered_res.zip")
-    _common.filter_zip(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
+    _common.filter_zip_include(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
 
     # Merge into output
     _java.singlejar(
