@@ -43,7 +43,7 @@ def _get_host_javabase(ctx):
         _log.error("Missing _host_javabase attr")
     return ctx.attr._host_javabase
 
-def _filter_zip(ctx, in_zip, out_zip, filters = []):
+def _filter_zip_include(ctx, in_zip, out_zip, filters = []):
     """Creates a copy of a zip file with files that match filters."""
     args = ctx.actions.args()
     args.add("-q")
@@ -57,7 +57,7 @@ def _filter_zip(ctx, in_zip, out_zip, filters = []):
         arguments = [args],
         inputs = [in_zip],
         outputs = [out_zip],
-        mnemonic = "FilterZip",
+        mnemonic = "FilterZipInclude",
         progress_message = "Filtering %s" % in_zip.short_path,
     )
 
@@ -76,7 +76,7 @@ common = struct(
     create_signer_properties = _create_signer_properties,
     get_host_javabase = _get_host_javabase,
     get_java_toolchain = _get_java_toolchain,
-    filter_zip = _filter_zip,
+    filter_zip_include = _filter_zip_include,
 )
 
 android_common = _native_android_common
