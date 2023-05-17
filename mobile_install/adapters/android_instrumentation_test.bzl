@@ -25,7 +25,11 @@ def _aspect_attrs():
     return ["test_app", "support_apps"]
 
 def _adapt(target, ctx):
-    if not hasattr(ctx.attr, "_android_test_runner"):
+    is_mac = select({
+        "//conditions:default": "no",
+        "@platforms//os:macos": "yes",
+    })
+    if is_mac == "yes":
         fail("mobile-install does not support running tests on mac, check b/134172473 for more details")
 
     # TODO(b/): Tests have yet to be optimized so, this is an irrelevant error.
