@@ -14,6 +14,8 @@
 
 """Starlark rules for building Android apps."""
 
+# Don't use relative paths since this file is coppied to //android/rules.bzl.
+
 load(
     "//rules/aar_import:rule.bzl",
     _aar_import = "aar_import",
@@ -23,7 +25,7 @@ load(
     _android_application = "android_application",
 )
 load(
-    ":android_binary.bzl",
+    "//rules:android_binary.bzl",
     _android_binary = "android_binary",
 )
 load(
@@ -31,19 +33,19 @@ load(
     _android_library = "android_library_macro",
 )
 load(
-    ":android_ndk_repository.bzl",
+    "//rules:android_ndk_repository.bzl",
     _android_ndk_repository = "android_ndk_repository",
 )
 load(
-    ":android_sdk.bzl",
+    "//rules:android_sdk.bzl",
     _android_sdk = "android_sdk",
 )
 load(
-    ":android_sdk_repository.bzl",
+    "//rules:android_sdk_repository.bzl",
     _android_sdk_repository = "android_sdk_repository",
 )
 load(
-    ":android_tools_defaults_jar.bzl",
+    "//rules:android_tools_defaults_jar.bzl",
     _android_tools_defaults_jar = "android_tools_defaults_jar",
 )
 
