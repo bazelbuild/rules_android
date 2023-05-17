@@ -1,4 +1,4 @@
-load("@gazelle//:def.bzl", "gazelle")
+load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
