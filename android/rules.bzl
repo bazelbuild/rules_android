@@ -1,4 +1,4 @@
-# Copyright 2023 The Bazel Authors. All rights reserved.
+# Copyright 2019 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,53 +12,51 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Redirecting starlark rules to //rules/rules.bzl for easier migration to a new branch."""
+"""Starlark rules for building Android apps."""
+
+# Don't use relative paths since this file is coppied to //android/rules.bzl.
 
 load(
-    "//rules/rules.bzl",
+    "//rules/aar_import:rule.bzl",
     _aar_import = "aar_import",
-    _android_archive = "android_archive",
+)
+load(
+    "//rules/android_application:android_application.bzl",
+    _android_application = "android_application",
+)
+load(
+    "//rules:android_binary.bzl",
     _android_binary = "android_binary",
-    _android_bundle_to_apks = "android_bundle_to_apks",
-    _android_device = "android_device",
-    _android_device_script_fixture = "android_device_script_fixture",
-    _android_host_service_fixture = "android_host_service_fixture",
-    _android_instrumentation_test = "android_instrumentation_test_macro",
+)
+load(
+    "//rules/android_library:rule.bzl",
     _android_library = "android_library_macro",
-    _android_local_test = "android_local_test",
+)
+load(
+    "//rules:android_ndk_repository.bzl",
     _android_ndk_repository = "android_ndk_repository",
+)
+load(
+    "//rules:android_sdk.bzl",
     _android_sdk = "android_sdk",
+)
+load(
+    "//rules:android_sdk_repository.bzl",
     _android_sdk_repository = "android_sdk_repository",
+)
+load(
+    "//rules:android_tools_defaults_jar.bzl",
     _android_tools_defaults_jar = "android_tools_defaults_jar",
-    _apk_import = "apk_import",
 )
 
+# Current version. Tools may check this to determine compatibility.
+RULES_ANDROID_VERSION = "0.1.0"
+
 aar_import = _aar_import
-
-android_archive = _android_archive
-
+android_application = _android_application
 android_binary = _android_binary
-
-android_bundle_to_apks = _android_bundle_to_apks
-
-android_device = _android_device
-
-android_device_script_fixture = _android_device_script_fixture
-
-android_host_service_fixture = _android_host_service_fixture
-
-android_instrumentation_test = _android_instrumentation_test
-
 android_library = _android_library
-
-android_local_test = _android_local_test
-
 android_ndk_repository = _android_ndk_repository
-
 android_sdk = _android_sdk
-
 android_sdk_repository = _android_sdk_repository
-
 android_tools_defaults_jar = _android_tools_defaults_jar
-
-apk_import = _apk_import
