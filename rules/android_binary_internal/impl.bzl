@@ -181,6 +181,16 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, stamp_ctx, **_unused_ctxs)
         ),
     )
 
+def _process_build_info(_unused_ctx, **unused_ctxs):
+    return ProviderInfo(
+        name = "build_info_ctx",
+        value = struct(
+            build_info_files = depset(),
+            cc_toolchain_id = "",
+            providers = [],
+        ),
+    )
+
 def use_legacy_manifest_merger(ctx):
     """Whether legacy manifest merging is enabled.
 
@@ -231,6 +241,7 @@ PROCESSORS = dict(
     NativeLibsProcessor = _process_native_libs,
     DataBindingProcessor = _process_data_binding,
     JvmProcessor = _process_jvm,
+    BuildInfoProcessor = _process_build_info,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
