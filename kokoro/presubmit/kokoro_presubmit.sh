@@ -61,6 +61,7 @@ COMMON_ARGS=(
   "--verbose_failures"
   "--experimental_google_legacy_api"
   "--experimental_enable_android_migration_apis"
+  "--build_tests_only"
 )
 
 # Go to rules_android workspace and run relevant tests.
@@ -71,7 +72,8 @@ cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
 "$bazel" aquery 'deps(...)' 2>&1 > /dev/null
 
 "$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
-  //src/tools/ak/...
+  //src/tools/ak/... \
+  //test/...
 
 # Go to basic app workspace in the source tree
 cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"

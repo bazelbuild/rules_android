@@ -14,6 +14,7 @@
 
 """Workspace setup macro for rules_android."""
 
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
@@ -22,6 +23,8 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
+    bazel_skylib_workspace()
+
     protobuf_deps()
 
     maven_install(
