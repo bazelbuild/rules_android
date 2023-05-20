@@ -5,6 +5,11 @@ exports_files([
     "res_v3_dummy_AndroidManifest.xml",
     "res_v3_dummy_R.txt",
     "robolectric_properties_template.txt",
+    # Used in android_sdk_repository
+    "android_revision.bzl",
+    "android_sdk_repository_empty_template.txt",
+    "android_sdk_repository_template.bzl",
+    "android_sdk_repository_template.txt",
 ])
 
 alias(
@@ -36,10 +41,10 @@ bzl_library(
         "resources.bzl",
         "utils.bzl",
     ],
+    visibility = ["//:__subpackages__"],
     deps = [
         "//rules/acls:bzl",
         "//rules/android_common:bzl",
         "//rules/flags:bzl",
     ],
-    visibility = ["//:__subpackages__"],
 )
