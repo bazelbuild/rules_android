@@ -14,6 +14,14 @@ alias(
 )
 
 bzl_library(
+    name = "android_revision_bzl",
+    srcs = [
+        "android_revision.bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
+bzl_library(
     name = "common_bzl",
     srcs = [
         "aapt.bzl",
@@ -36,10 +44,10 @@ bzl_library(
         "resources.bzl",
         "utils.bzl",
     ],
+    visibility = ["//:__subpackages__"],
     deps = [
         "//rules/acls:bzl",
         "//rules/android_common:bzl",
         "//rules/flags:bzl",
     ],
-    visibility = ["//:__subpackages__"],
 )
