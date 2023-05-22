@@ -217,6 +217,11 @@ _ATTRS = dict(
         default = "//toolchains/android:zip",
         executable = True,
     ),
+    zip_filter = attr.label(
+        cfg = "exec",
+        default = "@bazel_tools//tools/android:zip_filter",
+        executable = True,
+    ),
 )
 
 def _impl(ctx):
