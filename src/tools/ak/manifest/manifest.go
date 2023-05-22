@@ -62,6 +62,7 @@ var (
 	// Flag variables
 	aapt2, manifest, out, sdkJar, res string
 	attr                              flags.StringList
+	forceDebuggable                   bool
 
 	initOnce sync.Once
 )
@@ -74,6 +75,7 @@ func Init() {
 		flag.StringVar(&out, "out", "", "Path to output")
 		flag.StringVar(&sdkJar, "sdk_jar", "", "Path to sdk jar")
 		flag.StringVar(&res, "res", "", "Path to res")
+		flag.BoolVar(&forceDebuggable, "force_debuggable", false, "Whether to force set android:debuggable=true.")
 		flag.Var(&attr, "attr", "(optional) attr(s) to set. {element}:{attr}:{value}.")
 	})
 }
@@ -103,8 +105,11 @@ func Run() {
 		defer os.Remove(patchedManifest.Name())
 		manifestPath = patchManifest(manifest, patchedManifest, attr)
 	}
-
-	stdoutStderr, err := exec.Command(aapt2, "link", "-o", aaptOut.Name(), "--manifest", manifestPath, "-I", sdkJar, "-I", res).CombinedOutput()
+	args := []string{"link", "-o", aaptOut.Name(), "--manifest", manifestPath, "-I", sdkJar, "-I", res}
+	if forceDebuggable {
+		args = append(args, "--debug-mode")
+	}
+	stdoutStderr, err := exec.Command(aapt2, args...).CombinedOutput()
 	if err != nil {
 		log.Fatalf(errMsg, stdoutStderr)
 	}
