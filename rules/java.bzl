@@ -21,6 +21,9 @@ _ANDROID_CONSTRAINT_MISSING_ERROR = (
     "A list of constraints provided without the 'android' constraint."
 )
 
+# TODO(b/283499746): Reduce singlejar memory if possible.
+_SINGLEJAR_MEMORY_FOR_DEPLOY_JAR_MB = 1600
+
 def _segment_idx(path_segments):
     """Finds the index of the segment in the path that preceeds the source root.
 
@@ -360,7 +363,9 @@ def _singlejar(
         mnemonic = "SingleJar",
         progress_message = "Merge into a single jar.",
         include_build_data = False,
-        java_toolchain = None):
+        java_toolchain = None,
+        extra_args = [],
+        resource_set = None):
     args = ctx.actions.args()
     args.add("--output")
     args.add(output)
@@ -378,11 +383,12 @@ def _singlejar(
 
     ctx.actions.run(
         executable = java_toolchain[java_common.JavaToolchainInfo].single_jar,
-        arguments = [args],
+        arguments = [args] + extra_args,
         inputs = inputs,
         outputs = [output],
         mnemonic = mnemonic,
         progress_message = progress_message,
+        resource_set = resource_set,
     )
 
 def _run(
@@ -433,6 +439,43 @@ def _run(
 
     ctx.actions.run(**args)
 
+def _create_deploy_jar(
+        ctx,
+        output = None,
+        runtime_jars = depset(),
+        java_toolchain = None,
+        target_name = "",
+        build_info_files = [],
+        deploy_manifest_lines = [],
+        extra_build_info = ""):
+    inputs = depset(direct = build_info_files, transitive = [runtime_jars])
+
+    args = ctx.actions.args()
+    args.add("--build_target", target_name)
+    args.add("--check_desugar_deps")
+
+    if build_info_files:
+        args.add_all(build_info_files, before_each = "--build_info_file")
+
+    args.add_all("--deploy_manifest_lines", deploy_manifest_lines)
+    args.add("--extra_build_info", extra_build_info)
+
+    _singlejar(
+        ctx,
+        inputs = inputs,
+        output = output,
+        mnemonic = "JavaDeployJar",
+        progress_message = "Building deploy jar %s" % output.short_path,
+        java_toolchain = java_toolchain,
+        extra_args = [args],
+        resource_set = _resource_set_for_deploy_jar,
+    )
+    return output
+
+def _resource_set_for_deploy_jar(_os, _inputs_size):
+    # parameters are unused but required by the resource_set API
+    return {"memory": _SINGLEJAR_MEMORY_FOR_DEPLOY_JAR_MB, "cpu": 1}
+
 java = struct(
     compile = _compile,
     compile_android = _compile_android,
@@ -442,4 +485,5 @@ java = struct(
     invalid_java_package = _invalid_java_package,
     run = _run,
     singlejar = _singlejar,
+    create_deploy_jar = _create_deploy_jar,
 )
