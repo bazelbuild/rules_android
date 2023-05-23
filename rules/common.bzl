@@ -87,7 +87,7 @@ def _filter_zip_exclude(
     """
     args = ctx.actions.args()
 
-    args.add("inputZip", input.path)
+    args.add("--inputZip", input.path)
     args.add("--outputZip", output.path)
 
     if filter_zips:
@@ -100,7 +100,7 @@ def _filter_zip_exclude(
     if check_hash_mismatch:
         args.add("--checkHashMismatch", "ERROR")
     else:
-        args.add("--checkHashMisMatch", "IGNORE")
+        args.add("--checkHashMismatch", "IGNORE")
 
     args.add("--outputMode", compression_mode)
 
