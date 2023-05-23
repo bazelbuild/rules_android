@@ -60,3 +60,4 @@ android_ndk_repository = _android_ndk_repository
 android_sdk = _android_sdk
 android_sdk_repository = _android_sdk_repository
 android_tools_defaults_jar = _android_tools_defaults_jar
+android_local_test = native.android_local_test
