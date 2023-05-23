@@ -27,8 +27,6 @@ tasks:
     <<: *common
   macos_arm64:
     <<: *common
-  windows:
-    <<: *common
   ubuntu1604_bzlmod:
     name: Bzlmod ubuntu1604
     platform: ubuntu1604
@@ -50,12 +48,6 @@ tasks:
   macos_arm64_bzlmod:
     name: Bzlmod macos_arm64
     platform: macos_arm64
-    build_flags:
-    - "--enable_bzlmod"
-    <<: *common
-  windows_bzlmods:
-    name: Bzlmod windows
-    platform: windows
     build_flags:
     - "--enable_bzlmod"
     <<: *common
