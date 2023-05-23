@@ -311,7 +311,7 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
         feature_configuration = feature_config,
         cc_toolchain = cc_toolchain,
         test_only_target = test_only_target,
-        stamp = ctx.attr.stamp,
+        stamp = getattr(ctx.attr, "stamp", 0),
         grep_includes = ctx.file._grep_includes,
         main_output = linked_lib,
         use_shareable_artifact_factory = True,
