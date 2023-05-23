@@ -31,9 +31,7 @@ def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return [
         "_android_sdk",
-
-        # For the Google-internal kotlin rule to access the toolchain to
-        # get kotlin std and runtime libs.
+        # Access the kt toolchain to get kotlin std and runtime libs.
         "_toolchain",
         "deps",
         "exports",
