@@ -15,7 +15,6 @@
 """Bazel ResourcesBusyBox Commands."""
 
 load(":java.bzl", _java = "java")
-load("//rules/flags:flags.bzl", _flags = "flags")
 
 _ANDROID_RESOURCES_STRICT_DEPS = "android_resources_strict_deps"
 
@@ -120,8 +119,8 @@ def _make_resources_flag(
     )
 
 def _disable_warnings(ctx, args):
-    if (_flags.get(ctx).persistent_android_resource_processor or
-        _flags.get(ctx).persistent_multiplex_android_resource_processor):
+    if (ctx.fragments.android.persistent_android_resource_processor or
+        ctx.fragments.android.persistent_multiplex_android_resource_processor):
         # Disable warnings - this are output to stdin/stderr which breaks worker mode
         args.add("--logWarnings=false")
 
@@ -811,10 +810,10 @@ def _merge_compiled(
     )
 
 def _java_run(ctx, *args, **kwargs):
-    enable_workers = _flags.get(ctx).persistent_android_resource_processor
-    multiplex_workers = _flags.get(ctx).persistent_multiplex_android_resource_processor
+    enable_workers = ctx.fragments.android.persistent_android_resource_processor
+    multiplex_workers = ctx.fragments.android.persistent_multiplex_android_resource_processor
     kwargs["supports_workers"] = enable_workers or multiplex_workers
-    kwargs["supports_multiplex_workers"] = multiplex_workers 
+    kwargs["supports_multiplex_workers"] = multiplex_workers
     _java.run(ctx, *args, **kwargs)
 
 def _escape_mv(s):

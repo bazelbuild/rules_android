@@ -98,9 +98,6 @@ ATTRS = _attrs.replace(
                 cfg = "exec",
                 default = Label("@@bazel_tools//tools/cpp:grep-includes"),
             ),
-            _flags = attr.label(
-                default = "//rules/flags",
-            ),
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,
