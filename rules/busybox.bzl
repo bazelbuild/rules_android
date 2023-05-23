@@ -416,8 +416,6 @@ def _package(
         outputs = output_files,
         mnemonic = "PackageAndroidResources",
         progress_message = "Packaging Android Resources in %s" % ctx.label,
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _parse(
@@ -462,8 +460,6 @@ def _parse(
         outputs = [out_symbols],
         mnemonic = "ParseAndroidResources",
         progress_message = "Parsing Android Resources in %s" % out_symbols.short_path,
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _make_merge_assets_flags(resources_node):
@@ -552,8 +548,6 @@ def _merge_assets(
         mnemonic = "MergeAndroidAssets",
         progress_message =
             "Merging Android Assets in %s" % out_assets_zip.short_path,
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _validate_and_link(
@@ -640,8 +634,6 @@ def _validate_and_link(
         mnemonic = "LinkAndroidResources",
         progress_message =
             "Linking Android Resources in " + out_file.short_path,
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _compile(
@@ -698,8 +690,6 @@ def _compile(
         outputs = [out_file],
         mnemonic = "CompileAndroidResources",
         progress_message = "Compiling Android Resources in %s" % out_file.short_path,
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _make_merge_compiled_flags(resources_node_info):
@@ -805,8 +795,6 @@ def _merge_compiled(
         mnemonic = "StarlarkMergeCompiledAndroidResources",
         progress_message =
             "Merging compiled Android Resources in " + out_class_jar.short_path,
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _java_run(ctx, *args, **kwargs):
@@ -909,8 +897,6 @@ def _merge_manifests(
         outputs = outputs,
         mnemonic = "MergeManifests",
         progress_message = "Merging Android Manifests in %s" % out_file.short_path,
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _process_databinding(
@@ -965,8 +951,6 @@ def _process_databinding(
         outputs = [out_databinding_info] + out_databinding_processed_resources,
         mnemonic = "StarlarkProcessDatabinding",
         progress_message = "Processing data binding",
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _make_generate_binay_r_flags(resources_node):
@@ -1039,8 +1023,6 @@ def _generate_binary_r(
         outputs = [out_class_jar],
         mnemonic = "StarlarkRClassGenerator",
         progress_message = "Generating R classes",
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 def _make_aar(
@@ -1113,8 +1095,6 @@ def _make_aar(
         outputs = [out_aar],
         mnemonic = "StarlarkAARGenerator",
         progress_message = "Generating AAR package for %s" % ctx.label,
-        supports_workers = True,
-        supports_multiplex_workers = True,
     )
 
 busybox = struct(
