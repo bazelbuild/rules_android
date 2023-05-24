@@ -14,19 +14,22 @@
 
 """Sets up prerequisites for rules_android."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
+def _rules_android_bzlmod_prereqs():
+    """Downloads prerequisite repositories specific to Bzlmod that can't otherwise be handled in the MODULE.bazel"""
+    maybe(
+        http_jar,
+        name = "bundletool_all",
+        sha256 = "2f78f9c8d059db1c7ea4ac6ffb2527466af03838d150b70f4b77fe7deefca011",
+        urls = ["https://github.com/google/bundletool/releases/download/1.14.1/bundletool-all-1.14.1.jar"],
+    )
 
 def rules_android_prereqs():
     """Downloads prerequisite repositories for rules_android."""
-    maybe(
-        http_archive,
-        name = "rules_jvm_external",
-        strip_prefix = "rules_jvm_external-fa73b1a8e4846cee88240d0019b8f80d39feb1c3",
-        sha256 = "7e13e48b50f9505e8a99cc5a16c557cbe826e9b68d733050cd1e318d69f94bb5",
-        url = "https://github.com/bazelbuild/rules_jvm_external/archive/fa73b1a8e4846cee88240d0019b8f80d39feb1c3.zip",
-    )
+
+    _rules_android_bzlmod_prereqs()
 
     maybe(
         http_archive,
@@ -41,8 +44,8 @@ def rules_android_prereqs():
         name = "remote_java_tools_for_rules_android",
         sha256 = "8fb4d3138bd92a9d3324dae29c9f70d91ca2db18cd0bf1997446eed4657d19b3",
         urls = [
-                "https://mirror.bazel.build/bazel_java_tools/releases/java/v11.8/java_tools-v11.8.zip",
-                "https://github.com/bazelbuild/java_tools/releases/download/java_v11.8/java_tools-v11.8.zip",
+            "https://mirror.bazel.build/bazel_java_tools/releases/java/v11.8/java_tools-v11.8.zip",
+            "https://github.com/bazelbuild/java_tools/releases/download/java_v11.8/java_tools-v11.8.zip",
         ],
     )
 
@@ -85,22 +88,25 @@ def rules_android_prereqs():
     )
 
     maybe(
-      http_archive,
-      name = "rules_license",
-      urls = [
-          "https://github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
-          "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
-      ],
-      sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
+        http_archive,
+        name = "rules_license",
+        urls = [
+            "https://github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
+        ],
+        sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
     )
 
     maybe(
         http_archive,
         name = "py_absl",
         sha256 = "0fb3a4916a157eb48124ef309231cecdfdd96ff54adf1660b39c0d4a9790a2c0",
-        urls = [
-            "https://github.com/abseil/abseil-py/archive/refs/tags/v1.4.0.tar.gz",
-        ],
+        urls = ["https://github.com/abseil/abseil-py/archive/refs/tags/v1.4.0.tar.gz"],
         strip_prefix = "abseil-py-1.4.0",
     )
 
+def _rules_android_extensions_impl(_):
+    """Downloads prerequisite repositories for rules_android specifically needed for Bzlmod."""
+    _rules_android_bzlmod_prereqs()
+
+rules_android_extensions = module_extension(implementation = _rules_android_extensions_impl)

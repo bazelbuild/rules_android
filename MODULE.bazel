@@ -10,7 +10,6 @@ rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolc
 use_repo(rules_java_toolchains, "remote_java_tools")
 
 bazel_dep(name = "protobuf", version = "3.19.0", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_jvm_external", version = "4.5")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
 bazel_dep(name = "rules_robolectric", version = "4.10")
 
@@ -31,21 +30,9 @@ use_repo(
     "com_github_google_go_cmp",
     "org_golang_x_sync",
 )
-maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
-maven.install(
-    name = "rules_android_maven",
-    artifacts = [
-        "com.android.tools.build:bundletool:1.6.1",
-    ],
-    repositories = [
-        "https://maven.google.com",
-        "https://repo1.maven.org/maven2",
-    ],
-)
-use_repo(
-    maven,
-    "rules_android_maven"
-)
+
+rules_android_extensions = use_extension("//:prereqs.bzl", "rules_android_extensions")
+use_repo(rules_android_extensions, "bundletool_all")
 
 remote_android_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "remote_android_tools_extensions")
 use_repo(remote_android_extensions, "android_tools", "android_gmaven_r8")
