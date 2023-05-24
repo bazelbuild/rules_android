@@ -172,6 +172,7 @@ def make_rule(
         toolchains = [
             "//toolchains/android:toolchain_type",
             "//toolchains/android_sdk:toolchain_type",
+            "@bazel_tools//tools/jdk:toolchain_type",
         ] + additional_toolchains,
         _skylark_testable = True,
     )

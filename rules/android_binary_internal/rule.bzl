@@ -43,7 +43,10 @@ def make_rule(
         attrs = attrs,
         implementation = implementation,
         provides = provides,
-        toolchains = ["//toolchains/android:toolchain_type"],
+        toolchains = [
+            "//toolchains/android:toolchain_type",
+            "@bazel_tools//tools/jdk:toolchain_type",
+        ],
         _skylark_testable = True,
         fragments = [
             "android",
