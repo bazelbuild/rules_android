@@ -46,5 +46,8 @@ aar_import = rule(
         AndroidNativeLibsInfo,
         JavaInfo,
     ],
-    toolchains = ["//toolchains/android:toolchain_type"],
+    toolchains = [
+        "//toolchains/android:toolchain_type",
+        "@bazel_tools//tools/jdk:toolchain_type",
+    ],
 )
