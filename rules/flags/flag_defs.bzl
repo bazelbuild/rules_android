@@ -97,3 +97,9 @@ def define_flags():
         default = True,
         description = "Use Studio Deployer to install apks",
     )
+
+    flags.DEFINE_bool(
+        name = "propagate_transitive_resources_class_jars",
+        default = True,
+        description = "Collect and propagate transitive resources class jars from dependencies",
+    )
