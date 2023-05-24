@@ -31,6 +31,7 @@ def rules_android_workspace():
         name = "rules_android_maven",
         artifacts = [
             "com.android.tools.build:bundletool:1.6.1",
+            "com.android.tools.build:gradle:8.0.1",
         ],
         repositories = [
             "https://maven.google.com",
