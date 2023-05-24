@@ -1,1 +1,5 @@
 bazel-*
+# Intellij Bazel Plugin
+.ijwb
+# Android Studio Bazel Plugin
+.aswb
