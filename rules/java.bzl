@@ -445,10 +445,10 @@ def _create_deploy_jar(
         runtime_jars = depset(),
         java_toolchain = None,
         target_name = "",
-        build_info_files = [],
+        build_info_files = depset(),
         deploy_manifest_lines = [],
         extra_build_info = ""):
-    inputs = depset(direct = build_info_files, transitive = [runtime_jars])
+    inputs = depset(transitive = [runtime_jars, build_info_files])
 
     args = ctx.actions.args()
     args.add("--build_target", target_name)

@@ -186,7 +186,8 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
         name = "build_info_ctx",
         value = struct(
             build_info_files = depset(),
-            cc_toolchain_id = "",
+            deploy_manifest_lines = [],
+            extra_build_info = "",
             providers = [],
         ),
     )
