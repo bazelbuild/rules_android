@@ -29,7 +29,9 @@ load(
     "//rules:native_deps.bzl",
     _process_native_deps = "process",
 )
-load("//rules:providers.bzl", "StarlarkApkInfo")
+load("//rules:providers.bzl", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
+load("//rules:dex.bzl", _dex = "dex")
+load("//rules:desugar.bzl", _desugar = "desugar")
 
 def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
@@ -192,6 +194,111 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
         ),
     )
 
+def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctxs):
+    providers = []
+
+    if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
+        runtime_jars = jvm_ctx.java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
+        forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
+        classes_dex_zip = None
+
+        incremental_dexing = _dex.get_effective_incremental_dexing(
+            force_incremental_dexing = ctx.attr.incremental_dexing,
+            has_forbidden_dexopts = len([d for d in ctx.attr.dexopts if d in forbidden_dexopts]) > 0,
+            is_binary_optimized = len(ctx.attr.proguard_specs) > 0,
+            incremental_dexing_after_proguard_by_default = ctx.fragments.android.incremental_dexing_after_proguard_by_default,
+            incremental_dexing_shards_after_proguard = ctx.fragments.android.incremental_dexing_shards_after_proguard,
+            use_incremental_dexing = ctx.fragments.android.use_incremental_dexing,
+        )
+
+        # TODO(b/263473668): Implement dexing after optimization
+        if incremental_dexing:
+            classes_dex_zip = _dex.process_incremental_dexing(
+                ctx,
+                deps = ctx.attr.deps,
+                dexopts = ctx.attr.dexopts,
+                runtime_jars = runtime_jars,
+                main_dex_list = ctx.file.main_dex_list,
+                min_sdk_version = ctx.attr.min_sdk_version,
+                java_info = jvm_ctx.java_info,
+                desugar_dict = deploy_ctx.desugar_dict,
+                dexbuilder = get_android_toolchain(ctx).dexbuilder.files_to_run,
+                dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
+            )
+
+        providers.append(
+            AndroidDexInfo(
+                deploy_jar = deploy_ctx.deploy_jar,
+                final_classes_dex_zip = classes_dex_zip,
+                java_resource_jar = deploy_ctx.deploy_jar,
+            ),
+        )
+
+    return ProviderInfo(
+        name = "dex_ctx",
+        value = struct(providers = providers),
+    )
+
+def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **unused_ctx):
+    deploy_jar, desugar_dict = None, {}
+
+    if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
+        java_toolchain = common.get_java_toolchain(ctx)
+        java_info = jvm_ctx.java_info
+        info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, ctx.attr.deps))
+        incremental_dexopts = _dex.incremental_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+        dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
+
+        if ctx.fragments.android.desugar_java8:
+            desugared_jars = []
+            desugar_dict = {d.jar: d.desugared_jar for d in dex_archives}
+
+            for jar in java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]:
+                desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_desugared.jar")
+                _desugar.desugar(
+                    ctx,
+                    input = jar,
+                    output = desugared_jar,
+                    classpath = java_info.transitive_compile_time_jars,
+                    bootclasspath = java_toolchain[java_common.JavaToolchainInfo].bootclasspath.to_list(),
+                    min_sdk_version = ctx.attr.min_sdk_version,
+                    desugar_exec = get_android_toolchain(ctx).desugar.files_to_run,
+                )
+                desugared_jars.append(desugared_jar)
+                desugar_dict[jar] = desugared_jar
+
+            for jar in java_info.transitive_runtime_jars.to_list():
+                if jar in desugar_dict and desugar_dict[jar]:
+                    desugared_jars.append(desugar_dict[jar])
+
+            runtime_jars = depset(desugared_jars)
+        else:
+            runtime_jars = depset(transitive = [
+                java_info.runtime_output_jars,
+                java_info.transitive_runtime_jars,
+            ])
+
+        output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
+        deploy_jar = java.create_deploy_jar(
+            ctx,
+            output = output,
+            runtime_jars = runtime_jars,
+            java_toolchain = java_toolchain,
+            target_name = ctx.label.name,
+            build_info_files = build_info_ctx.build_info_files,
+            deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
+            extra_build_info = build_info_ctx.extra_build_info,
+        )
+
+    return ProviderInfo(
+        name = "deploy_ctx",
+        value = struct(
+            deploy_jar = deploy_jar,
+            desugar_dict = desugar_dict,
+            providers = [],
+        ),
+    )
+
 def use_legacy_manifest_merger(ctx):
     """Whether legacy manifest merging is enabled.
 
@@ -243,6 +350,8 @@ PROCESSORS = dict(
     DataBindingProcessor = _process_data_binding,
     JvmProcessor = _process_jvm,
     BuildInfoProcessor = _process_build_info,
+    DeployJarProcessor = _process_deploy_jar,
+    DexProcessor = _process_dex,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
