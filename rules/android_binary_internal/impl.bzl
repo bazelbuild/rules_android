@@ -196,16 +196,25 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
 
 def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctxs):
     providers = []
+    classes_dex_zip = None
+    final_classes_dex_zip = None
+    deploy_jar = deploy_ctx.deploy_jar
+    is_binary_optimized = len(ctx.attr.proguard_specs) > 0
 
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         runtime_jars = jvm_ctx.java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
         forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
-        classes_dex_zip = None
+        java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(
+            ctx,
+            android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,
+            binary_jar = deploy_jar,
+            build_customized_files = is_binary_optimized,
+        )
 
         incremental_dexing = _dex.get_effective_incremental_dexing(
             force_incremental_dexing = ctx.attr.incremental_dexing,
             has_forbidden_dexopts = len([d for d in ctx.attr.dexopts if d in forbidden_dexopts]) > 0,
-            is_binary_optimized = len(ctx.attr.proguard_specs) > 0,
+            is_binary_optimized = is_binary_optimized,
             incremental_dexing_after_proguard_by_default = ctx.fragments.android.incremental_dexing_after_proguard_by_default,
             incremental_dexing_shards_after_proguard = ctx.fragments.android.incremental_dexing_shards_after_proguard,
             use_incremental_dexing = ctx.fragments.android.use_incremental_dexing,
@@ -226,11 +235,23 @@ def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctx
                 dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
             )
 
+        if ctx.fragments.android.desugar_java8_libs and classes_dex_zip.extension == "zip":
+            final_classes_dex_zip = _dex.get_dx_artifact(ctx, "final_classes_dex_zip")
+            _dex.append_java8_legacy_dex(
+                ctx,
+                output = final_classes_dex_zip,
+                input = classes_dex_zip,
+                java8_legacy_dex = java8_legacy_dex,
+                dex_zips_merger = get_android_toolchain(ctx).dex_zips_merger.files_to_run,
+            )
+        else:
+            final_classes_dex_zip = classes_dex_zip
+
         providers.append(
             AndroidDexInfo(
-                deploy_jar = deploy_ctx.deploy_jar,
-                final_classes_dex_zip = classes_dex_zip,
-                java_resource_jar = deploy_ctx.deploy_jar,
+                deploy_jar = deploy_jar,
+                final_classes_dex_zip = final_classes_dex_zip,
+                java_resource_jar = deploy_jar,
             ),
         )
 

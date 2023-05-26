@@ -222,6 +222,21 @@ _ATTRS = dict(
         default = "@bazel_tools//tools/android:zip_filter",
         executable = True,
     ),
+    dex_zips_merger = attr.label(
+        cfg = "exec",
+        default = "@bazel_tools//tools/android:merge_dexzips",
+        executable = True,
+    ),
+    java8_legacy_dex = attr.label(
+        allow_single_file = True,
+        cfg = "exec",
+        default = "@bazel_tools//tools/android:java8_legacy_dex",
+    ),
+    build_java8_legacy_dex = attr.label(
+        cfg = "exec",
+        default = "@bazel_tools//tools/android:build_java8_legacy_dex",
+        executable = True,
+    ),
 )
 
 def _impl(ctx):
