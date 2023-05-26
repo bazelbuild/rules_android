@@ -14,10 +14,71 @@
 
 """Bazel Dex Commands."""
 
+load(":utils.bzl", "utils")
+load(":providers.bzl", "StarlarkAndroidDexInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("//rules:attrs.bzl", _attrs = "attrs")
 
 _tristate = _attrs.tristate
+
+def _process_incremental_dexing(
+        ctx,
+        deps = [],
+        runtime_jars = [],
+        dexopts = [],
+        main_dex_list = [],
+        min_sdk_version = 0,
+        java_info = None,
+        desugar_dict = {},
+        dexbuilder = None,
+        dexmerger = None):
+    classes_dex_zip = _get_dx_artifact(ctx, "classes.dex.zip")
+    info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
+
+    incremental_dexopts = _incremental_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    dex_archives_list = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
+    dex_archives = _to_dexed_classpath(
+        dex_archives_dict = {d.jar: d.dex for d in dex_archives_list},
+        classpath = java_info.transitive_runtime_jars.to_list(),
+        runtime_jars = runtime_jars,
+    )
+
+    for jar in runtime_jars:
+        dex_archive = _get_dx_artifact(ctx, jar.basename + ".dex.zip")
+        _dex(
+            ctx,
+            input = desugar_dict[jar] if jar in desugar_dict else jar,
+            output = dex_archive,
+            incremental_dexopts = incremental_dexopts,
+            min_sdk_version = min_sdk_version,
+            dex_exec = dexbuilder,
+        )
+        dex_archives.append(dex_archive)
+
+    _dex_merge(
+        ctx,
+        output = classes_dex_zip,
+        inputs = dex_archives,
+        multidex_strategy = "minimal",
+        main_dex_list = main_dex_list,
+        dexopts = dexopts,
+        dexmerger = dexmerger,
+    )
+
+    return classes_dex_zip
+
+def _to_dexed_classpath(dex_archives_dict = {}, classpath = [], runtime_jars = []):
+    dexed_classpath = []
+    for jar in classpath:
+        if jar not in dex_archives_dict:
+            if jar not in runtime_jars:
+                fail("Dependencies on .jar artifacts are not allowed in Android binaries, please use " +
+                     "a java_import to depend on " + jar.short_path +
+                     ". If this is an implicit dependency then the rule that " +
+                     "introduces it will need to be fixed to account for it correctly.")
+        else:
+            dexed_classpath.append(dex_archives_dict[jar])
+    return dexed_classpath
 
 def _dex(
         ctx,
@@ -101,7 +162,7 @@ def _dex_merge(
     args.add("--multidex", multidex_strategy)
     args.add_all(inputs, before_each = "--input")
     args.add("--output", output)
-    args.add_all(_merger_dexopts(ctx, dexopts))
+    args.add_all(_merger_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_dex_merger))
 
     if main_dex_list:
         inputs.append(main_dex_list)
@@ -122,6 +183,19 @@ def _merger_dexopts(tokenized_dexopts, dexopts_supported_in_dex_merger):
 def _incremental_dexopts(tokenized_dexopts, dexopts_supported_in_incremental_dexing):
     return _normalize_dexopts(_filter_dexopts(tokenized_dexopts, dexopts_supported_in_incremental_dexing))
 
+def _merge_infos(infos):
+    dex_archives_dict = {}
+    for info in infos:
+        for dexopts in info.dex_archives_dict:
+            if dexopts not in dex_archives_dict:
+                dex_archives_dict[dexopts] = [info.dex_archives_dict[dexopts]]
+            else:
+                dex_archives_dict[dexopts].append(info.dex_archives_dict[dexopts])
+    return StarlarkAndroidDexInfo(
+        dex_archives_dict =
+            {dexopts: depset(direct = [], transitive = dex_archives) for dexopts, dex_archives in dex_archives_dict.items()},
+    )
+
 def _filter_dexopts(candidates, allowed):
     return [c for c in candidates if c in allowed]
 
@@ -137,5 +211,7 @@ dex = struct(
     get_dx_artifact = _get_dx_artifact,
     get_effective_incremental_dexing = _get_effective_incremental_dexing,
     incremental_dexopts = _incremental_dexopts,
+    merge_infos = _merge_infos,
     normalize_dexopts = _normalize_dexopts,
+    process_incremental_dexing = _process_incremental_dexing,
 )

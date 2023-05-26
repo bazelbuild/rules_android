@@ -151,3 +151,12 @@ AndroidBundleInfo = provider(
         unsigned_aab = "File, the unsigned .aab",
     ),
 )
+
+StarlarkAndroidDexInfo = provider(
+    doc = "Internal provider used to collect transitive dex info.",
+    fields = dict(
+        dex_archives_dict = (
+            "A dictionary of all the transitive dex archives for all dexopts."
+        ),
+    ),
+)

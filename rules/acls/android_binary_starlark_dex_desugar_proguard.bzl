@@ -15,7 +15,9 @@
 """Allow list for rollout of Starlark dex, desugar and proguard in android_binary_internal."""
 
 # keep sorted
-ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT = []
+ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT = [
+    "//test/rules/android_binary_internal:__subpackages__",
+]
 
 # keep sorted
 ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK = []
