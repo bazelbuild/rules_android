@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-NOTE: This branch contains a development preview of the Starlark implementation of Android rules for Bazel. This code is incomplete and may not function as-is.
+NOTE: This branch is a development preview of the Starlark implementation of Android rules for Bazel. This code is incomplete and may not function as-is.
 
 A version of Bazel built at or near head or a recent pre-release and the following flags are necessary to use these rules:
 
