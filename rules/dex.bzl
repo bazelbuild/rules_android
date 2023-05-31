@@ -131,9 +131,9 @@ def _dex(
 
     execution_requirements = {}
     if ctx.fragments.android.persistent_android_dex_desugar:
-        execution_requirements["supports-workers"] = 1
+        execution_requirements["supports-workers"] = "1"
         if ctx.fragments.android.persistent_multiplex_android_dex_desugar:
-            execution_requirements["supports-multiplex-workers"] = 1
+            execution_requirements["supports-multiplex-workers"] = "1"
 
     ctx.actions.run(
         executable = dex_exec,
