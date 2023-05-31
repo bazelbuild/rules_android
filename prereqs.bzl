@@ -22,6 +22,15 @@ def rules_android_prereqs():
     """Downloads prerequisite repositories for rules_android."""
     maybe(
         http_archive,
+        name = "rules_java",
+        urls = [
+            "https://github.com/bazelbuild/rules_java/releases/download/6.0.0/rules_java-6.0.0.tar.gz",
+        ],
+        sha256 = "469b7f3b580b4fcf8112f4d6d0d5a4ce8e1ad5e21fee67d8e8335d5f8b3debab",
+    )
+
+    maybe(
+        http_archive,
         name = "rules_jvm_external",
         strip_prefix = "rules_jvm_external-fa73b1a8e4846cee88240d0019b8f80d39feb1c3",
         sha256 = "7e13e48b50f9505e8a99cc5a16c557cbe826e9b68d733050cd1e318d69f94bb5",
