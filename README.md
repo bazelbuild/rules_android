@@ -1,5 +1,11 @@
 # Android support in Bazel
 
+## Deprecation notice
+
+The `master` branch of https://github.com/bazelbuild/rules_android is now
+deprecated. Active development has been moved to [the 'main' branch](https://github.com/bazelbuild/rules_android/tree/main).
+We will leave this branch up for posterity.
+
 ## Overview
 
 This repository contains the Skylark implementation of Android rules in Bazel.
