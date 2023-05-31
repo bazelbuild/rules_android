@@ -236,7 +236,7 @@ def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctx
             )
 
         if ctx.fragments.android.desugar_java8_libs and classes_dex_zip.extension == "zip":
-            final_classes_dex_zip = _dex.get_dx_artifact(ctx, "final_classes_dex_zip")
+            final_classes_dex_zip = _dex.get_dx_artifact(ctx, "final_classes_dex.zip")
             _dex.append_java8_legacy_dex(
                 ctx,
                 output = final_classes_dex_zip,
