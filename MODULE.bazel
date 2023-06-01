@@ -5,12 +5,11 @@ module(
 
 bazel_dep(name = "platforms", version = "0.0.5")
 bazel_dep(name = "rules_license", version = "0.0.4")
-bazel_dep(name = "rules_java", version = "5.3.5")
+bazel_dep(name = "rules_java", version = "6.0.0")
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
 bazel_dep(name = "protobuf", version = "3.19.0", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_java", version = "6.0.0")
 bazel_dep(name = "rules_jvm_external", version = "4.5")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
 bazel_dep(name = "rules_robolectric", version = "4.10")
