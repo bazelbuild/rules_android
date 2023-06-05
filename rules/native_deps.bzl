@@ -242,7 +242,8 @@ def _get_static_mode_params_for_dynamic_library_libraries(libs):
 
 def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actual_target_name, is_test_rule_class = False):
     needs_linking = False
-    for input in _all_inputs(cc_info):
+    all_inputs = _all_inputs(cc_info)
+    for input in all_inputs:
         needs_linking = needs_linking or _contains_code_to_link(input)
 
     if not needs_linking:
@@ -286,7 +287,7 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
     test_only_target = ctx.attr.testonly or is_test_rule_class
     share_native_deps = ctx.fragments.cpp.share_native_deps()
 
-    linker_inputs = _get_static_mode_params_for_dynamic_library_libraries(cc_info.linking_context.libraries_to_link)
+    linker_inputs = _get_static_mode_params_for_dynamic_library_libraries(all_inputs)
 
     if share_native_deps:
         shared_path = _get_shared_native_deps_path(
