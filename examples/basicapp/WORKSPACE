@@ -5,10 +5,6 @@ android_sdk_repository(
     name = "androidsdk",
 )
 
-android_ndk_repository(
-    name = "androidndk",
-)
-
 maybe(
     http_archive,
     name = "rules_jvm_external",
