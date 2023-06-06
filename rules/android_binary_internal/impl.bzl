@@ -197,6 +197,7 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
 def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctxs):
     providers = []
     classes_dex_zip = None
+    dex_info = None
     final_classes_dex_zip = None
     deploy_jar = deploy_ctx.deploy_jar
     is_binary_optimized = len(ctx.attr.proguard_specs) > 0
@@ -247,17 +248,19 @@ def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctx
         else:
             final_classes_dex_zip = classes_dex_zip
 
-        providers.append(
-            AndroidDexInfo(
-                deploy_jar = deploy_jar,
-                final_classes_dex_zip = final_classes_dex_zip,
-                java_resource_jar = deploy_jar,
-            ),
+        dex_info = AndroidDexInfo(
+            deploy_jar = deploy_jar,
+            final_classes_dex_zip = final_classes_dex_zip,
+            java_resource_jar = deploy_jar,
         )
+        providers.append(dex_info)
 
     return ProviderInfo(
         name = "dex_ctx",
-        value = struct(providers = providers),
+        value = struct(
+            dex_info = dex_info,
+            providers = providers,
+        ),
     )
 
 def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **unused_ctx):
