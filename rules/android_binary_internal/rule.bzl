@@ -28,13 +28,15 @@ _DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
 def make_rule(
         attrs = ATTRS,
         implementation = impl,
-        provides = _DEFAULT_PROVIDES):
+        provides = _DEFAULT_PROVIDES,
+        additional_toolchains = []):
     """Makes the rule.
 
     Args:
       attrs: A dict. The attributes for the rule.
       implementation: A function. The rule's implementation method.
       provides: A list. The providers that the rule must provide.
+      additional_toolchains: A list. Additional toolchains passed to pass to rule(toolchains).
 
     Returns:
       A rule.
@@ -46,7 +48,7 @@ def make_rule(
         toolchains = [
             "//toolchains/android:toolchain_type",
             "@bazel_tools//tools/jdk:toolchain_type",
-        ],
+        ] + additional_toolchains,
         _skylark_testable = True,
         fragments = [
             "android",
