@@ -35,10 +35,14 @@ aar_import(
 ```
 """
 
+def _impl_proxy(ctx):
+    providers, _ = _impl(ctx)
+    return providers
+
 aar_import = rule(
     attrs = _ATTRS,
     fragments = ["android"],
-    implementation = _impl,
+    implementation = _impl_proxy,
     doc = RULE_DOC,
     provides = [
         AndroidIdeInfo,

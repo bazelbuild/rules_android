@@ -444,7 +444,7 @@ def impl(ctx):
       ctx: The context.
 
     Returns:
-      A list of providers.
+      A tuple of (list of providers, JavaInfo)
     """
     providers = []
     validation_outputs = []
@@ -594,4 +594,4 @@ def impl(ctx):
         ),
     )
 
-    return providers
+    return providers, jvm_ctx.java_info
