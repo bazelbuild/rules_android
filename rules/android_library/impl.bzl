@@ -260,8 +260,6 @@ def _process_proguard(ctx, idl_ctx, **unused_sub_ctxs):
                 ProguardSpecProvider,
                 ctx.attr.deps,
                 ctx.attr.exports,
-                ctx.attr.plugins,
-                ctx.attr.exported_plugins,
                 idl_ctx.idl_deps,
             ),
             proguard_allowlister =
