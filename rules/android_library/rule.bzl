@@ -158,7 +158,6 @@ def make_rule(
             "android",
             "bazel_android",
             "java",
-            "cpp",
         ],
         implementation = implementation,
         doc = _RULE_DOC,
