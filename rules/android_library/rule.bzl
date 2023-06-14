@@ -156,7 +156,9 @@ def make_rule(
         attrs = attrs,
         fragments = [
             "android",
+            "bazel_android",
             "java",
+            "cpp",
         ],
         implementation = implementation,
         doc = _RULE_DOC,
