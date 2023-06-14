@@ -74,6 +74,7 @@ android_feature_module = rule(
     attrs = ANDROID_FEATURE_MODULE_ATTRS,
     fragments = [
         "android",
+        "bazel_android",
         "java",
     ],
     implementation = _impl,
