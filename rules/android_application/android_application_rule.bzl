@@ -328,6 +328,7 @@ android_application = rule(
     cfg = android_common.android_platforms_transition,
     fragments = [
         "android",
+        "bazel_android",
         "java",
     ],
     executable = True,
