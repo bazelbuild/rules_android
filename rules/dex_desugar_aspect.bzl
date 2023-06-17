@@ -242,4 +242,5 @@ dex_desugar_aspect = aspect(
         _attrs.ANDROID_SDK,
     ),
     fragments = ["android"],
+    required_aspect_providers = [[JavaInfo]],
 )
