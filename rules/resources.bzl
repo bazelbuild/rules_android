@@ -117,6 +117,7 @@ _PACKAGED_FINAL_MANIFEST = "processed_manifest"
 _PACKAGED_RESOURCE_APK = "resources_apk"
 _PACKAGED_CLASS_JAR = "class_jar"
 _PACKAGED_VALIDATION_RESULT = "validation_result"
+_RESOURCE_MINSDK_PROGUARD_CONFIG = "resource_minsdk_proguard_config"
 _RESOURCE_PROGUARD_CONFIG = "resource_proguard_config"
 
 _ResourcesPackageContextInfo = provider(
@@ -128,6 +129,7 @@ _ResourcesPackageContextInfo = provider(
         _PACKAGED_VALIDATION_RESULT: "Validation result.",
         _R_JAVA: "JavaInfo for R.jar",
         _DATA_BINDING_LAYOUT_INFO: "Databinding layout info file.",
+        _RESOURCE_MINSDK_PROGUARD_CONFIG: "Resource minSdkVersion proguard config",
         _RESOURCE_PROGUARD_CONFIG: "Resource proguard config",
         _PROVIDERS: "The list of all providers to propagate.",
     },
@@ -451,6 +453,7 @@ def _package(
         enable_data_binding = False,
         enable_manifest_merging = True,
         should_compile_java_srcs = True,
+        minsdk_proguard_config = None,
         aapt = None,
         has_local_proguard_specs = False,
         android_jar = None,
@@ -507,6 +510,8 @@ def _package(
         produce build failures.
       enable_manifest_merging: boolean. If true, manifest merging will be performed.
       should_compile_java_srcs: boolean. If native android_binary should perform java compilation.
+      minsdk_proguard_config: Optional file. Proguard config for the minSdkVersion to include in the
+        returned resource context.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       android_jar: File. The Android jar.
       legacy_merger: FilesToRunProvider. The legacy manifest merger executable.
@@ -712,6 +717,7 @@ def _package(
     packaged_resources_ctx[_PACKAGED_RESOURCE_APK] = resource_apk
     packaged_resources_ctx[_PACKAGED_VALIDATION_RESULT] = resource_files_zip
     packaged_resources_ctx[_RESOURCE_PROGUARD_CONFIG] = proguard_cfg
+    packaged_resources_ctx[_RESOURCE_MINSDK_PROGUARD_CONFIG] = minsdk_proguard_config
 
     # Fix class jar name because some tests depend on {label_name}_resources.jar being the suffix of
     # the path, with _common.PACKAGED_RESOURCES_SUFFIX removed from the label name.
