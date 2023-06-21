@@ -94,7 +94,8 @@ def _get_transitive_native_libs(ctx):
     return depset(
         transitive = [
             dep[AndroidNativeLibsInfo].native_libs
-            for dep in ctx.attr.deps
+            for deps in ctx.split_attr.deps.values()
+            for dep in deps
             if AndroidNativeLibsInfo in dep
         ],
     )
