@@ -223,7 +223,7 @@ def _dex_merge(
         inputs = inputs,
         outputs = [output],
         mnemonic = "DexMerger",
-        progress_message = "Assembling dex files into" + output.short_path,
+        progress_message = "Assembling dex files into " + output.short_path,
     )
 
 def _merger_dexopts(tokenized_dexopts, dexopts_supported_in_dex_merger):
