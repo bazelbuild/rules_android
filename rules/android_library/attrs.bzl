@@ -22,6 +22,16 @@ load("//rules:providers.bzl", "StarlarkApkInfo")
 
 ATTRS = _attrs.add(
     dict(
+        baseline_profiles = attr.label_list(
+            allow_files = [".txt"],
+            doc = (
+                "The list of baseline profiles. They provide a way for developers " +
+                "to provide profile rules and could be used at installation time to " +
+                "speed up app startup and reduce jank. See " +
+                "https://developer.android.com/topic/performance/baselineprofiles/overview for " +
+                "more details."
+            ),
+        ),
         deps = attr.label_list(
             providers = [
                 [CcInfo],

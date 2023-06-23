@@ -72,6 +72,15 @@ ATTRS = _attrs.replace(
                 allow_files = False,
                 allow_rules = ["android_binary", "android_test"],
             ),
+            generate_art_profile = attr.bool(
+                default = True,
+                doc = """
+                Whether to generate ART profile. If true, the ART profile will be generated
+                and bundled into your APK’s asset directory. During APK installation, Android
+                Runtime(ART) will perform Ahead-of-time (AOT) compilation of methods in the
+                profile, speeding up app startup time or reducing jank in some circumstances.
+                """,
+            ),
             proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
             resource_apks = attr.label_list(
                 allow_rules = ["apk_import"],
