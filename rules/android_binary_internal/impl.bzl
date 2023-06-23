@@ -293,8 +293,8 @@ def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **
                 desugar_dict[jar] = desugared_jar
 
             for jar in java_info.transitive_runtime_jars.to_list():
-                if jar in desugar_dict and desugar_dict[jar]:
-                    desugared_jars.append(desugar_dict[jar])
+                if jar in desugar_dict:
+                    desugared_jars.append(desugar_dict[jar] if desugar_dict[jar] else jar)
 
             runtime_jars = depset(desugared_jars)
         else:
