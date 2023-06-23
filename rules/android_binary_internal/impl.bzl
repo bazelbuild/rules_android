@@ -15,6 +15,7 @@
 """Implementation."""
 
 load("//rules:acls.bzl", "acls")
+load("//rules:baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load("//rules:common.bzl", "common")
 load("//rules:data_binding.bzl", "data_binding")
 load("//rules:java.bzl", "java")
@@ -361,6 +362,32 @@ def _is_test_binary(ctx):
     """
     return ctx.attr.testonly or ctx.attr.instruments or str(ctx.label).find("/javatests/") >= 0
 
+def _process_baseline_profiles(ctx, dex_ctx, **_unused_ctxs):
+    providers = []
+    if (ctx.attr.generate_art_profile and
+        acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label))):
+        transitive_profiles = depset(
+            transitive = [
+                profile_provider.files
+                for profile_provider in utils.collect_providers(
+                    BaselineProfileProvider,
+                    ctx.attr.deps,
+                )
+            ],
+        )
+        if transitive_profiles:
+            providers.append(
+                _baseline_profiles.process(
+                    ctx,
+                    dex_ctx.dex_info.final_classes_dex_zip,
+                    transitive_profiles,
+                ),
+            )
+    return ProviderInfo(
+        name = "bp_ctx",
+        value = struct(providers = providers),
+    )
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
@@ -376,6 +403,7 @@ PROCESSORS = dict(
     BuildInfoProcessor = _process_build_info,
     DeployJarProcessor = _process_deploy_jar,
     DexProcessor = _process_dex,
+    BaselineProfilesProcessor = _process_baseline_profiles,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(

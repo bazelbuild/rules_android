@@ -169,6 +169,11 @@ _ATTRS = dict(
         default = "@androidsdk//:fail",  # TODO: "//src/tools/jdeps", needs Go
         executable = True,
     ),
+    merge_baseline_profiles_tool = attr.label(
+      default = "@androidsdk//:fail",
+      cfg = "exec",
+      executable = True
+      ),
     object_method_rewriter = attr.label(
         allow_files = True,
         cfg = "exec",
@@ -178,6 +183,11 @@ _ATTRS = dict(
     proguard_allowlister = attr.label(
         cfg = "exec",
         default = "@bazel_tools//tools/jdk:proguard_whitelister",
+        executable = True,
+    ),
+    profgen = attr.label(
+        default =  "@androidsdk//:fail",
+        cfg = "exec",
         executable = True,
     ),
     proto_map_generator = attr.label(
