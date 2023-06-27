@@ -145,7 +145,7 @@ def _get_aspect_deps(ctx):
 
 def _get_produced_runtime_jars(target, ctx, extra_toolchain_jars):
     if ctx.rule.kind == "proto_library":
-        if not getattr(ctx.rule.attr, "srcs", []):
+        if getattr(ctx.rule.attr, "srcs", []):
             if JavaInfo in target:
                 return [java_output.class_jar for java_output in target[JavaInfo].java_outputs]
         return []
