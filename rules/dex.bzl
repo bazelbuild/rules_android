@@ -39,7 +39,7 @@ def _process_incremental_dexing(
     dex_archives_list = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
     dex_archives = _to_dexed_classpath(
         dex_archives_dict = {d.jar: d.dex for d in dex_archives_list},
-        classpath = java_info.transitive_runtime_jars.to_list(),
+        classpath = _filter(java_info.transitive_runtime_jars.to_list(), excludes = _get_library_r_jars(deps)),
         runtime_jars = runtime_jars,
     )
 
@@ -199,6 +199,12 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
 
         return java8_legacy_dex, java8_legacy_dex_map
 
+def _get_library_r_jars(deps):
+    transitive_resource_jars = []
+    for dep in utils.collect_providers(AndroidLibraryResourceClassJarProvider, deps):
+        transitive_resource_jars += dep.jars.to_list()
+    return transitive_resource_jars
+
 def _dex_merge(
         ctx,
         output = None,
@@ -227,10 +233,10 @@ def _dex_merge(
     )
 
 def _merger_dexopts(tokenized_dexopts, dexopts_supported_in_dex_merger):
-    return _normalize_dexopts(_filter_dexopts(tokenized_dexopts, dexopts_supported_in_dex_merger))
+    return _normalize_dexopts(_filter(tokenized_dexopts, includes = dexopts_supported_in_dex_merger))
 
 def _incremental_dexopts(tokenized_dexopts, dexopts_supported_in_incremental_dexing):
-    return _normalize_dexopts(_filter_dexopts(tokenized_dexopts, dexopts_supported_in_incremental_dexing))
+    return _normalize_dexopts(_filter(tokenized_dexopts, includes = dexopts_supported_in_incremental_dexing))
 
 def _merge_infos(infos):
     dex_archives_dict = {}
@@ -245,8 +251,14 @@ def _merge_infos(infos):
             {dexopts: depset(direct = [], transitive = dex_archives) for dexopts, dex_archives in dex_archives_dict.items()},
     )
 
-def _filter_dexopts(candidates, allowed):
-    return [c for c in candidates if c in allowed]
+def _filter(candidates, includes = [], excludes = []):
+    if excludes and includes:
+        fail("Only one of excludes list and includes list can be set.")
+    if includes:
+        return [c for c in candidates if c in includes]
+    if excludes:
+        return [c for c in candidates if c not in excludes]
+    return candidates
 
 def _normalize_dexopts(tokenized_dexopts):
     def _dx_to_dexbuilder(opt):
