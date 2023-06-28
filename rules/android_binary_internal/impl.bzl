@@ -273,12 +273,12 @@ def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **
         info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, ctx.attr.deps))
         incremental_dexopts = _dex.incremental_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
         dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
-
+        binary_runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
         if ctx.fragments.android.desugar_java8:
             desugared_jars = []
             desugar_dict = {d.jar: d.desugared_jar for d in dex_archives}
 
-            for jar in java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]:
+            for jar in binary_runtime_jars:
                 desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_desugared.jar")
                 _desugar.desugar(
                     ctx,
@@ -298,10 +298,7 @@ def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **
 
             runtime_jars = depset(desugared_jars)
         else:
-            runtime_jars = depset(transitive = [
-                java_info.runtime_output_jars,
-                java_info.transitive_runtime_jars,
-            ])
+            runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jar])
 
         output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
         deploy_jar = java.create_deploy_jar(
