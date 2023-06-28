@@ -33,13 +33,58 @@ split_config_aspect = aspect(
     implementation = _split_config_aspect_impl,
 )
 
-def process(ctx, filename):
+def process_java_infos(_ctx, deps):
+    """Collects JavaInfos for process()
+
+    Args:
+        _ctx: Unused ctx (need this for uniformity)
+        deps: List of deps
+
+    Returns:
+        List of JavaInfo.cc_link_params_info for all deps
+    """
+    return [dep[JavaInfo].cc_link_params_info for dep in deps if JavaInfo in dep]
+
+def process_android_cc_link_params_infos(_ctx, deps):
+    """Collects AndroidCcLinkParamsInfo for process()
+
+    Args:
+        _ctx: Unused ctx (need this for uniformity)
+        deps: List of deps
+
+    Returns:
+        List of AndroidCcLinkParamsInfo.link_params for all deps
+    """
+    return [dep[AndroidCcLinkParamsInfo].link_params for dep in deps if AndroidCcLinkParamsInfo in dep]
+
+def process_cc_infos(_ctx, deps):
+    """Collects CcInfos for process()
+
+    Args:
+        _ctx: Unused ctx (need this for uniformity)
+        deps: List of deps
+
+    Returns:
+        List of CcInfo's for all deps
+    """
+    return [dep[CcInfo] for dep in deps if CcInfo in dep]
+
+DEFAULT_NATIVE_DEP_SUBPROCESSORS = dict(
+    NativeDepsProcessJavaInfos = process_java_infos,
+    NativeDepsProcessAndroidCcLinkParamsInfos = process_android_cc_link_params_infos,
+    NativeDepsProcessCcInfos = process_cc_infos,
+)
+
+def process(ctx, filename, subprocessors = DEFAULT_NATIVE_DEP_SUBPROCESSORS):
     """ Links native deps into a shared library
 
     Args:
       ctx: The context.
       filename: String. The name of the artifact containing the name of the
             linked shared library
+      subprocessors: Dict of function pointers, each element of which handles native
+            dependency collection on a per-provider basis. Defaults to basic collection of JavaInfo,
+            AndroidCcLinkParamsInfo, and CcInfo providers.
 
     Returns:
         Tuple of (libs, libs_name) where libs is a depset of all native deps
@@ -58,14 +103,16 @@ def process(ctx, filename):
             owner = ctx.label,
             user_link_flags = ["-Wl,-soname=lib" + actual_target_name],
         )
+
+        processed_cc_infos = []
+        for subproc in subprocessors.values():
+            processed_cc_infos.extend(subproc(ctx, deps))
         cc_info = cc_common.merge_cc_infos(
             cc_infos = _concat(
                 [CcInfo(linking_context = cc_common.create_linking_context(
                     linker_inputs = depset([linker_input]),
                 ))],
-                [dep[JavaInfo].cc_link_params_info for dep in deps if JavaInfo in dep],
-                [dep[AndroidCcLinkParamsInfo].link_params for dep in deps if AndroidCcLinkParamsInfo in dep],
-                [dep[CcInfo] for dep in deps if CcInfo in dep],
+                processed_cc_infos,
             ),
         )
         libraries = []
