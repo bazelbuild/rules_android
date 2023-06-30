@@ -21,7 +21,7 @@ load(
     _attrs = "attrs",
 )
 
-_DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging"]
+_DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging", "features"]
 
 _DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
 
