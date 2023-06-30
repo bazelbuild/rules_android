@@ -232,6 +232,11 @@ _ATTRS = dict(
         default = "@bazel_tools//tools/android:zip_filter",
         executable = True,
     ),
+    zipper = attr.label(
+        cfg = "exec",
+        default = "@bazel_tools//tools/zip:zipper",
+        executable = True,
+    ),
     dex_zips_merger = attr.label(
         cfg = "exec",
         default = "@bazel_tools//tools/android:merge_dexzips",

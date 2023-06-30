@@ -80,7 +80,7 @@ def _process(ctx, final_classes_dex, transitive_profiles):
     zip_args.add(output_profile_meta.path, format = "assets/dexopt/baseline.profm=%s")
     ctx.actions.run(
         mnemonic = "ZipARTProfiles",
-        executable = get_android_toolchain(ctx).zip_tool.files_to_run,
+        executable = get_android_toolchain(ctx).zipper.files_to_run,
         progress_message = "Zip ART Profiles for %{label}",
         arguments = [zip_args],
         inputs = [output_profile, output_profile_meta],
