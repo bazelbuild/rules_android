@@ -21,6 +21,7 @@ bzl_library(
 string_flag(
     name = "runfiles_root_prefix",
     build_setting_default = "",
+    visibility = ["//visibility:public"],
 )
 
 define_flags()
