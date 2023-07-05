@@ -233,6 +233,7 @@ _ATTRS = dict(
         executable = True,
     ),
     zipper = attr.label(
+        allow_single_file = True,
         cfg = "exec",
         default = "@bazel_tools//tools/zip:zipper",
         executable = True,
