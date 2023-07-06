@@ -113,3 +113,24 @@ def rules_android_prereqs():
         strip_prefix = "abseil-py-1.4.0",
     )
 
+    maybe(
+        http_archive,
+        name = "rules_proto",
+        sha256 = "dc3fb206a2cb3441b485eb1e423165b231235a1ea9b031b4433cf7bc1fa460dd",
+        strip_prefix = "rules_proto-5.3.0-21.7",
+        urls = [
+            "https://github.com/bazelbuild/rules_proto/archive/refs/tags/5.3.0-21.7.tar.gz",
+        ],
+    )
+
+    maybe(
+      http_archive,
+      name = "rules_python",
+      strip_prefix = "rules_python-0.23.1",
+      urls = [
+          "https://github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
+          "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
+      ],
+      sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
+    )
+

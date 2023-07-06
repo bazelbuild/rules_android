@@ -21,6 +21,8 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+load("@rules_python//python:repositories.bzl", "py_repositories")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
@@ -73,4 +75,7 @@ def rules_android_workspace():
     rules_java_dependencies()
     rules_java_toolchains()
 
+    rules_proto_dependencies()
+    rules_proto_toolchains()
 
+    py_repositories()
