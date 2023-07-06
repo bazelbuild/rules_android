@@ -264,7 +264,7 @@ def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctx
         ),
     )
 
-def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **unused_ctx):
+def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **_unused_ctxs):
     deploy_jar, desugar_dict = None, {}
 
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
