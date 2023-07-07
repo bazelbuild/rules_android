@@ -71,6 +71,7 @@ load(
 load("//rules/acls:android_instrumentation_test_manifest_check_rollout.bzl", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT")
 load("//rules/acls:android_instrumentation_test_prebuilt_test_apk.bzl", "ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT")
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
+load("//rules/acls:baseline_profiles_optimizer_integration.bzl", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION")
 load("//rules/acls:enforce_min_sdk_floor_rollout.bzl", "ENFORCE_MIN_SDK_FLOOR_FALLBACK", "ENFORCE_MIN_SDK_FLOOR_ROLLOUT")
 load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
 load("//rules/acls:android_local_test_jdk_sts_rollout.bzl", "ANDROID_LOCAL_TEST_JDK_STS_FALLBACK", "ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT")
@@ -201,6 +202,9 @@ def _get_android_archive_exposed_package_allowlist(fqn):
 def _in_baseline_profiles_rollout(fqn):
     return matches(fqn, BASELINE_PROFILES_ROLLOUT)
 
+def _in_baseline_profiles_optimizer_integration(fqn):
+    return matches(fqn, BASELINE_PROFILES_OPTIMIZER_INTEGRATION)
+
 def _in_enforce_min_sdk_floor_rollout(fqn):
     return not matches(fqn, ENFORCE_MIN_SDK_FLOOR_FALLBACK_DICT) and matches(fqn, ENFORCE_MIN_SDK_FLOOR_ROLLOUT_DICT)
 
@@ -290,6 +294,7 @@ ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK_DICT = make_dict(ANDROID_IN
 ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT_DICT = make_dict(ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT)
 ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_FALLBACK_DICT = make_dict(ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_FALLBACK)
 BASELINE_PROFILES_ROLLOUT_DICT = make_dict(BASELINE_PROFILES_ROLLOUT)
+BASELINE_PROFILES_OPTIMIZER_INTEGRATION_DICT = make_dict(BASELINE_PROFILES_OPTIMIZER_INTEGRATION)
 ENFORCE_MIN_SDK_FLOOR_ROLLOUT_DICT = make_dict(ENFORCE_MIN_SDK_FLOOR_ROLLOUT)
 ENFORCE_MIN_SDK_FLOOR_FALLBACK_DICT = make_dict(ENFORCE_MIN_SDK_FLOOR_FALLBACK)
 ANDROID_APK_TO_BUNDLE_FEATURES_DICT = make_dict(ANDROID_APK_TO_BUNDLE_FEATURES)
@@ -384,6 +389,7 @@ acls = struct(
     in_android_instrumentation_test_manifest_check_rollout = _in_android_instrumentation_test_manifest_check_rollout,
     in_android_instrumentation_test_prebuilt_test_apk = _in_android_instrumentation_test_prebuilt_test_apk,
     in_baseline_profiles_rollout = _in_baseline_profiles_rollout,
+    in_baseline_profiles_optimizer_integration = _in_baseline_profiles_optimizer_integration,
     in_enforce_min_sdk_floor_rollout = _in_enforce_min_sdk_floor_rollout,
     in_android_apk_to_bundle_features = _in_android_apk_to_bundle_features,
     in_android_local_test_jdk_sts_rollout = _in_android_local_test_jdk_sts_rollout,
