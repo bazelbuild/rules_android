@@ -254,7 +254,7 @@ def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
 def _process_proguard(ctx, idl_ctx, **unused_sub_ctxs):
     return ProviderInfo(
         name = "proguard_ctx",
-        value = _proguard.process(
+        value = _proguard.process_specs(
             ctx,
             proguard_configs = ctx.files.proguard_specs,
             proguard_spec_providers = utils.collect_providers(

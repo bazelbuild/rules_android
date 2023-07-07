@@ -14,9 +14,10 @@
 
 """Bazel Android Proguard library for the Android rules."""
 
+load(":common.bzl", "common")
 load(":utils.bzl", "utils")
 
-_ProguardContextInfo = provider(
+_ProguardSpecContextInfo = provider(
     doc = "Contains data from processing Proguard specs.",
     fields = dict(
         proguard_configs = "The direct proguard configs",
@@ -46,7 +47,7 @@ def _validate_proguard_spec(
         ),
     )
 
-def _process(
+def _process_specs(
         ctx,
         proguard_configs = [],
         proguard_spec_providers = [],
@@ -63,7 +64,7 @@ def _process(
       proguard_allowlister: The proguard_allowlister exeutable provider.
 
     Returns:
-      A _ProguardContextInfo provider.
+      A _ProguardSpecContextInfo provider.
     """
 
     # TODO(djwhang): Look to see if this can be just a validation action and the
@@ -91,7 +92,7 @@ def _process(
         transitive = transitive_validated_proguard_configs,
         order = "preorder",
     )
-    return _ProguardContextInfo(
+    return _ProguardSpecContextInfo(
         proguard_configs = proguard_configs,
         transitive_proguard_configs = transitive_proguard_configs,
         providers = [
@@ -139,13 +140,44 @@ def _get_proguard_specs(
 
     return proguard_specs
 
+def _generate_min_sdk_version_assumevalues(
+        ctx,
+        output = None,
+        manifest = None,
+        generate_exec = None):
+    """Reads the minSdkVersion from an AndroidManifest to generate Proguard specs."""
+    args = ctx.actions.args()
+    inputs = []
+    outputs = []
+
+    args.add("--manifest", manifest)
+    inputs.append(manifest)
+
+    args.add("--output", output)
+    outputs.append(output)
+
+    ctx.actions.run(
+        inputs = inputs,
+        outputs = outputs,
+        executable = generate_exec,
+        arguments = [args],
+        mnemonic = "MinSdkVersionAssumeValuesProguardSpecGenerator",
+        progress_message = "Adding -assumevalues spec for minSdkVersion",
+    )
+
+def _get_proguard_temp_artifact_with_prefix(ctx, label, prefix, name):
+    native_label_name = label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
+    return ctx.actions.declare_file("proguard/" + native_label_name + "/" + prefix + "_" + native_label_name + "_" + name)
+
 proguard = struct(
-    process = _process,
+    process_specs = _process_specs,
+    generate_min_sdk_version_assumevalues = _generate_min_sdk_version_assumevalues,
     get_proguard_specs = _get_proguard_specs,
+    get_proguard_temp_artifact_with_prefix = _get_proguard_temp_artifact_with_prefix,
 )
 
 testing = struct(
     validate_proguard_spec = _validate_proguard_spec,
     collect_transitive_proguard_specs = _collect_transitive_proguard_specs,
-    ProguardContextInfo = _ProguardContextInfo,
+    ProguardSpecContextInfo = _ProguardSpecContextInfo,
 )
