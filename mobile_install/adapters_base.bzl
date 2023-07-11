@@ -17,7 +17,6 @@ load(":adapters/aar_import.bzl", "aar_import")
 load(":adapters/android_binary.bzl", "android_binary")
 load(":adapters/android_library.bzl", "android_library")
 load(":adapters/android_sdk.bzl", "android_sdk")
-load(":adapters/android_test.bzl", "android_test")
 load(":adapters/android_instrumentation_test.bzl", "android_instrumentation_test")
 load(":adapters/apk_import.bzl", "apk_import")
 load(":adapters/java_import.bzl", "java_import")
@@ -32,7 +31,6 @@ ADAPTERS = dict(
     android_binary = android_binary,
     android_library = android_library,
     android_sdk = android_sdk,
-    android_test = android_test,
     android_instrumentation_test = android_instrumentation_test,
     apk_import = apk_import,
     java_import = java_import,
