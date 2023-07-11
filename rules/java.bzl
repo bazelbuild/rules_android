@@ -362,9 +362,11 @@ def _singlejar(
         output,
         mnemonic = "SingleJar",
         progress_message = "Merge into a single jar.",
+        build_target = "",
+        deploy_manifest_lines = [],
+        check_desugar_deps = False,
         include_build_data = False,
         java_toolchain = None,
-        extra_args = [],
         resource_set = None):
     args = ctx.actions.args()
     args.add("--output")
@@ -378,12 +380,19 @@ def _singlejar(
         args.add("--sources")
         args.add_all(inputs)
 
+    if build_target:
+        args.add("--build_target", build_target)
+    if check_desugar_deps:
+        args.add("--check_desugar_deps")
+    if deploy_manifest_lines:
+        args.add_all("--deploy_manifest_lines", deploy_manifest_lines)
+
     args.use_param_file("@%s")
     args.set_param_file_format("multiline")
 
     ctx.actions.run(
         executable = java_toolchain[java_common.JavaToolchainInfo].single_jar,
-        arguments = [args] + extra_args,
+        arguments = [args],
         inputs = inputs,
         outputs = [output],
         mnemonic = mnemonic,
@@ -444,30 +453,18 @@ def _create_deploy_jar(
         output = None,
         runtime_jars = depset(),
         java_toolchain = None,
-        target_name = "",
-        build_info_files = depset(),
-        deploy_manifest_lines = [],
-        extra_build_info = ""):
-    inputs = depset(transitive = [runtime_jars, build_info_files])
-
-    args = ctx.actions.args()
-    args.add("--build_target", target_name)
-    args.add("--check_desugar_deps")
-
-    if build_info_files:
-        args.add_all(build_info_files, before_each = "--build_info_file")
-
-    args.add_all("--deploy_manifest_lines", deploy_manifest_lines)
-    args.add("--extra_build_info", extra_build_info)
-
+        build_target = "",
+        deploy_manifest_lines = []):
     _singlejar(
         ctx,
-        inputs = inputs,
+        inputs = runtime_jars,
         output = output,
         mnemonic = "JavaDeployJar",
         progress_message = "Building deploy jar %s" % output.short_path,
         java_toolchain = java_toolchain,
-        extra_args = [args],
+        build_target = build_target,
+        deploy_manifest_lines = deploy_manifest_lines,
+        check_desugar_deps = True,
         resource_set = _resource_set_for_deploy_jar,
     )
     return output

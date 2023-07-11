@@ -188,9 +188,7 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
     return ProviderInfo(
         name = "build_info_ctx",
         value = struct(
-            build_info_files = depset(),
             deploy_manifest_lines = [],
-            extra_build_info = "",
             providers = [],
         ),
     )
@@ -306,10 +304,8 @@ def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **
             output = output,
             runtime_jars = runtime_jars,
             java_toolchain = java_toolchain,
-            target_name = ctx.label.name,
-            build_info_files = build_info_ctx.build_info_files,
+            build_target = ctx.label.name,
             deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
-            extra_build_info = build_info_ctx.extra_build_info,
         )
 
     return ProviderInfo(
