@@ -194,7 +194,7 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
         ),
     )
 
-def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctxs):
+def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctxs):
     providers = []
     classes_dex_zip = None
     dex_info = None
@@ -203,7 +203,8 @@ def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctx
     is_binary_optimized = len(ctx.attr.proguard_specs) > 0
 
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
-        runtime_jars = jvm_ctx.java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
+        java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
+        runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
         forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
         java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(
             ctx,
@@ -230,7 +231,7 @@ def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctx
                 runtime_jars = runtime_jars,
                 main_dex_list = ctx.file.main_dex_list,
                 min_sdk_version = ctx.attr.min_sdk_version,
-                java_info = jvm_ctx.java_info,
+                java_info = java_info,
                 desugar_dict = deploy_ctx.desugar_dict,
                 dexbuilder = get_android_toolchain(ctx).dexbuilder.files_to_run,
                 dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
@@ -263,12 +264,12 @@ def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctx
         ),
     )
 
-def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **_unused_ctxs):
+def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **_unused_ctxs):
     deploy_jar, desugar_dict = None, {}
 
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         java_toolchain = common.get_java_toolchain(ctx)
-        java_info = jvm_ctx.java_info
+        java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
         info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
         incremental_dexopts = _dex.incremental_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
         dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
