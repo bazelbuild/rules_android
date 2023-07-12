@@ -160,13 +160,13 @@ _ATTRS = dict(
     java_stub = attr.label(
         allow_files = True,
         # used in android_local_test
-        default = "@androidsdk//:fail",  # TODO: java_stub_template.txt gets embedded in bazel's jar, need a copy in @bazel_tools or similar
+        default = "@bazel_tools//tools/java:java_stub_template.txt",
     ),
     jdeps_tool = attr.label(
         allow_files = True,
         cfg = "exec",
         # used in android_local_test
-        default = "@androidsdk//:fail",  # TODO: "//src/tools/jdeps", needs Go
+        default = "//src/tools/jdeps",
         executable = True,
     ),
     merge_baseline_profiles_tool = attr.label(
