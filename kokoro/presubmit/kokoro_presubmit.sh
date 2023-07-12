@@ -73,6 +73,7 @@ cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
 
 "$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
   //src/tools/ak/... \
+  //src/tools/jdeps/... \
   //test/...
 
 # Go to basic app workspace in the source tree
