@@ -33,6 +33,7 @@ load(
 load("//rules:providers.bzl", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
 load("//rules:dex.bzl", _dex = "dex")
 load("//rules:desugar.bzl", _desugar = "desugar")
+load("//rules:dex_desugar_aspect.bzl", _get_dex_desugar_aspect_deps = "get_aspect_deps")
 
 def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
@@ -224,7 +225,7 @@ def _process_dex(ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctx
         if incremental_dexing:
             classes_dex_zip = _dex.process_incremental_dexing(
                 ctx,
-                deps = ctx.attr.deps,
+                deps = _get_dex_desugar_aspect_deps(ctx),
                 dexopts = ctx.attr.dexopts,
                 runtime_jars = runtime_jars,
                 main_dex_list = ctx.file.main_dex_list,
@@ -268,7 +269,7 @@ def _process_deploy_jar(ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         java_toolchain = common.get_java_toolchain(ctx)
         java_info = jvm_ctx.java_info
-        info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, ctx.attr.deps))
+        info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
         incremental_dexopts = _dex.incremental_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
         dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
         binary_runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
