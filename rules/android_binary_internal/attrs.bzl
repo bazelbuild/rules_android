@@ -113,12 +113,6 @@ ATTRS = _attrs.replace(
                 default = "@bazel_tools//tools/cpp:current_cc_toolchain",
                 aspects = [split_config_aspect],
             ),
-            _grep_includes = attr.label(
-                allow_single_file = True,
-                executable = True,
-                cfg = "exec",
-                default = Label("@@bazel_tools//tools/cpp:grep-includes"),
-            ),
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,
