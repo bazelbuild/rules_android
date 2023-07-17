@@ -42,6 +42,10 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         custom_package = attr.string(),
         feature_modules = attr.label_list(allow_files = False),
+        excludes = attr.string_list(
+            doc = "List of regex file patterns to exclude from the final binary. If you use excludes, make sure that" +
+                  " you do not utilise any code path requiring the excluded dependency by sufficient test coverage."
+        ),
         _bundle_deploy = attr.label(
             allow_single_file = True,
             default = ":bundle_deploy.sh_template",
