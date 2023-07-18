@@ -156,13 +156,13 @@ def _generate_dummy_manifest(
         ctx,
         out_manifest = None,
         java_package = None,
-        min_sdk_version = None):
+        min_sdk_version = _DEPOT_MIN_SDK_FLOOR):
     content = """<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="%s">""" % (java_package or "com.default")
 
-    if min_sdk_version:
-        content = content + """
+    min_sdk_version = max(min_sdk_version, _DEPOT_MIN_SDK_FLOOR)
+    content = content + """
     <uses-sdk android:minSdkVersion="%s" />""" % min_sdk_version
 
     content = content + """
@@ -1378,7 +1378,7 @@ def _process_starlark(
                 ctx,
                 out_manifest = generated_manifest,
                 java_package = java_package if java_package else ctx.label.package.replace("/", "."),
-                min_sdk_version = 14,
+                min_sdk_version = _DEPOT_MIN_SDK_FLOOR,
             )
             r_txt = ctx.actions.declare_file(
                 "_migrated/" + ctx.label.name + "_symbols/R.txt",
