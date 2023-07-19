@@ -23,15 +23,37 @@ SplitConfigInfo = provider(
     doc = "Provides information about configuration for a split config dep",
     fields = dict(
         build_config = "The build configuration of the dep.",
+        android_config = "Select fields from the android configuration of the dep.",
+        target_platform = "The target platform label of the dep.",
     ),
 )
 
 def _split_config_aspect_impl(__, ctx):
-    return SplitConfigInfo(build_config = ctx.configuration)
+    android_cfg = ctx.fragments.android
+    return SplitConfigInfo(
+        build_config = ctx.configuration,
+        android_config = struct(
+            incompatible_use_toolchain_resolution = android_cfg.incompatible_use_toolchain_resolution,
+            android_cpu = android_cfg.android_cpu,
+            hwasan = android_cfg.hwasan,
+        ),
+        target_platform = ctx.fragments.platform.platform,
+    )
 
 split_config_aspect = aspect(
     implementation = _split_config_aspect_impl,
+    fragments = ["android"],
 )
+
+def _get_libs_dir_name(android_config, target_platform):
+    if android_config.incompatible_use_toolchain_resolution:
+        name = target_platform.name
+    else:
+        # Legacy builds use the CPU as the name.
+        name = android_config.android_cpu
+    if android_config.hwasan:
+        name = name + "-hwasan"
+    return name
 
 def process_java_infos(_ctx, deps):
     """Collects JavaInfos for process()
@@ -99,6 +121,10 @@ def process(ctx, filename, subprocessors = DEFAULT_NATIVE_DEP_SUBPROCESSORS):
         cc_toolchain_dep = ctx.split_attr._cc_toolchain_split[key]
         cc_toolchain = cc_toolchain_dep[cc_common.CcToolchainInfo]
         build_config = cc_toolchain_dep[SplitConfigInfo].build_config
+        libs_dir_name = _get_libs_dir_name(
+            cc_toolchain_dep[SplitConfigInfo].android_config,
+            cc_toolchain_dep[SplitConfigInfo].target_platform,
+        )
         linker_input = cc_common.create_linker_input(
             owner = ctx.label,
             user_link_flags = ["-Wl,-soname=lib" + actual_target_name],
@@ -125,7 +151,7 @@ def process(ctx, filename, subprocessors = DEFAULT_NATIVE_DEP_SUBPROCESSORS):
         libraries.extend(_filter_unique_shared_libs(native_deps_lib, cc_info))
 
         if libraries:
-            libs[key] = depset(libraries)
+            libs[libs_dir_name] = depset(libraries)
 
     if libs and native_libs_basename:
         libs_name = ctx.actions.declare_file("nativedeps_filename/" + actual_target_name + "/" + filename)
