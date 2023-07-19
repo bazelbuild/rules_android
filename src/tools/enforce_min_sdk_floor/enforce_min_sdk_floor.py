@@ -72,6 +72,9 @@ def ParseNamespaces(xml_content):
   Args:
     xml_content: str, the contents of the AndroidManifest.xml file
   """
+  # Always register the android namespace first. This will be overriden by
+  # any other definition in the manifest.
+  ET.register_namespace("android", "http://schemas.android.com/apk/res/android")
   ns_parser = ET.XMLPullParser(events=["start-ns"])
   ns_parser.feed(xml_content)
   ns_parser.close()
