@@ -110,11 +110,11 @@ def _collect_transitive_proguard_specs(
     if len(local_proguard_specs) == 0:
         return []
 
-    proguard_specs = local_proguard_specs + specs_to_include
-    for dep in proguard_deps:
-        proguard_specs.extend(dep.specs.to_list())
-
-    return sorted(proguard_specs)
+    proguard_specs = depset(
+        local_proguard_specs + specs_to_include,
+        transitive = [dep.specs for dep in proguard_deps],
+    )
+    return sorted(proguard_specs.to_list())
 
 def _get_proguard_specs(
         ctx,
