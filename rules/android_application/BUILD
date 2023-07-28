@@ -1,5 +1,6 @@
 # The android_application rule.
 
+load("@rules_python//python:defs.bzl", "py_binary")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 licenses(["notice"])
@@ -43,4 +44,3 @@ filegroup(
     output_group = "python_zip_file",
     visibility = ["//visibility:public"],
 )
-
