@@ -96,6 +96,12 @@ _ATTRS = dict(
         default = "//tools/android:bundletool_deploy.jar",
         executable = True,
     ),
+    bundletool_module_builder = attr.label(
+        allow_single_file = True,
+        cfg = "exec",
+        default = "//src/tools/bundletool_module_builder",
+        executable = True,
+    ),
     centralize_r_class_tool = attr.label(
         allow_files = True,
         cfg = "exec",

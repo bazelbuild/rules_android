@@ -27,77 +27,6 @@ _density_mapping = {
     "tvdpi": 213,
 }
 
-def _proto_apk_to_module(
-        ctx,
-        out = None,
-        proto_apk = None,
-        zip = None,
-        unzip = None):
-    # TODO(timpeut): rewrite this as a standalone golang tool
-    ctx.actions.run_shell(
-        command = """
-set -e
-
-IN_DIR=$(mktemp -d)
-OUT_DIR=$(mktemp -d)
-CUR_PWD=$(pwd)
-UNZIP=%s
-ZIP=%s
-INPUT=%s
-OUTPUT=%s
-
-"${UNZIP}" -qq "${INPUT}" -d "${IN_DIR}"
-cd "${IN_DIR}"
-
-if [ -f resources.pb ]; then
-  mv resources.pb "${OUT_DIR}/"
-fi
-
-if [ -f AndroidManifest.xml ]; then
-  mkdir "${OUT_DIR}/manifest"
-  mv AndroidManifest.xml "${OUT_DIR}/manifest/"
-fi
-
-NUM_DEX=`ls -1 *.dex 2>/dev/null | wc -l`
-if [ $NUM_DEX != 0 ]; then
-  mkdir "${OUT_DIR}/dex"
-  mv *.dex "${OUT_DIR}/dex/"
-fi
-
-if [ -d res ]; then
-  mv res "${OUT_DIR}/res"
-fi
-
-if [ -d assets ]; then
-  mv assets "${OUT_DIR}/"
-fi
-
-if [ -d lib ]; then
-  mv lib "${OUT_DIR}/"
-fi
-
-UNKNOWN=`ls -1 * 2>/dev/null | wc -l`
-if [ $UNKNOWN != 0 ]; then
-  mkdir "${OUT_DIR}/root"
-  mv * "${OUT_DIR}/root/"
-fi
-
-cd "${OUT_DIR}"
-"${CUR_PWD}/${ZIP}" "${CUR_PWD}/${OUTPUT}" -Drq0 .
-""" % (
-            unzip.executable.path,
-            zip.executable.path,
-            proto_apk.path,
-            out.path,
-        ),
-        tools = [zip, unzip],
-        arguments = [],
-        inputs = [proto_apk],
-        outputs = [out],
-        mnemonic = "Rebundle",
-        progress_message = "Rebundle to %s" % out.short_path,
-    )
-
 def _build(
         ctx,
         out = None,
@@ -131,66 +60,64 @@ def _build(
         progress_message = "Building bundle %s" % out.short_path,
     )
 
-def _extract_config(
+def _build_device_json(
+        ctx,
+        out,
+        abis,
+        locales,
+        density,
+        sdk_version):
+    json_content = json.encode(struct(
+        supportedAbis = abis,
+        supportedLocales = locales,
+        screenDensity = _density_mapping[density],
+        sdkVersion = int(sdk_version),
+    ))
+    ctx.actions.write(out, json_content)
+
+def _build_sdk_bundle(
         ctx,
         out = None,
-        aab = None,
-        bundletool = None,
-        host_javabase = None):
-    # Need to execute as a shell script as the tool outputs to stdout
-    cmd = """
-set -e
-contents=`%s -jar %s dump config --bundle %s`
-echo "$contents" > %s
-""" % (
-        host_javabase[java_common.JavaRuntimeInfo].java_executable_exec_path,
-        bundletool.executable.path,
-        aab.path,
-        out.path,
-    )
-
-    ctx.actions.run_shell(
-        inputs = [aab],
-        outputs = [out],
-        tools = depset([bundletool.executable], transitive = [host_javabase[java_common.JavaRuntimeInfo].files]),
-        mnemonic = "ExtractBundleConfig",
-        progress_message = "Extract bundle config to %s" % out.short_path,
-        command = cmd,
-    )
-
-def _extract_manifest(
-        ctx,
-        out = None,
-        aab = None,
         module = None,
-        xpath = None,
+        sdk_modules_config = None,
         bundletool = None,
         host_javabase = None):
-    # Need to execute as a shell script as the tool outputs to stdout
-    extra_flags = []
-    if module:
-        extra_flags.append("--module " + module)
-    if xpath:
-        extra_flags.append("--xpath " + xpath)
-    cmd = """
-set -e
-contents=`%s -jar %s dump manifest --bundle %s %s`
-echo "$contents" > %s
-""" % (
-        host_javabase[java_common.JavaRuntimeInfo].java_executable_exec_path,
-        bundletool.executable.path,
-        aab.path,
-        " ".join(extra_flags),
-        out.path,
+    args = ctx.actions.args()
+    args.add("build-sdk-bundle")
+
+    args.add("--sdk-modules-config", sdk_modules_config)
+    args.add("--modules", module)
+    args.add("--output", out)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = bundletool,
+        arguments = [args],
+        inputs = [
+            module,
+            sdk_modules_config,
+        ],
+        outputs = [out],
+        mnemonic = "BuildASB",
+        progress_message = "Building SDK bundle %s" % out.short_path,
     )
 
-    ctx.actions.run_shell(
-        inputs = [aab],
+def _build_sdk_module(
+        ctx,
+        out = None,
+        internal_apk = None,
+        bundletool_module_builder = None,
+        host_javabase = None):
+    args = ctx.actions.args()
+    args.add("--internal_apk_path", internal_apk)
+    args.add("--output_module_path", out)
+    ctx.actions.run(
+        inputs = [internal_apk],
         outputs = [out],
-        tools = depset([bundletool.executable], transitive = [host_javabase[java_common.JavaRuntimeInfo].files]),
-        mnemonic = "ExtractBundleManifest",
-        progress_message = "Extract bundle manifest to %s" % out.short_path,
-        command = cmd,
+        executable = bundletool_module_builder,
+        arguments = [args],
+        mnemonic = "BuildSdkModule",
+        progress_message = "Building ASB zip module %s" % out.short_path,
     )
 
 def _bundle_to_apks(
@@ -261,24 +188,144 @@ def _bundle_to_apks(
         progress_message = "Converting bundle to .apks: %s" % out.short_path,
     )
 
-def _build_device_json(
+def _extract_config(
         ctx,
-        out,
-        abis,
-        locales,
-        density,
-        sdk_version):
-    json_content = json.encode(struct(
-        supportedAbis = abis,
-        supportedLocales = locales,
-        screenDensity = _density_mapping[density],
-        sdkVersion = int(sdk_version),
-    ))
-    ctx.actions.write(out, json_content)
+        out = None,
+        aab = None,
+        bundletool = None,
+        host_javabase = None):
+    # Need to execute as a shell script as the tool outputs to stdout
+    cmd = """
+set -e
+contents=`%s -jar %s dump config --bundle %s`
+echo "$contents" > %s
+""" % (
+        host_javabase[java_common.JavaRuntimeInfo].java_executable_exec_path,
+        bundletool.executable.path,
+        aab.path,
+        out.path,
+    )
+
+    ctx.actions.run_shell(
+        inputs = [aab],
+        outputs = [out],
+        tools = depset([bundletool.executable], transitive = [host_javabase[java_common.JavaRuntimeInfo].files]),
+        mnemonic = "ExtractBundleConfig",
+        progress_message = "Extract bundle config to %s" % out.short_path,
+        command = cmd,
+    )
+
+def _extract_manifest(
+        ctx,
+        out = None,
+        aab = None,
+        module = None,
+        xpath = None,
+        bundletool = None,
+        host_javabase = None):
+    # Need to execute as a shell script as the tool outputs to stdout
+    extra_flags = []
+    if module:
+        extra_flags.append("--module " + module)
+    if xpath:
+        extra_flags.append("--xpath " + xpath)
+    cmd = """
+set -e
+contents=`%s -jar %s dump manifest --bundle %s %s`
+echo "$contents" > %s
+""" % (
+        host_javabase[java_common.JavaRuntimeInfo].java_executable_exec_path,
+        bundletool.executable.path,
+        aab.path,
+        " ".join(extra_flags),
+        out.path,
+    )
+
+    ctx.actions.run_shell(
+        inputs = [aab],
+        outputs = [out],
+        tools = depset([bundletool.executable], transitive = [host_javabase[java_common.JavaRuntimeInfo].files]),
+        mnemonic = "ExtractBundleManifest",
+        progress_message = "Extract bundle manifest to %s" % out.short_path,
+        command = cmd,
+    )
+
+def _proto_apk_to_module(
+        ctx,
+        out = None,
+        proto_apk = None,
+        zip = None,
+        unzip = None):
+    # TODO(timpeut): migrate this to Bundletool module builder.
+    ctx.actions.run_shell(
+        command = """
+set -e
+
+IN_DIR=$(mktemp -d)
+OUT_DIR=$(mktemp -d)
+CUR_PWD=$(pwd)
+UNZIP=%s
+ZIP=%s
+INPUT=%s
+OUTPUT=%s
+
+"${UNZIP}" -qq "${INPUT}" -d "${IN_DIR}"
+cd "${IN_DIR}"
+
+if [ -f resources.pb ]; then
+  mv resources.pb "${OUT_DIR}/"
+fi
+
+if [ -f AndroidManifest.xml ]; then
+  mkdir "${OUT_DIR}/manifest"
+  mv AndroidManifest.xml "${OUT_DIR}/manifest/"
+fi
+
+NUM_DEX=`ls -1 *.dex 2>/dev/null | wc -l`
+if [ $NUM_DEX != 0 ]; then
+  mkdir "${OUT_DIR}/dex"
+  mv *.dex "${OUT_DIR}/dex/"
+fi
+
+if [ -d res ]; then
+  mv res "${OUT_DIR}/res"
+fi
+
+if [ -d assets ]; then
+  mv assets "${OUT_DIR}/"
+fi
+
+if [ -d lib ]; then
+  mv lib "${OUT_DIR}/"
+fi
+
+UNKNOWN=`ls -1 * 2>/dev/null | wc -l`
+if [ $UNKNOWN != 0 ]; then
+  mkdir "${OUT_DIR}/root"
+  mv * "${OUT_DIR}/root/"
+fi
+
+cd "${OUT_DIR}"
+"${CUR_PWD}/${ZIP}" "${CUR_PWD}/${OUTPUT}" -Drq0 .
+""" % (
+            unzip.executable.path,
+            zip.executable.path,
+            proto_apk.path,
+            out.path,
+        ),
+        tools = [zip, unzip],
+        arguments = [],
+        inputs = [proto_apk],
+        outputs = [out],
+        mnemonic = "Rebundle",
+        progress_message = "Rebundle to %s" % out.short_path,
+    )
 
 bundletool = struct(
     build = _build,
     build_device_json = _build_device_json,
+    build_sdk_bundle = _build_sdk_bundle,
+    build_sdk_module = _build_sdk_module,
     bundle_to_apks = _bundle_to_apks,
     extract_config = _extract_config,
     extract_manifest = _extract_manifest,
