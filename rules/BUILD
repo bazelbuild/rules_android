@@ -51,3 +51,14 @@ bzl_library(
         "//rules/flags:bzl",
     ],
 )
+
+bzl_library(
+    name = "android_binary_bzl",
+    srcs = [
+        "android_binary.bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//rules/android_binary_internal:bzl",
+    ],
+)
