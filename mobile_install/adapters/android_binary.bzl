@@ -82,7 +82,7 @@ def extract(target, ctx):
                 ) +
                 (
                 ),
-                target[JavaInfo].transitive_deps,
+                target[JavaInfo].transitive_compile_time_jars,
             ),
             deps = providers.collect(MIAndroidDexInfo, ctx.rule.attr.deps),
         ),
