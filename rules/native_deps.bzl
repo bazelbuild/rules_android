@@ -55,58 +55,13 @@ def _get_libs_dir_name(android_config, target_platform):
         name = name + "-hwasan"
     return name
 
-def process_java_infos(_ctx, deps):
-    """Collects JavaInfos for process()
-
-    Args:
-        _ctx: Unused ctx (need this for uniformity)
-        deps: List of deps
-
-    Returns:
-        List of JavaInfo.cc_link_params_info for all deps
-    """
-    return [dep[JavaInfo].cc_link_params_info for dep in deps if JavaInfo in dep]
-
-def process_android_cc_link_params_infos(_ctx, deps):
-    """Collects AndroidCcLinkParamsInfo for process()
-
-    Args:
-        _ctx: Unused ctx (need this for uniformity)
-        deps: List of deps
-
-    Returns:
-        List of AndroidCcLinkParamsInfo.link_params for all deps
-    """
-    return [dep[AndroidCcLinkParamsInfo].link_params for dep in deps if AndroidCcLinkParamsInfo in dep]
-
-def process_cc_infos(_ctx, deps):
-    """Collects CcInfos for process()
-
-    Args:
-        _ctx: Unused ctx (need this for uniformity)
-        deps: List of deps
-
-    Returns:
-        List of CcInfo's for all deps
-    """
-    return [dep[CcInfo] for dep in deps if CcInfo in dep]
-
-DEFAULT_NATIVE_DEP_SUBPROCESSORS = dict(
-    NativeDepsProcessJavaInfos = process_java_infos,
-    NativeDepsProcessAndroidCcLinkParamsInfos = process_android_cc_link_params_infos,
-    NativeDepsProcessCcInfos = process_cc_infos,
-)
-
-def process(ctx, filename, subprocessors = DEFAULT_NATIVE_DEP_SUBPROCESSORS):
+def process(ctx, filename):
     """ Links native deps into a shared library
 
     Args:
       ctx: The context.
       filename: String. The name of the artifact containing the name of the
             linked shared library
-      subprocessors: Dict of function pointers, each element of which handles native
-            dependency collection on a per-provider basis. Defaults to basic collection of JavaInfo,
-            AndroidCcLinkParamsInfo, and CcInfo providers.
 
     Returns:
         Tuple of (libs, libs_name) where libs is a depset of all native deps
@@ -129,16 +84,14 @@ def process(ctx, filename, subprocessors = DEFAULT_NATIVE_DEP_SUBPROCESSORS):
             owner = ctx.label,
             user_link_flags = ["-Wl,-soname=lib" + actual_target_name],
         )
-
-        processed_cc_infos = []
-        for subproc in subprocessors.values():
-            processed_cc_infos.extend(subproc(ctx, deps))
         cc_info = cc_common.merge_cc_infos(
             cc_infos = _concat(
                 [CcInfo(linking_context = cc_common.create_linking_context(
                     linker_inputs = depset([linker_input]),
                 ))],
-                processed_cc_infos,
+                [dep[JavaInfo].cc_link_params_info for dep in deps if JavaInfo in dep],
+                [dep[AndroidCcLinkParamsInfo].link_params for dep in deps if AndroidCcLinkParamsInfo in dep],
+                [dep[CcInfo] for dep in deps if CcInfo in dep],
             ),
         )
         libraries = []
