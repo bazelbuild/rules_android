@@ -9,7 +9,6 @@ licenses(["notice"])
 py_binary(
     name = "enforce_min_sdk_floor",
     srcs = ["enforce_min_sdk_floor.py"],
-    python_version = "PY3",
     deps = [
         "@bazel_tools//third_party/py/abseil",
     ],
