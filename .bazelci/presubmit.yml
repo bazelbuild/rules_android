@@ -5,6 +5,7 @@ x_defaults:
     bazel: last_green
     build_targets:
     - "//src/..."
+    - "//test/..."
     - "//android/..."
     - "//rules/..."
     - "-//src/java/com/example/sampleapp/..."
@@ -12,6 +13,7 @@ x_defaults:
     - "//tools/..."
     test_targets:
     - "//src/..."
+    - "//test/..."
     - "-//src/tools/enforce_min_sdk_floor/..."
     - "-//src/java/com/example/sampleapp/..."
 
