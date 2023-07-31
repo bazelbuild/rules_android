@@ -14,6 +14,7 @@ filegroup(
 bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
+    visibility = ["//rules:__pkg__"],
     deps = [
         "//rules:common_bzl",
         "//rules/flags:bzl",

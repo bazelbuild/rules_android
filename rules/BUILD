@@ -62,3 +62,26 @@ bzl_library(
         "//rules/android_binary_internal:bzl",
     ],
 )
+
+bzl_library(
+    name = "bzl",
+    srcs = [
+        "android_ndk_repository.bzl",
+        "android_sdk.bzl",
+        "android_sdk_repository.bzl",
+        "android_tools_defaults_jar.bzl",
+        "baseline_profiles.bzl",
+        "dex.bzl",
+        "dex_desugar_aspect.bzl",
+        "rules.bzl",
+    ],
+    visibility = ["//mobile_install:__pkg__"],
+    deps = [
+        ":android_binary_bzl",
+        ":common_bzl",
+        "//rules/aar_import:bzl",
+        "//rules/android_library:bzl",
+        "//rules/android_sandboxed_sdk:bzl",
+        "//rules/flags:bzl",
+    ],
+)
