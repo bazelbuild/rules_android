@@ -16,8 +16,9 @@
 
 # keep sorted
 ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT = [
-    "//test/rules/android_binary_internal:__subpackages__",
+    "//:__subpackages__",
 ]
 
 # keep sorted
-ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK = []
+ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK = [
+]
