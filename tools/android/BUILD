@@ -40,3 +40,15 @@ java_plugin(
         "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:all_android_tools",
     ],
 )
+
+alias(
+    name = "java8_legacy_dex",
+    actual = "@bazel_tools//tools/android:java8_legacy_dex",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "desugar_java8",
+    actual = "@bazel_tools//tools/android:desugar_java8",
+    visibility = ["//visibility:public"],
+)
