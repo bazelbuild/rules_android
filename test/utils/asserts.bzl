@@ -27,6 +27,7 @@ _ATTRS = dict(
     expected_starlark_android_resources_info = attr.label(),
     expected_output_group_info = attr.string_list_dict(),
     expected_native_libs_info = attr.label(),
+    expected_generated_extension_registry_provider = attr.string_list_dict(),
 )
 
 def _expected_resources_node_info_impl(ctx):
@@ -536,6 +537,20 @@ def _assert_output_group_info(expected, actual):
             "OutputGroupInfo." + key,
         )
 
+def _assert_generated_extension_registry_provider(expected, actual):
+    if expected and not actual:
+        fail("GeneratedExtensionRegistryProvider was expected but not found!")
+    for key in expected:
+        actual_attr = getattr(actual, key, None)
+        if actual_attr == None:  # both empty depset and list will fail.
+            fail("%s is not defined in OutputGroupInfo: %s" % (key, actual))
+
+        _assert_files(
+            expected[key],
+            [actual_attr] if type(actual_attr) != "depset" else actual_attr.to_list(),
+            "GeneratedExtensionRegistryProvider." + key,
+        )
+
 def _is_suffix_sublist(full, suffixes):
     """Returns whether suffixes is a sublist of suffixes of full."""
     for (fi, _) in enumerate(full):
@@ -598,6 +613,7 @@ asserts = struct(
         starlark_android_resources_info = _assert_starlark_android_resources_info,
         output_group_info = _assert_output_group_info,
         native_libs_info = _assert_native_libs_info,
+        generated_extension_registry_provider = _assert_generated_extension_registry_provider,
     ),
     files = _assert_files,
     r_class = struct(

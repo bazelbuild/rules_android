@@ -124,6 +124,15 @@ def _process_build_stamp(_unused_ctx, **_unused_ctxs):
         ),
     )
 
+def _process_proto(_unused_ctx, **_unused_ctxs):
+    return ProviderInfo(
+        name = "proto_ctx",
+        value = struct(
+            providers = [],
+            class_jar = None,
+        ),
+    )
+
 def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_ctxs):
     if ctx.attr.enable_data_binding and not acls.in_databinding_allowed(str(ctx.label)):
         fail("This target is not allowed to use databinding and enable_data_binding is True.")
@@ -194,7 +203,7 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
         ),
     )
 
-def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **_unused_ctxs):
+def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, deploy_ctx, **_unused_ctxs):
     providers = []
     classes_dex_zip = None
     dex_info = None
@@ -205,6 +214,8 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
         runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
+        if proto_ctx.class_jar:
+            runtime_jars.append(proto_ctx.class_jar)
         forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
         java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(
             ctx,
@@ -264,7 +275,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, deploy_ctx, **
         ),
     )
 
-def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, **_unused_ctxs):
+def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, proto_ctx, **_unused_ctxs):
     deploy_jar, desugar_dict = None, {}
 
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
@@ -274,6 +285,9 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
         incremental_dexopts = _dex.incremental_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
         dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
         binary_runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
+        if proto_ctx.class_jar:
+            binary_runtime_jars.append(proto_ctx.class_jar)
+
         if ctx.fragments.android.desugar_java8:
             desugared_jars = []
             desugar_dict = {d.jar: d.desugared_jar for d in dex_archives}
@@ -298,7 +312,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
 
             runtime_jars = depset(desugared_jars)
         else:
-            runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jar])
+            runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jars])
 
         output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
         deploy_jar = java.create_deploy_jar(
@@ -396,6 +410,7 @@ PROCESSORS = dict(
     DataBindingProcessor = _process_data_binding,
     JvmProcessor = _process_jvm,
     BuildInfoProcessor = _process_build_info,
+    ProtoProcessor = _process_proto,
     DeployJarProcessor = _process_deploy_jar,
     DexProcessor = _process_dex,
     BaselineProfilesProcessor = _process_baseline_profiles,
