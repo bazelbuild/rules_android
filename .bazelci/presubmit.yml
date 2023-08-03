@@ -11,6 +11,7 @@ x_defaults:
     - "-//src/java/com/example/sampleapp/..."
     - "//toolchains/..."
     - "//tools/..."
+    - "-//tools/android/..." # TODO(#122): Un-exclude this once #122 is fixed.
     test_targets:
     - "//src/..."
     - "//test/..."
