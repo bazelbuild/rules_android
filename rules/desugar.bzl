@@ -22,7 +22,8 @@ def _desugar(
         bootclasspath = [],
         min_sdk_version = 0,
         library_desugaring = True,
-        desugar_exec = None):
+        desugar_exec = None,
+        toolchain_type = None):
     """Desugars a JAR.
 
     Args:
@@ -60,6 +61,7 @@ def _desugar(
         mnemonic = "Desugar",
         progress_message = "Desugaring " + input.short_path + " for Android",
         execution_requirements = {"supports-workers": "1"},
+        toolchain = toolchain_type,
     )
 
 desugar = struct(

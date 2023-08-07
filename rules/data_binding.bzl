@@ -14,7 +14,7 @@
 
 """Bazel Android Data Binding."""
 
-load(":utils.bzl", _utils = "utils")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", _utils = "utils")
 
 # Data Binding context attributes.
 _JAVA_ANNOTATION_PROCESSOR_ADDITIONAL_INPUTS = \
@@ -92,6 +92,7 @@ def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_
         progress_message = (
             "GenerateDataBindingBaseClasses %s" % class_info.short_path
         ),
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
     return srcjar, class_info
 

@@ -392,6 +392,7 @@ def _singlejar(
 
     ctx.actions.run(
         executable = java_toolchain[java_common.JavaToolchainInfo].single_jar,
+        toolchain = "@bazel_tools//tools/jdk:toolchain_type",
         arguments = [args],
         inputs = inputs,
         outputs = [output],
@@ -433,6 +434,7 @@ def _run(
 
     java_runtime = host_javabase[java_common.JavaRuntimeInfo]
     args["executable"] = java_runtime.java_executable_exec_path
+    args["toolchain"] = "@bazel_tools//tools/jdk:toolchain_type"
 
     # inputs can be a list or a depset of File
     inputs = args.get("inputs", default = [])

@@ -210,6 +210,7 @@ def _add_g3itr(
         outputs = [out_manifest],
         mnemonic = "AddG3ITRStarlark",
         progress_message = "Adding G3ITR to test manifest for %s" % ctx.label,
+        toolchain = None,
     )
 
 def _get_legacy_mergee_manifests(resources_infos):
@@ -273,6 +274,7 @@ echo "$SORTED" >> $3
 """,
         arguments = [manifest_args, args, manifest_params.path],
         outputs = [manifest_params],
+        toolchain = None,
     )
     args = ctx.actions.args()
     args.add(manifest_params, format = "--flagfile=%s")
@@ -284,6 +286,7 @@ echo "$SORTED" >> $3
         outputs = [out_merged_manifest],
         mnemonic = "StarlarkLegacyAndroidManifestMerger",
         progress_message = "Merging Android Manifests",
+        toolchain = None,
     )
 
 def _make_databinding_outputs(
@@ -343,6 +346,7 @@ def _fix_databinding_compiled_resources(
         inputs = [compiled_resources],
         tools = [zip_tool],
         arguments = [compiled_resources.path, out_compiled_resources.path, zip_tool.executable.path],
+        toolchain = None,
         command = """#!/bin/bash
 set -e
 
@@ -811,6 +815,7 @@ def _liteparse(ctx, out_r_pb, resource_files, android_kit):
         outputs = [out_r_pb],
         mnemonic = "ResLiteParse",
         progress_message = "Lite parse Android Resources %s" % ctx.label,
+        toolchain = None,
     )
 
 def _fastr(ctx, r_pbs, package, manifest, android_kit):
@@ -1070,6 +1075,7 @@ def _bump_min_sdk(
         arguments = [args],
         mnemonic = "BumpMinSdkFloor",
         progress_message = "Bumping up AndroidManifest min SDK %s" % str(ctx.label),
+        toolchain = None,
     )
     manifest_ctx[_PROCESSED_MANIFEST] = out_manifest
 
@@ -1120,6 +1126,7 @@ def _set_default_min_sdk(
         arguments = [args],
         mnemonic = "SetDefaultMinSdkFloor",
         progress_message = "Setting AndroidManifest min SDK to default %s" % str(ctx.label),
+        toolchain = None,
     )
     manifest_ctx[_PROCESSED_MANIFEST] = out_manifest
 
@@ -1164,6 +1171,7 @@ def _validate_min_sdk(
         arguments = [args],
         mnemonic = "ValidateMinSdkFloor",
         progress_message = "Validating AndroidManifest min SDK %s" % str(ctx.label),
+        toolchain = None,
     )
     manifest_validation_ctx[_VALIDATION_OUTPUTS].append(log)
 

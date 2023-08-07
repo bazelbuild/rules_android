@@ -233,4 +233,5 @@ ATTRS = _attrs.add(
     _attrs.COMPILATION,
     _attrs.DATA_CONTEXT,
     _attrs.ANDROID_TOOLCHAIN_ATTRS,
+    _attrs.AUTOMATIC_EXEC_GROUPS_ENABLED,
 )

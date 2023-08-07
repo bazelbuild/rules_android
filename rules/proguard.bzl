@@ -15,7 +15,7 @@
 """Bazel Android Proguard library for the Android rules."""
 
 load(":common.bzl", "common")
-load(":utils.bzl", "utils")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "utils")
 
 _ProguardSpecContextInfo = provider(
     doc = "Contains data from processing Proguard specs.",
@@ -45,6 +45,7 @@ def _validate_proguard_spec(
         progress_message = (
             "Validating proguard configuration %s" % proguard_spec.short_path
         ),
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _process_specs(
