@@ -16,7 +16,7 @@
 Defines baseline profiles processing.
 """
 
-load("//rules:utils.bzl", "get_android_toolchain")
+load("//rules:utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain")
 
 def _process(ctx, final_classes_dex, transitive_profiles):
     """ Merges/compiles all the baseline profiles propagated from android_library and aar_import.
@@ -48,6 +48,7 @@ def _process(ctx, final_classes_dex, transitive_profiles):
         inputs = transitive_profiles,
         outputs = [merged_profile],
         use_default_shell_env = True,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
     # Profgen
@@ -70,6 +71,7 @@ def _process(ctx, final_classes_dex, transitive_profiles):
         inputs = profgen_inputs,
         outputs = [output_profile, output_profile_meta],
         use_default_shell_env = True,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
     # Zip ART profiles
@@ -86,6 +88,7 @@ def _process(ctx, final_classes_dex, transitive_profiles):
         inputs = [output_profile, output_profile_meta],
         outputs = [output_profile_zip],
         use_default_shell_env = True,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
     return BaselineProfileProvider(
         transitive_profiles,

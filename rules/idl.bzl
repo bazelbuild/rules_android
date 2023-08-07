@@ -16,7 +16,7 @@
 
 load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
-load(":utils.bzl", _log = "log")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", _log = "log")
 
 _AIDL_TOOLCHAIN_MISSING_ERROR = (
     "IDL sources provided without the Android IDL toolchain."
@@ -82,6 +82,7 @@ def _gen_java_from_idl(
         outputs = [out_idl_java_src],
         mnemonic = "AndroidIDLGenerate",
         progress_message = "Android IDL generation %s" % idl_src.path,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _get_idl_import_root_path(

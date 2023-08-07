@@ -337,6 +337,10 @@ _ANDROID_TOOLCHAIN_ATTRS = dict(
 
 ANDROID_TOOLS_DEFAULTS_JAR_ATTRS = _add(_ANDROID_SDK)
 
+_AUTOMATIC_EXEC_GROUPS_ENABLED = dict(
+    _use_auto_exec_groups = attr.bool(default = True),
+)
+
 attrs = struct(
     ANDROID_SDK = _ANDROID_SDK,
     COMPILATION = _COMPILATION,
@@ -346,4 +350,5 @@ attrs = struct(
     tristate = _tristate,
     add = _add,
     replace = _replace,
+    AUTOMATIC_EXEC_GROUPS_ENABLED = _AUTOMATIC_EXEC_GROUPS_ENABLED,
 )

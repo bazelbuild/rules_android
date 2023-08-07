@@ -14,7 +14,7 @@
 
 """Bazel Dex Commands."""
 
-load(":utils.bzl", "get_android_toolchain", "utils")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
 load(":providers.bzl", "StarlarkAndroidDexInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("//rules:attrs.bzl", _attrs = "attrs")
@@ -31,7 +31,8 @@ def _process_incremental_dexing(
         java_info = None,
         desugar_dict = {},
         dexbuilder = None,
-        dexmerger = None):
+        dexmerger = None,
+        toolchain_type = None):
     classes_dex_zip = _get_dx_artifact(ctx, "classes.dex.zip")
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
 
@@ -52,6 +53,7 @@ def _process_incremental_dexing(
             incremental_dexopts = incremental_dexopts,
             min_sdk_version = min_sdk_version,
             dex_exec = dexbuilder,
+            toolchain_type = toolchain_type,
         )
         dex_archives.append(dex_archive)
 
@@ -63,6 +65,7 @@ def _process_incremental_dexing(
         main_dex_list = main_dex_list,
         dexopts = dexopts,
         dexmerger = dexmerger,
+        toolchain_type = toolchain_type,
     )
 
     return classes_dex_zip
@@ -88,6 +91,7 @@ def _append_java8_legacy_dex(
         mnemonic = "AppendJava8LegacyDex",
         use_default_shell_env = True,
         progress_message = "Adding Java8 legacy library for %s" % ctx.label,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _to_dexed_classpath(dex_archives_dict = {}, classpath = [], runtime_jars = []):
@@ -109,7 +113,8 @@ def _dex(
         output = None,
         incremental_dexopts = [],
         min_sdk_version = 0,
-        dex_exec = None):
+        dex_exec = None,
+        toolchain_type = None):
     """Dexes a JAR.
 
     Args:
@@ -143,6 +148,7 @@ def _dex(
         mnemonic = "DexBuilder",
         progress_message = "Dexing " + input.path + " with applicable dexopts " + str(incremental_dexopts),
         execution_requirements = execution_requirements,
+        toolchain = toolchain_type,
     )
 
 def _get_dx_artifact(ctx, basename):
@@ -195,6 +201,7 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
             arguments = [args],
             mnemonic = "BuildLegacyDex",
             progress_message = "Building Java8 legacy library for %s" % ctx.label,
+            toolchain = ANDROID_TOOLCHAIN_TYPE,
         )
 
         return java8_legacy_dex, java8_legacy_dex_map
@@ -212,7 +219,8 @@ def _dex_merge(
         multidex_strategy = "minimal",
         main_dex_list = None,
         dexopts = [],
-        dexmerger = None):
+        dexmerger = None,
+        toolchain_type = None):
     args = ctx.actions.args()
     args.add("--multidex", multidex_strategy)
     args.add_all(inputs, before_each = "--input")
@@ -230,6 +238,7 @@ def _dex_merge(
         outputs = [output],
         mnemonic = "DexMerger",
         progress_message = "Assembling dex files into " + output.short_path,
+        toolchain = toolchain_type,
     )
 
 def _merger_dexopts(tokenized_dexopts, dexopts_supported_in_dex_merger):

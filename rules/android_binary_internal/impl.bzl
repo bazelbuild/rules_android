@@ -25,7 +25,13 @@ load(
     "processing_pipeline",
 )
 load("//rules:resources.bzl", _resources = "resources")
-load("//rules:utils.bzl", "compilation_mode", "get_android_toolchain", "utils")
+load(
+    "//rules:utils.bzl",
+    "ANDROID_TOOLCHAIN_TYPE",
+    "compilation_mode",
+    "get_android_toolchain",
+    "utils",
+)
 load(
     "//rules:native_deps.bzl",
     _process_native_deps = "process",
@@ -246,6 +252,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 desugar_dict = deploy_ctx.desugar_dict,
                 dexbuilder = get_android_toolchain(ctx).dexbuilder.files_to_run,
                 dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
 
         if ctx.fragments.android.desugar_java8_libs and classes_dex_zip.extension == "zip":
@@ -302,6 +309,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
                     bootclasspath = java_toolchain[java_common.JavaToolchainInfo].bootclasspath.to_list(),
                     min_sdk_version = ctx.attr.min_sdk_version,
                     desugar_exec = get_android_toolchain(ctx).desugar.files_to_run,
+                    toolchain_type = ANDROID_TOOLCHAIN_TYPE,
                 )
                 desugared_jars.append(desugared_jar)
                 desugar_dict[jar] = desugared_jar
