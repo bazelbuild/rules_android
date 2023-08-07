@@ -1902,6 +1902,7 @@ resources = struct(
     set_default_min_sdk = _set_default_min_sdk,
 
     # Exposed for android_binary
+    is_resource_shrinking_enabled = _is_resource_shrinking_enabled,
     validate_min_sdk = _validate_min_sdk,
 
     # Exposed for android_library, aar_import, and android_binary
