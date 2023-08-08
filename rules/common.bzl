@@ -14,7 +14,7 @@
 
 """Bazel common library for the Android rules."""
 
-load(":utils.bzl", "get_android_toolchain", _log = "log")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", _log = "log")
 load("//rules/android_common:reexport_android_common.bzl", _native_android_common = "native_android_common")
 
 # Suffix attached to the Starlark portion of android_binary target
@@ -59,6 +59,7 @@ def _filter_zip_include(ctx, in_zip, out_zip, filters = []):
         outputs = [out_zip],
         mnemonic = "FilterZipInclude",
         progress_message = "Filtering %s" % in_zip.short_path,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _filter_zip_exclude(
@@ -111,6 +112,7 @@ def _filter_zip_exclude(
         outputs = [output],
         mnemonic = "FilterZipExclude",
         progress_message = "Filtering %s" % input.short_path,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _create_signer_properties(ctx, oldest_key):
