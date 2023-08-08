@@ -29,6 +29,7 @@ load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
     "compilation_mode",
+    "get_android_sdk",
     "get_android_toolchain",
     "utils",
 )
@@ -82,7 +83,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         resource_apks = resource_apks,
         instruments = ctx.attr.instruments,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
-        android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,
+        android_jar = get_android_sdk(ctx).android_jar,
         legacy_merger = ctx.attr._android_manifest_merge_tool.files_to_run,
         xsltproc = ctx.attr._xsltproc_tool.files_to_run,
         instrument_xslt = ctx.file._add_g3itr_xslt,
@@ -225,7 +226,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
         forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
         java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(
             ctx,
-            android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,
+            android_jar = get_android_sdk(ctx).android_jar,
             binary_jar = deploy_jar,
             build_customized_files = is_binary_optimized,
         )
