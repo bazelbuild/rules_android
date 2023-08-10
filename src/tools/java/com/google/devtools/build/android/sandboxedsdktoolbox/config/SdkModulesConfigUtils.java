@@ -27,7 +27,7 @@ import java.nio.file.Path;
 public final class SdkModulesConfigUtils {
 
   public static SdkModulesConfig readFromJsonFile(Path configPath) {
-    var builder = SdkModulesConfig.newBuilder();
+    SdkModulesConfig.Builder builder = SdkModulesConfig.newBuilder();
     try {
       JsonFormat.parser().merge(Files.newBufferedReader(configPath), builder);
       return builder.build();

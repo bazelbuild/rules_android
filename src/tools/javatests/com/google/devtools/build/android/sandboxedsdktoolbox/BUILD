@@ -22,6 +22,7 @@ java_test(
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox:sandboxed_sdk_toolbox_lib",
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_truth_truth",
+        "@rules_android_maven//:info_picocli_picocli",
         "@rules_android_maven//:junit_junit",
     ],
 )

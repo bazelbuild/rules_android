@@ -80,6 +80,7 @@ cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
   //src/tools/ak/... \
   //src/tools/javatests/... \
   //src/tools/jdeps/... \
+  //src/tools/java/... \
   //test/...
 
 # Go to basic app workspace in the source tree
