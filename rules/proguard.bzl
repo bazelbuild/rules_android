@@ -27,6 +27,21 @@ _ProguardSpecContextInfo = provider(
     ),
 )
 
+_ProguardOutputInfo = provider(
+    doc = "Temporary provider to hold all proguard outputs. Will be replaced by a native  " +
+          "provider. Useful for testing.",
+    fields = dict(
+        input_jar = "The input program jar, unoptimized",
+        output_jar = "The optimized output jar",
+        mapping = "Output proguard map",
+        proto_mapping = "Output proto mapping",
+        seeds = "Output seeds",
+        usage = "Output usage",
+        library_jar = "Merged library jar",
+        config = "Output config",
+    ),
+)
+
 def _validate_proguard_spec(
         ctx,
         out_validated_proguard_spec,
@@ -331,5 +346,6 @@ testing = struct(
     validate_proguard_spec = _validate_proguard_spec,
     collect_transitive_proguard_specs = _collect_transitive_proguard_specs,
     optimization_action = _optimization_action,
+    ProguardOutputInfo = _ProguardOutputInfo,
     ProguardSpecContextInfo = _ProguardSpecContextInfo,
 )
