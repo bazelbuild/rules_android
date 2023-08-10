@@ -34,14 +34,15 @@ final class CertificateDigestGenerator {
 
   static final String generateCertificateDigest(
       Path keystorePath, String keystorePassword, String keystoreAlias) {
-    var certificate = readCertificate(keystorePath, keystorePassword, keystoreAlias);
+    X509Certificate certificate = readCertificate(keystorePath, keystorePassword, keystoreAlias);
     return getCertificateDigest(certificate);
   }
 
   private static X509Certificate readCertificate(
       Path keystorePath, String keystorePassword, String keystoreAlias) {
-    try (var keystoreInputStream = new BufferedInputStream(Files.newInputStream(keystorePath))) {
-      var keystore = KeyStore.getInstance("JKS");
+    try (BufferedInputStream keystoreInputStream =
+        new BufferedInputStream(Files.newInputStream(keystorePath))) {
+      KeyStore keystore = KeyStore.getInstance("JKS");
       keystore.load(keystoreInputStream, keystorePassword.toCharArray());
       return (X509Certificate) keystore.getCertificate(keystoreAlias);
     } catch (GeneralSecurityException | IOException e) {

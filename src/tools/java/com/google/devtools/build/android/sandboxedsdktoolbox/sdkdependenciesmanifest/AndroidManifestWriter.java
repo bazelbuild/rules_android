@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -51,7 +52,7 @@ final class AndroidManifestWriter {
       String certificateDigest,
       ImmutableSet<SdkModulesConfig> configs,
       Path outputPath) {
-    var root = newEmptyDocument();
+    Document root = newEmptyDocument();
 
     Element manifestNode = root.createElement(MANIFEST_ELEMENT_NAME);
     manifestNode.setAttribute(MANIFEST_NAMESPACE_NAME, MANIFEST_NAMESPACE_URI);
@@ -82,8 +83,9 @@ final class AndroidManifestWriter {
   }
 
   private static void writeDocument(Document document, Path outputPath) {
-    try (var outputStream = new BufferedOutputStream(new FileOutputStream(outputPath.toFile()))) {
-      var transformer = TransformerFactory.newInstance().newTransformer();
+    try (BufferedOutputStream outputStream =
+        new BufferedOutputStream(new FileOutputStream(outputPath.toFile()))) {
+      Transformer transformer = TransformerFactory.newInstance().newTransformer();
       transformer.setOutputProperty(OutputKeys.ENCODING, "utf-8");
       transformer.setOutputProperty(OutputKeys.METHOD, "xml");
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");

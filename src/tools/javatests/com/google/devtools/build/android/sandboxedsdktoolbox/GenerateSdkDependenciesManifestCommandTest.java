@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import picocli.CommandLine;
 
 @RunWith(JUnit4.class)
 public final class GenerateSdkDependenciesManifestCommandTest {
@@ -117,8 +118,8 @@ public final class GenerateSdkDependenciesManifestCommandTest {
   }
 
   private static CommandResult runCommand(String... parameters) {
-    var command = SandboxedSdkToolbox.create();
-    var stringWriter = new StringWriter();
+    CommandLine command = SandboxedSdkToolbox.create();
+    StringWriter stringWriter = new StringWriter();
 
     command.setOut(new PrintWriter(stringWriter));
     int statusCode = command.execute(parameters);
