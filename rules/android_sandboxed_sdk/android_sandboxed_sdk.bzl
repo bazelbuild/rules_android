@@ -12,33 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rule for defining an Android Sandboxed SDK."""
+"""android_sandboxed_sdk rule.
 
-load(":providers.bzl", "AndroidSandboxedSdkInfo")
+This file exists to inject the correct version of android_binary.
+"""
+
+load(":android_sandboxed_sdk_macro.bzl", _android_sandboxed_sdk_macro = "android_sandboxed_sdk_macro")
 load("//rules:android_binary.bzl", _android_binary = "android_binary")
-load("//rules:java.bzl", _java = "java")
-
-_ATTRS = dict(
-    sdk_modules_config = attr.label(
-        allow_single_file = [".pb.json"],
-    ),
-    internal_android_binary = attr.label(),
-)
-
-def _impl(ctx):
-    return AndroidSandboxedSdkInfo(
-        internal_apk_info = ctx.attr.internal_android_binary[ApkInfo],
-        sdk_module_config = ctx.file.sdk_modules_config,
-    )
-
-_android_sandboxed_sdk = rule(
-    attrs = _ATTRS,
-    executable = False,
-    implementation = _impl,
-    provides = [
-        AndroidSandboxedSdkInfo,
-    ],
-)
 
 def android_sandboxed_sdk(
         name,
@@ -63,32 +43,12 @@ def android_sandboxed_sdk(
         a different package but this is highly discouraged since it can introduce classpath
         conflicts with other libraries that will only be detected at runtime.
     """
-    fully_qualified_name = "//%s:%s" % (native.package_name(), name)
-    package = _java.resolve_package_from_label(Label(fully_qualified_name), custom_package)
 
-    manifest_label = Label("%s_gen_manifest" % fully_qualified_name)
-    native.genrule(
-        name = manifest_label.name,
-        outs = [name + "/AndroidManifest.xml"],
-        cmd = """cat > $@ <<EOF
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="{package}">
-    <uses-sdk android:minSdkVersion="{min_sdk_version}"/>
-    <application />
-</manifest>
-EOF
-""".format(package = package, min_sdk_version = min_sdk_version),
-    )
-
-    bin_label = Label("%s_bin" % fully_qualified_name)
-    _android_binary(
-        name = bin_label.name,
-        manifest = str(manifest_label),
-        deps = deps,
-    )
-    _android_sandboxed_sdk(
+    _android_sandboxed_sdk_macro(
         name = name,
         sdk_modules_config = sdk_modules_config,
-        internal_android_binary = bin_label,
+        deps = deps,
+        min_sdk_version = min_sdk_version,
+        custom_package = custom_package,
+        android_binary = _android_binary,
     )
