@@ -62,6 +62,11 @@ COMMON_ARGS=(
   "--experimental_google_legacy_api"
   "--experimental_enable_android_migration_apis"
   "--build_tests_only"
+  # Java tests use language version at least 11, but they might depend on
+  # libraries that were built for Java 17.
+  "--java_language_version=11"
+  "--java_runtime_version=17"
+  "--test_output=errors"
 )
 
 # Go to rules_android workspace and run relevant tests.
@@ -73,6 +78,7 @@ cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
 
 "$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
   //src/tools/ak/... \
+  //src/tools/javatests/... \
   //src/tools/jdeps/... \
   //test/...
 
