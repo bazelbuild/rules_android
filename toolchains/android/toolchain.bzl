@@ -214,6 +214,12 @@ _ATTRS = dict(
         allow_files = True,
         default = "//rules:robolectric_properties_template.txt",
     ),
+    sandboxed_sdk_toolbox = attr.label(
+        allow_single_file = True,
+        cfg = "exec",
+        default = "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox:sandboxed_sdk_toolbox_deploy.jar",
+        executable = True,
+    ),
     testsupport = attr.label(
         default = "@androidsdk//:fail",
     ),

@@ -1,0 +1,9 @@
+{
+  "sdk_package_name": "com.example.secondsdkconfig",
+  "sdk_provider_class_name": "com.testsdk.lib.FakeSdkProvider",
+  "sdk_version": {
+    "major": 42,
+    "minor": 1,
+    "patch": 0
+  }
+}

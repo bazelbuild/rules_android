@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.generatedmanifest">
+    <application>
+        <uses-sdk-library android:certDigest="91:8E:A3:7D:7D:D0:E0:A0:14:9F:21:28:83:95:8A:F0:80:E6:F9:7B:4D:5A:39:01:76:02:E8:2D:7D:FF:A9:10" android:name="com.example.firstsdkconfig" android:versionMajor="20003"/>
+    </application>
+</manifest>

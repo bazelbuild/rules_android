@@ -33,8 +33,13 @@ def rules_android_workspace():
     maven_install(
         name = "rules_android_maven",
         artifacts = [
-            "com.android.tools.build:bundletool:1.6.1",
+            "com.android.tools.build:bundletool:1.15.2",
             "com.android.tools.build:gradle:8.0.1",
+            "com.google.guava:guava:32.1.2-jre",
+            "com.google.protobuf:protobuf-java-util:3.9.2",
+            "com.google.truth:truth:1.1.5",
+            "info.picocli:picocli:4.7.4",
+            "junit:junit:4.13.2",
         ],
         repositories = [
             "https://maven.google.com",
