@@ -506,7 +506,6 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, **_unused_ctxs):
             input_jar = deploy_ctx.deploy_jar,
             output_jar = proguard_output.output_jar,
             mapping = proguard_output.mapping,
-            proto_mapping = proguard_output.proto_mapping,
             seeds = proguard_output.seeds,
             usage = proguard_output.usage,
             library_jar = proguard_output.library_jar,
