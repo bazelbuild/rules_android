@@ -26,6 +26,7 @@ bzl_library(
     srcs = [
         "aapt.bzl",
         "acls.bzl",
+        "android_neverlink_aspect.bzl",
         "attrs.bzl",
         "bundletool.bzl",
         "busybox.bzl",

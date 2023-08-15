@@ -52,3 +52,9 @@ alias(
     actual = "@bazel_tools//tools/android:desugar_java8",
     visibility = ["//visibility:public"],
 )
+
+alias(
+    name = "desugared_java8_legacy_apis",
+    actual = "@bazel_tools//tools/android:desugared_java8_legacy_apis",
+    visibility = ["//visibility:public"],
+)
