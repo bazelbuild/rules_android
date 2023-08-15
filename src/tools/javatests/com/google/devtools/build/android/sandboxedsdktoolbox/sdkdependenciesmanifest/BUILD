@@ -1,4 +1,4 @@
-# Tests for SandboxedSdkToolbox binary.
+# Tests for generate-sdk-dependencies-manifest command.
 
 package(
     default_applicable_licenses = ["//:license"],

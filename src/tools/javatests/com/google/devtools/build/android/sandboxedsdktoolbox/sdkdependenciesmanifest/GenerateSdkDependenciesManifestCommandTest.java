@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.devtools.build.android.sandboxedsdktoolbox;
+package com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.joining;
 
 import com.google.common.io.Files;
+import com.google.devtools.build.android.sandboxedsdktoolbox.SandboxedSdkToolbox;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.PrintWriter;
@@ -39,7 +40,7 @@ public final class GenerateSdkDependenciesManifestCommandTest {
 
   private static final String TEST_DATA_DIR =
       "/build_bazel_rules_android/src/tools/javatests/com/google/devtools/"
-          + "build/android/sandboxedsdktoolbox/testdata";
+          + "build/android/sandboxedsdktoolbox/sdkdependenciesmanifest/testdata";
 
   @Test
   public void generateManifest_forSingleSdkModuleConfig_success() throws Exception {
