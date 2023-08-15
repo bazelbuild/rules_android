@@ -19,6 +19,7 @@ load("//rules:baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load("//rules:common.bzl", "common")
 load("//rules:data_binding.bzl", "data_binding")
 load("//rules:java.bzl", "java")
+load("//rules:proguard.bzl", "proguard", proguard_testing = "testing")
 load(
     "//rules:processing_pipeline.bzl",
     "ProviderInfo",
@@ -433,6 +434,93 @@ def _process_baseline_profiles(ctx, dex_ctx, **_unused_ctxs):
         value = struct(providers = providers),
     )
 
+def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, **_unused_ctxs):
+    if not acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
+        return ProviderInfo(
+            name = "optimize_ctx",
+            value = struct(),
+        )
+
+    # Validate attributes and lockdown lists
+    if ctx.file.proguard_apply_mapping and not acls.in_allow_proguard_apply_mapping(ctx.label):
+        fail("proguard_apply_mapping is not supported")
+    if ctx.file.proguard_apply_mapping and not ctx.files.proguard_specs:
+        fail("proguard_apply_mapping can only be used when proguard_specs is set")
+
+    proguard_specs = proguard.get_proguard_specs(
+        ctx,
+        packaged_resources_ctx.resource_proguard_config,
+        proguard_specs_for_manifest = [packaged_resources_ctx.resource_minsdk_proguard_config] if packaged_resources_ctx.resource_minsdk_proguard_config else [],
+    )
+    has_proguard_specs = bool(proguard_specs)
+    proguard_output = struct()
+
+    proguard_output_map = None
+    generate_proguard_map = (
+        ctx.attr.proguard_generate_mapping or
+        _resources.is_resource_shrinking_enabled(
+            ctx.attr.shrink_resources,
+            ctx.fragments.android.use_android_resource_shrinking,
+        )
+    )
+    desugar_java8_libs_generates_map = ctx.fragments.android.desugar_java8
+    optimizing_dexing = bool(ctx.attr._optimizing_dexer)
+
+    # TODO(b/261110876): potentially add codepaths below to support rex (postprocessingRewritesMap)
+    if generate_proguard_map:
+        # Determine the output of the Proguard map from shrinking the app. This depends on the
+        # additional steps which can process the map before the final Proguard map artifact is
+        # generated.
+        if not has_proguard_specs:
+            # When no shrinking happens a generating rule for the output map artifact is still needed.
+            proguard_output_map = proguard.get_proguard_output_map(ctx)
+        elif optimizing_dexing:
+            proguard_output_map = proguard.get_proguard_temp_artifact(ctx, "pre_dexing.map")
+        elif desugar_java8_libs_generates_map:
+            # Proguard map from shrinking will be merged with desugared library proguard map.
+            proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
+        else:
+            # Proguard map from shrinking is the final output.
+            proguard_output_map = proguard.get_proguard_output_map(ctx)
+
+    proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.jar")
+    proguard_seeds = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.seeds")
+    proguard_usage = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.usage")
+
+    proguard_output = proguard.apply_proguard(
+        ctx,
+        input_jar = deploy_ctx.deploy_jar,
+        proguard_specs = proguard_specs,
+        proguard_optimization_passes = getattr(ctx.attr, "proguard_optimization_passes", None),
+        proguard_output_jar = proguard_output_jar,
+        proguard_mapping = ctx.file.proguard_apply_mapping,
+        proguard_output_map = proguard_output_map,
+        proguard_seeds = proguard_seeds,
+        proguard_usage = proguard_usage,
+        proguard_tool = get_android_sdk(ctx).proguard,
+    )
+
+    providers = []
+    if proguard_output:
+        providers.append(proguard_testing.ProguardOutputInfo(
+            input_jar = deploy_ctx.deploy_jar,
+            output_jar = proguard_output.output_jar,
+            mapping = proguard_output.mapping,
+            proto_mapping = proguard_output.proto_mapping,
+            seeds = proguard_output.seeds,
+            usage = proguard_output.usage,
+            library_jar = proguard_output.library_jar,
+            config = proguard_output.config,
+        ))
+
+    return ProviderInfo(
+        name = "optimize_ctx",
+        value = struct(
+            proguard_output = proguard_output,
+            providers = providers,
+        ),
+    )
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
@@ -448,6 +536,7 @@ PROCESSORS = dict(
     BuildInfoProcessor = _process_build_info,
     ProtoProcessor = _process_proto,
     DeployJarProcessor = _process_deploy_jar,
+    OptimizeProcessor = _process_optimize,
     DexProcessor = _process_dex,
     BaselineProfilesProcessor = _process_baseline_profiles,
 )
