@@ -17,7 +17,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-
 def rules_android_prereqs():
     """Downloads prerequisite repositories for rules_android."""
     maybe(
@@ -50,8 +49,8 @@ def rules_android_prereqs():
         name = "remote_java_tools_for_rules_android",
         sha256 = "8fb4d3138bd92a9d3324dae29c9f70d91ca2db18cd0bf1997446eed4657d19b3",
         urls = [
-                "https://mirror.bazel.build/bazel_java_tools/releases/java/v11.8/java_tools-v11.8.zip",
-                "https://github.com/bazelbuild/java_tools/releases/download/java_v11.8/java_tools-v11.8.zip",
+            "https://mirror.bazel.build/bazel_java_tools/releases/java/v11.8/java_tools-v11.8.zip",
+            "https://github.com/bazelbuild/java_tools/releases/download/java_v11.8/java_tools-v11.8.zip",
         ],
     )
 
@@ -94,13 +93,13 @@ def rules_android_prereqs():
     )
 
     maybe(
-      http_archive,
-      name = "rules_license",
-      urls = [
-          "https://github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
-          "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
-      ],
-      sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
+        http_archive,
+        name = "rules_license",
+        urls = [
+            "https://github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
+        ],
+        sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
     )
 
     maybe(
@@ -124,13 +123,30 @@ def rules_android_prereqs():
     )
 
     maybe(
-      http_archive,
-      name = "rules_python",
-      strip_prefix = "rules_python-0.23.1",
-      urls = [
-          "https://github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
-          "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
-      ],
-      sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
+        http_archive,
+        name = "rules_python",
+        strip_prefix = "rules_python-0.23.1",
+        urls = [
+            "https://github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
+        ],
+        sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
     )
 
+    maybe(
+        http_archive,
+        name = "rules_bazel_integration_test",
+        sha256 = "3d4a10fe1b4f87327833184c733e4d2400edde0757343254426799171b281d9a",
+        urls = [
+            "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.15.0/rules_bazel_integration_test.v0.15.0.tar.gz",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "cgrindel_bazel_starlib",
+        sha256 = "ee0033d029b5eaddc21836b2944cf37c95eb5f214eb39834136a316dbc252a73",
+        urls = [
+            "https://github.com/cgrindel/bazel-starlib/releases/download/v0.16.0/bazel-starlib.v0.16.0.tar.gz",
+        ],
+    )

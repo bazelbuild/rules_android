@@ -23,6 +23,9 @@ load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_jav
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories")
+load("@rules_bazel_integration_test//bazel_integration_test:deps.bzl", "bazel_integration_test_rules_dependencies")
+load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
+load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
@@ -69,10 +72,10 @@ def rules_android_workspace():
     )
 
     go_repository(
-      name = "org_golang_x_sync",
-      importpath = "golang.org/x/sync",
-      sum = "h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=",
-      version = "v0.0.0-20210220032951-036812b2e83c",
+        name = "org_golang_x_sync",
+        importpath = "golang.org/x/sync",
+        sum = "h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=",
+        version = "v0.0.0-20210220032951-036812b2e83c",
     )
 
     robolectric_repositories()
@@ -84,3 +87,14 @@ def rules_android_workspace():
     rules_proto_toolchains()
 
     py_repositories()
+
+    # Integration test setup
+    bazel_starlib_dependencies()
+
+    bazel_binaries(
+        current = "6.3.0",
+        versions = [
+            "6.2.0",
+            "6.3.0",
+        ],
+    )
