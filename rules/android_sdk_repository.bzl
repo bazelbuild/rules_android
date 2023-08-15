@@ -146,7 +146,7 @@ def _android_sdk_repository_impl(repo_ctx):
             "__default_api_level__": str(default_api_level),
             "__system_image_dirs__": "\n".join(["'%s'," % d for d in system_images]),
             # TODO(katre): implement these.
-            "__exported_files__": "",
+            #"__exported_files__": "",
         },
     )
 

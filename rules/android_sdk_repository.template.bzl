@@ -91,11 +91,10 @@ filegroup(
 )
 
 create_system_images_filegroups(
-    system_image_dirs = [
-        __system_image_dirs__,
-    ],
+    system_image_dirs = [__system_image_dirs__],
 )
 
-exports_files([
-    __exported_files__,
-] + glob(["system-images/**"], allow_empty = True))
+exports_files(
+    #[ __exported_files__] +
+    glob(["system-images/**"], allow_empty = True),
+)

@@ -141,6 +141,7 @@ def create_android_sdk_rules(
                 neverlink = 1,
             )
 
+        # TODO(katre): Use the Starlark android_sdk
         native.android_sdk(
             name = "sdk-%d" % api_level,
             aapt = select({
