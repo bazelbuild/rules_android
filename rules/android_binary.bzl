@@ -37,6 +37,10 @@ def android_binary(**attrs):
 
     attrs.pop("$enable_manifest_merging", None)
 
+    # dex_shards is deprecated and unused. This only existed for mobile-install classic which has
+    # been replaced by mobile-install v2
+    attrs.pop("dex_shards", None)
+
     # resource_apks is not used by the native android_binary
     attrs.pop("resource_apks", None)
 
