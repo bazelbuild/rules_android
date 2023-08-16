@@ -78,6 +78,8 @@ load("//rules/acls:android_local_test_jdk_sts_rollout.bzl", "ANDROID_LOCAL_TEST_
 load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
 load("//rules/acls:android_binary_starlark_dex_desugar_proguard.bzl", "ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK", "ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT")
 load("//rules/acls:android_binary_min_sdk_version_attribute.bzl", "ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST")
+load("//rules/acls:android_binary_raw_access_to_resource_paths_allowlist.bzl", "ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST")
+load("//rules/acls:android_binary_resource_name_obfuscation_opt_out_allowlist.bzl", "ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST")
 load("//rules/acls:proguard_apply_mapping.bzl", "ALLOW_PROGUARD_APPLY_MAPPING")
 
 def _in_aar_import_deps_checker(fqn):
@@ -226,6 +228,12 @@ def _in_android_binary_starlark_dex_desugar_proguard(fqn):
 def _in_android_binary_min_sdk_version_attribute_allowlist(fqn):
     return matches(fqn, ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_DICT)
 
+def _in_android_binary_raw_access_to_resource_paths_allowlist(fqn):
+    return matches(fqn, ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT)
+
+def _in_android_binary_resource_name_obfuscation_opt_out_allowlist(fqn):
+    return matches(fqn, ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT)
+
 def _in_allow_proguard_apply_mapping(fqn):
     return matches(fqn, ALLOW_PROGUARD_APPLY_MAPPING_DICT)
 
@@ -307,6 +315,8 @@ SHARED_LIBRARY_RESOURCE_LINKING_DICT = make_dict(SHARED_LIBRARY_RESOURCE_LINKING
 ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT)
 ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK)
 ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_DICT = make_dict(ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST)
+ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST)
+ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST)
 ALLOW_PROGUARD_APPLY_MAPPING_DICT = make_dict(ALLOW_PROGUARD_APPLY_MAPPING)
 
 def matches(fqn, dct):
@@ -396,6 +406,8 @@ acls = struct(
     in_shared_library_resource_linking_allowlist = _in_shared_library_resource_linking_allowlist,
     in_android_binary_starlark_dex_desugar_proguard = _in_android_binary_starlark_dex_desugar_proguard,
     in_android_binary_min_sdk_version_attribute_allowlist = _in_android_binary_min_sdk_version_attribute_allowlist,
+    in_android_binary_raw_access_to_resource_paths_allowlist = _in_android_binary_raw_access_to_resource_paths_allowlist,
+    in_android_binary_resource_name_obfuscation_opt_out_allowlist = _in_android_binary_resource_name_obfuscation_opt_out_allowlist,
     in_allow_proguard_apply_mapping = _in_allow_proguard_apply_mapping,
 )
 
