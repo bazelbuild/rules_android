@@ -2,7 +2,7 @@
 
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//src:__subpackages__"],
+    default_visibility = ["//:__subpackages__"],
 )
 
 licenses(["notice"])
@@ -19,10 +19,8 @@ java_test(
         "testdata/test_key",
     ],
     deps = [
-        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox:sandboxed_sdk_toolbox_lib",
-        "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:info_picocli_picocli",
+        "//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/utils",
         "@rules_android_maven//:junit_junit",
+        "@rules_android_maven//:com_google_truth_truth",
     ],
 )
