@@ -16,37 +16,47 @@
 package com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest;
 
 import static com.google.common.truth.Truth.assertThat;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.joining;
+import static com.google.devtools.build.android.sandboxedsdktoolbox.utils.Runner.runCommand;
+import static com.google.devtools.build.android.sandboxedsdktoolbox.utils.TestData.JAVATESTS_DIR;
+import static com.google.devtools.build.android.sandboxedsdktoolbox.utils.TestData.readFromAbsolutePath;
 
-import com.google.common.io.Files;
-import com.google.devtools.build.android.sandboxedsdktoolbox.SandboxedSdkToolbox;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.file.Paths;
+import com.google.devtools.build.android.sandboxedsdktoolbox.utils.CommandResult;
+import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import picocli.CommandLine;
 
 @RunWith(JUnit4.class)
 public final class GenerateSdkDependenciesManifestCommandTest {
 
   @Rule public final TemporaryFolder testFolder = new TemporaryFolder();
 
-  private static final String TEST_DATA_DIR =
-      "/build_bazel_rules_android/src/tools/javatests/com/google/devtools/"
-          + "build/android/sandboxedsdktoolbox/sdkdependenciesmanifest/testdata";
+  private static final Path TEST_DATA_DIR =
+      JAVATESTS_DIR.resolve(
+          Path.of(
+              "com/google/devtools/build/android/sandboxedsdktoolbox",
+              "sdkdependenciesmanifest/testdata"));
+  private static final Path FIRST_SDK_CONFIG_JSON_PATH =
+      TEST_DATA_DIR.resolve("com.example.firstsdkconfig.json");
+  private static final Path SECOND_SDK_CONFIG_JSON_PATH =
+      TEST_DATA_DIR.resolve("com.example.secondsdkconfig.json");
+  /*
+   The test key was generated with this command, its password is "android"
+   keytool -genkeypair \
+     -alias androiddebugkey \
+     -dname "CN=Android Debug, O=Android, C=US" \
+     -keystore test_key \
+     -sigalg SHA256withDSA \
+     -validity 10950
+  */
+  private static final Path TEST_KEY_PATH = TEST_DATA_DIR.resolve("test_key");
 
   @Test
   public void generateManifest_forSingleSdkModuleConfig_success() throws Exception {
     String manifestPackage = "com.example.generatedmanifest";
-    File sdkConfigFile = testDataFile("com.example.firstsdkconfig.json");
-    File outputFile = testFolder.newFile();
+    Path outputFile = testFolder.newFile().toPath();
 
     CommandResult result =
         runCommand(
@@ -54,30 +64,28 @@ public final class GenerateSdkDependenciesManifestCommandTest {
             "--manifest-package",
             manifestPackage,
             "--sdk-module-configs",
-            sdkConfigFile.getPath(),
+            FIRST_SDK_CONFIG_JSON_PATH.toString(),
             "--debug-keystore",
-            getDebugKeystorePath(),
+            TEST_KEY_PATH.toString(),
             "--debug-keystore-pass",
             "android",
             "--debug-keystore-alias",
             "androiddebugkey",
             "--output-manifest",
-            outputFile.getPath());
+            outputFile.toString());
 
     assertThat(result.getStatusCode()).isEqualTo(0);
     assertThat(result.getOutput()).isEmpty();
-    assertThat(readFromFile(outputFile))
-        .isEqualTo(readFromFile(testDataFile("expected_manifest_single_sdk.xml")));
+    assertThat(readFromAbsolutePath(outputFile))
+        .isEqualTo(readFromAbsolutePath(TEST_DATA_DIR.resolve("expected_manifest_single_sdk.xml")));
   }
 
   @Test
   public void generateManifest_forMultipleSdkModuleConfigs_success() throws Exception {
     String manifestPackage = "com.example.generatedmanifest";
-    File firstSdkConfigFile = testDataFile("com.example.firstsdkconfig.json");
-    File secondSdkConfigFile = testDataFile("com.example.secondsdkconfig.json");
     String configPaths =
-        String.format("%s,%s", firstSdkConfigFile.getPath(), secondSdkConfigFile.getPath());
-    File outputFile = testFolder.newFile();
+        String.format("%s,%s", FIRST_SDK_CONFIG_JSON_PATH, SECOND_SDK_CONFIG_JSON_PATH);
+    Path outputFile = testFolder.newFile().toPath();
 
     CommandResult result =
         runCommand(
@@ -87,69 +95,18 @@ public final class GenerateSdkDependenciesManifestCommandTest {
             "--sdk-module-configs",
             configPaths,
             "--debug-keystore",
-            getDebugKeystorePath(),
+            TEST_KEY_PATH.toString(),
             "--debug-keystore-pass",
             "android",
             "--debug-keystore-alias",
             "androiddebugkey",
             "--output-manifest",
-            outputFile.getPath());
+            outputFile.toString());
 
     assertThat(result.getStatusCode()).isEqualTo(0);
     assertThat(result.getOutput()).isEmpty();
-    assertThat(readFromFile(outputFile))
-        .isEqualTo(readFromFile(testDataFile("expected_manifest_multiple_sdks.xml")));
-  }
-
-  private static final class CommandResult {
-    private final int statusCode;
-    private final String output;
-
-    int getStatusCode() {
-      return statusCode;
-    }
-
-    String getOutput() {
-      return output;
-    }
-
-    CommandResult(int statusCode, String output) {
-      this.statusCode = statusCode;
-      this.output = output;
-    }
-  }
-
-  private static CommandResult runCommand(String... parameters) {
-    CommandLine command = SandboxedSdkToolbox.create();
-    StringWriter stringWriter = new StringWriter();
-
-    command.setOut(new PrintWriter(stringWriter));
-    int statusCode = command.execute(parameters);
-    String output = stringWriter.toString();
-
-    return new CommandResult(statusCode, output);
-  }
-
-  private static String getDebugKeystorePath() {
-    /*
-     The test key was generated with this command, its password is "android"
-     keytool -genkeypair \
-       -alias androiddebugkey \
-       -dname "CN=Android Debug, O=Android, C=US" \
-       -keystore test_key \
-       -sigalg SHA256withDSA \
-       -validity 10950
-    */
-    return testDataFile("test_key").getPath();
-  }
-
-  private static File testDataFile(String path) {
-    return Paths.get(System.getenv("TEST_SRCDIR"), TEST_DATA_DIR, path).toFile();
-  }
-
-  private static String readFromFile(File file) throws Exception {
-    try (BufferedReader reader = Files.newReader(file, UTF_8)) {
-      return reader.lines().collect(joining("\n"));
-    }
+    assertThat(readFromAbsolutePath(outputFile))
+        .isEqualTo(
+            readFromAbsolutePath(TEST_DATA_DIR.resolve("expected_manifest_multiple_sdks.xml")));
   }
 }
