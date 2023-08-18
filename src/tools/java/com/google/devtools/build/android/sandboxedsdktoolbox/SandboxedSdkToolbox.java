@@ -15,6 +15,7 @@
  */
 package com.google.devtools.build.android.sandboxedsdktoolbox;
 
+import com.google.devtools.build.android.sandboxedsdktoolbox.apidescriptors.ExtractApiDescriptorsCommand;
 import com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest.GenerateSdkDependenciesManifestCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -23,6 +24,7 @@ import picocli.CommandLine.Command;
 @Command(
     name = "sandboxed-sdk-toolbox",
     subcommands = {
+      ExtractApiDescriptorsCommand.class,
       GenerateSdkDependenciesManifestCommand.class,
     })
 public final class SandboxedSdkToolbox {

@@ -4,14 +4,7 @@
 
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//src:__subpackages__"],
-)
-
-package_group(
-    name = "sandboxed_sdk_toolbox_packages",
-    packages = [
-        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/...",
-    ],
+    default_visibility = ["//:__subpackages__"],
 )
 
 licenses(["notice"])
@@ -20,6 +13,7 @@ java_library(
     name = "sandboxed_sdk_toolbox_lib",
     srcs = glob(["*.java"]),
     deps = [
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors",
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest",
         "@rules_android_maven//:info_picocli_picocli",
     ],
