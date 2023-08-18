@@ -17,6 +17,9 @@ x_defaults:
     - "//test/..."
     - "-//src/tools/enforce_min_sdk_floor/..."
     - "-//src/java/com/example/sampleapp/..."
+    test_flags:
+     # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
+    - "--java_runtime_version=17"
 
 tasks:
   ubuntu2004:
