@@ -75,6 +75,60 @@ def _build_device_json(
     ))
     ctx.actions.write(out, json_content)
 
+def _build_sdk_apks(
+        ctx,
+        out = None,
+        aapt2 = None,
+        sdk_bundle = None,
+        debug_key = None,
+        bundletool = None,
+        host_javabase = None):
+    apks_out = ctx.actions.declare_directory(ctx.label.name + "_sdk_apks")
+    args = ctx.actions.args()
+    args.add("build-sdk-apks")
+    args.add("--aapt2", aapt2.executable.path)
+    args.add("--sdk-bundle", sdk_bundle)
+    args.add("--ks", debug_key)
+    args.add("--ks-pass=pass:android")
+    args.add("--ks-key-alias=androiddebugkey")
+    args.add("--key-pass=pass:android")
+    args.add("--output-format=DIRECTORY")
+    args.add("--output", apks_out.path)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = bundletool,
+        arguments = [args],
+        inputs = [
+            sdk_bundle,
+            debug_key,
+        ],
+        tools = [aapt2],
+        outputs = [apks_out],
+        mnemonic = "BuildSdkApksDir",
+        progress_message = "Building SDK APKs directory %s" % apks_out.short_path,
+    )
+
+    # Now move standalone APK out of bundletool output dir.
+    ctx.actions.run_shell(
+        command = """
+set -e
+APKS_OUT_DIR=%s
+DEBUG_APK_PATH=%s
+
+mv "${APKS_OUT_DIR}/standalones/standalone.apk" "${DEBUG_APK_PATH}"
+""" % (
+            apks_out.path,
+            out.path,
+        ),
+        tools = [],
+        arguments = [],
+        inputs = [apks_out],
+        outputs = [out],
+        mnemonic = "ExtractDebugSdkApk",
+        progress_message = "Extract debug SDK APK to %s" % out.short_path,
+    )
+
 def _build_sdk_bundle(
         ctx,
         out = None,
@@ -324,6 +378,7 @@ cd "${OUT_DIR}"
 bundletool = struct(
     build = _build,
     build_device_json = _build_device_json,
+    build_sdk_apks = _build_sdk_apks,
     build_sdk_bundle = _build_sdk_bundle,
     build_sdk_module = _build_sdk_module,
     bundle_to_apks = _bundle_to_apks,

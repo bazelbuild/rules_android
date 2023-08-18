@@ -42,6 +42,7 @@ load("//rules/acls:android_device_plugin_rollout.bzl", "ANDROID_DEVICE_PLUGIN_FA
 load("//rules/acls:android_instrumentation_binary_starlark_resources.bzl", "ANDROID_INSTRUMENTATION_BINARY_STARLARK_RESOURCES_FALLBACK", "ANDROID_INSTRUMENTATION_BINARY_STARLARK_RESOURCES_ROLLOUT")
 load("//rules/acls:android_binary_starlark_javac.bzl", "ANDROID_BINARY_STARLARK_JAVAC_FALLBACK", "ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT")
 load("//rules/acls:android_binary_starlark_split_transition.bzl", "ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_FALLBACK", "ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_ROLLOUT")
+load("//rules/acls:android_binary_with_sandboxed_sdks_allowlist.bzl", "ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST")
 load("//rules/acls:android_feature_splits_dogfood.bzl", "ANDROID_FEATURE_SPLITS_DOGFOOD")
 load("//rules/acls:android_library_resources_without_srcs.bzl", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS")
 load("//rules/acls:android_library_starlark_resource_outputs.bzl", "ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_FALLBACK", "ANDROID_LIBRARY_STARLARK_RESOURCE_OUTPUTS_ROLLOUT")
@@ -111,6 +112,9 @@ def _in_android_binary_starlark_javac(fqn):
 
 def _in_android_binary_starlark_split_transition(fqn):
     return not matches(fqn, ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_FALLBACK_DICT) and matches(fqn, ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_ROLLOUT_DICT)
+
+def _in_android_binary_with_sandboxed_sdks_allowlist(fqn):
+    return matches(fqn, ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT)
 
 def _in_android_feature_splits_dogfood(fqn):
     return matches(fqn, ANDROID_FEATURE_SPLITS_DOGFOOD_DICT)
@@ -257,6 +261,7 @@ ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_J
 ANDROID_BINARY_STARLARK_JAVAC_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_JAVAC_FALLBACK)
 ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_ROLLOUT)
 ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_FALLBACK)
+ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST)
 ANDROID_FEATURE_SPLITS_DOGFOOD_DICT = make_dict(ANDROID_FEATURE_SPLITS_DOGFOOD)
 ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_DICT = make_dict(ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS)
 ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS_DICT = make_dict(ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS)
@@ -372,6 +377,7 @@ acls = struct(
     in_android_instrumentation_binary_starlark_resources = _in_android_instrumentation_binary_starlark_resources,
     in_android_binary_starlark_javac = _in_android_binary_starlark_javac,
     in_android_binary_starlark_split_transition = _in_android_binary_starlark_split_transition,
+    in_android_binary_with_sandboxed_sdks_allowlist = _in_android_binary_with_sandboxed_sdks_allowlist,
     in_android_feature_splits_dogfood = _in_android_feature_splits_dogfood,
     in_android_library_starlark_resource_outputs_rollout = _in_android_library_starlark_resource_outputs_rollout,
     in_android_library_resources_without_srcs = _in_android_library_resources_without_srcs,
