@@ -15,6 +15,14 @@
 """Bazel rule for defining an Android Sandboxed SDK."""
 
 load(":providers.bzl", "AndroidSandboxedSdkInfo")
+load(
+    "//rules:common.bzl",
+    _common = "common",
+)
+load(
+    "//rules:utils.bzl",
+    _get_android_toolchain = "get_android_toolchain",
+)
 load("//rules:java.bzl", _java = "java")
 
 _ATTRS = dict(
@@ -22,13 +30,42 @@ _ATTRS = dict(
         allow_single_file = [".pb.json"],
     ),
     internal_android_binary = attr.label(),
+    sdk_deploy_jar = attr.label(
+        allow_single_file = [".jar"],
+    ),
+    _host_javabase = attr.label(
+        cfg = "exec",
+        default = Label("//tools/jdk:current_java_runtime"),
+    ),
 )
 
 def _impl(ctx):
-    return AndroidSandboxedSdkInfo(
-        internal_apk_info = ctx.attr.internal_android_binary[ApkInfo],
-        sdk_module_config = ctx.file.sdk_modules_config,
+    sdk_api_descriptors = ctx.actions.declare_file(ctx.label.name + "_sdk_api_descriptors.jar")
+
+    args = ctx.actions.args()
+    args.add("extract-api-descriptors")
+    args.add("--sdk-deploy-jar", ctx.file.sdk_deploy_jar)
+    args.add("--output-sdk-api-descriptors", sdk_api_descriptors)
+    _java.run(
+        ctx = ctx,
+        host_javabase = _common.get_host_javabase(ctx),
+        executable = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
+        arguments = [args],
+        inputs = [ctx.file.sdk_deploy_jar],
+        outputs = [sdk_api_descriptors],
+        mnemonic = "ExtractApiDescriptors",
+        progress_message = "Extract SDK API descriptors %s" % sdk_api_descriptors.short_path,
     )
+    return [
+        DefaultInfo(
+            files = depset([sdk_api_descriptors]),
+        ),
+        AndroidSandboxedSdkInfo(
+            internal_apk_info = ctx.attr.internal_android_binary[ApkInfo],
+            sdk_module_config = ctx.file.sdk_modules_config,
+            sdk_api_descriptors = sdk_api_descriptors,
+        ),
+    ]
 
 _android_sandboxed_sdk = rule(
     attrs = _ATTRS,
@@ -36,6 +73,9 @@ _android_sandboxed_sdk = rule(
     implementation = _impl,
     provides = [
         AndroidSandboxedSdkInfo,
+    ],
+    toolchains = [
+        "//toolchains/android:toolchain_type",
     ],
 )
 
@@ -74,14 +114,18 @@ EOF
 """.format(package = package, min_sdk_version = min_sdk_version),
     )
 
-    bin_label = Label("%s_bin" % fully_qualified_name)
+    bin_fqn = "%s_bin" % fully_qualified_name
+    bin_label = Label(bin_fqn)
     android_binary(
         name = bin_label.name,
         manifest = str(manifest_label),
         deps = deps,
     )
+
+    sdk_deploy_jar = Label("%s_deploy.jar" % bin_fqn)
     _android_sandboxed_sdk(
         name = name,
         sdk_modules_config = sdk_modules_config,
         internal_android_binary = bin_label,
+        sdk_deploy_jar = sdk_deploy_jar,
     )

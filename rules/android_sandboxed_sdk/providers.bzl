@@ -22,8 +22,9 @@ AndroidSandboxedSdkInfo = provider(
                             "other sandboxed SDK rules.",
         sdk_module_config = "The SDK Module config. For the full definition see " +
                             "https://github.com/google/bundletool/blob/master/src/main/proto/sdk_modules_config.proto",
-        # TODO b/291279514 - Add SDK API descriptors to this provider when API packager is ready in
-        # Google3 (tracked in b/287193040)
+        sdk_api_descriptors = "Jar file with the SDK API Descriptors. This can later be used to " +
+                              "generate sources for communicating with this SDK from the app " +
+                              "process.",
     ),
 )
 
