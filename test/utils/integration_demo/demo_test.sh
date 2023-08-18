@@ -35,6 +35,7 @@ function test_bazel_exists() {
 
   echo "Path: ${PATH}"
   env
+  which bazel
   bazel info >& $TEST_log
   #expect_log "release: release"
   expect_log "output_base: "
