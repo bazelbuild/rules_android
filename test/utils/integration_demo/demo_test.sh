@@ -38,6 +38,7 @@ function test_bazel_exists() {
   bazel info >& $TEST_log
   #expect_log "release: release"
   expect_log "output_base: "
+  fail "Show me the logs"
 }
 
 run_suite "Demo of bazel sh test"
