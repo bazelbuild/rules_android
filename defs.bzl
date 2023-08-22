@@ -35,7 +35,7 @@ def rules_android_workspace():
         name = "rules_android_maven",
         artifacts = [
             "androidx.privacysandbox.tools:tools:1.0.0-alpha05",
-             maven.artifact(
+            maven.artifact(
                 group = "androidx.privacysandbox.tools",
                 artifact = "tools-apipackager",
                 version = "1.0.0-alpha05",
@@ -46,10 +46,10 @@ def rules_android_workspace():
                     # This was fixed in AOSP, so this can be removed once
                     # the packager releases a new version (>alpha05).
                     "com.google.protobuf:protobuf-javalite",
-                ]
+                ],
             ),
             "com.android.tools.build:bundletool:1.15.2",
-            "com.android.tools.build:gradle:8.0.1",
+            "com.android.tools.build:gradle:8.2.0-alpha15",
             "com.google.guava:guava:32.1.2-jre",
             "com.google.protobuf:protobuf-java-util:3.9.2",
             "com.google.truth:truth:1.1.5",
@@ -84,10 +84,10 @@ def rules_android_workspace():
     )
 
     go_repository(
-      name = "org_golang_x_sync",
-      importpath = "golang.org/x/sync",
-      sum = "h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=",
-      version = "v0.0.0-20210220032951-036812b2e83c",
+        name = "org_golang_x_sync",
+        importpath = "golang.org/x/sync",
+        sum = "h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=",
+        version = "v0.0.0-20210220032951-036812b2e83c",
     )
 
     robolectric_repositories()

@@ -119,6 +119,7 @@ _PACKAGED_CLASS_JAR = "class_jar"
 _PACKAGED_VALIDATION_RESULT = "validation_result"
 _RESOURCE_MINSDK_PROGUARD_CONFIG = "resource_minsdk_proguard_config"
 _RESOURCE_PROGUARD_CONFIG = "resource_proguard_config"
+_ANDROID_APPLICATION_RESOURCE = "android_application_resource"
 
 _ResourcesPackageContextInfo = provider(
     "Packaged resources context object",
@@ -132,6 +133,7 @@ _ResourcesPackageContextInfo = provider(
         _RESOURCE_MINSDK_PROGUARD_CONFIG: "Resource minSdkVersion proguard config",
         _RESOURCE_PROGUARD_CONFIG: "Resource proguard config",
         _PROVIDERS: "The list of all providers to propagate.",
+        _ANDROID_APPLICATION_RESOURCE: "The AndroidApplicationResourceInfo provider.",
     },
 )
 
@@ -465,7 +467,8 @@ def _package(
         xsltproc = None,
         instrument_xslt = None,
         busybox = None,
-        host_javabase = None):
+        host_javabase = None,
+        add_application_resource_info_to_providers = True):
     """Package resources for top-level rules.
 
     Args:
@@ -517,6 +520,7 @@ def _package(
       minsdk_proguard_config: Optional file. Proguard config for the minSdkVersion to include in the
         returned resource context.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
+      has_local_proguard_specs: If the target has proguard specs.
       android_jar: File. The Android jar.
       legacy_merger: FilesToRunProvider. The legacy manifest merger executable.
       xsltproc: FilesToRunProvider. The xsltproc executable or
@@ -526,6 +530,8 @@ def _package(
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
       host_javabase: A Target. The host javabase.
+      add_application_resource_info_to_providers: boolean. Whether to add the
+          AndroidApplicationResourceInfo provider to the list of providers for this processor.
 
     Returns:
       A ResourcesPackageContextInfo containing packaged resource artifacts and
@@ -778,7 +784,7 @@ def _package(
         transitive_resource_apks = depset(),
     ))
 
-    packaged_resources_ctx[_PROVIDERS].append(AndroidApplicationResourceInfo(
+    android_application_resource_info = AndroidApplicationResourceInfo(
         resource_apk = resource_apk,
         resource_java_src_jar = r_java,
         resource_java_class_jar = class_jar,
@@ -789,7 +795,11 @@ def _package(
         resources_zip = resource_files_zip,
         databinding_info = data_binding_layout_info,
         should_compile_java_srcs = should_compile_java_srcs,
-    ))
+    )
+    packaged_resources_ctx[_ANDROID_APPLICATION_RESOURCE] = android_application_resource_info
+    if add_application_resource_info_to_providers:
+        packaged_resources_ctx[_PROVIDERS].append(android_application_resource_info)
+
     return _ResourcesPackageContextInfo(**packaged_resources_ctx)
 
 def _liteparse(ctx, out_r_pb, resource_files, android_kit):

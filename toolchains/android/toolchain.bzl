@@ -176,10 +176,10 @@ _ATTRS = dict(
         executable = True,
     ),
     merge_baseline_profiles_tool = attr.label(
-      default = "@androidsdk//:fail",
-      cfg = "exec",
-      executable = True
-      ),
+        default = "@androidsdk//:fail",
+        cfg = "exec",
+        executable = True,
+    ),
     object_method_rewriter = attr.label(
         allow_files = True,
         cfg = "exec",
@@ -192,7 +192,7 @@ _ATTRS = dict(
         executable = True,
     ),
     profgen = attr.label(
-        default =  "@androidsdk//:fail",
+        default = "@androidsdk//:fail",
         cfg = "exec",
         executable = True,
     ),
@@ -201,6 +201,18 @@ _ATTRS = dict(
         default = "@androidsdk//:fail",
         allow_files = True,
         executable = True,
+    ),
+    r8 = attr.label(
+        cfg = "exec",
+        default = "//tools/android:r8_deploy.jar",
+        executable = True,
+        allow_files = True,
+    ),
+    resource_shrinker = attr.label(
+        cfg = "exec",
+        default = "//tools/android:resource_shrinker_deploy.jar",
+        executable = True,
+        allow_files = True,
     ),
     res_v3_dummy_manifest = attr.label(
         allow_files = True,

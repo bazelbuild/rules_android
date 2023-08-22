@@ -58,3 +58,17 @@ alias(
     actual = "@bazel_tools//tools/android:desugared_java8_legacy_apis",
     visibility = ["//visibility:public"],
 )
+
+java_binary(
+    name = "r8",
+    main_class = "com.android.tools.r8.R8",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@android_gmaven_r8//jar"],
+)
+
+java_binary(
+    name = "resource_shrinker",
+    main_class = "com.android.build.shrinker.ResourceShrinkerCli",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_build_gradle"],
+)

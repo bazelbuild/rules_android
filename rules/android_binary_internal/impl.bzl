@@ -14,6 +14,7 @@
 
 """Implementation."""
 
+load(":r8.bzl", "process_r8", "process_resource_shrinking_r8")
 load("//rules:acls.bzl", "acls")
 load("//rules:baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load("//rules:common.bzl", "common")
@@ -90,6 +91,9 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         instrument_xslt = ctx.file._add_g3itr_xslt,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = ctx.attr._host_javabase,
+        # The AndroidApplicationResourceInfo will be added to the list of providers in finalize()
+        # if R8-based resource shrinking is not performed.
+        add_application_resource_info_to_providers = False,
     )
     return ProviderInfo(
         name = "packaged_resources_ctx",
@@ -377,12 +381,43 @@ def use_legacy_manifest_merger(ctx):
 
     return manifest_merger == "legacy"
 
-def finalize(ctx, providers, validation_outputs, **unused_ctxs):
+def finalize(
+        _unused_ctx,
+        providers,
+        validation_outputs,
+        packaged_resources_ctx,
+        resource_shrinking_r8_ctx,
+        **_unused_ctxs):
+    """Final step of the android_binary_internal processor pipeline.
+
+    Args:
+      _unused_ctx: The context.
+      providers: The list of providers for the android_binary_internal rule.
+      validation_outputs: Validation outputs for the rule.
+      packaged_resources_ctx: The packaged resources from the resource processing step.
+      resource_shrinking_r8_ctx: The context from the R8 resource shrinking step.
+      **_unused_ctxs: Other contexts.
+
+    Returns:
+      The list of providers the android_binary_internal rule should return.
+    """
     providers.append(
         OutputGroupInfo(
             _validation = depset(validation_outputs),
         ),
     )
+
+    # Add the AndroidApplicationResourceInfo provider from resource shrinking if it was performed.
+    # TODO(ahumesky): This can be cleaned up after the rules are fully migrated to Starlark.
+    # Packaging will be the final step in the pipeline, and that step can be responsible for picking
+    # between the two different contexts. Then this finalize can return back to its "simple" form.
+    if resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk:
+        providers.append(
+            resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk,
+        )
+    else:
+        providers.append(packaged_resources_ctx.android_application_resource)
+
     return providers
 
 def _is_test_binary(ctx):
@@ -538,6 +573,8 @@ PROCESSORS = dict(
     OptimizeProcessor = _process_optimize,
     DexProcessor = _process_dex,
     BaselineProfilesProcessor = _process_baseline_profiles,
+    R8Processor = process_r8,
+    ResourecShrinkerR8Processor = process_resource_shrinking_r8,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
