@@ -55,13 +55,15 @@ def _get_libs_dir_name(android_config, target_platform):
         name = name + "-hwasan"
     return name
 
-def process(ctx, filename):
+def process(ctx, filename, merged_native_libs = {}):
     """ Links native deps into a shared library
 
     Args:
       ctx: The context.
       filename: String. The name of the artifact containing the name of the
             linked shared library
+      merged_native_libs: A dict that maps cpu to merged native libraries. This maps to empty
+            lists if native library merging is not enabled.
 
     Returns:
         Tuple of (libs, libs_name) where libs is a depset of all native deps
@@ -95,13 +97,15 @@ def process(ctx, filename):
             ),
         )
         libraries = []
+        if merged_native_libs:
+            libraries.extend(merged_native_libs[key])
 
         native_deps_lib = _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actual_target_name)
         if native_deps_lib:
             libraries.append(native_deps_lib)
             native_libs_basename = native_deps_lib.basename
 
-        libraries.extend(_filter_unique_shared_libs(native_deps_lib, cc_info))
+        libraries.extend(_filter_unique_shared_libs(libraries, cc_info))
 
         if libraries:
             libs[libs_dir_name] = depset(libraries)
@@ -133,11 +137,18 @@ def _all_inputs(cc_info):
         for lib in input.libraries
     ]
 
-def _filter_unique_shared_libs(linked_lib, cc_info):
+def _filter_unique_shared_libs(linked_libs, cc_info):
     basenames = {}
     artifacts = {}
-    if linked_lib:
-        basenames[linked_lib.basename] = linked_lib
+    if linked_libs:
+        basenames = {
+            linked_lib.basename: linked_lib
+            for linked_lib in linked_libs
+        }
+        artifacts = {
+            linked_lib: None
+            for linked_lib in linked_libs
+        }
     for input in _all_inputs(cc_info):
         if input.pic_static_library or input.static_library:
             # This is not a shared library and will not be loaded by Android, so skip it.
@@ -169,7 +180,7 @@ def _filter_unique_shared_libs(linked_lib, cc_info):
                 "unique basename to avoid name collisions when packaged into " +
                 "an apk, but two libraries have the basename '" + basename +
                 "': " + artifact + " and " + old_artifact + (
-                    " (the library compiled for this target)" if old_artifact == linked_lib else ""
+                    " (the library already seen by this target)" if old_artifact in linked_libs else ""
                 ),
             )
         else:
