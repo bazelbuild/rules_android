@@ -142,6 +142,11 @@ _ATTRS = dict(
         default = Label("@bazel_tools//tools/android:dexmerger"),
         executable = True,
     ),
+    dexsharder = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:dexsharder"),
+        executable = True,
+    ),
     enforce_min_sdk_floor_tool = attr.label(
         allow_files = True,
         cfg = "exec",

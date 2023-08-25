@@ -215,7 +215,7 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
         ),
     )
 
-def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, deploy_ctx, **_unused_ctxs):
+def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, deploy_ctx, optimize_ctx, **_unused_ctxs):
     providers = []
     classes_dex_zip = None
     dex_info = None
@@ -254,10 +254,12 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 runtime_jars = runtime_jars,
                 main_dex_list = ctx.file.main_dex_list,
                 min_sdk_version = ctx.attr.min_sdk_version,
+                inclusion_filter_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None,
                 java_info = java_info,
                 desugar_dict = deploy_ctx.desugar_dict,
                 dexbuilder = get_android_toolchain(ctx).dexbuilder.files_to_run,
                 dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
+                dexsharder = get_android_toolchain(ctx).dexsharder.files_to_run,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
 
@@ -295,7 +297,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
         java_toolchain = common.get_java_toolchain(ctx)
         java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
         info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
-        incremental_dexopts = _dex.incremental_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+        incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
         dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
         binary_runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
         if proto_ctx.class_jar:
