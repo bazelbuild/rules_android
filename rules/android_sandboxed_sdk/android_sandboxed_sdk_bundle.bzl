@@ -73,6 +73,7 @@ def _impl(ctx):
         ctx,
         out = ctx.outputs.asb,
         module = module_zip,
+        sdk_api_descriptors = ctx.attr.sdk[AndroidSandboxedSdkInfo].sdk_api_descriptors,
         sdk_modules_config = ctx.attr.sdk[AndroidSandboxedSdkInfo].sdk_module_config,
         bundletool = _get_android_toolchain(ctx).bundletool.files_to_run,
         host_javabase = host_javabase,

@@ -133,6 +133,7 @@ def _build_sdk_bundle(
         ctx,
         out = None,
         module = None,
+        sdk_api_descriptors = None,
         sdk_modules_config = None,
         bundletool = None,
         host_javabase = None):
@@ -140,6 +141,7 @@ def _build_sdk_bundle(
     args.add("build-sdk-bundle")
 
     args.add("--sdk-modules-config", sdk_modules_config)
+    args.add("--sdk-interface-descriptors", sdk_api_descriptors)
     args.add("--modules", module)
     args.add("--output", out)
     _java.run(
@@ -149,6 +151,7 @@ def _build_sdk_bundle(
         arguments = [args],
         inputs = [
             module,
+            sdk_api_descriptors,
             sdk_modules_config,
         ],
         outputs = [out],
