@@ -572,6 +572,10 @@ def _check_actions(inspect, actions):
         mnemonic_matching_actions = []
         mnemonic_match = False
         for _, value in actions.by_file.items():
+            # TODO(b/130571505): Remove this after SpawnActionTemplate is supported in Starlark
+            if not (hasattr(value, "mnemonic") and hasattr(value, "argv")):
+                continue
+
             if mnemonic != value.mnemonic:
                 continue
             mnemonic_match = True

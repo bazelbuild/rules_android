@@ -18,6 +18,8 @@ load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
 load(":providers.bzl", "StarlarkAndroidDexInfo")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load("//rules:attrs.bzl", _attrs = "attrs")
+load("//rules:java.bzl", _java = "java")
+load("//rules:common.bzl", _common = "common")
 
 _tristate = _attrs.tristate
 
@@ -28,15 +30,16 @@ def _process_incremental_dexing(
         dexopts = [],
         main_dex_list = [],
         min_sdk_version = 0,
+        inclusion_filter_jar = None,
         java_info = None,
         desugar_dict = {},
+        dexsharder = None,
         dexbuilder = None,
         dexmerger = None,
         toolchain_type = None):
     classes_dex_zip = _get_dx_artifact(ctx, "classes.dex.zip")
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
-
-    incremental_dexopts = _incremental_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    incremental_dexopts = _filter_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
     dex_archives_list = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
     dex_archives = _to_dexed_classpath(
         dex_archives_dict = {d.jar: d.dex for d in dex_archives_list},
@@ -57,18 +60,83 @@ def _process_incremental_dexing(
         )
         dex_archives.append(dex_archive)
 
-    _dex_merge(
-        ctx,
-        output = classes_dex_zip,
-        inputs = dex_archives,
-        multidex_strategy = "minimal",
-        main_dex_list = main_dex_list,
-        dexopts = dexopts,
-        dexmerger = dexmerger,
-        toolchain_type = toolchain_type,
-    )
+    if len(dex_archives) == 1:
+        _dex_merge(
+            ctx,
+            output = classes_dex_zip,
+            inputs = dex_archives,
+            multidex_strategy = "minimal",
+            main_dex_list = main_dex_list,
+            dexopts = _filter_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_dex_merger),
+            dexmerger = dexmerger,
+            toolchain_type = toolchain_type,
+        )
+    else:
+        shards = ctx.actions.declare_directory("dexsplits/" + ctx.label.name)
+        dexes = ctx.actions.declare_directory("dexfiles/" + ctx.label.name)
+        _shard_dexes(
+            ctx,
+            output = shards,
+            inputs = dex_archives,
+            dexopts = _filter_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_dex_sharder),
+            main_dex_list = main_dex_list,
+            inclusion_filter_jar = inclusion_filter_jar,
+            dexsharder = dexsharder,
+            toolchain_type = toolchain_type,
+        )
+
+        # TODO(b/130571505): Implement this after SpawnActionTemplate is supported in Starlark
+        android_common.create_dex_merger_actions(
+            ctx,
+            output = dexes,
+            input = shards,
+            dexopts = dexopts,
+            dexmerger = dexmerger,
+        )
+        _java.singlejar(
+            ctx,
+            output = classes_dex_zip,
+            inputs = [dexes],
+            mnemonic = "MergeDexZips",
+            progress_message = "Merging dex shards for %s." % ctx.label,
+            java_toolchain = _common.get_java_toolchain(ctx),
+        )
 
     return classes_dex_zip
+
+def _shard_dexes(
+        ctx,
+        output,
+        inputs = [],
+        dexopts = [],
+        main_dex_list = None,
+        inclusion_filter_jar = None,
+        dexsharder = None,
+        toolchain_type = None):
+    args = ctx.actions.args().use_param_file(param_file_arg = "@%s")
+    args.add_all(inputs, before_each = "--input")
+    args.add("--output", output.path)
+    if main_dex_list:
+        inputs.append(main_dex_list)
+        args.add("--main-dex-list", main_dex_list)
+    if inclusion_filter_jar:
+        inputs.append(inclusion_filter_jar)
+        args.add("--inclusion_filter_jar", inclusion_filter_jar)
+
+    args.add_all(dexopts)
+
+    ctx.actions.run(
+        executable = dexsharder,
+        outputs = [output],
+        inputs = inputs,
+        arguments = [args],
+        mnemonic = "ShardsForMultiDex",
+        progress_message = "Assembling dex files for " + ctx.label.name,
+        use_default_shell_env = True,
+        toolchain = toolchain_type,
+    )
+
+    return output
 
 def _append_java8_legacy_dex(
         ctx,
@@ -225,7 +293,7 @@ def _dex_merge(
     args.add("--multidex", multidex_strategy)
     args.add_all(inputs, before_each = "--input")
     args.add("--output", output)
-    args.add_all(_merger_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_dex_merger))
+    args.add_all(dexopts)
 
     if main_dex_list:
         inputs.append(main_dex_list)
@@ -241,12 +309,6 @@ def _dex_merge(
         toolchain = toolchain_type,
     )
 
-def _merger_dexopts(tokenized_dexopts, dexopts_supported_in_dex_merger):
-    return _normalize_dexopts(_filter(tokenized_dexopts, includes = dexopts_supported_in_dex_merger))
-
-def _incremental_dexopts(tokenized_dexopts, dexopts_supported_in_incremental_dexing):
-    return _normalize_dexopts(_filter(tokenized_dexopts, includes = dexopts_supported_in_incremental_dexing))
-
 def _merge_infos(infos):
     dex_archives_dict = {}
     for info in infos:
@@ -259,6 +321,9 @@ def _merge_infos(infos):
         dex_archives_dict =
             {dexopts: depset(direct = [], transitive = dex_archives) for dexopts, dex_archives in dex_archives_dict.items()},
     )
+
+def _filter_dexopts(tokenized_dexopts, includes):
+    return _normalize_dexopts(_filter(tokenized_dexopts, includes = includes))
 
 def _filter(candidates, includes = [], excludes = []):
     if excludes and includes:
@@ -282,7 +347,7 @@ dex = struct(
     get_dx_artifact = _get_dx_artifact,
     get_effective_incremental_dexing = _get_effective_incremental_dexing,
     get_java8_legacy_dex_and_map = _get_java8_legacy_dex_and_map,
-    incremental_dexopts = _incremental_dexopts,
+    filter_dexopts = _filter_dexopts,
     merge_infos = _merge_infos,
     normalize_dexopts = _normalize_dexopts,
     process_incremental_dexing = _process_incremental_dexing,
