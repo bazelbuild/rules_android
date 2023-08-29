@@ -55,6 +55,7 @@ def _impl(ctx):
         ],
         mnemonic = "ValidateFeatureModule",
         progress_message = "Validating feature module %s" % str(ctx.label),
+        toolchain = None,
     )
 
     return [

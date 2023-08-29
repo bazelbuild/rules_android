@@ -14,6 +14,11 @@
 
 """Bazel AAPT Commands."""
 
+load(
+    "//rules:utils.bzl",
+    "ANDROID_TOOLCHAIN_TYPE",
+)
+
 def _link(
         ctx,
         out_r_java,
@@ -112,6 +117,7 @@ echo $(tac $1) > $2
         outputs = [out_resource_apk, out_r_java],
         mnemonic = "LinkAndroidResources",
         progress_message = "ResV3 Linking Android Resources to %s" % out_resource_apk.short_path,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _compile(
@@ -170,6 +176,7 @@ done
         outputs = [out_dir],
         mnemonic = "CompileAndroidResources",
         progress_message = "ResV3 Compiling Android Resources in %s" % out_dir,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _convert(
@@ -191,6 +198,7 @@ def _convert(
         outputs = [out],
         mnemonic = "AaptConvert",
         progress_message = "ResV3 Convert to %s" % out.short_path,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 aapt = struct(

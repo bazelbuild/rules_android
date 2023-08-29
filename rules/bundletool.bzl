@@ -14,6 +14,10 @@
 
 """Bazel Bundletool Commands."""
 
+load(
+    "//rules:utils.bzl",
+    "ANDROID_TOOLCHAIN_TYPE",
+)
 load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 
@@ -175,6 +179,7 @@ def _build_sdk_module(
         arguments = [args],
         mnemonic = "BuildSdkModule",
         progress_message = "Building ASB zip module %s" % out.short_path,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _bundle_to_apks(
@@ -270,6 +275,7 @@ echo "$contents" > %s
         mnemonic = "ExtractBundleConfig",
         progress_message = "Extract bundle config to %s" % out.short_path,
         command = cmd,
+        exec_group = "android_and_java",
     )
 
 def _extract_manifest(
@@ -305,6 +311,7 @@ echo "$contents" > %s
         mnemonic = "ExtractBundleManifest",
         progress_message = "Extract bundle manifest to %s" % out.short_path,
         command = cmd,
+        exec_group = "android_and_java",
     )
 
 def _proto_apk_to_module(
@@ -376,6 +383,7 @@ cd "${OUT_DIR}"
         outputs = [out],
         mnemonic = "Rebundle",
         progress_message = "Rebundle to %s" % out.short_path,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 bundletool = struct(
