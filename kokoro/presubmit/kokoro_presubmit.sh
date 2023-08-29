@@ -16,18 +16,47 @@
 set -e
 set -x
 
-source "${KOKORO_GFILE_DIR}/download_bazel.sh"
-echo "== installing bazel ========================================="
+function DownloadBazelisk()  {
+  # Utility function to download a specified version of bazelisk to a given
+  # installation directory. Adds the directory to PATH.
+  # Positional arguments:
+  #   version: The version to install.
+  #   platform: The platform to install. Currently only "linux" has been
+  #     validated.
+  #   arch: Architecture to install. Currently only "arm64" has been validated.
+  #   dest: Where to install Bazelisk. Must be a user-writeable directory,
+  #     otherwise the root user must call this function through sudo.
+  (
+    set -euxo pipefail
+
+    # Positional arguments
+    local version="${1:-1.18.0}"
+    local platform="${2:-linux}"
+    local arch="${3:-amd64}"
+    local dest="${4:-${TMPDIR}/bazelisk-release}"
+
+    download_url="https://github.com/bazelbuild/bazelisk/releases/download/v${version}/bazelisk-${platform}-${arch}"
+    mkdir -p "${dest}"
+    wget -nv ${download_url} -O "${dest}/bazelisk"
+    chmod +x "${dest}/bazelisk"
+    ln -s "${dest}/bazelisk" "${dest}/bazel"
+    export PATH="${dest}:${PATH}"
+    type -a bazel
+    echo "Bazelisk ${version} installation completed."
+  )
+}
+
+echo "== installing bazelisk ========================================="
 bazel_install_dir=$(mktemp -d)
-BAZEL_VERSION="latest-with-prereleases"
-DownloadBazel "$BAZEL_VERSION" linux x86_64 "$bazel_install_dir"
-bazel="$bazel_install_dir/install/bin/bazel"
-chmod +x "$bazel"
+BAZELISK_VERSION="1.18.0"
+export USE_BAZEL_VERSION="last_green"
+DownloadBazelisk "$BAZELISK_VERSION" linux amd64 "$bazel_install_dir"
+bazel="$bazel_install_dir/bazel"
 bazel_detected_version=$("$bazel" version | grep "Build label" | awk -F": " '{print $2}')
 echo "============================================================="
 
 function Cleanup() {
-  # Clean up all temporary directories: bazel install, sandbox, and
+  # Clean up all temporary directories: bazelisk install, sandbox, and
   # android_tools.
   rm -rf "$bazel_install_dir"
 }
