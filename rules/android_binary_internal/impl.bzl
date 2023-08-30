@@ -222,8 +222,15 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
     final_classes_dex_zip = None
     deploy_jar = deploy_ctx.deploy_jar
     is_binary_optimized = len(ctx.attr.proguard_specs) > 0
+    main_dex_list = ctx.file.main_dex_list
+    multidex = ctx.attr.multidex
+
+    # TODO(b/256652067) Pass proguard_output_map after AppReduce starlark migration.
+    proguard_output_map = None
 
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
+        proguarded_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None
+        binary_jar = proguarded_jar if proguarded_jar else deploy_jar
         java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
         runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
         if proto_ctx.class_jar:
@@ -232,9 +239,40 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
         java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(
             ctx,
             android_jar = get_android_sdk(ctx).android_jar,
-            binary_jar = deploy_jar,
+            binary_jar = binary_jar,
             build_customized_files = is_binary_optimized,
         )
+
+        if (main_dex_list and multidex != "manual_main_dex") or \
+           (not main_dex_list and multidex == "manual_main_dex"):
+            fail("Both \"main_dex_list\" and \"multidex='manual_main_dex'\" must be specified.")
+
+        #  Multidex mode: generate classes.dex.zip, where the zip contains
+        #  [classes.dex, classes2.dex, ... classesN.dex]
+        if ctx.attr.multidex == "legacy":
+            main_dex_list = _dex.generate_main_dex_list(
+                ctx,
+                jar = binary_jar,
+                android_jar = get_android_sdk(ctx).android_jar,
+                desugar_java8_libs = ctx.fragments.android.desugar_java8_libs,
+                legacy_apis = ctx.files._desugared_java8_legacy_apis,
+                main_dex_classes = get_android_sdk(ctx).main_dex_classes,
+                main_dex_list_opts = ctx.attr.main_dex_list_opts,
+                main_dex_proguard_spec = packaged_resources_ctx.main_dex_proguard_config,
+                proguard_specs = list(ctx.attr.main_dex_proguard_specs),
+                shrinked_android_jar = get_android_sdk(ctx).shrinked_android_jar,
+                main_dex_list_creator = get_android_sdk(ctx).main_dex_list_creator,
+                legacy_main_dex_list_generator =
+                    ctx.attr._legacy_main_dex_list_generator.files_to_run if ctx.attr._legacy_main_dex_list_generator else get_android_sdk(ctx).legacy_main_dex_list_generator,
+                proguard_tool = get_android_sdk(ctx).proguard,
+            )
+        elif ctx.attr.multidex == "manual_main_dex":
+            main_dex_list = _dex.transform_dex_list_through_proguard_map(
+                ctx,
+                proguard_output_map = proguard_output_map,
+                main_dex_list = main_dex_list,
+                dex_list_obfuscator = get_android_toolchain(ctx).dex_list_obfuscator.files_to_run,
+            )
 
         incremental_dexing = _dex.get_effective_incremental_dexing(
             force_incremental_dexing = ctx.attr.incremental_dexing,
@@ -252,7 +290,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 deps = _get_dex_desugar_aspect_deps(ctx),
                 dexopts = ctx.attr.dexopts,
                 runtime_jars = runtime_jars,
-                main_dex_list = ctx.file.main_dex_list,
+                main_dex_list = main_dex_list,
                 min_sdk_version = ctx.attr.min_sdk_version,
                 inclusion_filter_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None,
                 java_info = java_info,
