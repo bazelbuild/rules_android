@@ -99,6 +99,8 @@ ATTRS = _attrs.replace(
             ),
             dexopts = attr.string_list(),
             main_dex_list = attr.label(allow_single_file = True),
+            main_dex_list_opts = attr.label_list(),
+            main_dex_proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
             min_sdk_version = attr.int(),
             incremental_dexing = _attrs.tristate.create(
                 default = _attrs.tristate.auto,
@@ -106,6 +108,10 @@ ATTRS = _attrs.replace(
             proguard_generate_mapping = attr.bool(default = False),
             proguard_optimization_passes = attr.int(),
             proguard_apply_mapping = attr.label(allow_single_file = True),
+            multidex = attr.string(
+                default = "native",
+                values = ["native", "legacy", "manual_main_dex"],
+            ),
             _java_toolchain = attr.label(
                 default = Label("//tools/jdk:toolchain_android_only"),
             ),
@@ -132,6 +138,14 @@ ATTRS = _attrs.replace(
                 default = configuration_field(
                     fragment = "java",
                     name = "bytecode_optimizer",
+                ),
+                cfg = "exec",
+                executable = True,
+            ),
+            _legacy_main_dex_list_generator = attr.label(
+                default = configuration_field(
+                    fragment = "android",
+                    name = "legacy_main_dex_list_generator",
                 ),
                 cfg = "exec",
                 executable = True,

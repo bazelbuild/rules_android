@@ -78,6 +78,7 @@ _ASSETS_PROVIDER = "assets_provider"
 _DATA_BINDING_LAYOUT_INFO = "data_binding_layout_info"
 _DEFINES_RESOURCES = "defines_resources"
 _DIRECT_ANDROID_RESOURCES = "direct_android_resources"
+_MAIN_DEX_PROGUARD_CONFIG = "main_dex_proguard_config"
 _MERGED_MANIFEST = "merged_manifest"
 _PROVIDERS = "providers"
 _R_JAVA = "r_java"
@@ -132,6 +133,7 @@ _ResourcesPackageContextInfo = provider(
         _DATA_BINDING_LAYOUT_INFO: "Databinding layout info file.",
         _RESOURCE_MINSDK_PROGUARD_CONFIG: "Resource minSdkVersion proguard config",
         _RESOURCE_PROGUARD_CONFIG: "Resource proguard config",
+        _MAIN_DEX_PROGUARD_CONFIG: "Main dex proguard config",
         _PROVIDERS: "The list of all providers to propagate.",
         _ANDROID_APPLICATION_RESOURCE: "The AndroidApplicationResourceInfo provider.",
     },
@@ -728,6 +730,7 @@ def _package(
     packaged_resources_ctx[_PACKAGED_VALIDATION_RESULT] = resource_files_zip
     packaged_resources_ctx[_RESOURCE_PROGUARD_CONFIG] = proguard_cfg
     packaged_resources_ctx[_RESOURCE_MINSDK_PROGUARD_CONFIG] = minsdk_proguard_config
+    packaged_resources_ctx[_MAIN_DEX_PROGUARD_CONFIG] = main_dex_proguard_cfg
 
     # Fix class jar name because some tests depend on {label_name}_resources.jar being the suffix of
     # the path, with _common.PACKAGED_RESOURCES_SUFFIX removed from the label name.

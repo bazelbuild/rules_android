@@ -282,6 +282,11 @@ _ATTRS = dict(
         default = "@bazel_tools//tools/android:build_java8_legacy_dex",
         executable = True,
     ),
+    dex_list_obfuscator = attr.label(
+        cfg = "exec",
+        default = "@bazel_tools//tools/android:dex_list_obfuscator",
+        executable = True,
+    ),
 )
 
 def _impl(ctx):

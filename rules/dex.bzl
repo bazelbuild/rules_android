@@ -28,7 +28,7 @@ def _process_incremental_dexing(
         deps = [],
         runtime_jars = [],
         dexopts = [],
-        main_dex_list = [],
+        main_dex_list = None,
         min_sdk_version = 0,
         inclusion_filter_jar = None,
         java_info = None,
@@ -297,7 +297,7 @@ def _dex_merge(
 
     if main_dex_list:
         inputs.append(main_dex_list)
-        args.add("-main_dex_list", main_dex_list)
+        args.add("--main-dex-list", main_dex_list)
 
     ctx.actions.run(
         executable = dexmerger,
@@ -340,10 +340,125 @@ def _normalize_dexopts(tokenized_dexopts):
 
     return collections.uniq(sorted([_dx_to_dexbuilder(token) for token in tokenized_dexopts]))
 
+def _generate_main_dex_list(
+        ctx,
+        jar,
+        android_jar = None,
+        desugar_java8_libs = True,
+        main_dex_classes = None,
+        main_dex_list_opts = [],
+        main_dex_proguard_spec = None,
+        proguard_specs = [],
+        legacy_apis = [],
+        shrinked_android_jar = None,
+        toolchain_type = None,
+        main_dex_list_creator = None,
+        legacy_main_dex_list_generator = None,
+        proguard_tool = None):
+    main_dex_list = _get_dx_artifact(ctx, "main_dex_list.txt")
+    if not proguard_specs:
+        proguard_specs.append(main_dex_classes)
+    if main_dex_proguard_spec:
+        proguard_specs.append(main_dex_proguard_spec)
+
+    #  If legacy_main_dex_list_generator is not set by either the SDK or the flag, use ProGuard and
+    #  the main dext list creator specified by the android_sdk rule. If
+    #  legacy_main_dex_list_generator is provided, use that tool instead.
+    #  TODO(b/147692286): Remove the old main-dex list generation that relied on ProGuard.
+    if not legacy_main_dex_list_generator:
+        if not shrinked_android_jar:
+            fail("In \"legacy\" multidex mode, either legacy_main_dex_list_generator or " +
+                 "shrinked_android_jar must be set in the android_sdk.")
+
+        # Process the input jar through Proguard into an intermediate, streamlined jar.
+        stripped_jar = _get_dx_artifact(ctx, "main_dex_intermediate.jar")
+        args = ctx.actions.args()
+        args.add("-forceprocessing")
+        args.add("-injars", jar)
+        args.add("-libraryjars", shrinked_android_jar)
+        args.add("-outjars", stripped_jar)
+        args.add("-dontwarn")
+        args.add("-dontnote")
+        args.add("-dontoptimize")
+        args.add("-dontobfuscate")
+        ctx.actions.run(
+            outputs = [stripped_jar],
+            executable = proguard_tool,
+            args = [args],
+            inputs = [jar, shrinked_android_jar],
+            mnemonic = "MainDexClassesIntermediate",
+            progress_message = "Generating streamlined input jar for main dex classes list",
+            use_default_shell_dev = True,
+            toolchain = toolchain_type,
+        )
+
+        args = ctx.actions.args()
+        args.add_all([main_dex_list, stripped_jar, jar])
+        args.add_all(main_dex_list_opts)
+
+        ctx.actions.run(
+            outputs = [main_dex_list],
+            executable = main_dex_list_creator,
+            arguments = [args],
+            inputs = [jar, stripped_jar],
+            mnemonic = "MainDexClasses",
+            progress_message = "Generating main dex classes list",
+            toolchain = toolchain_type,
+        )
+    else:
+        inputs = [jar, android_jar] + proguard_specs
+
+        args = ctx.actions.args()
+        args.add("--main-dex-list-output", main_dex_list)
+        args.add("--lib", android_jar)
+        if desugar_java8_libs:
+            args.add_all(legacy_apis, before_each = "--lib")
+            inputs += legacy_apis
+        args.add_all(proguard_specs, before_each = "--main-dex-rules")
+        args.add(jar)
+        ctx.actions.run(
+            executable = legacy_main_dex_list_generator,
+            arguments = [args],
+            outputs = [main_dex_list],
+            inputs = inputs,
+            mnemonic = "MainDexClasses",
+            progress_message = "Generating main dex classes list",
+            toolchain = toolchain_type,
+        )
+    return main_dex_list
+
+def _transform_dex_list_through_proguard_map(
+        ctx,
+        proguard_output_map = None,
+        main_dex_list = None,
+        toolchain_type = None,
+        dex_list_obfuscator = None):
+    if not proguard_output_map:
+        return main_dex_list
+
+    obfuscated_main_dex_list = _get_dx_artifact(ctx, "main_dex_list_obfuscated.txt")
+
+    args = ctx.actions.args()
+    args.add("--input", main_dex_list)
+    args.add("--output", obfuscated_main_dex_list)
+    args.add("--obfuscation_map", proguard_output_map)
+    ctx.actions.run(
+        executable = dex_list_obfuscator,
+        arguments = [args],
+        outputs = [obfuscated_main_dex_list],
+        inputs = [main_dex_list],
+        mnemonic = "MainDexProguardClasses",
+        progress_message = "Obfuscating main dex classes list",
+        toolchain = toolchain_type,
+    )
+
+    return obfuscated_main_dex_list
+
 dex = struct(
     append_java8_legacy_dex = _append_java8_legacy_dex,
     dex = _dex,
     dex_merge = _dex_merge,
+    generate_main_dex_list = _generate_main_dex_list,
     get_dx_artifact = _get_dx_artifact,
     get_effective_incremental_dexing = _get_effective_incremental_dexing,
     get_java8_legacy_dex_and_map = _get_java8_legacy_dex_and_map,
@@ -351,4 +466,5 @@ dex = struct(
     merge_infos = _merge_infos,
     normalize_dexopts = _normalize_dexopts,
     process_incremental_dexing = _process_incremental_dexing,
+    transform_dex_list_through_proguard_map = _transform_dex_list_through_proguard_map,
 )
