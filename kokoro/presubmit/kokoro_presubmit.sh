@@ -69,8 +69,8 @@ trap Cleanup EXIT
 #
 # Use "yes" to accept sdk licenses.
 cd "$ANDROID_HOME"
-yes | tools/bin/sdkmanager --install "build-tools;30.0.3" "extras;android;m2repository" &>/dev/null
-yes | tools/bin/sdkmanager --licenses &>/dev/null
+yes | cmdline-tools/latest/bin/sdkmanager --install "build-tools;30.0.3" "extras;android;m2repository" &>/dev/null
+yes | cmdline-tools/latest/bin/sdkmanager --licenses &>/dev/null
 
 # ANDROID_HOME is already in the environment.
 export ANDROID_NDK_HOME="/opt/android-ndk-r16b"
