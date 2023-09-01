@@ -119,6 +119,7 @@ EOF
     android_binary(
         name = bin_label.name,
         manifest = str(manifest_label),
+        generate_art_profile = False,
         deps = deps,
     )
 
