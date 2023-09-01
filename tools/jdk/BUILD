@@ -23,6 +23,18 @@ alias(
 )
 
 alias(
+    name = "current_java_toolchain",
+    actual = "@bazel_tools//tools/jdk:current_java_toolchain",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "jdk",
+    actual = "@bazel_tools//tools/jdk:jdk",
+    visibility = ["//visibility:public"],
+)
+
+alias(
     name = "current_host_java_runtime",
     actual = "@bazel_tools//tools/jdk:current_host_java_runtime",
     visibility = ["//visibility:public"],
