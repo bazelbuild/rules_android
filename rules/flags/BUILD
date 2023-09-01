@@ -20,7 +20,7 @@ bzl_library(
 
 string_flag(
     name = "runfiles_root_prefix",
-    build_setting_default = "",
+    build_setting_default = "build_bazel_rules_android/",
     visibility = ["//visibility:public"],
 )
 

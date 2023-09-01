@@ -238,7 +238,7 @@ _ATTRS = dict(
         executable = True,
     ),
     testsupport = attr.label(
-        default = "@androidsdk//:fail",
+        default = "@bazel_tools//tools/jdk:TestRunner",
     ),
     unzip_tool = attr.label(
         cfg = "exec",

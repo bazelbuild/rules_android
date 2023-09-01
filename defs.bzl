@@ -35,6 +35,8 @@ def rules_android_workspace():
         name = "rules_android_maven",
         artifacts = [
             "androidx.privacysandbox.tools:tools:1.0.0-alpha05",
+            "androidx.test:core:1.6.0-alpha01",
+            "androidx.test.ext:junit:1.2.0-alpha01",
             maven.artifact(
                 group = "androidx.privacysandbox.tools",
                 artifact = "tools-apipackager",
@@ -50,6 +52,7 @@ def rules_android_workspace():
             ),
             "com.android.tools.build:bundletool:1.15.2",
             "com.android.tools.build:gradle:8.2.0-alpha15",
+            "org.robolectric:robolectric:4.10.3",
             "com.google.guava:guava:32.1.2-jre",
             "com.google.protobuf:protobuf-java-util:3.9.2",
             "com.google.truth:truth:1.1.5",
