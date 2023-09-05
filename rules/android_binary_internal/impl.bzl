@@ -530,13 +530,13 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, **_unused_ctxs):
     has_proguard_specs = bool(proguard_specs)
     proguard_output = struct()
 
+    is_resource_shrinking_enabled = _resources.is_resource_shrinking_enabled(
+        ctx.attr.shrink_resources,
+        ctx.fragments.android.use_android_resource_shrinking,
+    )
     proguard_output_map = None
     generate_proguard_map = (
-        ctx.attr.proguard_generate_mapping or
-        _resources.is_resource_shrinking_enabled(
-            ctx.attr.shrink_resources,
-            ctx.fragments.android.use_android_resource_shrinking,
-        )
+        ctx.attr.proguard_generate_mapping or is_resource_shrinking_enabled
     )
     desugar_java8_libs_generates_map = ctx.fragments.android.desugar_java8
     optimizing_dexing = bool(ctx.attr._optimizing_dexer)
@@ -586,6 +586,33 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, **_unused_ctxs):
             library_jar = proguard_output.library_jar,
             config = proguard_output.config,
         ))
+
+    use_resource_shrinking = is_resource_shrinking_enabled and has_proguard_specs
+    shrunk_resource_output = None
+    if use_resource_shrinking:
+        shrunk_resource_output = _resources.shrink(
+            ctx,
+            resources_zip = packaged_resources_ctx.validation_result,
+            aapt = get_android_toolchain(ctx).aapt2.files_to_run,
+            android_jar = get_android_sdk(ctx).android_jar,
+            r_txt = packaged_resources_ctx.r_txt,
+            shrunk_jar = proguard_output_jar,
+            proguard_mapping = proguard_output_map,
+            busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
+            host_javabase = common.get_host_javabase(ctx),
+        )
+        providers.append(shrunk_resource_output)
+
+    optimized_resource_output = _resources.optimize(
+        ctx,
+        resources_apk = shrunk_resource_output.resources_apk if use_resource_shrinking else packaged_resources_ctx.resources_apk,
+        resource_optimization_config = shrunk_resource_output.optimization_config if use_resource_shrinking else None,
+        is_resource_shrunk = use_resource_shrinking,
+        aapt = get_android_toolchain(ctx).aapt2.files_to_run,
+        busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
+        host_javabase = common.get_host_javabase(ctx),
+    )
+    providers.append(optimized_resource_output)
 
     return ProviderInfo(
         name = "optimize_ctx",
