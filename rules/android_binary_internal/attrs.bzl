@@ -99,7 +99,7 @@ ATTRS = _attrs.replace(
             ),
             dexopts = attr.string_list(),
             main_dex_list = attr.label(allow_single_file = True),
-            main_dex_list_opts = attr.label_list(),
+            main_dex_list_opts = attr.string_list(),
             main_dex_proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
             min_sdk_version = attr.int(),
             incremental_dexing = _attrs.tristate.create(
