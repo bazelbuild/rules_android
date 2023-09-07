@@ -15,15 +15,16 @@
 """android_library rule."""
 
 load("//rules:acls.bzl", "acls")
-load(":attrs.bzl", _ATTRS = "ATTRS")
-load(":impl.bzl", _impl = "impl")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load(":attrs.bzl", _ATTRS = "ATTRS")
+load(":impl.bzl", _impl = "impl")
 
 _RULE_DOC = """
 #### Examples
+
 
 The following example shows how to use android libraries with resources.
 
