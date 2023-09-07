@@ -137,6 +137,11 @@ _ATTRS = dict(
         default = Label("@bazel_tools//tools/android:dexbuilder"),
         executable = True,
     ),
+    dexbuilder_after_proguard = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:dexbuilder_after_proguard"),
+        executable = True,
+    ),
     dexmerger = attr.label(
         cfg = "exec",
         default = Label("@bazel_tools//tools/android:dexmerger"),
@@ -235,6 +240,11 @@ _ATTRS = dict(
         allow_single_file = True,
         cfg = "exec",
         default = "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox:sandboxed_sdk_toolbox_deploy.jar",
+        executable = True,
+    ),
+    shuffle_jars = attr.label(
+        cfg = "exec",
+        default = Label("@bazel_tools//tools/android:shuffle_jars"),
         executable = True,
     ),
     testsupport = attr.label(

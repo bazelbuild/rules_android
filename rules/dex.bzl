@@ -14,56 +14,94 @@
 
 """Bazel Dex Commands."""
 
-load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
-load(":providers.bzl", "StarlarkAndroidDexInfo")
-load("@bazel_skylib//lib:collections.bzl", "collections")
 load("//rules:attrs.bzl", _attrs = "attrs")
-load("//rules:java.bzl", _java = "java")
 load("//rules:common.bzl", _common = "common")
+load("//rules:java.bzl", _java = "java")
+load("@bazel_skylib//lib:collections.bzl", "collections")
+load(":providers.bzl", "StarlarkAndroidDexInfo")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
+
+_DEX_MEMORY = 4096
+_DEX_THREADS = 5
 
 _tristate = _attrs.tristate
 
+def _resource_set_for_monolithic_dexing():
+    return {"cpu": _DEX_THREADS, "memory": _DEX_MEMORY}
+
 def _process_incremental_dexing(
         ctx,
+        output,
         deps = [],
         runtime_jars = [],
         dexopts = [],
         main_dex_list = None,
         min_sdk_version = 0,
-        inclusion_filter_jar = None,
+        proguarded_jar = None,
         java_info = None,
         desugar_dict = {},
-        dexsharder = None,
+        shuffle_jars = None,
         dexbuilder = None,
+        dexbuilder_after_proguard = None,
         dexmerger = None,
+        dexsharder = None,
         toolchain_type = None):
-    classes_dex_zip = _get_dx_artifact(ctx, "classes.dex.zip")
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
     incremental_dexopts = _filter_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
-    dex_archives_list = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
-    dex_archives = _to_dexed_classpath(
-        dex_archives_dict = {d.jar: d.dex for d in dex_archives_list},
-        classpath = _filter(java_info.transitive_runtime_jars.to_list(), excludes = _get_library_r_jars(deps)),
-        runtime_jars = runtime_jars,
-    )
-
-    for jar in runtime_jars:
-        dex_archive = _get_dx_artifact(ctx, jar.basename + ".dex.zip")
-        _dex(
-            ctx,
-            input = desugar_dict[jar] if jar in desugar_dict else jar,
-            output = dex_archive,
-            incremental_dexopts = incremental_dexopts,
-            min_sdk_version = min_sdk_version,
-            dex_exec = dexbuilder,
-            toolchain_type = toolchain_type,
+    inclusion_filter_jar = proguarded_jar
+    if not proguarded_jar:
+        dex_archives_list = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
+        dex_archives = _to_dexed_classpath(
+            dex_archives_dict = {d.jar: d.dex for d in dex_archives_list},
+            classpath = _filter(java_info.transitive_runtime_jars.to_list(), excludes = _get_library_r_jars(deps)),
+            runtime_jars = runtime_jars,
         )
-        dex_archives.append(dex_archive)
+        for jar in runtime_jars:
+            dex_archive = _get_dx_artifact(ctx, jar.basename + ".dex.zip")
+            _dex(
+                ctx,
+                input = desugar_dict[jar] if jar in desugar_dict else jar,
+                output = dex_archive,
+                incremental_dexopts = incremental_dexopts,
+                min_sdk_version = min_sdk_version,
+                dex_exec = dexbuilder,
+                toolchain_type = toolchain_type,
+            )
+            dex_archives.append(dex_archive)
+    else:
+        java_resource_jar = ctx.actions.declare_file(ctx.label.name + "_files/java_resources.jar")
+        if ctx.fragments.android.incremental_dexing_shards_after_proguard > 1:
+            dex_archives = _shard_proguarded_jar_and_dex(
+                ctx,
+                java_resource_jar = java_resource_jar,
+                num_shards = ctx.fragments.android.incremental_dexing_shards_after_proguard,
+                dexopts = incremental_dexopts,
+                proguarded_jar = proguarded_jar,
+                main_dex_list = main_dex_list,
+                min_sdk_version = min_sdk_version,
+                shuffle_jars = shuffle_jars,
+                dexbuilder_after_proguard = dexbuilder_after_proguard,
+                toolchain_type = toolchain_type,
+            )
+            inclusion_filter_jar = None
+        else:
+            # No need to shuffle if there is only one shard
+            dex_archive = _get_dx_artifact(ctx, "classes.jar")
+            _dex(
+                ctx,
+                input = proguarded_jar,
+                output = dex_archive,
+                incremental_dexopts = incremental_dexopts,
+                min_sdk_version = min_sdk_version,
+                dex_exec = dexbuilder_after_proguard,
+                toolchain_type = toolchain_type,
+            )
+            dex_archives = [dex_archive]
 
     if len(dex_archives) == 1:
         _dex_merge(
             ctx,
-            output = classes_dex_zip,
+            output = output,
             inputs = dex_archives,
             multidex_strategy = "minimal",
             main_dex_list = main_dex_list,
@@ -95,14 +133,118 @@ def _process_incremental_dexing(
         )
         _java.singlejar(
             ctx,
-            output = classes_dex_zip,
+            output = output,
             inputs = [dexes],
             mnemonic = "MergeDexZips",
             progress_message = "Merging dex shards for %s." % ctx.label,
             java_toolchain = _common.get_java_toolchain(ctx),
         )
 
-    return classes_dex_zip
+def _process_monolithic_dexing(
+        ctx,
+        output,
+        input,
+        dexopts = [],
+        min_sdk_version = 0,
+        main_dex_list = None,
+        dexbuilder = None,
+        toolchain_type = None):
+    # Create an artifact for the intermediate zip output generated by AndroidDexer that includes
+    # non-.dex files. A subsequent TrimDexZip action will filter out all non-.dex files.
+    classes_dex_intermediate = _get_dx_artifact(ctx, "intermediate_classes.dex.zip")
+    inputs = [input]
+
+    args = ctx.actions.args()
+    args.add("--dex")
+    args.add_all(dexopts)
+    if min_sdk_version > 0:
+        args.add("--min_sdk_version", min_sdk_version)
+    args.add("--multi-dex")
+    if main_dex_list:
+        args.add(main_dex_list, format = "--main-dex-list=%s")
+        inputs.append(main_dex_list)
+    args.add(classes_dex_intermediate, format = "--output=%s")
+    args.add(input)
+
+    ctx.actions.run(
+        executable = dexbuilder,
+        inputs = inputs,
+        outputs = [classes_dex_intermediate],
+        arguments = [args],
+        progress_message = "Converting %s to dex format" % input.short_path,
+        mnemonic = "AndroidDexer",
+        use_default_shell_env = True,
+        resource_set = _resource_set_for_monolithic_dexing,
+        toolchain = toolchain_type,
+    )
+
+    # Because the dexer also places resources into this zip, we also need to create a cleanup
+    # action that removes all non-.dex files before staging for apk building.
+    _java.singlejar(
+        ctx,
+        inputs = [classes_dex_intermediate],
+        output = output,
+        include_prefixes = ["classes"],
+        java_toolchain = _common.get_java_toolchain(ctx),
+        mnemonic = "TrimDexZip",
+        progress_message = "Trimming %s." % classes_dex_intermediate.short_path,
+    )
+
+def _shard_proguarded_jar_and_dex(
+        ctx,
+        java_resource_jar,
+        num_shards = 50,
+        dexopts = [],
+        proguarded_jar = None,
+        main_dex_list = None,
+        min_sdk_version = 0,
+        shuffle_jars = None,
+        dexbuilder_after_proguard = None,
+        toolchain_type = None):
+    if num_shards <= 1:
+        fail("num_shards expects to be larger than 1.")
+
+    shards = _make_shard_artifacts(ctx, num_shards, ".jar.dex.zip")
+    shuffle_outputs = _make_shard_artifacts(ctx, num_shards, ".jar")
+    inputs = []
+    args = ctx.actions.args()
+    args.add_all(shuffle_outputs, before_each = "--output_jar")
+    args.add("--output_resources", java_resource_jar)
+
+    if main_dex_list:
+        args.add("--main_dex_filter", main_dex_list)
+        inputs.append(main_dex_list)
+
+    # If we need to run Proguard, all the class files will be in the Proguarded jar, which has to
+    # be converted to dex.
+    args.add("--input_jar", proguarded_jar)
+    inputs.append(proguarded_jar)
+
+    ctx.actions.run(
+        executable = shuffle_jars,
+        outputs = shuffle_outputs + [java_resource_jar],
+        inputs = inputs,
+        arguments = [args],
+        mnemonic = "ShardClassesToDex",
+        progress_message = "Sharding classes for dexing for " + str(ctx.label),
+        use_default_shell_env = True,
+        toolchain = toolchain_type,
+    )
+
+    for i in range(len(shards)):
+        _dex(
+            ctx,
+            input = shuffle_outputs[i],
+            output = shards[i],
+            incremental_dexopts = dexopts,
+            min_sdk_version = min_sdk_version,
+            dex_exec = dexbuilder_after_proguard,
+            toolchain_type = toolchain_type,
+        )
+    return shards
+
+def _make_shard_artifacts(ctx, n, suffix):
+    return [_get_dx_artifact(ctx, "shard" + str(i) + suffix) for i in range(1, n + 1)]
 
 def _shard_dexes(
         ctx,
@@ -465,6 +607,7 @@ dex = struct(
     filter_dexopts = _filter_dexopts,
     merge_infos = _merge_infos,
     normalize_dexopts = _normalize_dexopts,
+    process_monolithic_dexing = _process_monolithic_dexing,
     process_incremental_dexing = _process_incremental_dexing,
     transform_dex_list_through_proguard_map = _transform_dex_list_through_proguard_map,
 )
