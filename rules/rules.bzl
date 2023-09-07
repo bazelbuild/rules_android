@@ -53,7 +53,7 @@ load(
     _android_sdk = "android_sdk",
 )
 load(
-    "//rules:android_sdk_repository.bzl",
+    "//rules/android_sdk_repository:rule.bzl",
     _android_sdk_repository = "android_sdk_repository",
 )
 load(
