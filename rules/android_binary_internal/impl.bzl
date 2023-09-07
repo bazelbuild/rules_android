@@ -283,21 +283,35 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
             use_incremental_dexing = ctx.fragments.android.use_incremental_dexing,
         )
 
-        # TODO(b/263473668): Implement dexing after optimization
+        classes_dex_zip = _dex.get_dx_artifact(ctx, "classes.dex.zip")
         if incremental_dexing:
-            classes_dex_zip = _dex.process_incremental_dexing(
+            _dex.process_incremental_dexing(
                 ctx,
+                output = classes_dex_zip,
                 deps = _get_dex_desugar_aspect_deps(ctx),
                 dexopts = ctx.attr.dexopts,
                 runtime_jars = runtime_jars,
                 main_dex_list = main_dex_list,
                 min_sdk_version = ctx.attr.min_sdk_version,
-                inclusion_filter_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None,
+                proguarded_jar = proguarded_jar,
                 java_info = java_info,
                 desugar_dict = deploy_ctx.desugar_dict,
+                shuffle_jars = get_android_toolchain(ctx).shuffle_jars.files_to_run,
                 dexbuilder = get_android_toolchain(ctx).dexbuilder.files_to_run,
+                dexbuilder_after_proguard = get_android_toolchain(ctx).dexbuilder_after_proguard.files_to_run,
                 dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
                 dexsharder = get_android_toolchain(ctx).dexsharder.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+            )
+        else:
+            _dex.process_monolithic_dexing(
+                ctx,
+                output = classes_dex_zip,
+                input = proguarded_jar,
+                dexopts = ctx.attr.dexopts,
+                min_sdk_version = ctx.attr.min_sdk_version,
+                main_dex_list = main_dex_list,
+                dexbuilder = get_android_sdk(ctx).dx,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
 

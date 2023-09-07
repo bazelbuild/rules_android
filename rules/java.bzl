@@ -363,9 +363,10 @@ def _singlejar(
         mnemonic = "SingleJar",
         progress_message = "Merge into a single jar.",
         build_target = "",
-        deploy_manifest_lines = [],
         check_desugar_deps = False,
+        deploy_manifest_lines = [],
         include_build_data = False,
+        include_prefixes = [],
         java_toolchain = None,
         resource_set = None):
     args = ctx.actions.args()
@@ -386,6 +387,8 @@ def _singlejar(
         args.add("--check_desugar_deps")
     if deploy_manifest_lines:
         args.add_all("--deploy_manifest_lines", deploy_manifest_lines)
+    if include_prefixes:
+        args.add_all("--include_prefixes", include_prefixes)
 
     args.use_param_file("@%s")
     args.set_param_file_format("multiline")
