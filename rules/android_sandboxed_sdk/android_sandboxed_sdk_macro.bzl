@@ -24,6 +24,10 @@ load(
     _get_android_toolchain = "get_android_toolchain",
 )
 load("//rules:java.bzl", _java = "java")
+load(
+    "//rules:sandboxed_sdk_toolbox.bzl",
+    _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
+)
 
 _ATTRS = dict(
     sdk_modules_config = attr.label(
@@ -41,20 +45,12 @@ _ATTRS = dict(
 
 def _impl(ctx):
     sdk_api_descriptors = ctx.actions.declare_file(ctx.label.name + "_sdk_api_descriptors.jar")
-
-    args = ctx.actions.args()
-    args.add("extract-api-descriptors")
-    args.add("--sdk-deploy-jar", ctx.file.sdk_deploy_jar)
-    args.add("--output-sdk-api-descriptors", sdk_api_descriptors)
-    _java.run(
-        ctx = ctx,
+    _sandboxed_sdk_toolbox.extract_api_descriptors(
+        ctx,
+        output = sdk_api_descriptors,
+        sdk_deploy_jar = ctx.file.sdk_deploy_jar,
+        sandboxed_sdk_toolbox = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
         host_javabase = _common.get_host_javabase(ctx),
-        executable = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
-        arguments = [args],
-        inputs = [ctx.file.sdk_deploy_jar],
-        outputs = [sdk_api_descriptors],
-        mnemonic = "ExtractApiDescriptors",
-        progress_message = "Extract SDK API descriptors %s" % sdk_api_descriptors.short_path,
     )
     return [
         DefaultInfo(

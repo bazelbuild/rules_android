@@ -23,32 +23,26 @@ load(
     _get_android_toolchain = "get_android_toolchain",
 )
 load("//rules:java.bzl", _java = "java")
+load(
+    "//rules:sandboxed_sdk_toolbox.bzl",
+    _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
+)
 
 def _gen_sdk_dependencies_manifest_impl(ctx):
     manifest = ctx.actions.declare_file(ctx.label.name + "_sdk_dep_manifest.xml")
-
     module_configs = [
         bundle[AndroidSandboxedSdkBundleInfo].sdk_info.sdk_module_config
         for bundle in ctx.attr.sdk_bundles
     ]
 
-    args = ctx.actions.args()
-    args.add("generate-sdk-dependencies-manifest")
-    args.add("--manifest-package", ctx.attr.package)
-    args.add("--sdk-module-configs", ",".join([config.path for config in module_configs]))
-    args.add("--debug-keystore", ctx.file.debug_key.path)
-    args.add("--debug-keystore-pass", "android")
-    args.add("--debug-keystore-alias", "androiddebugkey")
-    args.add("--output-manifest", manifest)
-    _java.run(
-        ctx = ctx,
+    _sandboxed_sdk_toolbox.generate_sdk_dependencies_manifest(
+        ctx,
+        output = manifest,
+        manifest_package = ctx.attr.package,
+        sdk_module_configs = module_configs,
+        debug_key = ctx.file.debug_key,
+        sandboxed_sdk_toolbox = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
         host_javabase = _common.get_host_javabase(ctx),
-        executable = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
-        arguments = [args],
-        inputs = module_configs + [ctx.file.debug_key],
-        outputs = [manifest],
-        mnemonic = "GenSdkDepManifest",
-        progress_message = "Generate SDK dependencies manifest %s" % manifest.short_path,
     )
 
     return [
