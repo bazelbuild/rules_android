@@ -72,6 +72,7 @@ _gen_sdk_dependencies_manifest = rule(
     implementation = _gen_sdk_dependencies_manifest_impl,
     toolchains = [
         "//toolchains/android:toolchain_type",
+        "@bazel_tools//tools/jdk:toolchain_type",
     ],
 )
 

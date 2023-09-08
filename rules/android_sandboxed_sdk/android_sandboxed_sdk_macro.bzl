@@ -72,6 +72,7 @@ _android_sandboxed_sdk = rule(
     ],
     toolchains = [
         "//toolchains/android:toolchain_type",
+        "@bazel_tools//tools/jdk:toolchain_type",
     ],
 )
 

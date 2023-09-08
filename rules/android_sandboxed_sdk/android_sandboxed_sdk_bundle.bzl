@@ -99,6 +99,7 @@ android_sandboxed_sdk_bundle = rule(
     toolchains = [
         "//toolchains/android:toolchain_type",
         "//toolchains/android_sdk:toolchain_type",
+        "@bazel_tools//tools/jdk:toolchain_type",
     ],
     fragments = ["android"],
 )
