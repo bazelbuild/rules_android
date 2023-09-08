@@ -74,23 +74,43 @@ def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_c
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
     min_sdk_version = getattr(ctx.attr, "min_sdk_version", None)
+    is_resource_shrinking_enabled = _resources.is_resource_shrinking_enabled(
+        ctx.attr.shrink_resources,
+        ctx.fragments.android.use_android_resource_shrinking,
+    )
+    generate_proguard_map = (
+        ctx.attr.proguard_generate_mapping or is_resource_shrinking_enabled
+    )
+    proguard_mappings_output_file = None
+    if generate_proguard_map:
+        proguard_mappings_output_file = ctx.actions.declare_file(ctx.label.name + "_proguard.txt")
+
+    inputs = []
+    outputs = []
 
     args = ctx.actions.args()
     args.add("--release")
     if min_sdk_version:
         args.add("--min-api", min_sdk_version)
+    if proguard_mappings_output_file:
+        args.add("--pg-map-output", proguard_mappings_output_file)
+        outputs.append(proguard_mappings_output_file)
     args.add("--output", dexes_zip)
+    outputs.append(dexes_zip)
     args.add_all(proguard_specs, before_each = "--pg-conf")
+    inputs.extend(proguard_specs)
     args.add("--lib", android_jar)
+    inputs.append(android_jar)
     args.add(deploy_jar)  # jar to optimize + desugar + dex
+    inputs.append(deploy_jar)
 
     java.run(
         ctx = ctx,
         host_javabase = common.get_host_javabase(ctx),
         executable = get_android_toolchain(ctx).r8.files_to_run,
         arguments = [args],
-        inputs = [android_jar, deploy_jar] + proguard_specs,
-        outputs = [dexes_zip],
+        inputs = inputs,
+        outputs = outputs,
         mnemonic = "AndroidR8",
         jvm_flags = ["-Xmx8G"],
         progress_message = "R8 Optimizing, Desugaring, and Dexing %{label}",
@@ -108,6 +128,7 @@ def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_c
         name = "r8_ctx",
         value = struct(
             final_classes_dex_zip = dexes_zip,
+            proguard_mappings_output_file = proguard_mappings_output_file,
             providers = [android_dex_info],
         ),
     )
