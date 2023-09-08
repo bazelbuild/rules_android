@@ -25,6 +25,29 @@ _bool_flag = rule(
     build_setting = config.bool(flag = True),
 )
 
+def _int_flag_impl(ctx):
+    allowed_values = ctx.attr.values
+    value = ctx.build_setting_value
+    if len(allowed_values) != 0 and value not in ctx.attr.values:
+        fail(
+            "Error setting %s: invalid value '%d'. Allowed values are %s" % (
+                ctx.label,
+                value,
+                ",".join([str(val) for val in allowed_values]),
+            ),
+        )
+
+int_flag = rule(
+    implementation = _int_flag_impl,
+    build_setting = config.int(flag = True),
+    attrs = {
+        "values": attr.int_list(
+            doc = "The list of allowed values for this setting. An error is raised if any other value is given.",
+        ),
+    },
+    doc = "An int-typed build setting that can be set on the command line",
+)
+
 def _create_config_setting_rule():
     """Create config_setting rule for windows.
 
@@ -77,6 +100,13 @@ def create_android_sdk_rules(
     """
 
     _create_config_setting_rule()
+
+    int_flag(
+        name = "api_level",
+        build_setting_default = default_api_level,
+        values = api_levels,
+        visibility = ["//visibility:public"],
+    )
 
     windows_only_files = [
         "build-tools/%s/aapt.exe" % build_tools_directory,
@@ -142,6 +172,13 @@ def create_android_sdk_rules(
                 neverlink = 1,
             )
 
+        native.config_setting(
+            name = "api_%d_enabled" % api_level,
+            flag_values = {
+                ":api_level": str(api_level),
+            },
+        )
+
         # TODO(katre): Use the Starlark android_sdk
         native.android_sdk(
             name = "sdk-%d" % api_level,
@@ -193,6 +230,9 @@ def create_android_sdk_rules(
             ],
             toolchain = ":sdk-%d" % api_level,
             toolchain_type = "@bazel_tools//tools/android:sdk_toolchain_type",
+            target_settings = [
+                ":api_%d_enabled" % api_level,
+            ],
         )
 
     native.alias(
@@ -200,10 +240,21 @@ def create_android_sdk_rules(
         actual = ":org_apache_http_legacy-%d" % default_api_level,
     )
 
+    sdk_alias_dict = {
+        "//conditions:default": "sdk-%d" % default_api_level,
+    }
+
+    for api_level in api_levels:
+        sdk_alias_dict[":api_%d_enabled" % api_level] = "sdk-%d" % api_level
+
     native.alias(
         name = "sdk",
-        actual = ":sdk-%d" % default_api_level,
+        actual = select(
+            sdk_alias_dict,
+            no_match_error = "Unknown Android SDK level, valid levels are %s" % ",".join([str(level) for level in api_levels]),
+        ),
     )
+
     java_binary(
         name = "apksigner",
         main_class = "com.android.apksigner.ApkSignerTool",

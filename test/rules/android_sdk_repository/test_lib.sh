@@ -176,3 +176,21 @@ EOF
   "${BIT_BAZEL_BINARY}" query @androidsdk//:files >& $TEST_log && fail "Should have failed" || true
   expect_log "Android SDK api level 30 was requested but it is not installed"
 }
+
+function test_api_level_flag() {
+  # create several api levels
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31 23 45
+  add_build_tools "${sdk_path}" 30.3.4
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  check_android_sdk_provider --@androidsdk//:api_level=31
+  expect_log "api_level: 31"
+}
