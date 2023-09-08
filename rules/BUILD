@@ -43,6 +43,7 @@ bzl_library(
         "proguard.bzl",
         "providers.bzl",
         "resources.bzl",
+        "sandboxed_sdk_toolbox.bzl",
         "utils.bzl",
     ],
     visibility = ["//:__subpackages__"],
