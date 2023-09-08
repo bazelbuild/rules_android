@@ -73,9 +73,12 @@ def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_c
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
+    min_sdk_version = getattr(ctx.attr, "min_sdk_version", None)
 
     args = ctx.actions.args()
     args.add("--release")
+    if min_sdk_version:
+        args.add("--min-api", min_sdk_version)
     args.add("--output", dexes_zip)
     args.add_all(proguard_specs, before_each = "--pg-conf")
     args.add("--lib", android_jar)
