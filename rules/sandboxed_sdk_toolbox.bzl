@@ -89,7 +89,51 @@ def _extract_api_descriptors(
         progress_message = "Extract SDK API descriptors %s" % output.short_path,
     )
 
+def _generate_client_sources(
+        ctx,
+        output_kotlin_dir = None,
+        output_java_dir = None,
+        sdk_api_descriptors = None,
+        aidl_compiler = None,
+        framework_aidl = None,
+        sandboxed_sdk_toolbox = None,
+        host_javabase = None):
+    """Generate Kotlin and Java sources for SDK communication.
+
+    Args:
+      ctx: The context.
+      output_kotlin_dir: Directory for Kotlin source tree. It depends on the Java sources.
+      output_java_dir: Directory for Java source tree. Doesn't depend on Kotlin sources.
+      sdk_api_descriptors: SDK API descriptor jar.
+      aidl_compiler: Executable files for the AOSP AIDL compiler.
+      framework_aidl: Framework.aidl file used to compile AIDL sources.
+      sandboxed_sdk_toolbox: Toolbox executable files.
+      host_javabase: Javabase used to run the toolbox.
+    """
+    args = ctx.actions.args()
+    args.add("generate-client-sources")
+    args.add("--sdk-api-descriptors", sdk_api_descriptors)
+    args.add("--aidl-compiler", aidl_compiler)
+    args.add("--framework-aidl", framework_aidl)
+    args.add("--output-kotlin-dir", output_kotlin_dir.path)
+    args.add("--output-java-dir", output_java_dir.path)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = sandboxed_sdk_toolbox,
+        arguments = [args],
+        inputs = [
+            sdk_api_descriptors,
+            aidl_compiler,
+            framework_aidl,
+        ],
+        outputs = [output_kotlin_dir, output_java_dir],
+        mnemonic = "GenClientSources",
+        progress_message = "Generate client sources for %s" % output_kotlin_dir.short_path,
+    )
+
 sandboxed_sdk_toolbox = struct(
     extract_api_descriptors = _extract_api_descriptors,
     generate_sdk_dependencies_manifest = _generate_sdk_dependencies_manifest,
+    generate_client_sources = _generate_client_sources,
 )
