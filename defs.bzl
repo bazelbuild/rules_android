@@ -69,7 +69,7 @@ def rules_android_workspace():
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.18.3")
+    go_register_toolchains(version = "1.20.5")
 
     gazelle_dependencies()
     # gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
