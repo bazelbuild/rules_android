@@ -36,6 +36,7 @@ def rules_android_workspace():
         name = "rules_android_maven",
         artifacts = [
             "androidx.privacysandbox.tools:tools:1.0.0-alpha06",
+            "androidx.privacysandbox.tools:tools-apigenerator:1.0.0-alpha06",
             "androidx.privacysandbox.tools:tools-apipackager:1.0.0-alpha06",
             "androidx.test:core:1.6.0-alpha01",
             "androidx.test.ext:junit:1.2.0-alpha01",
