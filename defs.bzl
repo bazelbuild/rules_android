@@ -23,7 +23,6 @@ load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
 load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("@rules_jvm_external//:specs.bzl", "maven")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories")
 
@@ -36,22 +35,10 @@ def rules_android_workspace():
     maven_install(
         name = "rules_android_maven",
         artifacts = [
-            "androidx.privacysandbox.tools:tools:1.0.0-alpha05",
+            "androidx.privacysandbox.tools:tools:1.0.0-alpha06",
+            "androidx.privacysandbox.tools:tools-apipackager:1.0.0-alpha06",
             "androidx.test:core:1.6.0-alpha01",
             "androidx.test.ext:junit:1.2.0-alpha01",
-            maven.artifact(
-                group = "androidx.privacysandbox.tools",
-                artifact = "tools-apipackager",
-                version = "1.0.0-alpha05",
-                exclusions = [
-                    # Alpha05 pulls in the lite version of protobuf library,
-                    # which doesn't have the JSON utils we need and clashes with
-                    # com.google.protobuf:protobuf-java-util.
-                    # This was fixed in AOSP, so this can be removed once
-                    # the packager releases a new version (>alpha05).
-                    "com.google.protobuf:protobuf-javalite",
-                ],
-            ),
             "com.android.tools.build:bundletool:1.15.2",
             "com.android.tools.build:gradle:8.2.0-alpha15",
             "org.robolectric:robolectric:4.10.3",
