@@ -47,7 +47,7 @@ maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "rules_android_maven",
     # To generate the maven lockfile, run this command:
-    # bazel run @rules_android_maven//:pin
+    # bazel run --noenable_bzlmod @rules_android_maven//:pin
     lock_file = "//:rules_android_maven_install.json",
     repositories = [
         "https://maven.google.com",
