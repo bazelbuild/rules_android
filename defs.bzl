@@ -26,6 +26,28 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories")
 
+# Keep this in sync with maven.install in MODULE.bazel.
+MAVEN_ARTIFACTS = [
+    "androidx.privacysandbox.tools:tools:1.0.0-alpha06",
+    "androidx.privacysandbox.tools:tools-apigenerator:1.0.0-alpha06",
+    "androidx.privacysandbox.tools:tools-apipackager:1.0.0-alpha06",
+    "androidx.test:core:1.6.0-alpha01",
+    "androidx.test.ext:junit:1.2.0-alpha01",
+    "com.android.tools.build:bundletool:1.15.2",
+    "com.android.tools.build:gradle:8.2.0-alpha15",
+    "org.robolectric:robolectric:4.10.3",
+    "com.google.guava:guava:32.1.2-jre",
+    "com.google.protobuf:protobuf-java-util:3.9.2",
+    "com.google.truth:truth:1.1.5",
+    "info.picocli:picocli:4.7.4",
+    "junit:junit:4.13.2",
+]
+
+MAVEN_REPOSITORIES = [
+    "https://maven.google.com",
+    "https://repo1.maven.org/maven2",
+]
+
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
     bazel_skylib_workspace()
@@ -34,25 +56,8 @@ def rules_android_workspace():
 
     maven_install(
         name = "rules_android_maven",
-        artifacts = [
-            "androidx.privacysandbox.tools:tools:1.0.0-alpha06",
-            "androidx.privacysandbox.tools:tools-apigenerator:1.0.0-alpha06",
-            "androidx.privacysandbox.tools:tools-apipackager:1.0.0-alpha06",
-            "androidx.test:core:1.6.0-alpha01",
-            "androidx.test.ext:junit:1.2.0-alpha01",
-            "com.android.tools.build:bundletool:1.15.2",
-            "com.android.tools.build:gradle:8.2.0-alpha15",
-            "org.robolectric:robolectric:4.10.3",
-            "com.google.guava:guava:32.1.2-jre",
-            "com.google.protobuf:protobuf-java-util:3.9.2",
-            "com.google.truth:truth:1.1.5",
-            "info.picocli:picocli:4.7.4",
-            "junit:junit:4.13.2",
-        ],
-        repositories = [
-            "https://maven.google.com",
-            "https://repo1.maven.org/maven2",
-        ],
+        artifacts = MAVEN_ARTIFACTS,
+        repositories = MAVEN_REPOSITORIES,
     )
 
     go_rules_dependencies()
