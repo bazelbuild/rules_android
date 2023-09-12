@@ -223,7 +223,12 @@ EOF
 }
 
 function check_android_sdk_provider() {
-  local extra_args=("$@")
+  local extra_args=(
+    # macOS bash doesn't deal well with empty arrays, so make sure this has
+    # contents.
+    "--experimental_google_legacy_api"
+    "$@"
+  )
 
   if [[ ${ENABLE_PLATFORMS:-false} == "true" ]]; then
     write_platforms
@@ -245,7 +250,6 @@ EOF
 
   "${BIT_BAZEL_BINARY}" \
     build \
-    --experimental_google_legacy_api \
     "${extra_args[@]}" \
     -- \
     //sdk_check:check >& $TEST_log || fail "Expected success"
