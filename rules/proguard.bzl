@@ -598,7 +598,7 @@ def _merge_proguard_maps(
 
 def _fail_action(ctx, *outputs):
     ctx.actions.run_shell(
-        outputs = outputs,
+        outputs = [output for output in outputs if output != None],
         command = "echo \"Unable to run proguard without `proguard_specs`\"; exit 1;",
     )
 
