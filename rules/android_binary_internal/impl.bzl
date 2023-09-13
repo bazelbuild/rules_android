@@ -44,6 +44,10 @@ load("//rules:dex.bzl", _dex = "dex")
 load("//rules:desugar.bzl", _desugar = "desugar")
 load("//rules:dex_desugar_aspect.bzl", _get_dex_desugar_aspect_deps = "get_aspect_deps")
 
+def _base_validations_processor(ctx, **_unused_ctxs):
+    if ctx.attr.min_sdk_version != 0 and not acls.in_android_binary_min_sdk_version_attribute_allowlist(str(ctx.label)):
+        fail("Target %s is not allowed to set a min_sdk_version value." % str(ctx.label))
+
 def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
@@ -697,6 +701,7 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, **_unused_ctxs):
 # insertion.
 # buildifier: leave-alone
 PROCESSORS = dict(
+    BaseValidationsProcessor = _base_validations_processor,
     ManifestProcessor = _process_manifest,
     StampProcessor = _process_build_stamp,
     ResourceProcessor = _process_resources,

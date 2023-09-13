@@ -69,11 +69,8 @@ def _aspect_impl(target, ctx):
     if not acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         return []
 
-    min_sdk_version = getattr(ctx.rule.attr, "min_sdk_version", 0)
-    if min_sdk_version != 0 and not acls.in_android_binary_min_sdk_version_attribute(str(ctx)):
-        fail("Target is not allowed to set a min_sdk_version value.")
-
     incremental_dexing = getattr(ctx.rule.attr, "incremental_dexing", _tristate.auto)
+    min_sdk_version = getattr(ctx.rule.attr, "min_sdk_version", 0)
 
     if incremental_dexing == _tristate.no or \
        (not ctx.fragments.android.use_incremental_dexing and
