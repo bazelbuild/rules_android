@@ -16,7 +16,7 @@
 
 load(":providers.bzl", "FailureInfo")
 
-ANDROID_TOOLCHAIN_TYPE = "@build_bazel_rules_android//toolchains/android:toolchain_type"
+ANDROID_TOOLCHAIN_TYPE = Label("//toolchains/android:toolchain_type")
 
 _CUU = "\033[A"
 _EL = "\033[K"
