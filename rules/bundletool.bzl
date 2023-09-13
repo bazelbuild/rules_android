@@ -18,6 +18,7 @@ load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
 )
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 
@@ -87,7 +88,10 @@ def _build_sdk_apks(
         debug_key = None,
         bundletool = None,
         host_javabase = None):
-    apks_out = ctx.actions.declare_directory(ctx.label.name + "_sdk_apks")
+    apks_out = ctx.actions.declare_directory(
+        "%s_apks_out" % paths.basename(out.path).replace(".", "_"),
+        sibling = out,
+    )
     args = ctx.actions.args()
     args.add("build-sdk-apks")
     args.add("--aapt2", aapt2.executable.path)
