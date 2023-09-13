@@ -575,6 +575,27 @@ def _create_single_optimization_action(
     )
     return next_stage_output
 
+def _merge_proguard_maps(
+        ctx,
+        output,
+        inputs = [],
+        proguard_maps_merger = None,
+        toolchain_type = None):
+    args = ctx.actions.args()
+    args.add_all(inputs, before_each = "--pg-map")
+    args.add("--pg-map-output", output)
+
+    ctx.actions.run(
+        outputs = [output],
+        executable = proguard_maps_merger,
+        inputs = inputs,
+        arguments = [args],
+        mnemonic = "MergeProguardMaps",
+        progress_message = "Merging app and desugared library Proguard maps for %s" % ctx.label,
+        use_default_shell_env = True,
+        toolchain = toolchain_type,
+    )
+
 def _fail_action(ctx, *outputs):
     ctx.actions.run_shell(
         outputs = outputs,
@@ -589,6 +610,7 @@ proguard = struct(
     get_proguard_specs = _get_proguard_specs,
     get_proguard_temp_artifact = _get_proguard_temp_artifact,
     get_proguard_temp_artifact_with_prefix = _get_proguard_temp_artifact_with_prefix,
+    merge_proguard_maps = _merge_proguard_maps,
 )
 
 testing = struct(

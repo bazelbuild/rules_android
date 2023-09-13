@@ -140,6 +140,66 @@ def _process_incremental_dexing(
             java_toolchain = _common.get_java_toolchain(ctx),
         )
 
+def _process_optimized_dexing(
+        ctx,
+        output,
+        input = None,
+        proguard_output_map = None,
+        postprocessing_output_map = None,
+        dexopts = [],
+        native_multidex = True,
+        min_sdk_version = 0,
+        main_dex_list = None,
+        library_jar = None,
+        startup_profile = None,
+        optimizing_dexer = None,
+        toolchain_type = None):
+    inputs = [input]
+    outputs = [output]
+
+    args = ctx.actions.args()
+    args.add(input)
+    args.add("--release")
+    args.add("--no-desugaring")
+    args.add("--output", output)
+    args.add_all(dexopts)
+
+    if proguard_output_map:
+        args.add("--pg-map", proguard_output_map)
+        args.add("--pg-map-output", postprocessing_output_map)
+        inputs.append(proguard_output_map)
+        outputs.append(postprocessing_output_map)
+
+    if startup_profile and native_multidex:
+        args.add("--startup-profile", startup_profile)
+        inputs.append(startup_profile)
+
+    # TODO(b/261110876): Pass min SDK through here based on the value in the merged manifest. The
+    # current value is statically defined for the entire depot.
+    # We currently set the minimum SDK version to 21 if you are doing native multidex as that is
+    # required for native multidex to work in the first place and as a result is required for
+    # correct behavior from the dexer.
+    sdk = max(min_sdk_version, 21) if native_multidex else min_sdk_version
+    if sdk != 0:
+        args.add("--min-api", sdk)
+    if main_dex_list:
+        args.add("--main-dex-list", main_dex_list)
+        inputs.append(main_dex_list)
+    if library_jar:
+        args.add("--lib", library_jar)
+        inputs.append(library_jar)
+
+    ctx.actions.run(
+        outputs = outputs,
+        executable = optimizing_dexer,
+        inputs = inputs,
+        arguments = [args],
+        mnemonic = "OptimizingDex",
+        progress_message = "Optimized dexing for " + str(ctx.label),
+        use_default_shell_env = True,
+        toolchain = toolchain_type,
+    )
+
 def _process_monolithic_dexing(
         ctx,
         output,
@@ -609,5 +669,6 @@ dex = struct(
     normalize_dexopts = _normalize_dexopts,
     process_monolithic_dexing = _process_monolithic_dexing,
     process_incremental_dexing = _process_incremental_dexing,
+    process_optimized_dexing = _process_optimized_dexing,
     transform_dex_list_through_proguard_map = _transform_dex_list_through_proguard_map,
 )
