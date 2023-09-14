@@ -38,6 +38,8 @@ def _desugar(
     """
 
     args = ctx.actions.args()
+    args.use_param_file("@%s", use_always = True)  # Required for workers.
+    args.set_param_file_format("multiline")
     args.add("--input", input)
     args.add("--output", output)
     args.add_all(classpath, before_each = "--classpath_entry")
