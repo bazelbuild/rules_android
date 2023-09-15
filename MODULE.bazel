@@ -1,5 +1,5 @@
 module(
-    name = "bazel_build_rules_android",
+    name = "rules_android",
     version = "0.2.0",
 )
 
