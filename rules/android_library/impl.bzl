@@ -555,7 +555,6 @@ def finalize(
             ),
             _direct_source_jars = depset([ctx.outputs.lib_src_jar]),
             _hidden_top_level_INTERNAL_ = depset(
-                resources_ctx.validation_results,
                 transitive = [
                     info._hidden_top_level_INTERNAL_
                     for info in utils.collect_providers(
