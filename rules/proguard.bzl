@@ -15,6 +15,7 @@
 """Bazel Android Proguard library for the Android rules."""
 
 load(":android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
+load(":baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load(":common.bzl", "common")
 load(":java.bzl", "java")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_sdk", "utils")
@@ -41,6 +42,8 @@ _ProguardOutputInfo = provider(
         usage = "Output usage",
         library_jar = "Merged library jar",
         config = "Output config",
+        baseline_profile_rewritten = "Optimized baseline profile",
+        startup_profile_rewritten = "Optimized startup profile",
     ),
 )
 
@@ -194,6 +197,10 @@ def _optimization_action(
         proguard_seeds = None,
         proguard_usage = None,
         proguard_config_output = None,
+        startup_profile = None,
+        startup_profile_rewritten = None,
+        baseline_profile = None,
+        baseline_profile_rewritten = None,
         runtype = None,
         last_stage_output = None,
         next_stage_output = None,
@@ -225,8 +232,12 @@ def _optimization_action(
         classes and members which match a keep rule.
       proguard_usage: File. Optional file used to write all classes and members that are removed
         during shrinking (i.e. unused code).
-      proguard_config_output:File. Optional file used to write the entire configuration that has
+      proguard_config_output: File. Optional file used to write the entire configuration that has
         been parsed, included files and replaced variables. Useful for debugging.
+      startup_profile: File. Optional. The merged startup profile to be optimized.
+      startup_profile_rewritten: File. Optional file used to write the optimized startup profile.
+      baseline_profile: File. Optional. The merged baseline profile to be optimized.
+      baseline_profile_rewritten: File. Optional file used to write the optimized profile rules.
       runtype: String. Optional string identifying this run. One of [INITIAL, OPTIMIZATION, FINAL]
       last_stage_output: File. Optional input file to this optimization stage, which was output by
         the previous optimization stage.
@@ -281,6 +292,22 @@ def _optimization_action(
         args.add("-printconfiguration", proguard_config_output)
         outputs.append(proguard_config_output)
 
+    if startup_profile:
+        args.add("-startupprofile", startup_profile)
+        inputs.append(startup_profile)
+
+    if startup_profile_rewritten:
+        args.add("-printstartupprofile", startup_profile)
+        outputs.append(startup_profile_rewritten)
+
+    if baseline_profile:
+        args.add("-baselineprofile", baseline_profile)
+        inputs.append(baseline_profile)
+
+    if baseline_profile_rewritten:
+        args.add("-printbaselineprofile", baseline_profile_rewritten)
+        outputs.append(baseline_profile_rewritten)
+
     if runtype:
         args.add("-runtype " + runtype)
 
@@ -322,6 +349,8 @@ def _apply_proguard(
         proguard_output_map = None,
         proguard_seeds = None,
         proguard_usage = None,
+        startup_profile = None,
+        baseline_profile = None,
         proguard_tool = None):
     """Top-level method to apply proguard to a jar.
 
@@ -335,6 +364,8 @@ def _apply_proguard(
       proguard_output_map: File. The output proguard map.
       proguard_seeds: File. The output proguard seeds.
       proguard_usage: File. The output proguard usage.
+      startup_profile: File. The input merged startup profile to be optimized.
+      baseline_profile: File. The input merged baseline profile to be optimized.
       proguard_tool: FilesToRun. The proguard executable.
 
     Returns:
@@ -370,6 +401,8 @@ def _apply_proguard(
         proguard_output_map,
         input_jar,
         library_jars,
+        startup_profile,
+        baseline_profile,
         proguard_tool,
     )
 
@@ -379,7 +412,9 @@ def _get_proguard_output(
         proguard_seeds,
         proguard_usage,
         proguard_output_map,
-        combined_library_jar):
+        combined_library_jar,
+        startup_profile_rewritten,
+        baseline_profile_rewritten):
     """Helper method to get a struct of all proguard outputs."""
     config_output = _get_proguard_temp_artifact(ctx, "_proguard.config")
 
@@ -390,6 +425,8 @@ def _get_proguard_output(
         usage = proguard_usage,
         library_jar = combined_library_jar,
         config = config_output,
+        startup_profile_rewritten = startup_profile_rewritten,
+        baseline_profile_rewritten = baseline_profile_rewritten,
     )
 
 def _create_optimization_actions(
@@ -403,6 +440,8 @@ def _create_optimization_actions(
         proguard_output_map = None,
         input_jar = None,
         library_jars = depset(),
+        startup_profile = None,
+        baseline_profile = None,
         proguard_tool = None):
     """Helper method to create all optimizaction actions based on the target configuration."""
     if not proguard_specs:
@@ -426,6 +465,13 @@ def _create_optimization_actions(
         filter_zips = [input_jar],
     )
 
+    startup_profile_rewritten = None
+    baseline_profile_rewritten = None
+    if startup_profile:
+        startup_profile_rewritten = _baseline_profiles.get_profile_artifact(ctx, "rewritten-startup-prof.txt")
+    if baseline_profile and startup_profile:
+        baseline_profile_rewritten = _baseline_profiles.get_profile_artifact(ctx, "rewritten-merged-prof.txt")
+
     outputs = _get_proguard_output(
         ctx,
         proguard_output_jar,
@@ -433,6 +479,8 @@ def _create_optimization_actions(
         proguard_usage,
         proguard_output_map,
         combined_library_jar,
+        startup_profile_rewritten,
+        baseline_profile_rewritten,
     )
 
     # TODO(timpeut): Validate that optimizer target selection is correct
@@ -452,6 +500,10 @@ def _create_optimization_actions(
             proguard_seeds = outputs.seeds,
             proguard_usage = outputs.usage,
             proguard_config_output = outputs.config,
+            startup_profile = startup_profile,
+            startup_profile_rewritten = outputs.startup_profile_rewritten,
+            baseline_profile = baseline_profile,
+            baseline_profile_rewritten = outputs.baseline_profile_rewritten,
             final = True,
             mnemonic = mnemonic,
             progress_message = "Trimming binary with %s: %s" % (mnemonic, ctx.label),
@@ -474,6 +526,10 @@ def _create_optimization_actions(
         proguard_seeds = outputs.seeds,
         proguard_usage = None,
         proguard_config_output = None,
+        startup_profile = startup_profile,
+        startup_profile_rewritten = None,
+        baseline_profile = baseline_profile,
+        baseline_profile_rewritten = None,
         final = False,
         runtype = "INITIAL",
         next_stage_output = last_stage_output,
@@ -536,6 +592,10 @@ def _create_optimization_actions(
         proguard_seeds = None,
         proguard_usage = outputs.usage,
         proguard_config_output = outputs.config,
+        startup_profile = None,
+        startup_profile_rewritten = outputs.startup_profile_rewritten,
+        baseline_profile = None,
+        baseline_profile_rewritten = outputs.baseline_profile_rewritten,
         final = True,
         runtype = "FINAL",
         last_stage_output = last_stage_output,

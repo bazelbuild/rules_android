@@ -81,6 +81,19 @@ ATTRS = _attrs.replace(
                 profile, speeding up app startup time or reducing jank in some circumstances.
                 """,
             ),
+            startup_profiles = attr.label_list(
+                allow_empty = True,
+                allow_files = [".txt"],
+                doc = """
+                List of baseline profiles that were collected at runtime (often from start-up) for
+                this binary. When this is specified, all baseline profiles (including these) are
+                used to inform code optimizations in the build toolchain. This may improve runtime
+                performance at the cost of dex size. If the dex size cost is too large and the
+                performance wins too small, the same profiles can be provided as a dep from an
+                android_library with `baseline_profiles` to avoid the runtime-focused code
+                optimizations that are enabled by `startup_profiles`.
+                """,
+            ),
             proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
             resource_apks = attr.label_list(
                 allow_rules = ["apk_import"],
