@@ -25,7 +25,7 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
   { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
 # --- end runfiles.bash initialization v2 ---
 
-source "$(rlocation build_bazel_rules_android/test/bashunit/unittest.bash)" || \
+source "$(rlocation rules_android/test/bashunit/unittest.bash)" || \
   (echo >&2 "Failed to locate bashunit.sh" && exit 1)
 
 function set_up() {
@@ -42,9 +42,9 @@ function set_up() {
 }
 
 function set_up_rules() {
-  local android_revision_rule="$(rlocation build_bazel_rules_android/rules/android_revision.bzl)"
+  local android_revision_rule="$(rlocation rules_android/rules/android_revision.bzl)"
 
-  local repo_rule="$(rlocation build_bazel_rules_android/rules/android_sdk_repository/rule.bzl)"
+  local repo_rule="$(rlocation rules_android/rules/android_sdk_repository/rule.bzl)"
   local repo_rule_dir="$(dirname "${repo_rule}")"
   local dest_dir="${TEST_TMPDIR}/android_sdk_repository_src"
   mkdir -p "${dest_dir}/rules/android_sdk_repository"

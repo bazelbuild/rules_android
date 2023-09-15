@@ -42,7 +42,7 @@ fi
 
 echo "Writing XML to ${XML_OUTPUT_FILE}"
 
-source "$(rlocation "build_bazel_rules_android/test/bashunit/unittest.bash")" \
+source "$(rlocation "rules_android/test/bashunit/unittest.bash")" \
   || { echo "Could not source unittest.bash" >&2; exit 1; }
 """
 

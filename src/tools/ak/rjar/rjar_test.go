@@ -29,7 +29,7 @@ var (
 
 const (
 	java         = "local_jdk/bin/java"
-	testDataBase = "build_bazel_rules_android/src/tools/ak/rjar/testdata"
+	testDataBase = "rules_android/src/tools/ak/rjar/testdata"
 )
 
 func TestCreateRJar(t *testing.T) {
