@@ -592,7 +592,6 @@ def impl(ctx):
     # Bazel developers so that `bazel build java/com/my_aar_import` will fail if the resource
     # processing or JAR merging steps fail.
     files_to_build = []
-    files_to_build.extend(resources_ctx.validation_results)  # TODO(djwhang): This should be validation.
     files_to_build.append(merged_jar)
 
     providers.append(
