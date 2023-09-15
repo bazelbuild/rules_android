@@ -1,4 +1,4 @@
-workspace(name = "build_bazel_rules_android")
+workspace(name = "rules_android")
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":android_sdk_supplemental_repository.bzl", "android_sdk_supplemental_repository")

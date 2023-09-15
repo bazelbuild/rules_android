@@ -27,7 +27,7 @@ public final class TestData {
   public static final Path JAVATESTS_DIR =
       Path.of(
           System.getenv("TEST_SRCDIR"),
-          "/build_bazel_rules_android/src/tools/javatests/");
+          "/rules_android/src/tools/javatests/");
 
   /** Reads the contents of a file, assuming its path is absolute. */
   public static String readFromAbsolutePath(Path absolutePath) throws Exception {
