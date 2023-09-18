@@ -60,6 +60,14 @@ function main() {
   }
   trap Cleanup EXIT
 
+  function cd () {
+    # This is necessary due to a weird docker image issue where non-root
+    # accounts have `cd` overriden by a function that has an unbound variable.
+    # The unbound variable caues presubmit failure to due `set -u` above.
+    # The `cd` override only happens for non-root users.
+    builtin cd "$@"
+  }
+
   # ANDROID_HOME is already in the environment.
   export ANDROID_NDK_HOME="/opt/android-ndk-r16b"
 
