@@ -559,8 +559,8 @@ def _is_instrumentation(ctx):
     return bool(ctx.attr.instruments)
 
 def _process_baseline_profiles(ctx, deploy_ctx, **_unused_ctxs):
-    baseline_profile_output = struct()
-    if (ctx.attr.generate_art_profile or
+    baseline_profile_output = None
+    if (ctx.attr.generate_art_profile and
         acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label))):
         enable_optimizer_integration = acls.in_baseline_profiles_optimizer_integration(str(ctx.label))
         has_proguard_specs = bool(ctx.files.proguard_specs)
