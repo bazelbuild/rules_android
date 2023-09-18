@@ -364,6 +364,7 @@ def _singlejar(
         progress_message = "Merge into a single jar.",
         build_target = "",
         check_desugar_deps = False,
+        compression = True,
         deploy_manifest_lines = [],
         include_build_data = False,
         include_prefixes = [],
@@ -372,7 +373,8 @@ def _singlejar(
     args = ctx.actions.args()
     args.add("--output")
     args.add(output)
-    args.add("--compression")
+    if compression:
+        args.add("--compression")
     args.add("--normalize")
     if not include_build_data:
         args.add("--exclude_build_data")
@@ -468,8 +470,9 @@ def _create_deploy_jar(
         progress_message = "Building deploy jar %s" % output.short_path,
         java_toolchain = java_toolchain,
         build_target = build_target,
-        deploy_manifest_lines = deploy_manifest_lines,
         check_desugar_deps = True,
+        compression = False,
+        deploy_manifest_lines = deploy_manifest_lines,
         resource_set = _resource_set_for_deploy_jar,
     )
     return output
