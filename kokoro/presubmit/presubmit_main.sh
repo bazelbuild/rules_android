@@ -112,3 +112,5 @@ function main() {
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
   "$bazel" build "${COMMON_ARGS[@]}" //java/com/basicapp:basic_app
 }
+
+main
