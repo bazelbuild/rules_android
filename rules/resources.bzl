@@ -14,6 +14,7 @@
 
 """Bazel Android Resources."""
 
+load("//rules:acls.bzl", "acls")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
 load(":common.bzl", _common = "common")
@@ -30,7 +31,6 @@ load(
     _compilation_mode = "compilation_mode",
     _log = "log",
 )
-load("//rules:acls.bzl", "acls")
 
 # Depot-wide min SDK floor
 _DEPOT_MIN_SDK_FLOOR = 14
@@ -72,6 +72,7 @@ _INCORRECT_RESOURCE_LAYOUT_ERROR = (
 # Keys for manifest_values
 _VERSION_NAME = "versionName"
 _VERSION_CODE = "versionCode"
+_MIN_SDK_VERSION = "minSdkVersion"
 
 # Resources context attributes.
 _ASSETS_PROVIDER = "assets_provider"
@@ -143,11 +144,13 @@ _ResourcesPackageContextInfo = provider(
 
 # Manifest context attributes
 _PROCESSED_MANIFEST = "processed_manifest"
+_PROCESSED_MANIFEST_VALUES = "processed_manifest_values"
 
 _ManifestContextInfo = provider(
     "Manifest context object",
     fields = {
         _PROCESSED_MANIFEST: "The manifest after the min SDK has been changed as necessary.",
+        _PROCESSED_MANIFEST_VALUES: "Optional, dict of manifest values that have been processed.",
     },
 )
 
@@ -1077,16 +1080,26 @@ def _validate_resources(resource_files = None):
             if res_type not in _RESOURCE_FOLDER_TYPES:
                 fail(_INCORRECT_RESOURCE_LAYOUT_ERROR % resource_file)
 
+def _process_manifest_values(ctx, manifest_values, min_sdk_floor = _DEPOT_MIN_SDK_FLOOR):
+    expanded_manifest_values = utils.expand_make_vars(ctx, manifest_values)
+    if _MIN_SDK_VERSION in expanded_manifest_values and min_sdk_floor > 0:
+        expanded_manifest_values[_MIN_SDK_VERSION] = str(
+            max(int(expanded_manifest_values[_MIN_SDK_VERSION]), min_sdk_floor),
+        )
+    return expanded_manifest_values
+
 def _bump_min_sdk(
         ctx,
-        manifest,
-        floor,
-        enforce_min_sdk_floor_tool):
+        manifest = None,
+        manifest_values = None,
+        floor = _DEPOT_MIN_SDK_FLOOR,
+        enforce_min_sdk_floor_tool = None):
     """Bumps the min SDK attribute of AndroidManifest to the floor.
 
     Args:
       ctx: The rules context.
       manifest: File. The AndroidManifest.xml file.
+      manifest_values: Dictionary. The optional manifest_values to process.
       floor: int. The min SDK floor. Manifest is unchanged if floor <= 0.
       enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
         FilesToRunprovider
@@ -1095,6 +1108,14 @@ def _bump_min_sdk(
       A dict containing _ManifestContextInfo provider fields.
     """
     manifest_ctx = {}
+
+    if manifest_values != None:
+        manifest_ctx[_PROCESSED_MANIFEST_VALUES] = _process_manifest_values(
+            ctx,
+            manifest_values,
+            floor,
+        )
+
     if not manifest or floor <= 0:
         manifest_ctx[_PROCESSED_MANIFEST] = manifest
         return _ManifestContextInfo(**manifest_ctx)
@@ -2068,8 +2089,9 @@ resources = struct(
     # Exposed for android_local_test and android_library
     generate_dummy_manifest = _generate_dummy_manifest,
 
-    # Exposed for android_library, aar_import, and android_binary
+    # Exposed for android_library, aar_import, android_local_test and android_binary
     bump_min_sdk = _bump_min_sdk,
+    process_manifest_values = _process_manifest_values,
 
     # Exposed for use in AOSP
     set_default_min_sdk = _set_default_min_sdk,

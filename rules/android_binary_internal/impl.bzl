@@ -14,18 +14,25 @@
 
 """Implementation."""
 
-load(":r8.bzl", "process_r8", "process_resource_shrinking_r8")
 load("//rules:acls.bzl", "acls")
 load("//rules:baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load("//rules:common.bzl", "common")
 load("//rules:data_binding.bzl", "data_binding")
+load("//rules:desugar.bzl", _desugar = "desugar")
+load("//rules:dex.bzl", _dex = "dex")
+load("//rules:dex_desugar_aspect.bzl", _get_dex_desugar_aspect_deps = "get_aspect_deps")
 load("//rules:java.bzl", "java")
-load("//rules:proguard.bzl", "proguard", proguard_testing = "testing")
+load(
+    "//rules:native_deps.bzl",
+    _process_native_deps = "process",
+)
 load(
     "//rules:processing_pipeline.bzl",
     "ProviderInfo",
     "processing_pipeline",
 )
+load("//rules:proguard.bzl", "proguard", proguard_testing = "testing")
+load("//rules:providers.bzl", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load(
     "//rules:utils.bzl",
@@ -35,14 +42,7 @@ load(
     "get_android_toolchain",
     "utils",
 )
-load(
-    "//rules:native_deps.bzl",
-    _process_native_deps = "process",
-)
-load("//rules:providers.bzl", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
-load("//rules:dex.bzl", _dex = "dex")
-load("//rules:desugar.bzl", _desugar = "desugar")
-load("//rules:dex_desugar_aspect.bzl", _get_dex_desugar_aspect_deps = "get_aspect_deps")
+load(":r8.bzl", "process_r8", "process_resource_shrinking_r8")
 
 def _base_validations_processor(ctx, **_unused_ctxs):
     if ctx.attr.min_sdk_version != 0 and not acls.in_android_binary_min_sdk_version_attribute_allowlist(str(ctx.label)):
@@ -52,6 +52,7 @@ def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
         manifest = ctx.file.manifest,
+        manifest_values = ctx.attr.manifest_values,
         floor = _resources.DEPOT_MIN_SDK_FLOOR if (_is_test_binary(ctx) and acls.in_enforce_min_sdk_floor_rollout(str(ctx.label))) else 0,
         enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
     )
@@ -72,7 +73,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         assets_dir = ctx.attr.assets_dir,
         resource_files = ctx.files.resource_files,
         manifest = manifest_ctx.processed_manifest,
-        manifest_values = utils.expand_make_vars(ctx, ctx.attr.manifest_values),
+        manifest_values = manifest_ctx.processed_manifest_values,
         resource_configs = ctx.attr.resource_configuration_filters,
         densities = ctx.attr.densities,
         nocompress_extensions = ctx.attr.nocompress_extensions,
