@@ -60,6 +60,10 @@ load(
     "//rules:android_tools_defaults_jar.bzl",
     _android_tools_defaults_jar = "android_tools_defaults_jar",
 )
+load(
+    "//rules/android_sandboxed_sdk:asar_import.bzl",
+    _asar_import = "asar_import",
+)
 
 # Current version. Tools may check this to determine compatibility.
 RULES_ANDROID_VERSION = "0.1.0"
@@ -75,3 +79,4 @@ android_sandboxed_sdk_bundle = _android_sandboxed_sdk_bundle
 android_sdk = _android_sdk
 android_sdk_repository = _android_sdk_repository
 android_tools_defaults_jar = _android_tools_defaults_jar
+asar_import = _asar_import
