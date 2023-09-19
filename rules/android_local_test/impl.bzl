@@ -58,6 +58,11 @@ def _validations_processor(ctx, **_unused_sub_ctxs):
 
 def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
     manifest_ctx = None
+    manifest_values = resources.process_manifest_values(
+        ctx,
+        ctx.attr.manifest_values,
+        resources.DEPOT_MIN_SDK_FLOOR,
+    )
     if ctx.file.manifest == None:
         # No manifest provided, generate one
         manifest = ctx.actions.declare_file("_generated/" + ctx.label.name + "/AndroidManifest.xml")
@@ -65,13 +70,14 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
             ctx,
             out_manifest = manifest,
             java_package = java_package,
-            min_sdk_version = int(utils.expand_make_vars(ctx, ctx.attr.manifest_values).get("minSdkVersion", 16)),  # minsdk supported by robolectric framework
+            min_sdk_version = manifest_values.get("minSdkVersion", 16),  # minsdk supported by robolectric framework
         )
-        manifest_ctx = struct(processed_manifest = manifest)
+        manifest_ctx = struct(processed_manifest = manifest, processed_manifest_values = manifest_values)
     else:
         manifest_ctx = resources.bump_min_sdk(
             ctx,
             manifest = ctx.file.manifest,
+            manifest_values = ctx.attr.manifest_values,
             floor = resources.DEPOT_MIN_SDK_FLOOR if acls.in_enforce_min_sdk_floor_rollout(str(ctx.label)) else 0,
             enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
         )
@@ -86,7 +92,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         ctx,
         deps = ctx.attr.deps,
         manifest = manifest_ctx.processed_manifest,
-        manifest_values = utils.expand_make_vars(ctx, ctx.attr.manifest_values),
+        manifest_values = manifest_ctx.processed_manifest_values,
         resource_files = ctx.files.resource_files,
         assets = ctx.files.assets,
         assets_dir = ctx.attr.assets_dir,
