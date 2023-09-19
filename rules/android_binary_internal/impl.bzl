@@ -422,7 +422,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
             desugar_dict = {d.jar: d.desugared_jar for d in dex_archives}
 
             for jar in binary_runtime_jars:
-                desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_desugared.jar")
+                desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_migrated_desugared.jar")
                 _desugar.desugar(
                     ctx,
                     input = jar,
