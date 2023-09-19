@@ -16,47 +16,6 @@
 
 load(":java.bzl", _java = "java")
 
-def _generate_sdk_dependencies_manifest(
-        ctx,
-        output = None,
-        manifest_package = None,
-        sdk_module_configs = None,
-        debug_key = None,
-        sandboxed_sdk_toolbox = None,
-        host_javabase = None):
-    """Generates a manifest that lists all sandboxed SDK dependencies.
-
-    The generated manifest will contain <uses-sdk-library> tags for each SDK. This is required for
-    loading the SDK in the Privacy Sandbox.
-
-    Args:
-      ctx: The context.
-      output: File where the final manifest will be written.
-      manifest_package: The package used in the manifest.
-      sdk_module_configs: List of SDK Module config JSON files with SDK packages and versions.
-      debug_key: Keystore that will later be used to sign the SDK APKs. It's expected to be a
-      sandboxed_sdk_toolbox: Toolbox executable files.
-      host_javabase: Javabase used to run the toolbox.
-    """
-    args = ctx.actions.args()
-    args.add("generate-sdk-dependencies-manifest")
-    args.add("--manifest-package", manifest_package)
-    args.add("--sdk-module-configs", ",".join([config.path for config in sdk_module_configs]))
-    args.add("--debug-keystore", debug_key)
-    args.add("--debug-keystore-pass", "android")
-    args.add("--debug-keystore-alias", "androiddebugkey")
-    args.add("--output-manifest", output)
-    _java.run(
-        ctx = ctx,
-        host_javabase = host_javabase,
-        executable = sandboxed_sdk_toolbox,
-        arguments = [args],
-        inputs = sdk_module_configs + [debug_key],
-        outputs = [output],
-        mnemonic = "GenSdkDepManifest",
-        progress_message = "Generate SDK dependencies manifest %s" % output.short_path,
-    )
-
 def _extract_api_descriptors(
         ctx,
         output = None,
@@ -87,6 +46,38 @@ def _extract_api_descriptors(
         outputs = [output],
         mnemonic = "ExtractApiDescriptors",
         progress_message = "Extract SDK API descriptors %s" % output.short_path,
+    )
+
+def _extract_api_descriptors_from_asar(
+        ctx,
+        output = None,
+        asar = None,
+        sandboxed_sdk_toolbox = None,
+        host_javabase = None):
+    """Extracts API descriptors from a sandboxed SDK archive.
+
+    The API descriptors can later be used to generate sources for communicating with this SDK.
+
+    Args:
+      ctx: The context.
+      output: Output API descriptors jar file.
+      asar: The sandboxed sdk archive.
+      sandboxed_sdk_toolbox: Toolbox executable files.
+      host_javabase: Javabase used to run the toolbox.
+    """
+    args = ctx.actions.args()
+    args.add("extract-api-descriptors-from-asar")
+    args.add("--asar", asar)
+    args.add("--output-sdk-api-descriptors", output)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = sandboxed_sdk_toolbox,
+        arguments = [args],
+        inputs = [asar],
+        outputs = [output],
+        mnemonic = "ExtractApiDescriptorsFromAsar",
+        progress_message = "Extract SDK API descriptors from ASAR %s" % output.short_path,
     )
 
 def _generate_client_sources(
@@ -132,8 +123,50 @@ def _generate_client_sources(
         progress_message = "Generate client sources for %s" % output_kotlin_dir.short_path,
     )
 
+def _generate_sdk_dependencies_manifest(
+        ctx,
+        output = None,
+        manifest_package = None,
+        sdk_module_configs = None,
+        debug_key = None,
+        sandboxed_sdk_toolbox = None,
+        host_javabase = None):
+    """Generates a manifest that lists all sandboxed SDK dependencies.
+
+    The generated manifest will contain <uses-sdk-library> tags for each SDK. This is required for
+    loading the SDK in the Privacy Sandbox.
+
+    Args:
+      ctx: The context.
+      output: File where the final manifest will be written.
+      manifest_package: The package used in the manifest.
+      sdk_module_configs: List of SDK Module config JSON files with SDK packages and versions.
+      debug_key: Keystore that will later be used to sign the SDK APKs. It's expected to be a
+      sandboxed_sdk_toolbox: Toolbox executable files.
+      host_javabase: Javabase used to run the toolbox.
+    """
+    args = ctx.actions.args()
+    args.add("generate-sdk-dependencies-manifest")
+    args.add("--manifest-package", manifest_package)
+    args.add("--sdk-module-configs", ",".join([config.path for config in sdk_module_configs]))
+    args.add("--debug-keystore", debug_key)
+    args.add("--debug-keystore-pass", "android")
+    args.add("--debug-keystore-alias", "androiddebugkey")
+    args.add("--output-manifest", output)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = sandboxed_sdk_toolbox,
+        arguments = [args],
+        inputs = sdk_module_configs + [debug_key],
+        outputs = [output],
+        mnemonic = "GenSdkDepManifest",
+        progress_message = "Generate SDK dependencies manifest %s" % output.short_path,
+    )
+
 sandboxed_sdk_toolbox = struct(
     extract_api_descriptors = _extract_api_descriptors,
-    generate_sdk_dependencies_manifest = _generate_sdk_dependencies_manifest,
+    extract_api_descriptors_from_asar = _extract_api_descriptors_from_asar,
     generate_client_sources = _generate_client_sources,
+    generate_sdk_dependencies_manifest = _generate_sdk_dependencies_manifest,
 )
