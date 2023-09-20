@@ -18,6 +18,7 @@ Used for determining the -libraryjars argument for Proguard. The compile-time cl
 unsufficient here as those are ijars.
 """
 
+load("//rules:acls.bzl", "acls")
 load(
     "//rules:utils.bzl",
     "utils",
@@ -33,6 +34,9 @@ StarlarkAndroidNeverlinkInfo = provider(
 _ATTRS = ["deps", "exports", "runtime_deps", "binary_under_test", "$instrumentation_test_runner"]
 
 def _android_neverlink_aspect_impl(target, ctx):
+    if not acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
+        return []
+
     # Only run on Android targets
     if "android" not in getattr(ctx.rule.attr, "constraints", "") and not ctx.rule.kind.startswith("android_"):
         return []
