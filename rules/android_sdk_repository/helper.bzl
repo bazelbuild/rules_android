@@ -80,6 +80,42 @@ def _create_config_setting_rule():
         flag_values = {":allow_proguard": "false"},
     )
 
+def create_dummy_sdk_toolchain():
+    native.toolchain(
+        name = "sdk-dummy-toolchain",
+        toolchain = ":sdk-dummy",
+        toolchain_type = "@bazel_tools//tools/android:sdk_toolchain_type",
+    )
+
+    native.filegroup(name = "jar-filegroup", srcs = ["dummy.jar"])
+
+    native.genrule(
+        name = "genrule",
+        srcs = [],
+        outs = ["empty.sh"],
+        cmd = "echo '' >> \"$@\"",
+        executable = 1,
+    )
+
+    native.sh_binary(name = "empty-binary", srcs = [":genrule"])
+
+    native.android_sdk(
+        name = "sdk-dummy",
+        aapt = ":empty-binary",
+        adb = ":empty-binary",
+        aidl = ":empty-binary",
+        android_jar = ":jar-filegroup",
+        apksigner = ":empty-binary",
+        dx = ":empty-binary",
+        framework_aidl = "dummy.jar",
+        main_dex_classes = "dummy.jar",
+        main_dex_list_creator = ":empty-binary",
+        proguard = ":empty-binary",
+        shrinked_android_jar = "dummy.jar",
+        tags = ["__ANDROID_RULES_MIGRATION__"],
+        zipalign = ":empty-binary",
+    )
+
 def create_android_sdk_rules(
         name,
         build_tools_version,
@@ -234,6 +270,8 @@ def create_android_sdk_rules(
                 ":api_%d_enabled" % api_level,
             ],
         )
+
+    create_dummy_sdk_toolchain()
 
     native.alias(
         name = "org_apache_http_legacy",
