@@ -14,21 +14,12 @@
 
 """Bazel providers for Android rules."""
 
-
-
 AndroidAppsInfo = provider(
     doc = "Provides information about app to install.",
     fields = dict(
         apps = "List of app provider artifacts.",
     ),
 )
-
-
-
-
-
-
-
 
 AndroidJavaInfo = provider(
     doc = "Provides outputs for the Android Java Compilation",
@@ -45,7 +36,6 @@ AndroidFilteredJdepsInfo = provider(
         jdeps = "Filtered jdeps",
     ),
 )
-
 
 StarlarkApkInfo = provider(
     doc = "Provides APK outputs of a rule.",
@@ -121,7 +111,6 @@ AndroidFeatureModuleInfo = provider(
     ),
 )
 
-
 Dex2OatApkInfo = provider(
     doc = "Contains data about artifacts generated through host dex2oat.",
     fields = dict(
@@ -140,6 +129,7 @@ InstrumentedAppInfo = provider(
 )
 
 FailureInfo = provider(
+    doc = "Contains data about a failed build.",
     fields = dict(
         error = "Error message",
     ),

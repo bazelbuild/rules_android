@@ -46,6 +46,8 @@ _NativeBoolFlagInfo = provider(
         value = "flag value, derived from config_setting targets that access the value",
     ),
 )
+
+# buildifier: disable=provider-params
 FlagsInfo = provider(
     doc = "Provides all flags",
 )
@@ -64,7 +66,7 @@ native_bool_flag = rule(
     provides = [_NativeBoolFlagInfo],
 )
 
-def native_bool_flag_macro(name, description):
+def native_bool_flag_macro(name, description):  # buildifier: disable=unused-variable
     """Provides access to a native boolean flag from Starlark.
 
     Args:

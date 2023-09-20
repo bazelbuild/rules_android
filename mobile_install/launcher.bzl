@@ -13,11 +13,11 @@
 # limitations under the License.
 """Creates the app launcher scripts."""
 
+load("//rules/flags:flags.bzl", "flags")
 load(":deploy_info.bzl", "make_deploy_info_pb")
 load(":providers.bzl", "MIAppInfo", "MIAppLaunchInfo")
 load(":utils.bzl", "utils")
 load(":workspace.bzl", "make_dex_sync", "make_generic_sync", "merge_syncs")
-load("//rules/flags:flags.bzl", "flags")
 
 HOST_TEST_WORKSPACE = "host_test_runner_workspace"
 

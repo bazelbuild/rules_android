@@ -138,18 +138,6 @@ def ExpectedStarlarkAndroidResourcesInfo(
     )
     return name
 
-def _build_expected_resources_node_info(string):
-    parts = string.split(":")
-    if len(parts) != 5:
-        fail("Error: malformed resources_node_info string: %s" % string)
-    return dict(
-        label = parts[0],
-        assets = parts[1].split(",") if parts[1] else [],
-        assets_dir = parts[2],
-        assets_symbols = parts[3],
-        compiled_resources = parts[4],
-    )
-
 def _expected_android_binary_native_libs_info_impl(ctx):
     return _ExpectedAndroidBinaryNativeInfo(
         transitive_native_libs = ctx.attr.transitive_native_libs,

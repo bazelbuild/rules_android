@@ -35,6 +35,7 @@ def _desugar(
         min_sdk_version: Integer. The minimum targeted sdk version.
         library_desugaring: Boolean. Whether to enable core library desugaring.
         desugar_exec: File. The executable desugar file.
+        toolchain_type: String. The toolchain type to use.
     """
 
     args = ctx.actions.args()

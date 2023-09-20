@@ -13,10 +13,10 @@
 # limitations under the License.
 """Aspect for mobile-install."""
 
+load("//rules/flags:flags.bzl", "flags")
 load(":adapters.bzl", "adapters")
 load(":debug.bzl", "debug")
 load(":tools.bzl", "TOOL_ATTRS")
-load("//rules/flags:flags.bzl", "flags")
 
 def aspect_impl(target, ctx):
     """Calls the adapter for a given rule and returns its providers.
@@ -51,7 +51,10 @@ def make_aspect(
       dex_shards: Number of dex shards to split the project across.
       is_cmd: A Boolean, when True the aspect is running in the context of the
         mobile-install command. If False it is as a rule (e.g. mi_test).
+      is_test: A Boolean, when True the aspect is running in the context of a
+        test rule (e.g. mi_test).
       res_shards: Number of Android resource shards during processing.
+      tools: Underlying tool attrs
     Returns:
       A configured aspect.
     """

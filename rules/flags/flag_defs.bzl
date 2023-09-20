@@ -17,6 +17,7 @@
 load("//rules/flags:flags.bzl", "flags")
 
 def define_flags():
+    """Setup configuration flags."""
     flags.DEFINE_bool(
         name = "android_enable_res_v3",
         default = False,
@@ -85,7 +86,6 @@ def define_flags():
         default = False,
         description = "",
     )
-
 
     flags.EXPOSE_native_bool(
         name = "stamp",

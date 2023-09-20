@@ -14,6 +14,7 @@
 
 """Bazel rule for Android local test."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
@@ -34,7 +35,6 @@ load(
     "log",
     "utils",
 )
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 JACOCOCO_CLASS = "com.google.testing.coverage.JacocoCoverageRunner"
 TEST_RUNNER_CLASS = "com.google.testing.junit.runner.BazelTestRunner"

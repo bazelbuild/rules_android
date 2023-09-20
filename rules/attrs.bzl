@@ -14,8 +14,8 @@
 
 """Common attributes for Android rules."""
 
-load(":utils.bzl", "log")
 load(":native_toolchain_attrs.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE_DEFAULT")
+load(":utils.bzl", "log")
 
 def _add(attrs, *others):
     new = {}
@@ -83,7 +83,6 @@ _JAVA_RUNTIME = dict(
         default = Label("//tools/jdk:current_java_runtime"),
     ),
 )
-
 
 # Android SDK attribute.
 _ANDROID_SDK = dict(
@@ -212,12 +211,6 @@ _DATA_CONTEXT = _add(
     ),
     _ANDROID_SDK,
 )
-
-
-
-
-
-
 
 ANDROID_SDK_ATTRS = dict(
     aapt = attr.label(

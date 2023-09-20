@@ -37,14 +37,14 @@ TOOL_ATTRS = dict(
         ),
     ),
     _studio_deployer = attr.label(
-        default = "@androidsdk//:fail", # TODO(#119): Studio deployer jar to be released
+        default = "@androidsdk//:fail",  # TODO(#119): Studio deployer jar to be released
         allow_single_file = True,
         cfg = "exec",
         executable = True,
     ),
     _mi_shell_dummy_native_libs = attr.label(
         default = Label(
-            "@androidsdk//:fail", # FIXME: Unused internally
+            "@androidsdk//:fail",  # FIXME: Unused internally
         ),
         allow_single_file = True,
         cfg = "target",
@@ -119,7 +119,6 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-
 
     # Versioned Host Attrs
     _android_kit = attr.label(
@@ -200,5 +199,4 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-
 )

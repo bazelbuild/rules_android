@@ -14,12 +14,12 @@
 
 """Starlark Android Binary for Android Rules."""
 
-load(":attrs.bzl", "ATTRS")
-load(":impl.bzl", "impl")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load(":attrs.bzl", "ATTRS")
+load(":impl.bzl", "impl")
 
 _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging", "features", "exec_properties"]
 

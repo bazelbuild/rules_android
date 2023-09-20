@@ -13,6 +13,7 @@
 # limitations under the License.
 """Rule adapter for aar_import."""
 
+load("//rules:java.bzl", _java = "java")
 load(":adapters/base.bzl", "make_adapter")
 load(
     ":providers.bzl",
@@ -25,7 +26,6 @@ load(
 )
 load(":resources.bzl", "liteparse")
 load(":transform.bzl", "dex")
-load("//rules:java.bzl", _java = "java")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""

@@ -14,8 +14,8 @@
 
 """Bazel common library for the Android rules."""
 
-load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", _log = "log")
 load("//rules/android_common:reexport_android_common.bzl", _native_android_common = "native_android_common")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", _log = "log")
 
 # Suffix attached to the Starlark portion of android_binary target
 _PACKAGED_RESOURCES_SUFFIX = "_RESOURCES_DO_NOT_USE"

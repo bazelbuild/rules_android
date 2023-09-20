@@ -43,10 +43,6 @@ RULE_PREFIX = "_aar"
 ANDROID_MANIFEST = "AndroidManifest.xml"
 LINT_JAR = "lint.jar"
 
-# Resources context dict fields.
-_PROVIDERS = "providers"
-_VALIDATION_RESULTS = "validation_results"
-
 def _create_aar_tree_artifact(ctx, name):
     return ctx.actions.declare_directory("%s/unzipped/%s/%s" % (RULE_PREFIX, name, ctx.label.name))
 
@@ -130,9 +126,7 @@ def _process_resources(
         aar,
         package,
         manifest,
-        deps,
-        aar_resources_extractor_tool,
-        unzip_tool):
+        aar_resources_extractor_tool):
     # Extract resources and assets, if they exist.
     resources = _create_aar_tree_artifact(ctx, "resources")
     assets = _create_aar_tree_artifact(ctx, "assets")
@@ -175,7 +169,6 @@ def _process_resources(
 <manifest package="%s">
 </manifest>
 """ % package)
-
 
     return struct(**resources_ctx)
 
@@ -484,10 +477,8 @@ def impl(ctx):
         aar = aar,
         package = package,
         manifest = manifest_ctx.processed_manifest,
-        deps = ctx.attr.deps,
         aar_resources_extractor_tool =
             _get_android_toolchain(ctx).aar_resources_extractor.files_to_run,
-        unzip_tool = unzip_tool,
     )
     providers.extend(resources_ctx.providers)
 

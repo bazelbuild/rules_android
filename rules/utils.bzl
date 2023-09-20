@@ -231,15 +231,15 @@ def _copy_dir(ctx, src, dest):
 
 def _info(msg):
     """Print info."""
-    print(_INFO % msg)
+    print(_INFO % msg)  # buildifier: disable=print
 
 def _warn(msg):
     """Print warning."""
-    print(_WARNING % msg)
+    print(_WARNING % msg)  # buildifier: disable=print
 
 def _debug(msg):
     """Print debug."""
-    print("\n%s" % msg)
+    print("\n%s" % msg)  # buildifier: disable=print
 
 def _error(msg):
     """Print error and fail."""

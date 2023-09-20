@@ -275,9 +275,6 @@ def _package(
     if not manifest:
         fail("No manifest given, the manifest is mandatory.")
 
-    direct_data_flag = []
-    direct_compiled_resources = []
-
     output_files = []
     input_files = []
     transitive_input_files = []
@@ -943,6 +940,9 @@ def _generate_binary_r(
       manifest: File. The primary AndroidManifest.xml.
       package_for_r: String. The Java package for the generated R class files.
       final_fields: Bool. Whether fields get declared as final.
+      resources_nodes: Extra resource arguments to add.
+      transitive_r_txts: Transitive r files to include as inputs.
+      transitive_manifests: Transitive manifests to include as inputs.
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
       host_javabase: A Target. The host javabase.

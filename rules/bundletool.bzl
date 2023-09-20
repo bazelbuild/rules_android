@@ -14,11 +14,11 @@
 
 """Bazel Bundletool Commands."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
 )
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 
@@ -172,7 +172,7 @@ def _build_sdk_module(
         out = None,
         internal_apk = None,
         bundletool_module_builder = None,
-        host_javabase = None):
+        _host_javabase = None):
     args = ctx.actions.args()
     args.add("--internal_apk_path", internal_apk)
     args.add("--output_module_path", out)

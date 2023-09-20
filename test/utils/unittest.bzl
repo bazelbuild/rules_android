@@ -14,12 +14,12 @@
 
 """Bazel lib that provides test helpers for testing."""
 
-load(":file.bzl", _file = "file")
 load(
     "@bazel_skylib//lib:unittest.bzl",
     _analysistest = "analysistest",
     _unittest = "unittest",
 )
+load(":file.bzl", _file = "file")
 
 TestInfo = provider(
     doc = "Provides a test a suggested set of attributes.",

@@ -21,12 +21,12 @@ def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return ["unsigned_apk"]
 
-def adapt(target, ctx):
+def adapt(_target, ctx):
     # adapt is made visibile for testing
     """Adapts the android rule
 
     Args:
-        target: The target.
+        _target: The target.
         ctx: The context.
     Returns:
          A list of providers

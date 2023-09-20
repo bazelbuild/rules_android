@@ -13,6 +13,7 @@
 # limitations under the License.
 """Rule adapter for android_binary."""
 
+load("//rules/flags:flags.bzl", "flags")
 load(":adapters/base.bzl", "make_adapter")
 load(":launcher.bzl", "make_launcher")
 load(":launcher_direct.bzl", "make_direct_launcher")
@@ -29,7 +30,6 @@ load(
 load(":resources.bzl", "get_assets_dir")
 load(":transform.bzl", "dex", "filter_jars")
 load(":utils.bzl", "utils")
-load("//rules/flags:flags.bzl", "flags")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""

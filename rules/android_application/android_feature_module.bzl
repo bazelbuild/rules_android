@@ -18,16 +18,16 @@ This file exists to inject the correct version of android_binary and android_lib
 """
 
 load(
-    ":android_feature_module_rule.bzl",
-    _android_feature_module_macro = "android_feature_module_macro",
-)
-load(
     "//rules:android_binary.bzl",
     _android_binary = "android_binary",
 )
 load(
     "//rules/android_library:rule.bzl",
     _android_library_macro = "android_library_macro",
+)
+load(
+    ":android_feature_module_rule.bzl",
+    _android_feature_module_macro = "android_feature_module_macro",
 )
 
 def android_feature_module(**attrs):

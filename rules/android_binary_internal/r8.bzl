@@ -15,20 +15,20 @@
 """R8 processor steps for android_binary_internal."""
 
 load("//rules:acls.bzl", "acls")
+load("//rules:common.bzl", "common")
+load("//rules:java.bzl", "java")
+load(
+    "//rules:processing_pipeline.bzl",
+    "ProviderInfo",
+)
 load("//rules:proguard.bzl", "proguard")
+load("//rules:resources.bzl", _resources = "resources")
 load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
     "get_android_sdk",
     "get_android_toolchain",
 )
-load(
-    "//rules:processing_pipeline.bzl",
-    "ProviderInfo",
-)
-load("//rules:common.bzl", "common")
-load("//rules:java.bzl", "java")
-load("//rules:resources.bzl", _resources = "resources")
 
 def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_ctxs):
     """Runs R8 for desugaring, optimization, and dexing.

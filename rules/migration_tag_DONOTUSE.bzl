@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel component for the Android Skylark Migration."""
+"""Bazel component for the Android Starlark Migration."""
 
 _MIGRATION_TAG = "__ANDROID_RULES_MIGRATION__"
 _TAG_ATTR = "tags"

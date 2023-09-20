@@ -14,12 +14,12 @@
 
 """Aspect that transitively build .dex archives and desugar jars."""
 
-load(":utils.bzl", _utils = "utils")
-load(":dex.bzl", _dex = "dex")
-load(":desugar.bzl", _desugar = "desugar")
-load(":providers.bzl", "StarlarkAndroidDexInfo")
-load(":attrs.bzl", _attrs = "attrs")
 load("//rules:acls.bzl", "acls")
+load(":attrs.bzl", _attrs = "attrs")
+load(":desugar.bzl", _desugar = "desugar")
+load(":dex.bzl", _dex = "dex")
+load(":providers.bzl", "StarlarkAndroidDexInfo")
+load(":utils.bzl", _utils = "utils")
 
 _tristate = _attrs.tristate
 

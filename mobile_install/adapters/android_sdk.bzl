@@ -20,11 +20,11 @@ def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return ["aidl_lib"]
 
-def _adapt(unused_target, ctx):
+def _adapt(_target, ctx):
     """Adapts the rule and target data.
 
     Args:
-      unused_target: The target.
+      _target: The target.
       ctx: The context.
 
     Returns:

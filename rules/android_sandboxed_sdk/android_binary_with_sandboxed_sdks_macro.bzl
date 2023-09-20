@@ -14,19 +14,19 @@
 
 """Bazel rule for defining an Android binary that depends on sandboxed SDKs."""
 
-load(":providers.bzl", "AndroidSandboxedSdkBundleInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:bundletool.bzl", _bundletool = "bundletool")
 load("//rules:common.bzl", _common = "common")
-load(
-    "//rules:utils.bzl",
-    _get_android_toolchain = "get_android_toolchain",
-)
 load("//rules:java.bzl", _java = "java")
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
 )
+load(
+    "//rules:utils.bzl",
+    _get_android_toolchain = "get_android_toolchain",
+)
+load(":providers.bzl", "AndroidSandboxedSdkBundleInfo")
 
 def _gen_sdk_dependencies_manifest_impl(ctx):
     manifest = ctx.actions.declare_file(ctx.label.name + "_sdk_dep_manifest.xml")

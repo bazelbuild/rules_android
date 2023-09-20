@@ -14,10 +14,10 @@
 
 """Bazel Dex Commands."""
 
+load("@bazel_skylib//lib:collections.bzl", "collections")
 load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
-load("@bazel_skylib//lib:collections.bzl", "collections")
 load(":providers.bzl", "StarlarkAndroidDexInfo")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
 
@@ -394,6 +394,7 @@ def _dex(
         incremental_dexopts: List of strings. Additional command-line flags for the dexing tool when building dexes.
         min_sdk_version: Integer. The minimum targeted sdk version.
         dex_exec: File. The executable dex builder file.
+        toolchain_type: String. The toolchain type to use for this action.
     """
     args = ctx.actions.args()
 

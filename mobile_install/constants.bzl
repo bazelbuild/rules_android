@@ -18,7 +18,7 @@ constants = struct(
     EMPTY_LIST = [],
     EMPTY_DICT = dict(),
 
-    # Skylark Types
+    # Starlark Types
     TYPE_DEPSET = type(depset()),
     TYPE_DICT = type(dict()),
     TYPE_LIST = type([]),

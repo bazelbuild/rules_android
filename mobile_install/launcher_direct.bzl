@@ -13,11 +13,11 @@
 # limitations under the License.
 """Creates the app launcher scripts."""
 
-load(":utils.bzl", "utils")
-load(":workspace.bzl", "make_dex_sync", "make_generic_sync", "merge_syncs")
+load("//rules/flags:flags.bzl", "flags")
 load(":deploy_info.bzl", "make_deploy_info_pb")
 load(":providers.bzl", "MIAppInfo", "MIAppLaunchInfo")
-load("//rules/flags:flags.bzl", "flags")
+load(":utils.bzl", "utils")
+load(":workspace.bzl", "make_dex_sync", "make_generic_sync", "merge_syncs")
 
 HOST_TEST_WORKSPACE = "host_test_runner_workspace"
 
@@ -247,7 +247,6 @@ def make_direct_launcher(
     sync_pbs = []
     sync_pbs.append(sync)
     instrumented_app_package_name = None
-    instrumented_app = None
     if hasattr(mi_app_info, "instrumented_app") and mi_app_info.instrumented_app:
         sync_pbs.append(mi_app_info.instrumented_app[MIAppLaunchInfo].sync)
         runfiles.extend(mi_app_info.instrumented_app[MIAppLaunchInfo].runfiles)

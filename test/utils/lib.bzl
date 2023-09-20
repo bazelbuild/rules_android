@@ -15,6 +15,10 @@
 """Bazel Android testing libs."""
 
 load(
+    "@bazel_skylib//lib:unittest.bzl",
+    _asserts = "asserts",
+)
+load(
     ":file.bzl",
     _file = "file",
 )
@@ -22,10 +26,6 @@ load(
     ":unittest.bzl",
     _analysistest = "analysistest",
     _unittest = "unittest",
-)
-load(
-    "@bazel_skylib//lib:unittest.bzl",
-    _asserts = "asserts",
 )
 
 file = _file

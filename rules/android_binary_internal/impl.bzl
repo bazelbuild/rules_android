@@ -48,7 +48,7 @@ def _base_validations_processor(ctx, **_unused_ctxs):
     if ctx.attr.min_sdk_version != 0 and not acls.in_android_binary_min_sdk_version_attribute_allowlist(str(ctx.label)):
         fail("Target %s is not allowed to set a min_sdk_version value." % str(ctx.label))
 
-def _process_manifest(ctx, **unused_ctxs):
+def _process_manifest(ctx, **_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
         manifest = ctx.file.manifest,
@@ -62,7 +62,7 @@ def _process_manifest(ctx, **unused_ctxs):
         value = manifest_ctx,
     )
 
-def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
+def _process_resources(ctx, manifest_ctx, java_package, **_ctxs):
     resource_apks = []
     for apk in utils.collect_providers(StarlarkApkInfo, ctx.attr.resource_apks):
         resource_apks.append(apk.signed_apk)
@@ -105,7 +105,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         value = packaged_resources_ctx,
     )
 
-def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
+def _validate_manifest(ctx, packaged_resources_ctx, **_ctxs):
     manifest_validation_ctx = _resources.validate_min_sdk(
         ctx,
         manifest = packaged_resources_ctx.processed_manifest,
@@ -211,7 +211,7 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, stamp_ctx, **_unused_ctxs)
         ),
     )
 
-def _process_build_info(_unused_ctx, **unused_ctxs):
+def _process_build_info(_unused_ctx, **_ctxs):
     return ProviderInfo(
         name = "build_info_ctx",
         value = struct(

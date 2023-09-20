@@ -14,8 +14,6 @@
 
 """android_application rule."""
 
-load(":android_feature_module_rule.bzl", "get_feature_module_paths")
-load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
 load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
@@ -47,6 +45,8 @@ load(
     "get_android_toolchain",
     _log = "log",
 )
+load(":android_feature_module_rule.bzl", "get_feature_module_paths")
+load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
 
 UNSUPPORTED_ATTRS = [
     "srcs",
@@ -79,8 +79,6 @@ def _process_feature_module(
         ctx.attr._android_sdk[AndroidSdkInfo].aapt2,
         ctx.executable._feature_manifest_script,
         ctx.executable._priority_feature_manifest_script,
-        get_android_toolchain(ctx).android_resources_busybox,
-        _common.get_host_javabase(ctx),
     )
     res = feature_target[AndroidFeatureModuleInfo].library[StarlarkAndroidResourcesInfo]
     binary = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk
@@ -150,9 +148,7 @@ def _create_feature_manifest(
         feature_target,
         aapt2,
         feature_manifest_script,
-        priority_feature_manifest_script,
-        android_resources_busybox,
-        host_javabase):
+        priority_feature_manifest_script):
     info = feature_target[AndroidFeatureModuleInfo]
     manifest = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/AndroidManifest.xml")
 

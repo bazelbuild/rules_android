@@ -13,9 +13,9 @@
 # limitations under the License.
 """Transform contains data transformation methods."""
 
+load("//rules/flags:flags.bzl", _flags = "flags")
 load(":constants.bzl", "constants")
 load(":utils.bzl", "utils")
-load("//rules/flags:flags.bzl", _flags = "flags")
 
 def _declare_file(ctx, filename, sibling = None):
     return utils.isolated_declare_file(ctx, filename, sibling = sibling)
@@ -130,7 +130,7 @@ def merge_dex_shards(ctx, data, sibling):
     action per shard that runs dex_shard_merger on all dex files within that
     shard.
 
-    Arguments:
+    Args:
       ctx: The context.
       data: A list of lists, where the inner list contains dex shards.
       sibling: A file used to root the merged_dex shards.

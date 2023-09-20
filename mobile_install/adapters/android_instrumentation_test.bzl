@@ -13,18 +13,18 @@
 # limitations under the License.
 """Rule adapter for android_instrumentation_test."""
 
+load("//rules/flags:flags.bzl", "flags")
 load(":adapters/base.bzl", "make_adapter")
 load(":launcher.bzl", "make_launcher")
 load(":launcher_direct.bzl", "make_direct_launcher")
 load(":providers.bzl", "MIAppInfo")
 load(":utils.bzl", "utils")
-load("//rules/flags:flags.bzl", "flags")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return ["test_app", "support_apps"]
 
-def _adapt(target, ctx):
+def _adapt(_target, ctx):
     is_mac = select({
         "//conditions:default": "no",
         "@platforms//os:macos": "yes",

@@ -129,7 +129,6 @@ def _setup_dependent_lib_artifacts(ctx, output_dir, deps):
     return dep_lib_artifacts
 
 def _get_javac_opts(
-        ctx,
         java_package,
         artifact_type,
         dependency_artifacts_dir,
@@ -272,7 +271,6 @@ def _process(
     )
 
     db_info[_JAVAC_OPTS] = _get_javac_opts(
-        ctx,
         java_package,
         artifact_type,
         (

@@ -2,8 +2,8 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
-    default_visibility = ["//visibility:public"],
     default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
 )
 
 license(

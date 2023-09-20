@@ -18,7 +18,6 @@ load("//rules:acls.bzl", "acls")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
 load(":common.bzl", _common = "common")
-load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
 load(
     ":providers.bzl",
@@ -57,11 +56,6 @@ _RESOURCE_QUALIFIER_SEP = "-"
 _MANIFEST_MISSING_ERROR = (
     "In target %s, manifest attribute is required when resource_files, " +
     "assets, or exports_manifest are specified."
-)
-
-_ASSET_DEFINITION_ERROR = (
-    "In target %s, the assets and assets_dir attributes should be either " +
-    "both empty or non-empty."
 )
 
 _INCORRECT_RESOURCE_LAYOUT_ERROR = (
@@ -867,43 +861,6 @@ def _liteparse(ctx, out_r_pb, resource_files, android_kit):
         toolchain = None,
     )
 
-def _fastr(ctx, r_pbs, package, manifest, android_kit):
-    """Create R.srcjar from the given R.pb files in the transitive closure.
-
-    Args:
-      ctx: The context.
-      r_pbs: Transitive  set of resource pbs.
-      package: The package name of the compile-time R.java.
-      manifest: File. The AndroidManifest.xml file.
-      android_kit: FilesToRunProvider. The Android Kit executable or
-        FilesToRunProvider.
-
-    Returns:
-      The output R source jar artifact.
-    """
-    inputs = r_pbs
-    r_srcjar = ctx.actions.declare_file(ctx.label.name + "/resources/R-fastr.srcjar")
-    args = ctx.actions.args()
-    args.use_param_file(param_file_arg = "--flagfile=%s", use_always = True)
-    args.set_param_file_format("multiline")
-    args.add("-rJavaOutput", r_srcjar)
-    if package:
-        args.add("-packageForR", package)
-    else:
-        args.add("-manifest", manifest)
-        inputs = depset([manifest], transitive = [inputs])
-    args.add_joined("-resourcePbs", r_pbs, join_with = ",")
-
-    ctx.actions.run(
-        executable = android_kit,
-        arguments = ["rstub", args],
-        inputs = inputs,
-        outputs = [r_srcjar],
-        mnemonic = "CompileTimeR",
-        progress_message = "Generating compile-time R %s" % r_srcjar.short_path,
-    )
-    return r_srcjar
-
 def _compile(
         ctx,
         out_compiled_resources = None,
@@ -981,90 +938,6 @@ def _make_aar(
         host_javabase = host_javabase,
     )
     return aar
-
-def _validate(ctx, manifest, defined_assets, defined_assets_dir):
-    if ((defined_assets and not defined_assets_dir) or
-        (not defined_assets and defined_assets_dir)):
-        _log.error(_ASSET_DEFINITION_ERROR % ctx.label)
-
-    if not manifest:
-        _log.error(_MANIFEST_MISSING_ERROR % ctx.label)
-
-def _make_direct_assets_transitive(assets_info):
-    return AndroidAssetsInfo(
-        assets_info.label,
-        assets_info.validation_result,
-        depset([]),  # direct_parsed_assets
-        depset(
-            transitive = [
-                assets_info.direct_parsed_assets,
-                assets_info.transitive_parsed_assets,
-            ],
-            order = "preorder",
-        ),
-        assets_info.assets,
-        assets_info.symbols,
-        assets_info.compiled_symbols,
-    )
-
-def _make_direct_resources_transitive(resources_info):
-    return AndroidResourcesInfo(
-        resources_info.label,
-        resources_info.manifest,
-        resources_info.compiletime_r_txt,
-        # NB: the ordering of "direct" and "transitive" is inconsistent with that used for
-        # AndroidAssetsInfo.
-        depset(
-            transitive = [
-                # Ordering is inconsistent here too:
-                # https://github.com/bazelbuild/bazel/blob/82c7f48b4628ebbec18123afdbed701bbaa605e2/src/tools/android/java/com/google/devtools/build/android/Aapt2ResourcePackagingAction.java#L158
-                resources_info.transitive_android_resources,
-                resources_info.direct_android_resources,
-            ],
-            order = "preorder",
-        ),
-        depset([]),  # direct_android_resources
-        resources_info.transitive_resources,
-        resources_info.transitive_manifests,
-        resources_info.transitive_aapt2_r_txt,
-        resources_info.transitive_symbols_bin,
-        resources_info.transitive_compiled_symbols,
-        resources_info.transitive_static_lib,
-        resources_info.transitive_r_txt,
-        validation_artifacts = resources_info.validation_artifacts,
-    )
-
-def _export_assets(assets_info, exports):
-    all_providers = [assets_info] + utils.collect_providers(AndroidAssetsInfo, exports)
-    return AndroidAssetsInfo(
-        assets_info.label,
-        assets_info.validation_result,
-        direct_parsed_assets = utils.join_depsets(all_providers, "direct_parsed_assets", order = "preorder"),
-        transitive_parsed_assets = utils.join_depsets(all_providers, "transitive_parsed_assets", order = "preorder"),
-        transitive_assets = utils.join_depsets(all_providers, "assets", order = "preorder"),
-        transitive_symbols = utils.join_depsets(all_providers, "symbols", order = "preorder"),
-        transitive_compiled_symbols = utils.join_depsets(all_providers, "compiled_symbols", order = "preorder"),
-    )
-
-def _export_resources(resources_info, exports):
-    all_providers = [resources_info] + utils.collect_providers(AndroidResourcesInfo, exports)
-    return AndroidResourcesInfo(
-        resources_info.label,
-        resources_info.manifest,
-        resources_info.compiletime_r_txt,
-        **{attr: utils.join_depsets(all_providers, attr, order = "preorder") for attr in [
-            "transitive_android_resources",
-            "direct_android_resources",
-            "transitive_resources",
-            "transitive_manifests",
-            "transitive_aapt2_r_txt",
-            "transitive_symbols_bin",
-            "transitive_compiled_symbols",
-            "transitive_static_lib",
-            "transitive_r_txt",
-            "validation_artifacts",
-        ]}
-    )
 
 def _validate_resources(resource_files = None):
     for resource_file in resource_files:
@@ -1264,9 +1137,9 @@ def _process_starlark(
         fix_resource_transitivity = False,
         aapt = None,
         android_jar = None,
-        android_kit = None,
+        android_kit = None,  # buildifier: disable=unused-variable
         busybox = None,
-        java_toolchain = None,
+        java_toolchain = None,  # buildifier: disable=unused-variable
         host_javabase = None,
         instrument_xslt = None,
         xsltproc = None,
@@ -1878,7 +1751,6 @@ def _process_starlark(
 
     return resources_ctx
 
-
 def _process(
         ctx,
         manifest = None,
@@ -1889,7 +1761,7 @@ def _process(
         assets_dir = None,
         exports_manifest = False,
         java_package = None,
-        custom_package = None,
+        custom_package = None,  # buildifier: disable=unused-variable
         neverlink = False,
         enable_data_binding = False,
         deps = [],
@@ -1903,11 +1775,11 @@ def _process(
         instrument_xslt = None,
         java_toolchain = None,
         host_javabase = None,
-        enable_res_v3 = False,
-        res_v3_dummy_manifest = None,
-        res_v3_dummy_r_txt = None,
+        enable_res_v3 = False,  # buildifier: disable=unused-variable
+        res_v3_dummy_manifest = None,  # buildifier: disable=unused-variable
+        res_v3_dummy_r_txt = None,  # buildifier: disable=unused-variable
         fix_resource_transitivity = False,
-        fix_export_exporting = False,
+        fix_export_exporting = False,  # buildifier: disable=unused-variable
         propagate_resources = True,
         zip_tool = None):
     out_ctx = _process_starlark(
@@ -1942,7 +1814,6 @@ def _process(
         host_javabase = host_javabase,
         zip_tool = zip_tool,
     )
-
 
     if _VALIDATION_OUTPUTS not in out_ctx:
         out_ctx[_VALIDATION_OUTPUTS] = []

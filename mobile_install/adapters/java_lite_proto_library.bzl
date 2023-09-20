@@ -25,11 +25,11 @@ def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return ["deps", "_aspect_proto_toolchain_for_javalite"]
 
-def _adapt(target, ctx):
+def _adapt(_target, ctx):
     """Adapts the rule and target data.
 
     Args:
-      target: The target.
+      _target: The target.
       ctx: The context.
 
     Returns:

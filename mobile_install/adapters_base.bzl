@@ -15,15 +15,15 @@
 
 load(":adapters/aar_import.bzl", "aar_import")
 load(":adapters/android_binary.bzl", "android_binary")
+load(":adapters/android_instrumentation_test.bzl", "android_instrumentation_test")
 load(":adapters/android_library.bzl", "android_library")
 load(":adapters/android_sdk.bzl", "android_sdk")
-load(":adapters/android_instrumentation_test.bzl", "android_instrumentation_test")
 load(":adapters/apk_import.bzl", "apk_import")
 load(":adapters/java_import.bzl", "java_import")
 load(":adapters/java_library.bzl", "java_library")
 load(":adapters/java_lite_proto_library.bzl", "java_lite_proto_library")
-load(":adapters/proto_library.bzl", "proto_library")
 load(":adapters/proto_lang_toolchain.bzl", "proto_lang_toolchain")
+load(":adapters/proto_library.bzl", "proto_library")
 
 # Visible for testing
 ADAPTERS = dict(
