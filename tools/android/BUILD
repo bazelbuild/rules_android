@@ -40,3 +40,39 @@ java_plugin(
         "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:all_android_tools",
     ],
 )
+
+alias(
+    name = "java8_legacy_dex",
+    actual = "@bazel_tools//tools/android:java8_legacy_dex",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "desugar_java8",
+    actual = "@bazel_tools//tools/android:desugar_java8",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "desugared_java8_legacy_apis",
+    actual = "@bazel_tools//tools/android:desugared_java8_legacy_apis",
+    visibility = ["//visibility:public"],
+)
+
+java_binary(
+    name = "r8",
+    main_class = "com.android.tools.r8.R8",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@android_gmaven_r8//jar"],
+)
+
+java_binary(
+    name = "resource_shrinker",
+    main_class = "com.google.devtools.build.android.shrinker.BazelResourceShrinkerCli",
+    srcs = ["src/main/java/com/google/devtools/build/android/shrinker/BazelResourceShrinkerCli.java"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@rules_android_maven//:com_android_tools_common",
+        "@rules_android_maven//:com_android_tools_build_gradle",
+    ],
+)
