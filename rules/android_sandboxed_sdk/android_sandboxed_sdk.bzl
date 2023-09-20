@@ -17,14 +17,17 @@
 This file exists to inject the correct version of android_binary.
 """
 
-load(":android_sandboxed_sdk_macro.bzl", _android_sandboxed_sdk_macro = "android_sandboxed_sdk_macro")
 load("//rules:android_binary.bzl", _android_binary = "android_binary")
+load(":android_sandboxed_sdk_macro.bzl", _android_sandboxed_sdk_macro = "android_sandboxed_sdk_macro")
 
 def android_sandboxed_sdk(
         name,
         sdk_modules_config,
         deps,
         min_sdk_version = 21,
+        visibility = None,
+        testonly = None,
+        tags = [],
         custom_package = None):
     """Rule to build an Android Sandboxed SDK.
 
@@ -38,6 +41,9 @@ def android_sandboxed_sdk(
         https://github.com/google/bundletool/blob/master/src/main/proto/sdk_modules_config.proto
       deps: Set of android libraries that make up this SDK.
       min_sdk_version: Min SDK version for the SDK.
+      visibility: A list of targets allowed to depend on this rule.
+      testonly: Whether this library is only for testing.
+      tags: A list of string tags passed to generated targets.
       custom_package: Java package for which java sources will be generated. By default the package
         is inferred from the directory where the BUILD file containing the rule is. You can specify
         a different package but this is highly discouraged since it can introduce classpath
@@ -49,6 +55,9 @@ def android_sandboxed_sdk(
         sdk_modules_config = sdk_modules_config,
         deps = deps,
         min_sdk_version = min_sdk_version,
+        visibility = visibility,
+        testonly = testonly,
+        tags = tags,
         custom_package = custom_package,
         android_binary = _android_binary,
     )
