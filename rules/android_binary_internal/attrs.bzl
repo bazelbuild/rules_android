@@ -14,16 +14,17 @@
 
 """Attributes."""
 
+load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load("//rules:dex_desugar_aspect.bzl", "dex_desugar_aspect")
 load(
     "//rules:native_deps.bzl",
     "split_config_aspect",
 )
 load("//rules:providers.bzl", "StarlarkApkInfo")
-load("//rules:dex_desugar_aspect.bzl", "dex_desugar_aspect")
 
 def make_deps(allow_rules, providers, aspects):
     return attr.label_list(
@@ -51,6 +52,7 @@ DEPS_PROVIDERS = [
 
 DEPS_ASPECTS = [
     dex_desugar_aspect,
+    android_neverlink_aspect,
 ]
 
 ATTRS = _attrs.replace(
