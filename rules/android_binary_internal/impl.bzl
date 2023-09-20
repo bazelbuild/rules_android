@@ -684,8 +684,11 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
     proguard_seeds = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.seeds")
     proguard_usage = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.usage")
 
-    startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None
-    baseline_profile = bp_ctx.baseline_profile_output.baseline_profile if bp_ctx.baseline_profile_output else None
+    startup_profile = None
+    baseline_profile = None
+    if acls.in_baseline_profiles_optimizer_integration(str(ctx.label)) and bp_ctx.baseline_profile_output:
+        startup_profile = bp_ctx.baseline_profile_output.startup_profile
+        baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
 
     proguard_output = proguard.apply_proguard(
         ctx,
