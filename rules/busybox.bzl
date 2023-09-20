@@ -1150,8 +1150,8 @@ def _optimize(
         host_javabase: Target. The host javabase.
     """
 
-    output_files = []
-    input_files = []
+    output_files = [out_apk]
+    input_files = [in_apk]
 
     args = ctx.actions.args()
     args.use_param_file("@%s")
@@ -1168,7 +1168,6 @@ def _optimize(
         args.add("--resources-config-path", resource_optimization_config)
         input_files.append(resource_optimization_config)
     args.add("-o", out_apk)
-    output_files.append(out_apk)
     args.add(in_apk)
 
     _java.run(
