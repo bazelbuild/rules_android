@@ -141,7 +141,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         inputs = depset(r8_inputs, transitive = [neverlink_jars]),
         outputs = [dexes_zip, proguard_mappings_output_file],
         mnemonic = "AndroidR8",
-        jvm_flags = ["-Xmx8G", "-XX:ThreadStackSize=2048"],
+        jvm_flags = ["-Xmx10G", "-XX:ThreadStackSize=2048"],
         progress_message = "R8 Optimizing, Desugaring, and Dexing %{label}",
     )
 
