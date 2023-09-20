@@ -46,3 +46,5 @@ tasks:
     build_flags:
     - "--enable_bzlmod"
     <<: *common
+
+buildifier: latest
