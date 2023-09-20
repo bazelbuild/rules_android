@@ -14,6 +14,9 @@
 
 """A repository rule for integrating the Android SDK."""
 
+def _is_version(version):
+    return all([c.isdigit() or c == "." for c in version.elems()])
+
 def _parse_version(version):
     # e.g.:
     # "33.1.1" -> 330101
@@ -41,7 +44,7 @@ def _android_sdk_supplemental_repository_impl(ctx):
 
     build_tools_dirs = ctx.path(sdk_path + "/build-tools").readdir()
     _, highest_build_tool_version = (
-        max([_parse_version(v.basename) for v in build_tools_dirs])
+        max([_parse_version(v.basename) for v in build_tools_dirs if _is_version(v.basename)])
     )
     ctx.symlink(
         sdk_path + "/build-tools/" + highest_build_tool_version,
