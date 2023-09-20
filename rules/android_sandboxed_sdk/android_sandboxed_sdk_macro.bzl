@@ -14,20 +14,20 @@
 
 """Bazel rule for defining an Android Sandboxed SDK."""
 
-load(":providers.bzl", "AndroidSandboxedSdkInfo")
 load(
     "//rules:common.bzl",
     _common = "common",
-)
-load(
-    "//rules:utils.bzl",
-    _get_android_toolchain = "get_android_toolchain",
 )
 load("//rules:java.bzl", _java = "java")
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
 )
+load(
+    "//rules:utils.bzl",
+    _get_android_toolchain = "get_android_toolchain",
+)
+load(":providers.bzl", "AndroidSandboxedSdkInfo")
 
 _ATTRS = dict(
     sdk_modules_config = attr.label(
@@ -81,6 +81,9 @@ def android_sandboxed_sdk_macro(
         sdk_modules_config,
         deps,
         min_sdk_version = 21,
+        visibility = None,
+        testonly = None,
+        tags = [],
         custom_package = None,
         android_binary = None):
     """Macro for an Android Sandboxed SDK.
@@ -90,6 +93,9 @@ def android_sandboxed_sdk_macro(
       sdk_modules_config: Module config for this SDK.
       deps: Set of android libraries that make up this SDK.
       min_sdk_version: Min SDK version for the SDK.
+      visibility: A list of targets allowed to depend on this rule.
+      testonly: Whether this library is only for testing.
+      tags: A list of string tags passed to generated targets.
       custom_package: Java package for resources,
       android_binary: android_binary rule used to create the intermediate SDK APK.
     """
@@ -118,12 +124,17 @@ EOF
         manifest = str(manifest_label),
         generate_art_profile = False,
         deps = deps,
+        testonly = testonly,
+        tags = tags,
     )
 
     sdk_deploy_jar = Label("%s_deploy.jar" % bin_fqn)
     _android_sandboxed_sdk(
         name = name,
         sdk_modules_config = sdk_modules_config,
+        visibility = visibility,
+        testonly = testonly,
+        tags = tags,
         internal_android_binary = bin_label,
         sdk_deploy_jar = sdk_deploy_jar,
     )
