@@ -79,7 +79,8 @@ def _uses_deprecated_implicit_export(ctx):
     return (ctx.attr.deps and not (_has_srcs(ctx) or
                                    ctx.attr._defined_assets or
                                    ctx.files.resource_files or
-                                   ctx.attr.manifest))
+                                   ctx.attr.manifest or
+                                   ctx.attr.baseline_profiles))
 
 def _uses_resources_and_deps_without_srcs(ctx):
     return (ctx.attr.deps and
@@ -253,7 +254,7 @@ def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
 def _process_proguard(ctx, idl_ctx, **unused_sub_ctxs):
     return ProviderInfo(
         name = "proguard_ctx",
-        value = _proguard.process(
+        value = _proguard.process_specs(
             ctx,
             proguard_configs = ctx.files.proguard_specs,
             proguard_spec_providers = utils.collect_providers(
@@ -448,6 +449,19 @@ def _process_coverage(ctx, **unused_ctx):
         ),
     )
 
+def _process_baseline_profiles(ctx, **unused_ctx):
+    return ProviderInfo(
+        name = "bp_ctx",
+        value = struct(
+            providers = [
+                BaselineProfileProvider(depset(
+                    ctx.files.baseline_profiles,
+                    transitive = [bp.files for bp in utils.collect_providers(BaselineProfileProvider, ctx.attr.deps, ctx.attr.exports)],
+                )),
+            ],
+        ),
+    )
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
@@ -463,6 +477,7 @@ PROCESSORS = dict(
     NativeProcessor = _process_native,
     IntelliJProcessor = _process_intellij,
     CoverageProcessor = _process_coverage,
+    BaselineProfilesProcessor = _process_baseline_profiles,
 )
 
 # TODO(b/119560471): Deprecate the usage of legacy providers.

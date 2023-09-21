@@ -34,6 +34,7 @@ load(
 )
 load(
     "//rules:utils.bzl",
+    "ANDROID_TOOLCHAIN_TYPE",
     _get_android_toolchain = "get_android_toolchain",
     _utils = "utils",
 )
@@ -81,6 +82,7 @@ def extract_single_file(
             ),
         mnemonic = "AarFileExtractor",
         progress_message = "Extracting %s from %s" % (filename, aar.basename),
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
 def _extract_resources(
@@ -100,6 +102,7 @@ def _extract_resources(
         outputs = [out_resources_dir, out_assets_dir],
         mnemonic = "AarResourcesExtractor",
         progress_message = "Extracting resources and assets from %s" % aar.basename,
+        toolchain = None,
     )
 
 def _extract_native_libs(
@@ -119,6 +122,7 @@ def _extract_native_libs(
         outputs = [output_zip],
         mnemonic = "AarNativeLibsFilter",
         progress_message = "Filtering AAR native libs by architecture",
+        toolchain = None,
     )
 
 def _process_resources(
@@ -192,6 +196,7 @@ def _extract_jars(
         outputs = [out_jars_tree_artifact, out_jars_params_file],
         mnemonic = "AarEmbeddedJarsExtractor",
         progress_message = "Extracting classes.jar and libs/*.jar from %s" % aar.basename,
+        toolchain = None,
     )
 
 def _merge_jars(
@@ -212,6 +217,7 @@ def _merge_jars(
         outputs = [out_jar],
         mnemonic = "AarJarsMerger",
         progress_message = "Merging AAR embedded jars",
+        toolchain = None,
     )
 
 def _extract_and_merge_jars(
@@ -383,6 +389,7 @@ def _validate_rule(
         outputs = [validation_output],
         mnemonic = "ValidateAAR",
         progress_message = "Validating aar_import %s" % str(ctx.label),
+        toolchain = None,
     )
     return validation_output
 
@@ -431,6 +438,7 @@ def _collect_proguard(
         outputs = [out_proguard],
         mnemonic = "AarEmbeddedProguardExtractor",
         progress_message = "Extracting proguard spec from %s" % aar.basename,
+        toolchain = None,
     )
     transitive_proguard_specs = []
     for p in _utils.collect_providers(ProguardSpecProvider, ctx.attr.deps, ctx.attr.exports):

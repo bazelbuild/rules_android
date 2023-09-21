@@ -23,23 +23,47 @@ SplitConfigInfo = provider(
     doc = "Provides information about configuration for a split config dep",
     fields = dict(
         build_config = "The build configuration of the dep.",
+        android_config = "Select fields from the android configuration of the dep.",
+        target_platform = "The target platform label of the dep.",
     ),
 )
 
 def _split_config_aspect_impl(__, ctx):
-    return SplitConfigInfo(build_config = ctx.configuration)
+    android_cfg = ctx.fragments.android
+    return SplitConfigInfo(
+        build_config = ctx.configuration,
+        android_config = struct(
+            incompatible_use_toolchain_resolution = android_cfg.incompatible_use_toolchain_resolution,
+            android_cpu = android_cfg.android_cpu,
+            hwasan = android_cfg.hwasan,
+        ),
+        target_platform = ctx.fragments.platform.platform,
+    )
 
 split_config_aspect = aspect(
     implementation = _split_config_aspect_impl,
+    fragments = ["android"],
 )
 
-def process(ctx, filename):
+def _get_libs_dir_name(android_config, target_platform):
+    if android_config.incompatible_use_toolchain_resolution:
+        name = target_platform.name
+    else:
+        # Legacy builds use the CPU as the name.
+        name = android_config.android_cpu
+    if android_config.hwasan:
+        name = name + "-hwasan"
+    return name
+
+def process(ctx, filename, merged_native_libs = {}):
     """ Links native deps into a shared library
 
     Args:
       ctx: The context.
       filename: String. The name of the artifact containing the name of the
             linked shared library
+      merged_native_libs: A dict that maps cpu to merged native libraries. This maps to empty
+            lists if native library merging is not enabled.
 
     Returns:
         Tuple of (libs, libs_name) where libs is a depset of all native deps
@@ -54,6 +78,10 @@ def process(ctx, filename):
         cc_toolchain_dep = ctx.split_attr._cc_toolchain_split[key]
         cc_toolchain = cc_toolchain_dep[cc_common.CcToolchainInfo]
         build_config = cc_toolchain_dep[SplitConfigInfo].build_config
+        libs_dir_name = _get_libs_dir_name(
+            cc_toolchain_dep[SplitConfigInfo].android_config,
+            cc_toolchain_dep[SplitConfigInfo].target_platform,
+        )
         linker_input = cc_common.create_linker_input(
             owner = ctx.label,
             user_link_flags = ["-Wl,-soname=lib" + actual_target_name],
@@ -69,16 +97,18 @@ def process(ctx, filename):
             ),
         )
         libraries = []
+        if merged_native_libs:
+            libraries.extend(merged_native_libs[key])
 
         native_deps_lib = _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actual_target_name)
         if native_deps_lib:
             libraries.append(native_deps_lib)
             native_libs_basename = native_deps_lib.basename
 
-        libraries.extend(_filter_unique_shared_libs(native_deps_lib, cc_info))
+        libraries.extend(_filter_unique_shared_libs(libraries, cc_info))
 
         if libraries:
-            libs[key] = depset(libraries)
+            libs[libs_dir_name] = depset(libraries)
 
     if libs and native_libs_basename:
         libs_name = ctx.actions.declare_file("nativedeps_filename/" + actual_target_name + "/" + filename)
@@ -94,7 +124,8 @@ def _get_transitive_native_libs(ctx):
     return depset(
         transitive = [
             dep[AndroidNativeLibsInfo].native_libs
-            for dep in ctx.attr.deps
+            for deps in ctx.split_attr.deps.values()
+            for dep in deps
             if AndroidNativeLibsInfo in dep
         ],
     )
@@ -106,11 +137,18 @@ def _all_inputs(cc_info):
         for lib in input.libraries
     ]
 
-def _filter_unique_shared_libs(linked_lib, cc_info):
+def _filter_unique_shared_libs(linked_libs, cc_info):
     basenames = {}
     artifacts = {}
-    if linked_lib:
-        basenames[linked_lib.basename] = linked_lib
+    if linked_libs:
+        basenames = {
+            linked_lib.basename: linked_lib
+            for linked_lib in linked_libs
+        }
+        artifacts = {
+            linked_lib: None
+            for linked_lib in linked_libs
+        }
     for input in _all_inputs(cc_info):
         if input.pic_static_library or input.static_library:
             # This is not a shared library and will not be loaded by Android, so skip it.
@@ -142,7 +180,7 @@ def _filter_unique_shared_libs(linked_lib, cc_info):
                 "unique basename to avoid name collisions when packaged into " +
                 "an apk, but two libraries have the basename '" + basename +
                 "': " + artifact + " and " + old_artifact + (
-                    " (the library compiled for this target)" if old_artifact == linked_lib else ""
+                    " (the library already seen by this target)" if old_artifact in linked_libs else ""
                 ),
             )
         else:
@@ -256,11 +294,16 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
         build_config.bin_dir,
     )
 
-    link_opts = cc_info.linking_context.user_link_flags
+    linker_inputs = cc_info.linking_context.linker_inputs.to_list()
+
+    link_opts = []
+    for linker_input in linker_inputs:
+        for flag in linker_input.user_link_flags:
+            link_opts.append(flag)
 
     linkstamps = []
-    for input in cc_info.linking_context.linker_inputs.to_list():
-        linkstamps.extend(input.linkstamps)
+    for linker_input in linker_inputs:
+        linkstamps.extend(linker_input.linkstamps)
     linkstamps_dict = {linkstamp: None for linkstamp in linkstamps}
 
     build_info_artifacts = _get_build_info(ctx) if linkstamps_dict else []
@@ -313,7 +356,6 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
         cc_toolchain = cc_toolchain,
         test_only_target = test_only_target,
         stamp = getattr(ctx.attr, "stamp", 0),
-        grep_includes = ctx.file._grep_includes,
         main_output = linked_lib,
         use_shareable_artifact_factory = True,
         build_config = build_config,

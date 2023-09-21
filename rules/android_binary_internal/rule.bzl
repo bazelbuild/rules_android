@@ -21,7 +21,7 @@ load(
     _attrs = "attrs",
 )
 
-_DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging"]
+_DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging", "features", "exec_properties"]
 
 _DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
 
@@ -47,6 +47,7 @@ def make_rule(
         provides = provides,
         toolchains = [
             "//toolchains/android:toolchain_type",
+            "//toolchains/android_sdk:toolchain_type",
             "@bazel_tools//tools/jdk:toolchain_type",
         ] + additional_toolchains,
         _skylark_testable = True,

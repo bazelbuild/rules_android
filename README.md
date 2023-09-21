@@ -33,24 +33,24 @@ To use the Starlark Bazel Android rules, add the following to your WORKSPACE fil
     RULES_ANDROID_COMMIT= "0bf3093bd011acd35de3c479c8990dd630d552aa"
     RULES_ANDROID_SHA = "b75a673a66c157138ab53f4d8612a6e655d38b69bb14207c1a6675f0e10afa61"
     http_archive(
-        name = "build_bazel_rules_android",
+        name = "rules_android",
         url = "https://github.com/bazelbuild/rules_android/archive/%s.zip" % RULES_ANDROID_COMMIT,
         sha256 = RULES_ANDROID_SHA,
         strip_prefix = "rules_android-%s" % RULES_ANDROID_COMMIT,
     )
-    load("@build_bazel_rules_android//:prereqs.bzl", "rules_android_prereqs")
+    load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
     rules_android_prereqs()
-    load("@build_bazel_rules_android//:defs.bzl", "rules_android_workspace")
+    load("@rules_android//:defs.bzl", "rules_android_workspace")
     rules_android_workspace()
 
     register_toolchains(
-    "@build_bazel_rules_android//toolchains/android:android_default_toolchain",
-    "@build_bazel_rules_android//toolchains/android_sdk:android_sdk_tools",
+    "@rules_android//toolchains/android:android_default_toolchain",
+    "@rules_android//toolchains/android_sdk:android_sdk_tools",
     )
 
 Then, in your BUILD files, import and use the rules:
 
-    load("@build_bazel_rules_android//rules:rules.bzl", "android_binary", "android_library")
+    load("@rules_android//rules:rules.bzl", "android_binary", "android_library")
     android_binary(
         ...
     )

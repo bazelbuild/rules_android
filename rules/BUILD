@@ -26,6 +26,7 @@ bzl_library(
     srcs = [
         "aapt.bzl",
         "acls.bzl",
+        "android_neverlink_aspect.bzl",
         "attrs.bzl",
         "bundletool.bzl",
         "busybox.bzl",
@@ -42,12 +43,47 @@ bzl_library(
         "proguard.bzl",
         "providers.bzl",
         "resources.bzl",
+        "sandboxed_sdk_toolbox.bzl",
         "utils.bzl",
     ],
     visibility = ["//:__subpackages__"],
     deps = [
         "//rules/acls:bzl",
         "//rules/android_common:bzl",
+        "//rules/flags:bzl",
+    ],
+)
+
+bzl_library(
+    name = "android_binary_bzl",
+    srcs = [
+        "android_binary.bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//rules/android_binary_internal:bzl",
+    ],
+)
+
+bzl_library(
+    name = "bzl",
+    srcs = [
+        "android_ndk_repository.bzl",
+        "android_sdk.bzl",
+        "android_tools_defaults_jar.bzl",
+        "baseline_profiles.bzl",
+        "dex.bzl",
+        "dex_desugar_aspect.bzl",
+        "rules.bzl",
+    ],
+    visibility = ["//mobile_install:__pkg__"],
+    deps = [
+        ":android_binary_bzl",
+        ":common_bzl",
+        "//rules/aar_import:bzl",
+        "//rules/android_library:bzl",
+        "//rules/android_sandboxed_sdk:bzl",
+        "//rules/android_sdk_repository:bzl",
         "//rules/flags:bzl",
     ],
 )

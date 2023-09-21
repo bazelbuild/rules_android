@@ -46,6 +46,7 @@ def extract(target, ctx):
     Returns:
       Input for process method
     """
+    extension_registry_class_jar = utils.get_extension_registry_class_jar(target)
     return dict(
         debug_key = utils.only(ctx.rule.files.debug_key, allow_empty = True),
         debug_signing_keys = ctx.rule.files.debug_signing_keys,
@@ -81,8 +82,11 @@ def extract(target, ctx):
                     target[JavaInfo].runtime_output_jars,
                 ) +
                 (
+                    [
+                        extension_registry_class_jar,
+                    ] if extension_registry_class_jar else []
                 ),
-                target[JavaInfo].transitive_deps,
+                target[JavaInfo].transitive_compile_time_jars,
             ),
             deps = providers.collect(MIAndroidDexInfo, ctx.rule.attr.deps),
         ),

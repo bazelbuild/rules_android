@@ -17,6 +17,7 @@
 load(":common.bzl", "common")
 load(":migration_tag_DONOTUSE.bzl", "add_migration_tag")
 load("//rules/android_binary_internal:rule.bzl", "android_binary_internal_macro")
+load("//rules:acls.bzl", "acls")
 
 def android_binary(**attrs):
     """Bazel android_binary rule.
@@ -37,8 +38,21 @@ def android_binary(**attrs):
 
     attrs.pop("$enable_manifest_merging", None)
 
+    # dex_shards is deprecated and unused. This only existed for mobile-install classic which has
+    # been replaced by mobile-install v2
+    attrs.pop("dex_shards", None)
+
     # resource_apks is not used by the native android_binary
     attrs.pop("resource_apks", None)
+
+    fqn = "//%s:%s" % (native.package_name(), attrs["name"])
+    if acls.use_r8(fqn):
+        # Do not pass proguard specs to the native android_binary so that it does
+        # not try to use proguard and instead uses the dex files from the
+        # AndroidDexInfo provider from android_binary_internal.
+        # This also disables resource shrinking from native android_binary (reguardless of the
+        # shrink_resources attr).
+        attrs["proguard_specs"] = []
 
     native.android_binary(
         application_resources = android_binary_internal_name,

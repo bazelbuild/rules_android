@@ -9,33 +9,28 @@ x_defaults:
     - "//android/..."
     - "//rules/..."
     - "-//src/java/com/example/sampleapp/..."
-    - "-//src/tools/ak/..."
     - "//toolchains/..."
     - "//tools/..."
+    - "-//tools/android/..." # TODO(#122): Un-exclude this once #122 is fixed.
     test_targets:
     - "//src/..."
     - "//test/..."
-    - "-//src/tools/..."
+    - "-//src/tools/enforce_min_sdk_floor/..."
     - "-//src/java/com/example/sampleapp/..."
+    test_flags:
+     # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
+    - "--java_runtime_version=17"
 
 tasks:
-  ubuntu1604:
-    <<: *common
-  ubuntu1804:
+  ubuntu2004:
     <<: *common
   macos:
     <<: *common
   macos_arm64:
     <<: *common
-  ubuntu1604_bzlmod:
-    name: Bzlmod ubuntu1604
-    platform: ubuntu1604
-    build_flags:
-    - "--enable_bzlmod"
-    <<: *common
-  ubuntu1804_bzlmod:
-    name: Bzlmod ubuntu1804
-    platform: ubuntu1804
+  ubuntu2004_bzlmod:
+    name: Bzlmod ubuntu2004
+    platform: ubuntu2004
     build_flags:
     - "--enable_bzlmod"
     <<: *common

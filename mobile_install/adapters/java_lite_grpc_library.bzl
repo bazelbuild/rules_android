@@ -36,7 +36,7 @@ def _adapt(target, ctx):
             dex_shards = dex(
                 ctx,
                 target[JavaInfo].runtime_output_jars,
-                target[JavaInfo].transitive_deps,
+                target[JavaInfo].transitive_compile_time_jars,
             ),
             deps = providers.collect(
                 MIAndroidDexInfo,

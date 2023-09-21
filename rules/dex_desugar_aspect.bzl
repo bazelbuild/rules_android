@@ -32,10 +32,29 @@ def _aspect_attrs():
         "runtime",
         "runtime_deps",
         "_android_sdk",
-        "_aspect_proto_toolchain_for_javalite",
-        "_build_stamp_mergee_manifest_lib",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
+        "_aspect_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
+        "_build_stamp_deps",  # for build stamp runtime class deps
+        "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
         "_toolchain",  # to get Kotlin toolchain component in android_library
     ]
+
+# Also used by the android_binary_internal rule
+def get_aspect_deps(ctx):
+    """Get all the deps of the dex_desugar_aspect that requires traversal.
+
+    Args:
+        ctx: The context.
+
+    Returns:
+        deps_list: List of all deps of the dex_desugar_aspect that requires traversal.
+    """
+    deps_list = []
+    for deps in [getattr(ctx.attr, attr, []) for attr in _aspect_attrs()]:
+        if str(type(deps)) == "list":
+            deps_list += deps
+        elif str(type(deps)) == "Target":
+            deps_list.append(deps)
+    return deps_list
 
 def _aspect_impl(target, ctx):
     """Adapts the rule and target data.
@@ -50,11 +69,8 @@ def _aspect_impl(target, ctx):
     if not acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         return []
 
-    min_sdk_version = getattr(ctx.rule.attr, "min_sdk_version", 0)
-    if min_sdk_version != 0 and not acls.in_android_binary_min_sdk_version_attribute(str(ctx)):
-        fail("Target is not allowed to set a min_sdk_version value.")
-
     incremental_dexing = getattr(ctx.rule.attr, "incremental_dexing", _tristate.auto)
+    min_sdk_version = getattr(ctx.rule.attr, "min_sdk_version", 0)
 
     if incremental_dexing == _tristate.no or \
        (not ctx.fragments.android.use_incremental_dexing and
@@ -119,7 +135,7 @@ def _aspect_impl(target, ctx):
                     dex_archives_dict[incremental_dexopts] = []
                 dex_archives_dict[incremental_dexopts].append(dex_archive)
 
-    infos = _utils.collect_providers(StarlarkAndroidDexInfo, _get_aspect_deps(ctx))
+    infos = _utils.collect_providers(StarlarkAndroidDexInfo, get_aspect_deps(ctx.rule))
     merged_info = _dex.merge_infos(infos)
 
     for dexopts in dex_archives_dict:
@@ -134,18 +150,9 @@ def _aspect_impl(target, ctx):
         ),
     ]
 
-def _get_aspect_deps(ctx):
-    deps_list = []
-    for deps in [getattr(ctx.rule.attr, attr) for attr in _aspect_attrs() if hasattr(ctx.rule.attr, attr)]:
-        if str(type(deps)) == "list":
-            deps_list += deps
-        else:
-            deps_list.append(deps)
-    return deps_list
-
 def _get_produced_runtime_jars(target, ctx, extra_toolchain_jars):
     if ctx.rule.kind == "proto_library":
-        if not getattr(ctx.rule.attr, "srcs", []):
+        if getattr(ctx.rule.attr, "srcs", []):
             if JavaInfo in target:
                 return [java_output.class_jar for java_output in target[JavaInfo].java_outputs]
         return []
@@ -242,4 +249,5 @@ dex_desugar_aspect = aspect(
         _attrs.ANDROID_SDK,
     ),
     fragments = ["android"],
+    required_aspect_providers = [[JavaInfo]],
 )

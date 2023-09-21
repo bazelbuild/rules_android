@@ -16,66 +16,30 @@
 set -e
 set -x
 
-source "${KOKORO_GFILE_DIR}/download_bazel.sh"
-echo "== installing bazel ========================================="
-bazel_install_dir=$(mktemp -d)
-BAZEL_VERSION="latest-with-prereleases"
-DownloadBazel "$BAZEL_VERSION" linux x86_64 "$bazel_install_dir"
-bazel="$bazel_install_dir/install/bin/bazel"
-chmod +x "$bazel"
-bazel_detected_version=$("$bazel" version | grep "Build label" | awk -F": " '{print $2}')
-echo "============================================================="
-
-function Cleanup() {
-  # Clean up all temporary directories: bazel install, sandbox, and
-  # android_tools.
-  rm -rf "$bazel_install_dir"
-}
-trap Cleanup EXIT
+# Set up the SDK as root to avoid having to deal with user file permissions
 
 # Kokoro is no longer updating toolchains in their images, so install newer
 # android build tools, because the latest one installed (26.0.2) has some bug
 # in APPT2 which causes the magic number to be incorrect for some files it
 # outputs.
 #
-# Use "yes" to accept sdk licenses.
 cd "$ANDROID_HOME"
-yes | tools/bin/sdkmanager --install "build-tools;30.0.3" &>/dev/null
-yes | tools/bin/sdkmanager --licenses &>/dev/null
 
-# ANDROID_HOME is already in the environment.
-export ANDROID_NDK_HOME="/opt/android-ndk-r16b"
+# Use "yes" to accept sdk licenses.
+yes | cmdline-tools/latest/bin/sdkmanager --install "build-tools;30.0.3" "extras;android;m2repository" &>/dev/null
+yes | cmdline-tools/latest/bin/sdkmanager --licenses &>/dev/null
+chmod -R o=rx "$ANDROID_HOME"
 
-# Create a tmpfs in the sandbox at "/tmp/hsperfdata_$USERNAME" to avoid the
-# problems described in https://github.com/bazelbuild/bazel/issues/3236
-# Basically, the JVM creates a file at /tmp/hsperfdata_$USERNAME/$PID, but
-# processes all get a PID of 2 in the sandbox, so concurrent Java build actions
-# could crash because they're trying to modify the same file. So, tell the
-# sandbox to mount a tmpfs at /tmp/hsperfdata_$(whoami) so that each JVM gets
-# its own version of that directory.
-hsperfdata_dir="/tmp/hsperfdata_$(whoami)_rules_android"
-mkdir "$hsperfdata_dir"
+# Remainder of this file deals with setting up a non-root build account,
+# and using it to run presubmit
+# User account needs to be able to read $ANDROID_HOME (+r) and traverse directories (+x)
+chmod -R o=rx "$ANDROID_HOME"
 
-COMMON_ARGS=(
-  "--sandbox_tmpfs_path=$hsperfdata_dir"
-  "--verbose_failures"
-  "--experimental_google_legacy_api"
-  "--experimental_enable_android_migration_apis"
-  "--build_tests_only"
-)
+# Make the non-root account
+export KOKORO_USER="bazel-builder"
+useradd -m -s /bin/bash "$KOKORO_USER"
 
-# Go to rules_android workspace and run relevant tests.
-cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
-
-# Fetch all external deps; should reveal any bugs related to external dep
-# references.
-"$bazel" aquery 'deps(...)' 2>&1 > /dev/null
-
-"$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
-  //src/tools/ak/... \
-  //test/...
-
-# Go to basic app workspace in the source tree
-cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
-"$bazel" build "${COMMON_ARGS[@]}" //java/com/basicapp:basic_app
-
+# Run presubmit as bazel-builder, and pass ANDROID_HOME and KOKORO_ARTIFACTS_DIR
+# from root user's environment to bazel-builder's environment
+runuser -w ANDROID_HOME,KOKORO_ARTIFACTS_DIR -l "$KOKORO_USER" \
+  -c "bash ${KOKORO_ARTIFACTS_DIR}/git/rules_android/kokoro/presubmit/presubmit_main.sh"

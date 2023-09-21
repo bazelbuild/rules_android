@@ -22,7 +22,8 @@ def _desugar(
         bootclasspath = [],
         min_sdk_version = 0,
         library_desugaring = True,
-        desugar_exec = None):
+        desugar_exec = None,
+        toolchain_type = None):
     """Desugars a JAR.
 
     Args:
@@ -37,6 +38,8 @@ def _desugar(
     """
 
     args = ctx.actions.args()
+    args.use_param_file("@%s", use_always = True)  # Required for workers.
+    args.set_param_file_format("multiline")
     args.add("--input", input)
     args.add("--output", output)
     args.add_all(classpath, before_each = "--classpath_entry")
@@ -60,6 +63,7 @@ def _desugar(
         mnemonic = "Desugar",
         progress_message = "Desugaring " + input.short_path + " for Android",
         execution_requirements = {"supports-workers": "1"},
+        toolchain = toolchain_type,
     )
 
 desugar = struct(

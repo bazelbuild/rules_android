@@ -1,4 +1,4 @@
-# Copyright 2018 The Bazel Authors. All rights reserved.
+# Copyright 2023 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,14 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Bazel rule for Android sdk repository."""
+"""Allowlist for targets allowed to set proguard_apply_mapping."""
 
-def android_sdk_repository(**attrs):
-    """Bazel android_sdk_repository rule.
-
-    https://docs.bazel.build/versions/master/be/android.html#android_sdk_repository
-
-    Args:
-      **attrs: Rule attributes
-    """
-    native.android_sdk_repository(**attrs)
+# keep sorted
+ALLOW_PROGUARD_APPLY_MAPPING = [
+]
