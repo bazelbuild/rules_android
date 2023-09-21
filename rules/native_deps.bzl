@@ -294,11 +294,16 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
         build_config.bin_dir,
     )
 
-    link_opts = cc_info.linking_context.user_link_flags
+    linker_inputs = cc_info.linking_context.linker_inputs.to_list()
+
+    link_opts = []
+    for linker_input in linker_inputs:
+        for flag in linker_input.user_link_flags:
+            link_opts.append(flag)
 
     linkstamps = []
-    for input in cc_info.linking_context.linker_inputs.to_list():
-        linkstamps.extend(input.linkstamps)
+    for linker_input in linker_inputs:
+        linkstamps.extend(linker_input.linkstamps)
     linkstamps_dict = {linkstamp: None for linkstamp in linkstamps}
 
     build_info_artifacts = _get_build_info(ctx) if linkstamps_dict else []
