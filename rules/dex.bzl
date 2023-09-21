@@ -332,7 +332,7 @@ def _shard_dexes(
         outputs = [output],
         inputs = inputs,
         arguments = [args],
-        mnemonic = "ShardsForMultiDex",
+        mnemonic = "ShardForMultidex",
         progress_message = "Assembling dex files for " + ctx.label.name,
         use_default_shell_env = True,
         toolchain = toolchain_type,
