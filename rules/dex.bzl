@@ -396,6 +396,8 @@ def _dex(
         dex_exec: File. The executable dex builder file.
     """
     args = ctx.actions.args()
+    args.use_param_file("@%s", use_always = True)  # Required for workers.
+    args.set_param_file_format("multiline")
 
     args.add("--input_jar", input)
     args.add("--output_zip", output)
