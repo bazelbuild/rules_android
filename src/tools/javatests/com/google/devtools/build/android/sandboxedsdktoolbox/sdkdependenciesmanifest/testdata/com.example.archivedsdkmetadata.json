@@ -1,0 +1,11 @@
+{
+  "package_name": "com.example.archivedsdk",
+  "sdk_version": {
+    "major": 33,
+    "minor": 2,
+    "patch": 1
+  },
+
+  // We always use the debug key digest instead of the one provided in the ASAR.
+  "certificate_digest": "fake digest that should be ignored."
+}

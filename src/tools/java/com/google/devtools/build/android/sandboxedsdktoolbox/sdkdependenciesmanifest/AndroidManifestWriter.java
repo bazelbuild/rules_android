@@ -15,10 +15,8 @@
  */
 package com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest;
 
-import static com.google.devtools.build.android.sandboxedsdktoolbox.config.SdkModulesConfigUtils.getVersionMajor;
-
-import com.android.bundle.SdkModulesConfigOuterClass.SdkModulesConfig;
 import com.google.common.collect.ImmutableSet;
+import com.google.devtools.build.android.sandboxedsdktoolbox.info.SdkInfo;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -50,7 +48,7 @@ final class AndroidManifestWriter {
   static void writeManifest(
       String packageName,
       String certificateDigest,
-      ImmutableSet<SdkModulesConfig> configs,
+      ImmutableSet<SdkInfo> infoSet,
       Path outputPath) {
     Document root = newEmptyDocument();
 
@@ -62,11 +60,11 @@ final class AndroidManifestWriter {
     Element applicationNode = root.createElement(APPLICATION_ELEMENT_NAME);
     manifestNode.appendChild(applicationNode);
 
-    for (SdkModulesConfig config : configs) {
+    for (SdkInfo sdkInfo : infoSet) {
       Element sdkDependencyElement = root.createElement(SDK_DEPENDENCY_ELEMENT_NAME);
-      sdkDependencyElement.setAttribute(ANDROID_NAME_ATTRIBUTE, config.getSdkPackageName());
+      sdkDependencyElement.setAttribute(ANDROID_NAME_ATTRIBUTE, sdkInfo.getPackageName());
       sdkDependencyElement.setAttribute(
-          ANDROID_VERSION_MAJOR_ATTRIBUTE, Long.toString(getVersionMajor(config)));
+          ANDROID_VERSION_MAJOR_ATTRIBUTE, Long.toString(sdkInfo.getVersionMajor()));
       sdkDependencyElement.setAttribute(ANDROID_CERTIFICATE_DIGEST_ATTRIBUTE, certificateDigest);
       applicationNode.appendChild(sdkDependencyElement);
     }

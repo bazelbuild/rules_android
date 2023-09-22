@@ -18,12 +18,14 @@ package com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesman
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest.AndroidManifestWriter.writeManifest;
 import static com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest.CertificateDigestGenerator.generateCertificateDigest;
-import static java.util.Arrays.stream;
 
-import com.android.bundle.SdkModulesConfigOuterClass.SdkModulesConfig;
 import com.google.common.collect.ImmutableSet;
-import com.google.devtools.build.android.sandboxedsdktoolbox.config.SdkModulesConfigUtils;
+import com.google.devtools.build.android.sandboxedsdktoolbox.info.SdkInfo;
+import com.google.devtools.build.android.sandboxedsdktoolbox.info.SdkInfoReader;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -31,15 +33,18 @@ import picocli.CommandLine.Option;
 @Command(
     name = "generate-sdk-dependencies-manifest",
     description =
-        "Generates an Android manifest with the <uses-sdk-library> tags from the given "
-            + "SDK bundles.")
+        "Generates an Android manifest with <uses-sdk-library> tags from the given SDK bundles "
+            + "or archives.")
 public final class GenerateSdkDependenciesManifestCommand implements Runnable {
 
   @Option(names = "--manifest-package", required = true)
   String manifestPackage;
 
-  @Option(names = "--sdk-module-configs", split = ",", required = true)
-  Path[] sdkModuleConfigPaths;
+  @Option(names = "--sdk-module-configs", split = ",", required = false)
+  List<Path> sdkModuleConfigPaths = new ArrayList<>();
+
+  @Option(names = "--sdk-archives", split = ",", required = false)
+  List<Path> sdkArchivePaths = new ArrayList<>();
 
   @Option(names = "--debug-keystore", required = true)
   Path debugKeystorePath;
@@ -55,9 +60,15 @@ public final class GenerateSdkDependenciesManifestCommand implements Runnable {
 
   @Override
   public void run() {
-    ImmutableSet<SdkModulesConfig> configSet =
-        stream(sdkModuleConfigPaths)
-            .map(SdkModulesConfigUtils::readFromJsonFile)
+    if (sdkModuleConfigPaths.isEmpty() && sdkArchivePaths.isEmpty()) {
+      throw new IllegalArgumentException(
+          "At least one of --sdk-module-configs or --sdk-archives must be specified.");
+    }
+
+    ImmutableSet<SdkInfo> configSet =
+        Stream.concat(
+                sdkModuleConfigPaths.stream().map(SdkInfoReader::readFromSdkModuleJsonFile),
+                sdkArchivePaths.stream().map(SdkInfoReader::readFromSdkArchive))
             .collect(toImmutableSet());
 
     String certificateDigest =
