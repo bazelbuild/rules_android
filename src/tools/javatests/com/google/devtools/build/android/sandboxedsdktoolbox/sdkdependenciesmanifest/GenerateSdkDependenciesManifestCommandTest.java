@@ -19,8 +19,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.devtools.build.android.sandboxedsdktoolbox.utils.Runner.runCommand;
 import static com.google.devtools.build.android.sandboxedsdktoolbox.utils.TestData.JAVATESTS_DIR;
 import static com.google.devtools.build.android.sandboxedsdktoolbox.utils.TestData.readFromAbsolutePath;
+import static com.google.devtools.build.android.sandboxedsdktoolbox.utils.Zip.createZipWithSingleEntry;
 
+import com.android.bundle.SdkMetadataOuterClass.SdkMetadata;
 import com.google.devtools.build.android.sandboxedsdktoolbox.utils.CommandResult;
+import com.google.protobuf.util.JsonFormat;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,6 +47,9 @@ public final class GenerateSdkDependenciesManifestCommandTest {
       TEST_DATA_DIR.resolve("com.example.firstsdkconfig.json");
   private static final Path SECOND_SDK_CONFIG_JSON_PATH =
       TEST_DATA_DIR.resolve("com.example.secondsdkconfig.json");
+  private static final Path ARCHIVE_CONFIG_JSON_PATH =
+      TEST_DATA_DIR.resolve("com.example.archivedsdkmetadata.json");
+
   /*
    The test key was generated with this command, its password is "android"
    keytool -genkeypair \
@@ -108,5 +116,44 @@ public final class GenerateSdkDependenciesManifestCommandTest {
     assertThat(readFromAbsolutePath(outputFile))
         .isEqualTo(
             readFromAbsolutePath(TEST_DATA_DIR.resolve("expected_manifest_multiple_sdks.xml")));
+  }
+
+  @Test
+  public void generateManifest_forSdksAndArchives_success() throws Exception {
+    String manifestPackage = "com.example.generatedmanifest";
+    // Create a zip with a single file containing the SdkMetadata proto message, serialized.
+    Path archiveConfigPath = testFolder.getRoot().toPath().resolve("sdk.asar");
+    createZipWithSingleEntry(archiveConfigPath, "SdkMetadata.pb", readSdkMetadata().toByteArray());
+    Path outputFile = testFolder.newFile().toPath();
+
+    CommandResult result =
+        runCommand(
+            "generate-sdk-dependencies-manifest",
+            "--manifest-package",
+            manifestPackage,
+            "--sdk-module-configs",
+            FIRST_SDK_CONFIG_JSON_PATH.toString(),
+            "--sdk-archives",
+            archiveConfigPath.toString(),
+            "--debug-keystore",
+            TEST_KEY_PATH.toString(),
+            "--debug-keystore-pass",
+            "android",
+            "--debug-keystore-alias",
+            "androiddebugkey",
+            "--output-manifest",
+            outputFile.toString());
+
+    assertThat(result.getStatusCode()).isEqualTo(0);
+    assertThat(result.getOutput()).isEmpty();
+    assertThat(readFromAbsolutePath(outputFile))
+        .isEqualTo(
+            readFromAbsolutePath(TEST_DATA_DIR.resolve("expected_manifest_with_archived_sdk.xml")));
+  }
+
+  private static SdkMetadata readSdkMetadata() throws IOException {
+    SdkMetadata.Builder metadata = SdkMetadata.newBuilder();
+    JsonFormat.parser().merge(Files.newBufferedReader(ARCHIVE_CONFIG_JSON_PATH), metadata);
+    return metadata.build();
   }
 }

@@ -11,16 +11,12 @@ java_test(
     name = "GenerateSdkDependenciesManifestCommandTest",
     size = "small",
     srcs = ["GenerateSdkDependenciesManifestCommandTest.java"],
-    data = [
-        "testdata/com.example.firstsdkconfig.json",
-        "testdata/com.example.secondsdkconfig.json",
-        "testdata/expected_manifest_multiple_sdks.xml",
-        "testdata/expected_manifest_single_sdk.xml",
-        "testdata/test_key",
-    ],
+    data = glob(["testdata/*"]),
     deps = [
         "//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/utils",
-        "@rules_android_maven//:junit_junit",
+        "@rules_android_maven//:com_android_tools_build_bundletool",
+        "@rules_android_maven//:com_google_protobuf_protobuf_java_util",
         "@rules_android_maven//:com_google_truth_truth",
+        "@rules_android_maven//:junit_junit",
     ],
 )
