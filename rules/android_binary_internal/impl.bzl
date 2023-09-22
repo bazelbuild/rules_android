@@ -639,7 +639,7 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
         )
 
     # Validate attributes and lockdown lists
-    if ctx.file.proguard_apply_mapping and not acls.in_allow_proguard_apply_mapping(ctx.label):
+    if ctx.file.proguard_apply_mapping and not acls.in_allow_proguard_apply_mapping(str(ctx.label)):
         fail("proguard_apply_mapping is not supported")
     if ctx.file.proguard_apply_mapping and not ctx.files.proguard_specs:
         fail("proguard_apply_mapping can only be used when proguard_specs is set")
