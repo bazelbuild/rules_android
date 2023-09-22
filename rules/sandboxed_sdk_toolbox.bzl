@@ -128,6 +128,7 @@ def _generate_sdk_dependencies_manifest(
         output = None,
         manifest_package = None,
         sdk_module_configs = None,
+        sdk_archives = None,
         debug_key = None,
         sandboxed_sdk_toolbox = None,
         host_javabase = None):
@@ -141,14 +142,21 @@ def _generate_sdk_dependencies_manifest(
       output: File where the final manifest will be written.
       manifest_package: The package used in the manifest.
       sdk_module_configs: List of SDK Module config JSON files with SDK packages and versions.
-      debug_key: Keystore that will later be used to sign the SDK APKs. It's expected to be a
+      sdk_archives: List of SDK archives, as ASAR files. They will also be listed as dependencies.
+      debug_key: Debug keystore that will later be used to sign the SDK APKs.
       sandboxed_sdk_toolbox: Toolbox executable files.
       host_javabase: Javabase used to run the toolbox.
     """
+    inputs = [debug_key]
     args = ctx.actions.args()
     args.add("generate-sdk-dependencies-manifest")
     args.add("--manifest-package", manifest_package)
-    args.add("--sdk-module-configs", ",".join([config.path for config in sdk_module_configs]))
+    if sdk_module_configs:
+        args.add("--sdk-module-configs", ",".join([config.path for config in sdk_module_configs]))
+        inputs.extend(sdk_module_configs)
+    if sdk_archives:
+        args.add("--sdk-archives", ",".join([archive.path for archive in sdk_archives]))
+        inputs.extend(sdk_archives)
     args.add("--debug-keystore", debug_key)
     args.add("--debug-keystore-pass", "android")
     args.add("--debug-keystore-alias", "androiddebugkey")
@@ -158,7 +166,7 @@ def _generate_sdk_dependencies_manifest(
         host_javabase = host_javabase,
         executable = sandboxed_sdk_toolbox,
         arguments = [args],
-        inputs = sdk_module_configs + [debug_key],
+        inputs = inputs,
         outputs = [output],
         mnemonic = "GenSdkDepManifest",
         progress_message = "Generate SDK dependencies manifest %s" % output.short_path,

@@ -14,19 +14,20 @@
 
 """Bazel rule for defining an Android binary that depends on sandboxed SDKs."""
 
-load(":providers.bzl", "AndroidSandboxedSdkBundleInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:bundletool.bzl", _bundletool = "bundletool")
 load("//rules:common.bzl", _common = "common")
-load(
-    "//rules:utils.bzl",
-    _get_android_toolchain = "get_android_toolchain",
-)
 load("//rules:java.bzl", _java = "java")
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
 )
+load(
+    "//rules:utils.bzl",
+    "utils",
+    _get_android_toolchain = "get_android_toolchain",
+)
+load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkBundleInfo")
 
 def _gen_sdk_dependencies_manifest_impl(ctx):
     manifest = ctx.actions.declare_file(ctx.label.name + "_sdk_dep_manifest.xml")
@@ -34,12 +35,17 @@ def _gen_sdk_dependencies_manifest_impl(ctx):
         bundle[AndroidSandboxedSdkBundleInfo].sdk_info.sdk_module_config
         for bundle in ctx.attr.sdk_bundles
     ]
+    sdk_archives = [
+        archive[AndroidArchivedSandboxedSdkInfo].asar
+        for archive in ctx.attr.sdk_archives
+    ]
 
     _sandboxed_sdk_toolbox.generate_sdk_dependencies_manifest(
         ctx,
         output = manifest,
         manifest_package = ctx.attr.package,
         sdk_module_configs = module_configs,
+        sdk_archives = sdk_archives,
         debug_key = ctx.file.debug_key,
         sandboxed_sdk_toolbox = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
         host_javabase = _common.get_host_javabase(ctx),
@@ -57,6 +63,11 @@ _gen_sdk_dependencies_manifest = rule(
         sdk_bundles = attr.label_list(
             providers = [
                 [AndroidSandboxedSdkBundleInfo],
+            ],
+        ),
+        sdk_archives = attr.label_list(
+            providers = [
+                [AndroidArchivedSandboxedSdkInfo],
             ],
         ),
         debug_key = attr.label(
@@ -78,8 +89,34 @@ _gen_sdk_dependencies_manifest = rule(
 
 def _android_binary_with_sandboxed_sdks_impl(ctx):
     sdk_apks = []
+    for idx, sdk_archive in enumerate(ctx.attr.sdk_archives):
+        # Bundletool is rejecting ASARs when creating APKs, but since the formats are similar enough
+        # for this command we can just rename the file.
+        # TODO b/294970460) -- Remove this extra copy once Bundletool is updated with ASAR support
+        # in build_sdk_apks. Their work is being tracked in b/228176834.
+        renamed_sdk_archive = ctx.actions.declare_file("%s/renamed_sdk_archive/%s.asb" % (
+            ctx.label.name,
+            idx,
+        ))
+        utils.copy_file(ctx, sdk_archive[AndroidArchivedSandboxedSdkInfo].asar, renamed_sdk_archive)
+
+        apk_out = ctx.actions.declare_file("%s/sdk_archive_dep_apks/%s.apk" % (
+            ctx.label.name,
+            idx,
+        ))
+        _bundletool.build_sdk_apks(
+            ctx,
+            out = apk_out,
+            aapt2 = _get_android_toolchain(ctx).aapt2.files_to_run,
+            sdk_bundle = renamed_sdk_archive,
+            debug_key = ctx.file.debug_key,
+            bundletool = _get_android_toolchain(ctx).bundletool.files_to_run,
+            host_javabase = _common.get_host_javabase(ctx),
+        )
+        sdk_apks.append(apk_out)
+
     for idx, sdk_bundle_target in enumerate(ctx.attr.sdk_bundles):
-        apk_out = ctx.actions.declare_file("%s/sdk_dep_apks/%s.apk" % (
+        apk_out = ctx.actions.declare_file("%s/sdk_bundle_dep_apks/%s.apk" % (
             ctx.label.name,
             idx,
         ))
@@ -137,6 +174,11 @@ _android_binary_with_sandboxed_sdks = rule(
                 [AndroidSandboxedSdkBundleInfo],
             ],
         ),
+        sdk_archives = attr.label_list(
+            providers = [
+                [AndroidArchivedSandboxedSdkInfo],
+            ],
+        ),
         _install_script_template = attr.label(
             allow_single_file = True,
             default = ":install_script.sh_template",
@@ -171,7 +213,8 @@ def android_binary_with_sandboxed_sdks_macro(
         fail("%s is not allowed to use the android_binary_with_sandboxed_sdks macro." %
              fully_qualified_name)
 
-    sdk_bundles = attrs.pop("sdk_bundles", None)
+    sdk_bundles = attrs.pop("sdk_bundles", [])
+    sdk_archives = attrs.pop("sdk_archives", [])
     debug_keystore = getattr(attrs, "debug_keystore", None)
 
     bin_package = _java.resolve_package_from_label(
@@ -185,6 +228,10 @@ def android_binary_with_sandboxed_sdks_macro(
         name = sdk_dependencies_manifest_name,
         package = "%s.internalsdkdependencies" % bin_package,
         sdk_bundles = sdk_bundles,
+        sdk_archives = sdk_archives,
+        testonly = attrs.get("testonly", False),
+        tags = attrs.get("tags", []),
+        visibility = attrs.get("visibility", None),
     )
 
     # Use the manifest in a normal android_library. This will later be added as a dependency to the
@@ -194,6 +241,10 @@ def android_binary_with_sandboxed_sdks_macro(
         name = sdk_dependencies_lib_name,
         exports_manifest = 1,
         manifest = ":%s" % sdk_dependencies_manifest_name,
+        testonly = attrs.get("testonly", False),
+        tags = attrs.get("tags", []),
+        transitive_configs = attrs.get("transitive_configs", []),
+        visibility = attrs.get("visibility", None),
     )
     deps = attrs.pop("deps", [])
     deps.append(":%s" % sdk_dependencies_lib_name)
@@ -210,6 +261,10 @@ def android_binary_with_sandboxed_sdks_macro(
     _android_binary_with_sandboxed_sdks(
         name = name,
         sdk_bundles = sdk_bundles,
+        sdk_archives = sdk_archives,
         debug_key = debug_keystore,
         internal_android_binary = bin_label,
+        testonly = attrs.get("testonly", False),
+        tags = attrs.get("tags", []),
+        visibility = attrs.get("visibility", None),
     )
