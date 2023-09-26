@@ -179,7 +179,7 @@ def _filter_unique_shared_libs(linked_libs, cc_info):
                 "Each library in the transitive closure must have a " +
                 "unique basename to avoid name collisions when packaged into " +
                 "an apk, but two libraries have the basename '" + basename +
-                "': " + artifact + " and " + old_artifact + (
+                "': " + str(artifact) + " and " + str(old_artifact) + (
                     " (the library already seen by this target)" if old_artifact in linked_libs else ""
                 ),
             )
