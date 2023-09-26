@@ -192,6 +192,7 @@ _android_binary_with_sandboxed_sdks = rule(
     implementation = _android_binary_with_sandboxed_sdks_impl,
     toolchains = [
         "//toolchains/android:toolchain_type",
+        "@bazel_tools//tools/jdk:toolchain_type",
     ],
 )
 
