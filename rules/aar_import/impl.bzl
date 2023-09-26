@@ -475,7 +475,7 @@ def impl(ctx):
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
         manifest = android_manifest,
-        floor = _resources.DEPOT_MIN_SDK_FLOOR if _acls.in_enforce_min_sdk_floor_rollout(str(ctx.label)) else 0,
+        floor = _resources.DEPOT_MIN_SDK_FLOOR,
         enforce_min_sdk_floor_tool = _get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
     )
 

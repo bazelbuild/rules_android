@@ -133,7 +133,7 @@ def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
         manifest = ctx.file.manifest,
-        floor = _resources.DEPOT_MIN_SDK_FLOOR if acls.in_enforce_min_sdk_floor_rollout(str(ctx.label)) else 0,
+        floor = _resources.DEPOT_MIN_SDK_FLOOR,
         enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
     )
 

@@ -53,7 +53,7 @@ def _process_manifest(ctx, **unused_ctxs):
         ctx,
         manifest = ctx.file.manifest,
         manifest_values = ctx.attr.manifest_values,
-        floor = _resources.DEPOT_MIN_SDK_FLOOR if (_is_test_binary(ctx) and acls.in_enforce_min_sdk_floor_rollout(str(ctx.label))) else 0,
+        floor = _resources.DEPOT_MIN_SDK_FLOOR if _is_test_binary(ctx) else 0,
         enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
     )
 
@@ -109,7 +109,7 @@ def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
     manifest_validation_ctx = _resources.validate_min_sdk(
         ctx,
         manifest = packaged_resources_ctx.processed_manifest,
-        floor = _resources.DEPOT_MIN_SDK_FLOOR if acls.in_enforce_min_sdk_floor_rollout(str(ctx.label)) else 0,
+        floor = _resources.DEPOT_MIN_SDK_FLOOR,
         enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
     )
 
