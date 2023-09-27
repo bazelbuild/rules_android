@@ -14,7 +14,7 @@
 
 """Aspect that transitively build .dex archives and desugar jars."""
 
-load(":utils.bzl", _utils = "utils")
+load(":utils.bzl", _get_android_sdk = "get_android_sdk", _utils = "utils")
 load(":dex.bzl", _dex = "dex")
 load(":desugar.bzl", _desugar = "desugar")
 load(":providers.bzl", "StarlarkAndroidDexInfo")
@@ -193,8 +193,10 @@ def _get_boot_classpath(target, ctx):
         compilation_info = target[JavaInfo].compilation_info
         if compilation_info and compilation_info.boot_classpath:
             return compilation_info.boot_classpath
-    if ctx.attr._android_sdk and ctx.attr._android_sdk[AndroidSdkInfo].android_jar:
-        return [ctx.attr._android_sdk[AndroidSdkInfo].android_jar]
+
+    android_jar = _get_android_sdk(ctx).android_jar
+    if android_jar:
+        return [android_jar]
 
     # This shouldn't ever be reached, but if it is, we should be clear about the error.
     fail("No compilation info or android jar!")
@@ -249,5 +251,6 @@ dex_desugar_aspect = aspect(
         _attrs.ANDROID_SDK,
     ),
     fragments = ["android"],
+    toolchains = ["//toolchains/android_sdk:toolchain_type"],
     required_aspect_providers = [[JavaInfo]],
 )
