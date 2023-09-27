@@ -267,6 +267,12 @@ ANDROID_SDK_ATTRS = dict(
         mandatory = True,
     ),
     build_tools_version = attr.string(),
+    dexdump = attr.label(
+        allow_files = True,
+        cfg = "exec",
+        executable = True,
+        mandatory = False,
+    ),
     dx = attr.label(
         allow_files = True,
         cfg = "exec",
