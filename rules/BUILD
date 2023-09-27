@@ -33,6 +33,7 @@ bzl_library(
         "common.bzl",
         "data_binding.bzl",
         "idl.bzl",
+        "instrumented_app_info_aspect.bzl",
         "intellij.bzl",
         "java.bzl",
         "migration_tag_DONOTUSE.bzl",
