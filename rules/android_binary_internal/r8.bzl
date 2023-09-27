@@ -92,6 +92,7 @@ def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_c
         inputs = [android_jar, deploy_jar] + proguard_specs,
         outputs = [dexes_zip],
         mnemonic = "AndroidR8",
+        jvm_flags = ["-Xmx8G"],
         progress_message = "R8 Optimizing, Desugaring, and Dexing %{label}",
     )
 
