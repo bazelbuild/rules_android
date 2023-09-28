@@ -260,7 +260,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 main_dex_classes = get_android_sdk(ctx).main_dex_classes,
                 main_dex_list_opts = ctx.attr.main_dex_list_opts,
                 main_dex_proguard_spec = packaged_resources_ctx.main_dex_proguard_config,
-                proguard_specs = list(ctx.attr.main_dex_proguard_specs),
+                proguard_specs = list(ctx.files.main_dex_proguard_specs),
                 shrinked_android_jar = get_android_sdk(ctx).shrinked_android_jar,
                 main_dex_list_creator = get_android_sdk(ctx).main_dex_list_creator,
                 legacy_main_dex_list_generator =
