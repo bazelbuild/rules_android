@@ -575,7 +575,7 @@ def _create_optimization_actions(
                     proguard_specs,
                     proguard_mapping,
                     i,
-                    "_ACTION_%s_OF_%s_" % (j, bytecode_optimization_pass_actions),
+                    "_ACTION_%s_OF_%s" % (j, bytecode_optimization_pass_actions),
                     mnemonic,
                     last_stage_output,
                     optimizer_target,
