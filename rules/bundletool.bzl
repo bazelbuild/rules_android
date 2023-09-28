@@ -322,71 +322,17 @@ def _proto_apk_to_module(
         ctx,
         out = None,
         proto_apk = None,
-        zip = None,
-        unzip = None):
-    # TODO(timpeut): migrate this to Bundletool module builder.
-    ctx.actions.run_shell(
-        command = """
-set -e
-
-IN_DIR=$(mktemp -d)
-OUT_DIR=$(mktemp -d)
-CUR_PWD=$(pwd)
-UNZIP=%s
-ZIP=%s
-INPUT=%s
-OUTPUT=%s
-
-"${UNZIP}" -qq "${INPUT}" -d "${IN_DIR}"
-cd "${IN_DIR}"
-
-if [ -f resources.pb ]; then
-  mv resources.pb "${OUT_DIR}/"
-fi
-
-if [ -f AndroidManifest.xml ]; then
-  mkdir "${OUT_DIR}/manifest"
-  mv AndroidManifest.xml "${OUT_DIR}/manifest/"
-fi
-
-NUM_DEX=`ls -1 *.dex 2>/dev/null | wc -l`
-if [ $NUM_DEX != 0 ]; then
-  mkdir "${OUT_DIR}/dex"
-  mv *.dex "${OUT_DIR}/dex/"
-fi
-
-if [ -d res ]; then
-  mv res "${OUT_DIR}/res"
-fi
-
-if [ -d assets ]; then
-  mv assets "${OUT_DIR}/"
-fi
-
-if [ -d lib ]; then
-  mv lib "${OUT_DIR}/"
-fi
-
-UNKNOWN=`ls -1 * 2>/dev/null | wc -l`
-if [ $UNKNOWN != 0 ]; then
-  mkdir "${OUT_DIR}/root"
-  mv * "${OUT_DIR}/root/"
-fi
-
-cd "${OUT_DIR}"
-"${CUR_PWD}/${ZIP}" "${CUR_PWD}/${OUTPUT}" -Drq0 .
-""" % (
-            unzip.executable.path,
-            zip.executable.path,
-            proto_apk.path,
-            out.path,
-        ),
-        tools = [zip, unzip],
-        arguments = [],
+        bundletool_module_builder = None):
+    args = ctx.actions.args()
+    args.add("--internal_apk_path", proto_apk)
+    args.add("--output_module_path", out)
+    ctx.actions.run(
         inputs = [proto_apk],
         outputs = [out],
-        mnemonic = "Rebundle",
-        progress_message = "Rebundle to %s" % out.short_path,
+        executable = bundletool_module_builder,
+        arguments = [args],
+        mnemonic = "BuildAppModule",
+        progress_message = "Building AAB zip module %s" % out.short_path,
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
