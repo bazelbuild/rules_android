@@ -16,11 +16,9 @@
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("@cgrindel_bazel_starlib//:deps.bzl", "bazel_starlib_dependencies")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
-load("@rules_bazel_integration_test//bazel_integration_test:defs.bzl", "bazel_binaries")
 load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
@@ -92,12 +90,3 @@ def rules_android_workspace():
     rules_proto_toolchains()
 
     py_repositories()
-
-    # Integration test setup
-    bazel_starlib_dependencies()
-
-    bazel_binaries(
-        versions = [
-            "last_green",
-        ],
-    )

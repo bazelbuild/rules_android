@@ -19,12 +19,15 @@ maybe(
 android_sdk_supplemental_repository(name = "androidsdk-supplemental")
 
 load("prereqs.bzl", "rules_android_prereqs")
-rules_android_prereqs()
 
-load("defs.bzl", "rules_android_workspace")
+rules_android_prereqs(dev_mode = True)
+
+load("defs_dev.bzl", "rules_android_workspace")
 
 rules_android_workspace()
 
 register_toolchains("//toolchains/android:all")
+
 register_toolchains("//toolchains/android_sdk:all")
+
 register_toolchains("//toolchains/emulator:all")
