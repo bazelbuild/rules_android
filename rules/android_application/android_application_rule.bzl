@@ -261,8 +261,8 @@ def _impl(ctx):
             ctx,
             out = module,
             proto_apk = proto_apk,
-            unzip = get_android_toolchain(ctx).unzip_tool.files_to_run,
-            zip = get_android_toolchain(ctx).zip_tool.files_to_run,
+            bundletool_module_builder =
+                get_android_toolchain(ctx).bundletool_module_builder.files_to_run,
         )
 
     metadata = dict()
