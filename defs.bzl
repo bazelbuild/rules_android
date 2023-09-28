@@ -81,6 +81,13 @@ def rules_android_workspace():
         version = "v0.0.0-20210220032951-036812b2e83c",
     )
 
+    go_repository(
+        name = "com_github_golang_glog",
+        importpath = "github.com/golang/glog",
+        version = "v1.1.2",
+        sum = "h1:DVjP2PbBOzHyzA+dn3WhHIq4NdVu3Q+pvivFICf/7fo=",
+    )
+
     robolectric_repositories()
 
     rules_java_dependencies()

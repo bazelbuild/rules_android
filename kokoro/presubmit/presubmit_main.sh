@@ -109,6 +109,7 @@ function main() {
     //src/tools/javatests/... \
     //src/tools/jdeps/... \
     //src/tools/java/... \
+    //src/tools/mi/... \
     //test/...
 
   # Go to basic app workspace in the source tree
