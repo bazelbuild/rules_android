@@ -19,7 +19,8 @@ load(":impl.bzl", "impl")
 
 def make_rule(
         attrs = ATTRS,
-        implementation = impl):
+        implementation = impl,
+        additional_toolchains = []):
     """Makes the rule.
 
     Args:
@@ -46,7 +47,7 @@ def make_rule(
             "//toolchains/android:toolchain_type",
             "//toolchains/android_sdk:toolchain_type",
             "@bazel_tools//tools/jdk:toolchain_type",
-        ],
+        ] + additional_toolchains,
     )
 
 android_local_test = make_rule()
