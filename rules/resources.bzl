@@ -32,9 +32,6 @@ load(
     _log = "log",
 )
 
-# Depot-wide min SDK floor
-_DEPOT_MIN_SDK_FLOOR = 14
-
 _RESOURCE_FOLDER_TYPES = [
     "anim",
     "animator",
@@ -195,12 +192,12 @@ def _generate_dummy_manifest(
         ctx,
         out_manifest = None,
         java_package = None,
-        min_sdk_version = _DEPOT_MIN_SDK_FLOOR):
+        min_sdk_version = 0):
     content = """<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="%s">""" % (java_package or "com.default")
 
-    min_sdk_version = max(min_sdk_version, _DEPOT_MIN_SDK_FLOOR)
+    min_sdk_version = max(min_sdk_version, acls.get_min_sdk_floor(str(ctx.label)))
     content = content + """
     <uses-sdk android:minSdkVersion="%s" />""" % min_sdk_version
 
@@ -1080,7 +1077,7 @@ def _validate_resources(resource_files = None):
             if res_type not in _RESOURCE_FOLDER_TYPES:
                 fail(_INCORRECT_RESOURCE_LAYOUT_ERROR % resource_file)
 
-def _process_manifest_values(ctx, manifest_values, min_sdk_floor = _DEPOT_MIN_SDK_FLOOR):
+def _process_manifest_values(ctx, manifest_values, min_sdk_floor):
     expanded_manifest_values = utils.expand_make_vars(ctx, manifest_values)
     if _MIN_SDK_VERSION in expanded_manifest_values and min_sdk_floor > 0:
         expanded_manifest_values[_MIN_SDK_VERSION] = str(
@@ -1092,7 +1089,7 @@ def _bump_min_sdk(
         ctx,
         manifest = None,
         manifest_values = None,
-        floor = _DEPOT_MIN_SDK_FLOOR,
+        floor = None,
         enforce_min_sdk_floor_tool = None):
     """Bumps the min SDK attribute of AndroidManifest to the floor.
 
@@ -1108,6 +1105,9 @@ def _bump_min_sdk(
       A dict containing _ManifestContextInfo provider fields.
     """
     manifest_ctx = {}
+
+    if floor == None:
+        fail("Missing required `floor` in bump_min_sdk")
 
     if manifest_values != None:
         manifest_ctx[_PROCESSED_MANIFEST_VALUES] = _process_manifest_values(
@@ -1453,7 +1453,7 @@ def _process_starlark(
                 ctx,
                 out_manifest = generated_manifest,
                 java_package = java_package if java_package else ctx.label.package.replace("/", "."),
-                min_sdk_version = _DEPOT_MIN_SDK_FLOOR,
+                min_sdk_version = acls.get_min_sdk_floor(str(ctx.label)),
             )
             r_txt = ctx.actions.declare_file(
                 "_migrated/" + ctx.label.name + "_symbols/R.txt",
@@ -2101,9 +2101,6 @@ resources = struct(
     validate_min_sdk = _validate_min_sdk,
     shrink = _shrink,
     optimize = _optimize,
-
-    # Exposed for android_library, aar_import, and android_binary
-    DEPOT_MIN_SDK_FLOOR = _DEPOT_MIN_SDK_FLOOR,
 )
 
 testing = struct(

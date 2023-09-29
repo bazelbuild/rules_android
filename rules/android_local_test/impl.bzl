@@ -14,6 +14,7 @@
 
 """Bazel rule for Android local test."""
 
+load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
@@ -60,7 +61,7 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
     manifest_values = resources.process_manifest_values(
         ctx,
         ctx.attr.manifest_values,
-        resources.DEPOT_MIN_SDK_FLOOR,
+        acls.get_min_sdk_floor(str(ctx.label)),
     )
     if ctx.file.manifest == None:
         # No manifest provided, generate one
@@ -77,7 +78,7 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
             ctx,
             manifest = ctx.file.manifest,
             manifest_values = ctx.attr.manifest_values,
-            floor = resources.DEPOT_MIN_SDK_FLOOR,
+            floor = acls.get_min_sdk_floor(str(ctx.label)),
             enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
         )
 
