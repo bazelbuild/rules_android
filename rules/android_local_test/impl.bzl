@@ -255,21 +255,11 @@ def _process_deploy_jar(ctx, java_package, jvm_ctx, proto_ctx, resources_ctx, **
 
 def _preprocess_stub(ctx, **_unused_sub_ctxs):
     javabase = ctx.attr._current_java_runtime[java_common.JavaRuntimeInfo]
-    java_executable = str(javabase.java_executable_runfiles_path)
+    java_executable = ctx.attr._java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path
     java_executable_files = javabase.files
 
-    # Absolute java_executable does not require any munging
-    if java_executable.startswith("/"):
-        java_executable = "JAVABIN=" + java_executable
-
-    prefix = ctx.attr._runfiles_root_prefix[BuildSettingInfo].value
-    if not java_executable.startswith(prefix):
-        java_executable = prefix + java_executable
-
-    java_executable = "JAVABIN=${JAVABIN:-${JAVA_RUNFILES}/" + java_executable + "}"
-
     substitutes = {
-        "%javabin%": java_executable,
+        "%javabin%": "JAVABIN=" + java_executable,
         "%load_lib%": "",
         "%set_ASAN_OPTIONS%": "",
     }
