@@ -73,6 +73,7 @@ load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_R
 load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
 load("//rules/acls:local_test_rollout.bzl", "LOCAL_TEST_FALLBACK", "LOCAL_TEST_ROLLOUT")
 load("//rules/acls:local_test_starlark_resources.bzl", "LOCAL_TEST_STARLARK_RESOURCES_FALLBACK", "LOCAL_TEST_STARLARK_RESOURCES_ROLLOUT")
+load("//rules/acls:min_sdk_floors.bzl", "MIN_SDK_FLOORS")
 load(
     "//rules/acls:partial_jetification_targets.bzl",
     "PARTIAL_JETIFICATION_TARGETS_FALLBACK",
@@ -82,6 +83,12 @@ load("//rules/acls:proguard_apply_mapping.bzl", "ALLOW_PROGUARD_APPLY_MAPPING")
 load("//rules/acls:r8.bzl", "USE_R8")
 load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
 load("//rules/acls:test_to_instrument_test_rollout.bzl", "TEST_TO_INSTRUMENT_TEST_FALLBACK", "TEST_TO_INSTRUMENT_TEST_ROLLOUT")
+
+def _get_min_sdk_floor(fqn):
+    for minsdk, package_dict in MIN_SDK_FLOORS_DICT.items():
+        if matches(fqn, package_dict):
+            return minsdk
+    fail("No matching min_sdk_floor for %s" % fqn)
 
 def _in_aar_import_deps_checker(fqn):
     return not matches(fqn, AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT) and matches(fqn, AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT)
@@ -245,6 +252,12 @@ def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
 
+def make_min_sdk_dict(dict_of_lists):
+    res = {}
+    for k in dict_of_lists.keys():
+        res[k] = make_dict(dict_of_lists[k])
+    return res
+
 AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT = make_dict(AAR_IMPORT_DEPS_CHECKER_FALLBACK)
 AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT = make_dict(AAR_IMPORT_DEPS_CHECKER_ROLLOUT)
 AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT = make_dict(AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST)
@@ -308,6 +321,7 @@ ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT_DICT = make_dict(ANDROID_
 ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_FALLBACK_DICT = make_dict(ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_FALLBACK)
 BASELINE_PROFILES_ROLLOUT_DICT = make_dict(BASELINE_PROFILES_ROLLOUT)
 BASELINE_PROFILES_OPTIMIZER_INTEGRATION_DICT = make_dict(BASELINE_PROFILES_OPTIMIZER_INTEGRATION)
+MIN_SDK_FLOORS_DICT = make_min_sdk_dict(MIN_SDK_FLOORS)
 ANDROID_APK_TO_BUNDLE_FEATURES_DICT = make_dict(ANDROID_APK_TO_BUNDLE_FEATURES)
 ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST_DICT = make_dict(ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST)
 ANDROID_LOCAL_TEST_JDK_STS_FALLBACK_DICT = make_dict(ANDROID_LOCAL_TEST_JDK_STS_FALLBACK)
@@ -364,6 +378,7 @@ def matches(fqn, dct):
 acls = struct(
     get_android_archive_duplicate_class_allowlist = _get_android_archive_duplicate_class_allowlist,
     get_android_archive_exposed_package_allowlist = _get_android_archive_exposed_package_allowlist,
+    get_min_sdk_floor = _get_min_sdk_floor,
     in_aar_import_deps_checker = _in_aar_import_deps_checker,
     in_aar_import_explicit_exports_manifest = _in_aar_import_explicit_exports_manifest,
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
