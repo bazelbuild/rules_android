@@ -140,7 +140,8 @@ def make_rule(
         attrs = _ATTRS,
         implementation = _impl,
         outputs = _outputs,
-        additional_toolchains = []):
+        additional_toolchains = [],
+        additional_providers = []):
     """Makes the rule.
 
     Args:
@@ -148,6 +149,7 @@ def make_rule(
       implementation: A function. The rule's implementation method.
       outputs: A dict, function, or None. The rule's outputs.
       additional_toolchains: A list. Additional toolchains passed to pass to rule(toolchains).
+      additional_providers: A list. Additional providers passed to pass to rule(providers).
 
     Returns:
       A rule.
@@ -167,7 +169,7 @@ def make_rule(
             AndroidLibraryResourceClassJarProvider,
             AndroidNativeLibsInfo,
             JavaInfo,
-        ],
+        ] + additional_providers,
         outputs = outputs,
         toolchains = [
             "//toolchains/android:toolchain_type",
