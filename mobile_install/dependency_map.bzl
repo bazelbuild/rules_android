@@ -16,37 +16,37 @@
 
 versioned_deps = struct(
     mi_shell_app = struct(
-        head = "//tools/android:fail",
+        head = "//tools/android:gen_fail",
     ),
     android_kit = struct(
         head = "//src/tools/ak",
     ),
     bootstraper = struct(
-        head = "//tools/android:fail",
+        head = "//tools/android:gen_fail",
     ),
     deploy = struct(
-        head = "//src/tools/mi/deployment:deploy_binary",
+        head = "//src/tools/mi/deployment_oss:deploy_binary",
     ),
     deploy_info = struct(
-        head = "//src/tools/mi/deploy_info:deploy_info",
+        head = "//tools/android:gen_fail",
     ),
     forwarder = struct(
-        head = "//tools/android:fail",
+        head = "//tools/android:gen_fail",
     ),
     jar_tool = struct(
         head = "@bazel_tools//tools/jdk:JavaBuilder_deploy.jar",
     ),
     make_sync = struct(
-        head = "//src/tools/mi/app_info:make_sync",
+        head = "//tools/android:gen_fail",
     ),
     merge_syncs = struct(
-        head = "//src/tools/mi/workspace:merge_syncs",
+        head = "//tools/android:gen_fail",
     ),
     pack_dexes = struct(
-        head = "//src/tools/mi/workspace:pack_dexes",
+        head = "//tools/android:gen_fail",
     ),
     pack_generic = struct(
-        head = "//src/tools/mi/workspace:pack_generic",
+        head = "//tools/android:gen_fail",
     ),
     res_v3_dummy_manifest = struct(
         head = "//rules:res_v3_dummy_AndroidManifest.xml",
@@ -55,9 +55,9 @@ versioned_deps = struct(
         head = "//rules:res_v3_dummy_R.txt",
     ),
     resource_extractor = struct(
-        head = "//src/tools/resource_extractor:main",
+        head = "//tools/android:gen_fail",
     ),
     sync_merger = struct(
-        head = "//src/tools/mi/app_info:sync_merger",
+        head = "//tools/android:gen_fail",
     ),
 )
