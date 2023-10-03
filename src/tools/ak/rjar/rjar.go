@@ -240,6 +240,11 @@ func compileRJar(srcs []string, rjar, jdk, jartool string, targetLabel string) e
 		"--output", rjar,
 	}...)
 	if len(targetLabel) > 0 {
+		// Deal with "@//"-prefixed labels (in Bazel)
+		if strings.HasPrefix(targetLabel, "@//") {
+			targetLabel = strings.Replace(targetLabel, "@//", "//", 1)
+		}
+
 		args = append(args, []string{
 			"--target_label", targetLabel,
 		}...)
