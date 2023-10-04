@@ -395,6 +395,9 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
         )
         providers.append(dex_info)
 
+        if postprocessing_output_map:
+            providers.append(ProguardMappingInfo(postprocessing_output_map))
+
     return ProviderInfo(
         name = "dex_ctx",
         value = struct(
