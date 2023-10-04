@@ -5,7 +5,6 @@ load("//rules:rules.bzl", "android_binary", "android_library")
         name = name,
         srcs = ["BasicActivity.java"],
         manifest = "AndroidManifest.xml",
-        min_sdk_version = 27,
         proguard_specs = specs,
         resource_files = glob(["res/**"]),
         shrink_resources = shrink,
