@@ -394,6 +394,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
             java_resource_jar = binary_jar if ctx.fragments.android.get_java_resources_from_optimized_jar else deploy_jar,
         )
         providers.append(dex_info)
+        providers.append(AndroidPreDexJarInfo(binary_jar))
 
         if postprocessing_output_map:
             providers.append(ProguardMappingInfo(postprocessing_output_map))
