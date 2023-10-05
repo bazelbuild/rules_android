@@ -33,6 +33,21 @@ source "$(rlocation rules_android/test/rules/android_sdk_repository/android_help
 
 # Actual tests for Android Sdk Repository
 
+# Test that the dummy SDK exists.
+function test_dummy_sdk() {
+  # Create android SDK
+  local sdk_path="$(create_android_sdk_basic)"
+
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  "${BIT_BAZEL_BINARY}" query @androidsdk//:sdk-dummy >& $TEST_log || fail "Dummy SDK missing"
+}
+
 # Check that the empty BUILD file was created.
 function test_android_sdk_repository_no_path_or_android_home() {
   cat >> WORKSPACE <<EOF
