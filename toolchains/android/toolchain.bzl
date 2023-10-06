@@ -17,6 +17,7 @@
 _ATTRS = dict(
     aapt2 = attr.label(
         allow_files = True,
+        cfg = "exec",
         default = "@androidsdk//:aapt2_binary",
     ),
     aar_import_checks = attr.label(
