@@ -90,7 +90,7 @@ android_local_test_launcher_integration_test_suite(
     expected_executable = select({
         ":jdk17_linux": "rules_android/../remotejdk17_linux/bin/java",
         ":jdk17_macos": "rules_android/../remotejdk17_macos/bin/java",
-        ":jdk17_macos_aarch64": "../remotejdk17_macos_aarch64/bin/java",
+        ":jdk17_macos_aarch64": "rules_android/../remotejdk17_macos_aarch64/bin/java",
         "//conditions:default": "rules_android/third_party/java/jdk/jdk-sts-k8/bin/java",
     }),
 )
