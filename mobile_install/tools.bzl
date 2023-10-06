@@ -26,7 +26,7 @@ TOOL_ATTRS = dict(
     # use dummy libs.
     _android_sdk = attr.label(
         default = Label(
-            "@androidsdk//:sdk",
+            "//tools/android:android_jar",
         ),
         allow_files = True,
         cfg = "target",
@@ -37,14 +37,14 @@ TOOL_ATTRS = dict(
         ),
     ),
     _studio_deployer = attr.label(
-        default = "@androidsdk//:fail", # TODO(#119): Studio deployer jar to be released
+        default = "//tools/android:gen_fail", # TODO(#119): Studio deployer jar to be released
         allow_single_file = True,
         cfg = "exec",
         executable = True,
     ),
     _mi_shell_dummy_native_libs = attr.label(
         default = Label(
-            "@androidsdk//:fail", # FIXME: Unused internally
+            "//tools/android:gen_fail", # FIXME: Unused internally
         ),
         allow_single_file = True,
         cfg = "target",
@@ -91,7 +91,7 @@ TOOL_ATTRS = dict(
         executable = True,
     ),
     _d8 = attr.label(
-        default = Label("@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8:r8"),
+        default = Label("//tools/android:d8"),
         allow_files = True,
         cfg = "exec",
         executable = True,
