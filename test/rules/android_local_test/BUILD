@@ -46,7 +46,30 @@ android_local_test(
 )
 
 config_setting(
-    name = "jdk17",
+    name = "jdk17_macos",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+    values = {
+        "java_runtime_version": "17",
+    },
+)
+
+config_setting(
+    name = "jdk17_macos_aarch64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:aarch64",
+    ],
+    values = {
+        "java_runtime_version": "17",
+    },
+)
+
+config_setting(
+    name = "jdk17_linux",
+    constraint_values = ["@platforms//os:linux"],
     values = {
         "java_runtime_version": "17",
     },
@@ -55,7 +78,9 @@ config_setting(
 android_local_test_launcher_test_suite(
     name = "android_local_test_launcher_tests",
     expected_executable = select({
-        ":jdk17": "../remotejdk17_linux/bin/java",
+        ":jdk17_linux": "../remotejdk17_linux/bin/java",
+        ":jdk17_macos": "../remotejdk17_macos/bin/java",
+        ":jdk17_macos_aarch64": "../remotejdk17_macos_aarch64/bin/java",
         "//conditions:default": "third_party/java/jdk/jdk-sts-k8/bin/java",
     }),
 )
@@ -63,7 +88,9 @@ android_local_test_launcher_test_suite(
 android_local_test_launcher_integration_test_suite(
     name = "android_local_test_launcher_integration_tests",
     expected_executable = select({
-        ":jdk17": "rules_android/../remotejdk17_linux/bin/java",
+        ":jdk17_linux": "rules_android/../remotejdk17_linux/bin/java",
+        ":jdk17_macos": "rules_android/../remotejdk17_macos/bin/java",
+        ":jdk17_macos_aarch64": "../remotejdk17_macos_aarch64/bin/java",
         "//conditions:default": "rules_android/third_party/java/jdk/jdk-sts-k8/bin/java",
     }),
 )
