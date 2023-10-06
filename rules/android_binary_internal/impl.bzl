@@ -658,7 +658,6 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
         proguard_specs_for_manifest = [packaged_resources_ctx.resource_minsdk_proguard_config] if packaged_resources_ctx.resource_minsdk_proguard_config else [],
     )
     has_proguard_specs = bool(proguard_specs)
-    proguard_output = struct()
 
     is_resource_shrinking_enabled = _resources.is_resource_shrinking_enabled(
         ctx.attr.shrink_resources,
@@ -741,14 +740,14 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
     providers = []
     providers.append(
         AndroidOptimizationInfo(
-            optimized_jar = proguard_output.output_jar if proguard_output else None,
-            mapping = proguard_output.mapping if proguard_output else None,
-            seeds = proguard_output.seeds if proguard_output else None,
-            library_jar = proguard_output.library_jar if proguard_output else None,
-            config = proguard_output.config if proguard_output else None,
-            proto_mapping = proguard_output.proto_mapping if proguard_output else None,
-            rewritten_startup_profile = proguard_output.startup_profile_rewritten if proguard_output else None,
-            rewriten_merged_baseline_profile = proguard_output.baseline_profile_rewritten if proguard_output else None,
+            optimized_jar = proguard_output.output_jar,
+            mapping = proguard_output.mapping,
+            seeds = proguard_output.seeds,
+            library_jar = proguard_output.library_jar,
+            config = proguard_output.config,
+            proto_mapping = proguard_output.proto_mapping,
+            rewritten_startup_profile = proguard_output.startup_profile_rewritten,
+            rewriten_merged_baseline_profile = proguard_output.baseline_profile_rewritten,
             optimized_resource_apk = optimized_resource_output.resources_apk,
             shrunk_resource_apk = shrunk_resource_output.resources_apk if shrunk_resource_output else None,
             shrunk_resource_zip = shrunk_resource_output.resources_zip if shrunk_resource_output else None,
