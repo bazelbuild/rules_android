@@ -355,17 +355,29 @@ def _apply_proguard(
       A struct of proguard outputs.
     """
     if not proguard_specs:
+        outputs = _get_proguard_output(
+            ctx,
+            proguard_output_jar = proguard_output_jar,
+            proguard_seeds = None,
+            proguard_usage = None,
+            proguard_output_map = proguard_output_map,
+            combined_library_jar = None,
+            startup_profile_rewritten = None,
+            baseline_profile_rewritten = None,
+        )
+
         # Fail at execution time if these artifacts are requested, to avoid issue where outputs are
         # declared without having any proguard specs. This can happen if specs is a select() that
         # resolves to an empty list.
         _fail_action(
             ctx,
-            proguard_output_jar,
-            proguard_output_map,
+            outputs.output_jar,
+            outputs.mapping,
+            outputs.config,
             proguard_seeds,
             proguard_usage,
         )
-        return None
+        return outputs
 
     library_jar_list = [get_android_sdk(ctx).android_jar]
     if ctx.fragments.android.desugar_java8:
