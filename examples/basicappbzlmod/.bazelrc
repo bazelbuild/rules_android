@@ -1,0 +1,9 @@
+common --enable_bzlmod --lockfile_mode=off
+
+# Disabled to avoid //external:android deps in bazel itself
+common --android_sdk=@androidsdk//:sdk
+common --optimizing_dexer=//:optimizing_dexer
+
+# Flags needed while the Android rules are being migrated to Starlark.
+build --experimental_google_legacy_api
+build --experimental_enable_android_migration_apis
