@@ -91,7 +91,7 @@ TOOL_ATTRS = dict(
         executable = True,
     ),
     _d8 = attr.label(
-        default = Label("@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8:r8"),
+        default = Label("//tools/android:r8"),
         allow_files = True,
         cfg = "exec",
         executable = True,

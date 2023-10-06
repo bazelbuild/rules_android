@@ -5,11 +5,6 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load(":android_sdk_supplemental_repository.bzl", "android_sdk_supplemental_repository")
 
 maybe(
-    android_sdk_repository,
-    name = "androidsdk",
-)
-
-maybe(
     android_ndk_repository,
     name = "androidndk",
 )
