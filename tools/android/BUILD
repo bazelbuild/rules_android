@@ -17,6 +17,7 @@ genrule(
     outs = ["fail.sh"],
     cmd = "echo 'exit 1' > $@",
     executable = 1,
+    visibility = ["//visibility:public"],
 )
 
 sh_binary(
@@ -43,7 +44,7 @@ java_plugin(
 
 alias(
     name = "java8_legacy_dex",
-    actual = "@bazel_tools//tools/android:java8_legacy_dex",
+    actual = ":gen_fail",
     visibility = ["//visibility:public"],
 )
 
@@ -55,9 +56,17 @@ alias(
 
 alias(
     name = "desugared_java8_legacy_apis",
-    actual = "@bazel_tools//tools/android:desugared_java8_legacy_apis",
+    actual = ":gen_fail", # TODO(#122): Fix library desugaring
     visibility = ["//visibility:public"],
 )
+
+java_binary(
+    name = "d8",
+    main_class = "com.android.tools.r8.D8",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@android_gmaven_r8//jar"],
+)
+
 
 java_binary(
     name = "r8",
