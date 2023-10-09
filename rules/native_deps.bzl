@@ -237,16 +237,8 @@ def _is_shared_library(lib_artifact):
             return True
     return False
 
-def _is_stamping_enabled(ctx):
-    if ctx.configuration.is_tool_configuration():
-        return 0
-    return getattr(ctx.attr, "stamp", 0)
-
-def _get_build_info(ctx, cc_toolchain):
-    if _is_stamping_enabled(ctx):
-        return cc_toolchain.build_info_files().non_redacted_build_info_files.to_list()
-    else:
-        return cc_toolchain.build_info_files().redacted_build_info_files.to_list()
+def _get_build_info(ctx):
+    return cc_common.get_build_info(ctx)
 
 def _get_shared_native_deps_path(
         linker_inputs,
@@ -314,7 +306,7 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
         linkstamps.extend(linker_input.linkstamps)
     linkstamps_dict = {linkstamp: None for linkstamp in linkstamps}
 
-    build_info_artifacts = _get_build_info(ctx, cc_toolchain) if linkstamps_dict else []
+    build_info_artifacts = _get_build_info(ctx) if linkstamps_dict else []
     requested_features = ["static_linking_mode", "native_deps_link"]
     requested_features.extend(ctx.features)
     if not "legacy_whole_archive" in ctx.disabled_features:
