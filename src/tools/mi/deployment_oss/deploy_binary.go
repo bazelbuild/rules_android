@@ -194,6 +194,11 @@ func main() {
 
 	if *launchApp {
 		pprint.Info("Finished deploying changes. Launching app")
+
+		var stopCmd = exec.Command(*adbPath, "shell", "am", "force-stop", appPackage)
+		if err := stopCmd.Run(); err != nil {
+			pprint.Error("Unable to stop app: %s", err.Error())
+		}
 		var launchCmd *exec.Cmd
 		if *launchActivity != "" {
 			launchCmd = exec.Command(*adbPath, "shell", "am", "start", "-a", "android.intent.action.MAIN", "-n", appPackage+"/"+*launchActivity)
