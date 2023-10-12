@@ -26,7 +26,7 @@ def _android_local_test_default_launcher(ctx):
     expected_runfile = getattr(env.ctx.attr, "expected_runfile")
 
     runfiles = sets.make([f.short_path for f in target_under_test[DefaultInfo].default_runfiles.files.to_list()])
-    asserts.true(env, sets.contains(runfiles, expected_runfile), "Expect runfiles to contains {0}".format(expected_runfile))
+    asserts.true(env, sets.contains(runfiles, expected_runfile), "Expect runfiles to contains {0} but was {1}".format(expected_runfile, runfiles))
 
     return analysistest.end(env)
 

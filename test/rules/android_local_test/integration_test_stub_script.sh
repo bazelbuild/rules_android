@@ -14,11 +14,11 @@
 # limitations under the License.
 
 exit_with_error() {
-  echo "Expected to find JAVABIN=\${JAVABIN:-\${JAVA_RUNFILES}/%expected_executable% but was"
+  echo "Expected to find JAVABIN=%expected_executable% but was"
   echo $reference
   exit 1
 }
 
 executable="%executable%"
-reference=`grep -o 'JAVABIN=\\${JAVABIN:-\\${JAVA_RUNFILES}/.*}' $executable`
-grep -c "JAVABIN:-\${JAVA_RUNFILES}/%expected_executable%" $executable >> /dev/null || exit_with_error
+reference=`grep -o '^\W*JAVABIN=.*' $executable`
+grep -c "^\W*JAVABIN=%expected_executable%$" $executable >> /dev/null || exit_with_error
