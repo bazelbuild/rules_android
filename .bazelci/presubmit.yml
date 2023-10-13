@@ -9,6 +9,8 @@ x_defaults:
     - "//android/..."
     - "//rules/..."
     - "-//src/java/com/example/sampleapp/..."
+    - "-//src/tools/..."
+    - "-//src/common/golang/..."
     - "//toolchains/..."
     - "//tools/..."
     - "-//tools/android/..." # TODO(#122): Un-exclude this once #122 is fixed.
@@ -17,7 +19,10 @@ x_defaults:
     - "//test/..."
     - "-//src/tools/enforce_min_sdk_floor/..."
     - "-//src/java/com/example/sampleapp/..."
-    test_flags:
+    build_flags:
+    - "--incompatible_enable_android_toolchain_resolution"
+    - "--android_platforms=//:arm64-v8a"
+    - "--platforms=//:arm64-v8a"
      # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
     - "--java_runtime_version=17"
 
