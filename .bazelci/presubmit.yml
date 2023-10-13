@@ -23,6 +23,7 @@ x_defaults:
     - "--incompatible_enable_android_toolchain_resolution"
     - "--android_platforms=//:arm64-v8a"
     - "--platforms=//:arm64-v8a"
+    test_flags:
      # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
     - "--java_runtime_version=17"
 
