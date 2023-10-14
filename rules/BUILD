@@ -5,6 +5,7 @@ exports_files([
     "res_v3_dummy_AndroidManifest.xml",
     "res_v3_dummy_R.txt",
     "robolectric_properties_template.txt",
+    "rules.bzl",
 ])
 
 alias(
