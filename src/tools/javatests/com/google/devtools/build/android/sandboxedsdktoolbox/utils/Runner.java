@@ -24,13 +24,15 @@ import picocli.CommandLine;
 public final class Runner {
   public static CommandResult runCommand(String... parameters) {
     CommandLine command = SandboxedSdkToolbox.create();
-    StringWriter stringWriter = new StringWriter();
+    StringWriter out = new StringWriter();
+    StringWriter err = new StringWriter();
 
-    command.setOut(new PrintWriter(stringWriter));
+    command.setOut(new PrintWriter(out));
+    command.setErr(new PrintWriter(err));
     int statusCode = command.execute(parameters);
-    String output = stringWriter.toString();
+    out.append(err.toString());
 
-    return new CommandResult(statusCode, output);
+    return new CommandResult(statusCode, out.toString());
   }
 
   private Runner() {}

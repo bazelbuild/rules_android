@@ -64,7 +64,7 @@ final class AndroidManifestWriter {
       Element sdkDependencyElement = root.createElement(SDK_DEPENDENCY_ELEMENT_NAME);
       sdkDependencyElement.setAttribute(ANDROID_NAME_ATTRIBUTE, sdkInfo.getPackageName());
       sdkDependencyElement.setAttribute(
-          ANDROID_VERSION_MAJOR_ATTRIBUTE, Long.toString(sdkInfo.getVersionMajor()));
+          ANDROID_VERSION_MAJOR_ATTRIBUTE, Long.toString(sdkInfo.getEncodedVersionMajorMinor()));
       sdkDependencyElement.setAttribute(ANDROID_CERTIFICATE_DIGEST_ATTRIBUTE, certificateDigest);
       applicationNode.appendChild(sdkDependencyElement);
     }

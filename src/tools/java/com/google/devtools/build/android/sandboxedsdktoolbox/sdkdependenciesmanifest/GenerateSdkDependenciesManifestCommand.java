@@ -15,18 +15,12 @@
  */
 package com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest;
 
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest.AndroidManifestWriter.writeManifest;
-import static com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest.CertificateDigestGenerator.generateCertificateDigest;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.devtools.build.android.sandboxedsdktoolbox.info.SdkInfo;
-import com.google.devtools.build.android.sandboxedsdktoolbox.info.SdkInfoReader;
+import com.google.devtools.build.android.sandboxedsdktoolbox.mixin.SdkDependenciesCommandMixin;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 
 /** Command for generating SDK dependencies manifest. */
@@ -40,41 +34,18 @@ public final class GenerateSdkDependenciesManifestCommand implements Runnable {
   @Option(names = "--manifest-package", required = true)
   String manifestPackage;
 
-  @Option(names = "--sdk-module-configs", split = ",", required = false)
-  List<Path> sdkModuleConfigPaths = new ArrayList<>();
-
-  @Option(names = "--sdk-archives", split = ",", required = false)
-  List<Path> sdkArchivePaths = new ArrayList<>();
-
-  @Option(names = "--debug-keystore", required = true)
-  Path debugKeystorePath;
-
-  @Option(names = "--debug-keystore-pass", required = true)
-  String debugKeystorePassword;
-
-  @Option(names = "--debug-keystore-alias", required = true)
-  String debugKeystoreAlias;
-
   @Option(names = "--output-manifest", required = true)
   Path outputManifestPath;
 
+  @Mixin SdkDependenciesCommandMixin sdkDependenciesMixin;
+
   @Override
   public void run() {
-    if (sdkModuleConfigPaths.isEmpty() && sdkArchivePaths.isEmpty()) {
-      throw new IllegalArgumentException(
-          "At least one of --sdk-module-configs or --sdk-archives must be specified.");
-    }
-
-    ImmutableSet<SdkInfo> configSet =
-        Stream.concat(
-                sdkModuleConfigPaths.stream().map(SdkInfoReader::readFromSdkModuleJsonFile),
-                sdkArchivePaths.stream().map(SdkInfoReader::readFromSdkArchive))
-            .collect(toImmutableSet());
-
-    String certificateDigest =
-        generateCertificateDigest(debugKeystorePath, debugKeystorePassword, debugKeystoreAlias);
-
-    writeManifest(manifestPackage, certificateDigest, configSet, outputManifestPath);
+    writeManifest(
+        manifestPackage,
+        sdkDependenciesMixin.getDebugCertificateDigest(),
+        sdkDependenciesMixin.getSdkDependencies(),
+        outputManifestPath);
   }
 
   private GenerateSdkDependenciesManifestCommand() {}

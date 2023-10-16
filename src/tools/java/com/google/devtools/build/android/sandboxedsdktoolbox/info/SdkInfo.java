@@ -15,7 +15,10 @@
  */
 package com.google.devtools.build.android.sandboxedsdktoolbox.info;
 
+import com.android.bundle.SdkModulesConfigOuterClass.RuntimeEnabledSdkVersion;
+import com.android.tools.build.bundletool.model.RuntimeEnabledSdkVersionEncoder;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Information about a Sandboxed SDK. Used to define an SDK dependency and read from an SDK archive
@@ -24,11 +27,22 @@ import java.util.Objects;
 public final class SdkInfo {
 
   private final String packageName;
-  private final long versionMajor;
+  private final RuntimeEnabledSdkVersion version;
+  private final Optional<String> certificateDigest;
 
-  SdkInfo(String packageName, long versionMajor) {
+  SdkInfo(String packageName, RuntimeEnabledSdkVersion version) {
+    this(packageName, version, Optional.empty());
+  }
+
+  SdkInfo(String packageName, RuntimeEnabledSdkVersion version, String certificateDigest) {
+    this(packageName, version, Optional.of(certificateDigest));
+  }
+
+  private SdkInfo(
+      String packageName, RuntimeEnabledSdkVersion version, Optional<String> certificateDigest) {
     this.packageName = packageName;
-    this.versionMajor = versionMajor;
+    this.version = version;
+    this.certificateDigest = certificateDigest;
   }
 
   /** The SDK unique package name. */
@@ -36,26 +50,45 @@ public final class SdkInfo {
     return packageName;
   }
 
+  public RuntimeEnabledSdkVersion getVersion() {
+    return version;
+  }
+
   /**
-   * The SDK versionMajor. This value is constructed from the full SDK version description and it
-   * represents the actual version of the SDK as used by the package manager later. The major and
-   * minor versions are merged and the patch version is ignored.
+   * The SDK encoded version major-minor.
+   *
+   * <p>This value is constructed from the full SDK version description and it represents the actual
+   * version of the SDK as used by the package manager later. The major and minor versions are
+   * merged and the patch version is ignored.
    */
-  public long getVersionMajor() {
-    return versionMajor;
+  public long getEncodedVersionMajorMinor() {
+    return RuntimeEnabledSdkVersionEncoder.encodeSdkMajorAndMinorVersion(
+        version.getMajor(), version.getMinor());
+  }
+
+  /**
+   * Digest of certificate used to sign this SDK's APKs.
+   *
+   * <p>Might be missing if the certificate is not known at the time, for example for SDKs signed
+   * with debug keys for local deployment.
+   */
+  public Optional<String> getCertificateDigest() {
+    return certificateDigest;
   }
 
   @Override
   public boolean equals(Object object) {
     if (object instanceof SdkInfo) {
       SdkInfo that = (SdkInfo) object;
-      return this.packageName.equals(that.packageName) && this.versionMajor == that.versionMajor;
+      return this.packageName.equals(that.packageName)
+          && this.version.equals(that.version)
+          && this.certificateDigest.equals(that.certificateDigest);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(packageName, versionMajor);
+    return Objects.hash(packageName, version, certificateDigest);
   }
 }
