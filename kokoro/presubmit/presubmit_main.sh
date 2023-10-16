@@ -87,11 +87,21 @@ function main() {
     "--experimental_google_legacy_api"
     "--experimental_enable_android_migration_apis"
     "--build_tests_only"
+  )
+
+  JAVA_ARGS=(
     # Java tests use language version at least 11, but they might depend on
     # libraries that were built for Java 17.
     "--java_language_version=11"
     "--java_runtime_version=17"
     "--test_output=errors"
+  )
+
+  ANDROID_ARGS=(
+    # Set up for Android Platforms
+    "--incompatible_enable_android_toolchain_resolution"
+    "--android_platforms=//:arm64-v8a"
+    "--platforms=//:arm64-v8a"
   )
 
   # Go to rules_android workspace and run relevant tests.
@@ -104,17 +114,44 @@ function main() {
   # Perform the same aquery with bzlmod disabled to sniff out WORKSPACE issues
   "$bazel" aquery 'deps(...)' --noenable_bzlmod > /dev/null
 
-  "$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
+  # Make sure all tools and common code and build.
+  "$bazel" test \
+    "${COMMON_ARGS[@]}" \
+    "${JAVA_ARGS[@]}" \
+    -- \
+    //src/common/golang/... \
     //src/tools/ak/... \
     //src/tools/javatests/... \
     //src/tools/jdeps/... \
     //src/tools/java/... \
-    //src/tools/mi/... \
-    //test/...
+    //src/tools/mi/...
+
+  # Test the actual Android rules.
+  "$bazel" test \
+    "${COMMON_ARGS[@]}" \
+    "${ANDROID_ARGS[@]}" \
+    -- \
+    //test/... \
+    -//test/rules/android_local_test/...
+
+  # Android local tests aren't compatible with Android Platforms and require a
+  # valid JDK.
+  # TODO(https://github.com/bazelbuild/rules_android/issues/164): Re-enable when
+  # the rule is fixed.
+  "$bazel" test \
+    "${COMMON_ARGS[@]}" \
+    "${JAVA_ARGS[@]}" \
+    "--noincompatible_enable_android_toolchain_resolution" \
+    -- \
+    //test/rules/android_local_test/...
 
   # Go to basic app workspace in the source tree
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
-  "$bazel" build "${COMMON_ARGS[@]}" //java/com/basicapp:basic_app
+  "$bazel" build \
+    "${COMMON_ARGS[@]}" \
+    "${ANDROID_ARGS[@]}" \
+    -- \
+    //java/com/basicapp:basic_app
 }
 
 main
