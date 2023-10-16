@@ -34,6 +34,7 @@ load("//rules/acls:aar_propagate_resources.bzl", "AAR_PROPAGATE_RESOURCES_FALLBA
 load("//rules/acls:ait_install_snapshots.bzl", "APP_INSTALLATION_SNAPSHOT", "APP_INSTALLATION_SNAPSHOT_FALLBACK")
 load("//rules/acls:allow_resource_conflicts.bzl", "ALLOW_RESOURCE_CONFLICTS")
 load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
+load("//rules/acls:android_application_with_sandboxed_sdks_allowlist.bzl", "ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST")
 load("//rules/acls:android_archive_dogfood.bzl", "ANDROID_ARCHIVE_DOGFOOD")
 load("//rules/acls:android_archive_duplicate_class_allowlist.bzl", "ANDROID_ARCHIVE_DUPLICATE_CLASS_ALLOWLIST")
 load("//rules/acls:android_archive_excluded_deps_denylist.bzl", "ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST")
@@ -100,6 +101,9 @@ def _in_aar_import_exports_r_java(fqn):
 
 def _in_aar_propagate_resources(fqn):
     return not matches(fqn, AAR_PROPAGATE_RESOURCES_FALLBACK_DICT) and matches(fqn, AAR_PROPAGATE_RESOURCES_ROLLOUT_DICT)
+
+def _in_android_application_with_sandboxed_sdks_allowlist_dict(fqn):
+    return matches(fqn, ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT)
 
 def _in_android_archive_dogfood(fqn):
     return matches(fqn, ANDROID_ARCHIVE_DOGFOOD_DICT)
@@ -260,6 +264,7 @@ AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT = make_dict(AAR_IMPORT_EXPLICIT_EXPORT
 AAR_IMPORT_EXPORTS_R_JAVA_DICT = make_dict(AAR_IMPORT_EXPORTS_R_JAVA)
 AAR_PROPAGATE_RESOURCES_FALLBACK_DICT = make_dict(AAR_PROPAGATE_RESOURCES_FALLBACK)
 AAR_PROPAGATE_RESOURCES_ROLLOUT_DICT = make_dict(AAR_PROPAGATE_RESOURCES_ROLLOUT)
+ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT = make_dict(ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST)
 ANDROID_ARCHIVE_DOGFOOD_DICT = make_dict(ANDROID_ARCHIVE_DOGFOOD)
 ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST_DICT = make_dict(ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST)
 ANDROID_DEVICE_PLUGIN_ROLLOUT_DICT = make_dict(ANDROID_DEVICE_PLUGIN_ROLLOUT)
@@ -379,6 +384,7 @@ acls = struct(
     in_aar_propagate_resources = _in_aar_propagate_resources,
     in_b122039567 = _in_b122039567,
     in_b123854163 = _in_b123854163,
+    in_android_application_with_sandboxed_sdks_allowlist_dict = _in_android_application_with_sandboxed_sdks_allowlist_dict,
     in_android_archive_dogfood = _in_android_archive_dogfood,
     in_android_archive_excluded_deps_denylist = _in_android_archive_excluded_deps_denylist,
     in_android_device_plugin_rollout = _in_android_device_plugin_rollout,
