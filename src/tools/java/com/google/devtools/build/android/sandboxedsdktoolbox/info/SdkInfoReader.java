@@ -16,9 +16,7 @@
 package com.google.devtools.build.android.sandboxedsdktoolbox.info;
 
 import com.android.bundle.SdkMetadataOuterClass.SdkMetadata;
-import com.android.bundle.SdkModulesConfigOuterClass.RuntimeEnabledSdkVersion;
 import com.android.bundle.SdkModulesConfigOuterClass.SdkModulesConfig;
-import com.android.tools.build.bundletool.model.RuntimeEnabledSdkVersionEncoder;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.util.JsonFormat;
 import java.io.IOException;
@@ -40,8 +38,7 @@ public final class SdkInfoReader {
     SdkModulesConfig.Builder modulesConfig = SdkModulesConfig.newBuilder();
     try {
       JsonFormat.parser().merge(Files.newBufferedReader(sdkModulesConfigPath), modulesConfig);
-      return new SdkInfo(
-          modulesConfig.getSdkPackageName(), getVersionMajor(modulesConfig.getSdkVersion()));
+      return new SdkInfo(modulesConfig.getSdkPackageName(), modulesConfig.getSdkVersion());
     } catch (IOException e) {
       throw new UncheckedIOException("Failed to parse SDK Module Config.", e);
     }
@@ -58,15 +55,11 @@ public final class SdkInfoReader {
       SdkMetadata metadata =
           SdkMetadata.parseFrom(
               Files.readAllBytes(metadataInAsar), ExtensionRegistry.getEmptyRegistry());
-      return new SdkInfo(metadata.getPackageName(), getVersionMajor(metadata.getSdkVersion()));
+      return new SdkInfo(
+          metadata.getPackageName(), metadata.getSdkVersion(), metadata.getCertificateDigest());
     } catch (IOException e) {
-      throw new UncheckedIOException("Failed to extract SDK API descriptors.", e);
+      throw new UncheckedIOException("Failed to read SDK archive.", e);
     }
-  }
-
-  private static long getVersionMajor(RuntimeEnabledSdkVersion version) {
-    return RuntimeEnabledSdkVersionEncoder.encodeSdkMajorAndMinorVersion(
-        version.getMajor(), version.getMinor());
   }
 
   private SdkInfoReader() {}

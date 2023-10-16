@@ -15,6 +15,7 @@ java_library(
     deps = [
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors",
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/clientsources",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig",
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest",
         "@rules_android_maven//:info_picocli_picocli",
     ],
