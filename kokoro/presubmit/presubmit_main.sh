@@ -92,6 +92,7 @@ function main() {
     "--java_language_version=11"
     "--java_runtime_version=17"
     "--test_output=errors"
+    "--noenable_bzlmod"
   )
 
   # Go to rules_android workspace and run relevant tests.
