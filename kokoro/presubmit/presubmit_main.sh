@@ -13,50 +13,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function DownloadBazelisk()  {
-  # Utility function to download a specified version of bazelisk to a given
-  # installation directory. Adds the directory to PATH.
+function DownloadBazelCI()  {
+  # Utility function to download bazelci.py as a test runner.
   # Positional arguments:
-  #   version: The version to install.
-  #   platform: The platform to install. Currently only "linux" has been
-  #     validated.
-  #   arch: Architecture to install. Currently only "arm64" has been validated.
-  #   dest: Where to install Bazelisk. Must be a user-writeable directory,
+  #   dest: Where to install bazelci.py. Must be a user-writeable directory,
   #     otherwise the root user must call this function through sudo.
   (
     set -euxo pipefail
 
     # Positional arguments
-    local version="${1:-1.18.0}"
-    local platform="${2:-linux}"
-    local arch="${3:-amd64}"
-    local dest="${4:-${TMPDIR}/bazelisk-release}"
+    local dest="${1:-${TMPDIR}/test_runner}"
 
-    download_url="https://github.com/bazelbuild/bazelisk/releases/download/v${version}/bazelisk-${platform}-${arch}"
+    download_url="https://raw.githubusercontent.com/bazelbuild/continuous-integration/master/buildkite/bazelci.py"
     mkdir -p "${dest}"
-    wget -nv ${download_url} -O "${dest}/bazelisk"
-    chmod +x "${dest}/bazelisk"
-    ln -s "${dest}/bazelisk" "${dest}/bazel"
+    wget -nv ${download_url} -O "${dest}/bazelci.py"
+    chmod +x "${dest}/bazelci.py"
     export PATH="${dest}:${PATH}"
-    type -a bazel
-    echo "Bazelisk ${version} installation completed."
+
+    # Set up the bazelci environment.
+    export BUILDKITE_ORGANIZATION_SLUG=bazel
+    export BUILDKITE_COMMIT=HEAD
+    export BUILDKITE_BRANCH=main
+    export BAZELCI_LOCAL_RUN=true # Don't use remote caching or upload logs.
+
+    echo "bazelci.py installation completed."
   )
 }
 
 function main() {
   set -euxo pipefail
-  echo "== installing bazelisk ========================================="
-  bazel_install_dir=$(mktemp -d)
-  BAZELISK_VERSION="1.18.0"
-  export USE_BAZEL_VERSION="last_green"
-  DownloadBazelisk "$BAZELISK_VERSION" linux amd64 "$bazel_install_dir"
-  bazel="$bazel_install_dir/bazel"
+  echo "== installing bazelci ========================================="
+  test_runner_dir=$(mktemp -d)
+  DownloadBazelCI "$test_runner_dir"
+  bazelci="$test_runner_dir/bazelci.py"
   echo "============================================================="
 
   function Cleanup() {
-    # Clean up all temporary directories: bazelisk install, sandbox, and
-    # android_tools.
-    rm -rf "$bazel_install_dir"
+    # Clean up all temporary directories.
+    rm -rf "$test_runner_dir"
   }
   trap Cleanup EXIT
 
@@ -81,42 +75,22 @@ function main() {
   hsperfdata_dir="/tmp/hsperfdata_$(whoami)_rules_android"
   mkdir "$hsperfdata_dir"
 
-  COMMON_ARGS=(
-    "--sandbox_tmpfs_path=$hsperfdata_dir"
-    "--verbose_failures"
-    "--experimental_google_legacy_api"
-    "--experimental_enable_android_migration_apis"
-    "--build_tests_only"
-    # Java tests use language version at least 11, but they might depend on
-    # libraries that were built for Java 17.
-    "--java_language_version=11"
-    "--java_runtime_version=17"
-    "--test_output=errors"
-    "--noenable_bzlmod"
-    "--noincompatible_enable_android_toolchain_resolution"
-  )
-
   # Go to rules_android workspace and run relevant tests.
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
 
-  # Fetch all external deps; should reveal any bugs related to external dep
-  # references. First run this query with bzlmod enabled to catch missing
-  # bzlmod deps.
-  "$bazel" aquery 'deps(...)' "${COMMON_ARGS[@]}" --enable_bzlmod > /dev/null
-  # Perform the same aquery with bzlmod disabled to sniff out WORKSPACE issues
-  "$bazel" aquery 'deps(...)' "${COMMON_ARGS[@]}" --noenable_bzlmod > /dev/null
+  TASKS=(
+    ubuntu2004_rules
+    ubuntu2004_tools
+    ubuntu2004_rules_bzlmod
+    ubuntu2004_tools_bzlmod
+    basicapp
+  )
 
-  "$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
-    //src/tools/ak/... \
-    //src/tools/javatests/... \
-    //src/tools/jdeps/... \
-    //src/tools/java/... \
-    //src/tools/mi/... \
-    //test/...
-
-  # Go to basic app workspace in the source tree
-  cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
-  "$bazel" build "${COMMON_ARGS[@]}" //java/com/basicapp:basic_app
+  for task in "${TASKS[@]}"; do
+    python "${test_runner_dir}/bazelci.py" \
+        --file_config=.bazelci/presubmit.yml \
+        --task="${task}"
+  done
 }
 
 main
