@@ -336,6 +336,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 main_dex_list = main_dex_list,
                 min_sdk_version = ctx.attr.min_sdk_version,
                 proguarded_jar = proguarded_jar,
+                inclusion_filter_jar = binary_jar if _is_instrumentation(ctx) and not is_binary_optimized else None,
                 java_info = java_info,
                 desugar_dict = deploy_ctx.desugar_dict,
                 shuffle_jars = get_android_toolchain(ctx).shuffle_jars.files_to_run,
