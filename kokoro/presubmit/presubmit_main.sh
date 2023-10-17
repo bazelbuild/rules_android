@@ -92,6 +92,8 @@ function main() {
     "--java_language_version=11"
     "--java_runtime_version=17"
     "--test_output=errors"
+    "--noenable_bzlmod"
+    "--noincompatible_enable_android_toolchain_resolution"
   )
 
   # Go to rules_android workspace and run relevant tests.
@@ -100,9 +102,9 @@ function main() {
   # Fetch all external deps; should reveal any bugs related to external dep
   # references. First run this query with bzlmod enabled to catch missing
   # bzlmod deps.
-  "$bazel" aquery 'deps(...)' --enable_bzlmod > /dev/null
+  "$bazel" aquery 'deps(...)' "${COMMON_ARGS[@]}" --enable_bzlmod > /dev/null
   # Perform the same aquery with bzlmod disabled to sniff out WORKSPACE issues
-  "$bazel" aquery 'deps(...)' --noenable_bzlmod > /dev/null
+  "$bazel" aquery 'deps(...)' "${COMMON_ARGS[@]}" --noenable_bzlmod > /dev/null
 
   "$bazel" test "${COMMON_ARGS[@]}" //src/common/golang/... \
     //src/tools/ak/... \
