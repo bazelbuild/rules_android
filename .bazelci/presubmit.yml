@@ -23,26 +23,44 @@ x_defaults:
 
 tasks:
   ubuntu2004:
+    build_flags:
+    - "--noenable_bzlmod"
+    test_flags:
+    - "--noenable_bzlmod"
     <<: *common
   macos:
+    build_flags:
+    - "--noenable_bzlmod"
+    test_flags:
+    - "--noenable_bzlmod"
     <<: *common
   macos_arm64:
+    build_flags:
+    - "--noenable_bzlmod"
+    test_flags:
+    - "--noenable_bzlmod"
     <<: *common
   ubuntu2004_bzlmod:
     name: Bzlmod ubuntu2004
     platform: ubuntu2004
     build_flags:
     - "--enable_bzlmod"
+    test_flags:
+    - "--enable_bzlmod"
     <<: *common
-  macos_bzlmods:
+  macos_bzlmod:
     name: Bzlmod macos
     platform: macos
     build_flags:
+    - "--enable_bzlmod"
+    test_flags:
     - "--enable_bzlmod"
     <<: *common
   macos_arm64_bzlmod:
     name: Bzlmod macos_arm64
     platform: macos_arm64
     build_flags:
+    - "--enable_bzlmod"
+    test_flags:
     - "--enable_bzlmod"
     <<: *common
