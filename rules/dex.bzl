@@ -38,6 +38,7 @@ def _process_incremental_dexing(
         main_dex_list = None,
         min_sdk_version = 0,
         proguarded_jar = None,
+        inclusion_filter_jar = None,
         java_info = None,
         desugar_dict = {},
         shuffle_jars = None,
@@ -48,7 +49,6 @@ def _process_incremental_dexing(
         toolchain_type = None):
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
     incremental_dexopts = _filter_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
-    inclusion_filter_jar = proguarded_jar
     if not proguarded_jar:
         dex_archives = []
         for jar in runtime_jars:
