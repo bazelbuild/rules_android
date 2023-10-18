@@ -18,6 +18,11 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load(
+    "//rules/android_sandboxed_sdk:providers.bzl",
+    "AndroidArchivedSandboxedSdkInfo",
+    "AndroidSandboxedSdkBundleInfo",
+)
 
 ANDROID_APPLICATION_ATTRS = _attrs.add(
     dict(
@@ -42,6 +47,16 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         custom_package = attr.string(),
         feature_modules = attr.label_list(allow_files = False),
+        sdk_archives = attr.label_list(
+            providers = [
+                [AndroidArchivedSandboxedSdkInfo],
+            ],
+        ),
+        sdk_bundles = attr.label_list(
+            providers = [
+                [AndroidSandboxedSdkBundleInfo],
+            ],
+        ),
         _bundle_deploy = attr.label(
             allow_single_file = True,
             default = ":bundle_deploy.sh_template",

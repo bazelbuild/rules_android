@@ -123,6 +123,40 @@ def _generate_client_sources(
         progress_message = "Generate client sources for %s" % output_kotlin_dir.short_path,
     )
 
+def _generate_runtime_enabled_sdk_config(
+        ctx,
+        output = None,
+        manifest_xml_tree = None,
+        sdk_module_configs = None,
+        sdk_archives = None,
+        debug_key = None,
+        sandboxed_sdk_toolbox = None,
+        host_javabase = None):
+    inputs = [debug_key, manifest_xml_tree]
+    args = ctx.actions.args()
+    args.add("generate-runtime-enabled-sdk-config")
+    args.add("--manifest-xml-tree", manifest_xml_tree)
+    if sdk_module_configs:
+        args.add("--sdk-module-configs", ",".join([config.path for config in sdk_module_configs]))
+        inputs.extend(sdk_module_configs)
+    if sdk_archives:
+        args.add("--sdk-archives", ",".join([archive.path for archive in sdk_archives]))
+        inputs.extend(sdk_archives)
+    args.add("--debug-keystore", debug_key)
+    args.add("--debug-keystore-pass", "android")
+    args.add("--debug-keystore-alias", "androiddebugkey")
+    args.add("--output-config", output)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = sandboxed_sdk_toolbox,
+        arguments = [args],
+        inputs = inputs,
+        outputs = [output],
+        mnemonic = "GenRuntimeEnabledSdkConfig",
+        progress_message = "Generate RuntimeEnabledSdkConfig proto message %s" % output.short_path,
+    )
+
 def _generate_sdk_dependencies_manifest(
         ctx,
         output = None,
@@ -176,5 +210,6 @@ sandboxed_sdk_toolbox = struct(
     extract_api_descriptors = _extract_api_descriptors,
     extract_api_descriptors_from_asar = _extract_api_descriptors_from_asar,
     generate_client_sources = _generate_client_sources,
+    generate_runtime_enabled_sdk_config = _generate_runtime_enabled_sdk_config,
     generate_sdk_dependencies_manifest = _generate_sdk_dependencies_manifest,
 )

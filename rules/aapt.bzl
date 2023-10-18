@@ -19,6 +19,107 @@ load(
     "ANDROID_TOOLCHAIN_TYPE",
 )
 
+def _compile(
+        ctx,
+        out_dir,
+        resource_files,
+        aapt):
+    """Compile and store resources in a single archive.
+
+    Args:
+      ctx: The context.
+      out_dir: File. A file to store the output.
+      resource_files: A list of Files. The list of resource files or directories
+        to process.
+      aapt: AAPT. Tool for compiling resources.
+    """
+    if not out_dir:
+        fail("No output directory specified.")
+    if not out_dir.is_directory:
+        fail("Output directory is not a directory artifact.")
+    if not resource_files:
+        fail("No resource files given.")
+
+    # Retrieves the list of files at runtime when a directory is passed.
+    args = ctx.actions.args()
+    args.add_all(resource_files, expand_directories = True)
+
+    ctx.actions.run_shell(
+        command = """
+set -e
+
+AAPT=%s
+OUT_DIR=%s
+RESOURCE_FILES=$@
+
+i=0
+declare -A out_dir_map
+for f in ${RESOURCE_FILES}; do
+  res_dir="$(dirname $(dirname ${f}))"
+  if [ -z "${out_dir_map[${res_dir}]}" ]; then
+      out_dir="${OUT_DIR}/$((++i))"
+      mkdir -p ${out_dir}
+      out_dir_map[${res_dir}]="${out_dir}"
+  fi
+  # Outputs from multiple directories can overwrite the outputs. As we do not
+  # control the outputs for now store each in its own sub directory which will be
+  # captured by the over_dir.
+  # TODO(b/139757260): Re-evaluate this one compile per file or multiple and zip
+  # merge.
+  "${AAPT}" compile --legacy "${f}" -o "${out_dir_map[${res_dir}]}"
+done
+""" % (aapt.executable.path, out_dir.path),
+        tools = [aapt],
+        arguments = [args],
+        inputs = resource_files,
+        outputs = [out_dir],
+        mnemonic = "CompileAndroidResources",
+        progress_message = "ResV3 Compiling Android Resources in %s" % out_dir,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
+    )
+
+def _convert(
+        ctx,
+        out = None,
+        input = None,
+        to_proto = False,
+        aapt = None):
+    args = ctx.actions.args()
+    args.add("convert")
+    args.add("--output-format", ("proto" if to_proto else "binary"))
+    args.add("-o", out)
+    args.add(input)
+
+    ctx.actions.run(
+        executable = aapt,
+        arguments = [args],
+        inputs = [input],
+        outputs = [out],
+        mnemonic = "AaptConvert",
+        progress_message = "ResV3 Convert to %s" % out.short_path,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
+    )
+
+def _dump_manifest_xml_tree(ctx, out = None, apk = None, aapt = None):
+    # Running shell because AAPT outputs to stdout.
+    ctx.actions.run_shell(
+        command = """
+set -e
+
+AAPT=%s
+APK=%s
+OUT=%s
+
+"${AAPT}" dump xmltree --file AndroidManifest.xml "${APK}" > "${OUT}"
+""" % (aapt.executable.path, apk.path, out.path),
+        tools = [aapt],
+        inputs = [apk],
+        outputs = [out],
+        mnemonic = "GenerateAaptManifestDump",
+        progress_message = "Generate AAPT manifest dump %s" % out,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
+    )
+
 def _link(
         ctx,
         out_r_java,
@@ -120,89 +221,9 @@ echo $(tac $1) > $2
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
-def _compile(
-        ctx,
-        out_dir,
-        resource_files,
-        aapt):
-    """Compile and store resources in a single archive.
-
-    Args:
-      ctx: The context.
-      out_dir: File. A file to store the output.
-      resource_files: A list of Files. The list of resource files or directories
-        to process.
-      aapt: AAPT. Tool for compiling resources.
-    """
-    if not out_dir:
-        fail("No output directory specified.")
-    if not out_dir.is_directory:
-        fail("Output directory is not a directory artifact.")
-    if not resource_files:
-        fail("No resource files given.")
-
-    # Retrieves the list of files at runtime when a directory is passed.
-    args = ctx.actions.args()
-    args.add_all(resource_files, expand_directories = True)
-
-    ctx.actions.run_shell(
-        command = """
-set -e
-
-AAPT=%s
-OUT_DIR=%s
-RESOURCE_FILES=$@
-
-i=0
-declare -A out_dir_map
-for f in ${RESOURCE_FILES}; do
-  res_dir="$(dirname $(dirname ${f}))"
-  if [ -z "${out_dir_map[${res_dir}]}" ]; then
-      out_dir="${OUT_DIR}/$((++i))"
-      mkdir -p ${out_dir}
-      out_dir_map[${res_dir}]="${out_dir}"
-  fi
-  # Outputs from multiple directories can overwrite the outputs. As we do not
-  # control the outputs for now store each in its own sub directory which will be
-  # captured by the over_dir.
-  # TODO(b/139757260): Re-evaluate this one compile per file or multiple and zip
-  # merge.
-  "${AAPT}" compile --legacy "${f}" -o "${out_dir_map[${res_dir}]}"
-done
-""" % (aapt.executable.path, out_dir.path),
-        tools = [aapt],
-        arguments = [args],
-        inputs = resource_files,
-        outputs = [out_dir],
-        mnemonic = "CompileAndroidResources",
-        progress_message = "ResV3 Compiling Android Resources in %s" % out_dir,
-        toolchain = ANDROID_TOOLCHAIN_TYPE,
-    )
-
-def _convert(
-        ctx,
-        out = None,
-        input = None,
-        to_proto = False,
-        aapt = None):
-    args = ctx.actions.args()
-    args.add("convert")
-    args.add("--output-format", ("proto" if to_proto else "binary"))
-    args.add("-o", out)
-    args.add(input)
-
-    ctx.actions.run(
-        executable = aapt,
-        arguments = [args],
-        inputs = [input],
-        outputs = [out],
-        mnemonic = "AaptConvert",
-        progress_message = "ResV3 Convert to %s" % out.short_path,
-        toolchain = ANDROID_TOOLCHAIN_TYPE,
-    )
-
 aapt = struct(
-    link = _link,
     compile = _compile,
     convert = _convert,
+    dump_manifest_xml_tree = _dump_manifest_xml_tree,
+    link = _link,
 )
