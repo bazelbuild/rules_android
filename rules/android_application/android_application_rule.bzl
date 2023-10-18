@@ -276,14 +276,22 @@ def _impl(ctx):
         metadata["com.google.play.apps.integrity/AppIntegrityConfig.pb"] = ctx.file.app_integrity_config
 
     # Create .aab
+    base_aab = ctx.actions.declare_file("base_aab")
     _bundletool.build(
         ctx,
-        out = ctx.outputs.unsigned_aab,
+        out = base_aab,
         modules = modules,
         config = ctx.file.bundle_config_file,
         metadata = metadata,
         bundletool = get_android_toolchain(ctx).bundletool.files_to_run,
         host_javabase = _common.get_host_javabase(ctx),
+    )
+
+    _common.filter_zip_exclude(
+        ctx = ctx,
+        input = base_aab,
+        output = ctx.outputs.unsigned_aab,
+        filters = ctx.attr.excludes,
     )
 
     # Create `blaze run` script
@@ -386,6 +394,9 @@ def android_application_macro(_android_binary, **attrs):
         module_targets = get_feature_module_paths(feature_module)
         attrs["deps"].append(str(module_targets.title_lib))
 
+    # only supported in android_application rule
+    excludes = attrs.pop("excludes", [])
+
     _android_binary(
         name = base_split_name,
         **attrs
@@ -403,4 +414,5 @@ def android_application_macro(_android_binary, **attrs):
         feature_modules = feature_modules,
         application_id = attrs["manifest_values"]["applicationId"],
         visibility = attrs.get("visibility", None),
+        excludes = excludes,
     )
