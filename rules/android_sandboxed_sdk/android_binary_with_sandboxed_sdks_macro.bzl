@@ -24,7 +24,6 @@ load(
 )
 load(
     "//rules:utils.bzl",
-    "utils",
     _get_android_toolchain = "get_android_toolchain",
 )
 load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkBundleInfo")
@@ -90,16 +89,6 @@ _gen_sdk_dependencies_manifest = rule(
 def _android_binary_with_sandboxed_sdks_impl(ctx):
     sdk_apks = []
     for idx, sdk_archive in enumerate(ctx.attr.sdk_archives):
-        # Bundletool is rejecting ASARs when creating APKs, but since the formats are similar enough
-        # for this command we can just rename the file.
-        # TODO b/294970460) -- Remove this extra copy once Bundletool is updated with ASAR support
-        # in build_sdk_apks. Their work is being tracked in b/228176834.
-        renamed_sdk_archive = ctx.actions.declare_file("%s/renamed_sdk_archive/%s.asb" % (
-            ctx.label.name,
-            idx,
-        ))
-        utils.copy_file(ctx, sdk_archive[AndroidArchivedSandboxedSdkInfo].asar, renamed_sdk_archive)
-
         apk_out = ctx.actions.declare_file("%s/sdk_archive_dep_apks/%s.apk" % (
             ctx.label.name,
             idx,
@@ -108,7 +97,7 @@ def _android_binary_with_sandboxed_sdks_impl(ctx):
             ctx,
             out = apk_out,
             aapt2 = _get_android_toolchain(ctx).aapt2.files_to_run,
-            sdk_bundle = renamed_sdk_archive,
+            sdk_archive = sdk_archive[AndroidArchivedSandboxedSdkInfo].asar,
             debug_key = ctx.file.debug_key,
             bundletool = _get_android_toolchain(ctx).bundletool.files_to_run,
             host_javabase = _common.get_host_javabase(ctx),
