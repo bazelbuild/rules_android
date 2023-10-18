@@ -18,15 +18,21 @@ package main
 import (
 	"archive/zip"
 	"flag"
+	"io"
 	"log"
 	"os"
 	"strings"
 )
 
 var (
-	internalApkPathFlag  = flag.String("internal_apk_path", "", "Path to an APK that contains the SDK classes and resources.")
-	outputModulePathFlag = flag.String("output_module_path", "", "Path to the resulting module, ready to be sent to Bundletool.")
+	internalApkPathFlag             = flag.String("internal_apk_path", "", "Path to an APK that contains the SDK classes and resources.")
+	outputModulePathFlag            = flag.String("output_module_path", "", "Path to the resulting module, ready to be sent to Bundletool.")
+	runtimeEnabledSDKConfigPathFlag = flag.String("runtime_enabled_sdk_config_path", "", "Path to the runtime enabled SDK config file that will be copied to the final module. Optional.")
 )
+
+// Bundletool expects the runtime enabled SDK config to be named exactly like this and be on the
+// root of the module zip.
+const runtimeEnabledSDKConfigZipName = "runtime_enabled_sdk_config.pb"
 
 func main() {
 	flag.Parse()
@@ -37,13 +43,13 @@ func main() {
 	if *internalApkPathFlag == "" {
 		log.Fatal("Missing ouput module path")
 	}
-	err := unzipApkAndCreateModule(*internalApkPathFlag, *outputModulePathFlag)
+	err := unzipApkAndCreateModule(*internalApkPathFlag, *outputModulePathFlag, *runtimeEnabledSDKConfigPathFlag)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func unzipApkAndCreateModule(internalApkPath, outputModulePath string) error {
+func unzipApkAndCreateModule(internalApkPath, outputModulePath, runtimeEnabledSDKConfigPath string) error {
 	r, err := zip.OpenReader(internalApkPath)
 	if err != nil {
 		return err
@@ -61,6 +67,23 @@ func unzipApkAndCreateModule(internalApkPath, outputModulePath string) error {
 	for _, f := range r.File {
 		f.Name = fileNameInOutput(f.Name)
 		if err := zipWriter.Copy(f); err != nil {
+			return err
+		}
+	}
+
+	if runtimeEnabledSDKConfigPath != "" {
+		f, err := os.Open(runtimeEnabledSDKConfigPath)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		w, err := zipWriter.Create(runtimeEnabledSDKConfigZipName)
+		if err != nil {
+			return err
+		}
+
+		if _, err := io.Copy(w, f); err != nil {
 			return err
 		}
 	}

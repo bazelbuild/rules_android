@@ -328,12 +328,18 @@ def _proto_apk_to_module(
         ctx,
         out = None,
         proto_apk = None,
+        runtime_enabled_sdk_config = None,
         bundletool_module_builder = None):
+    inputs = [proto_apk]
     args = ctx.actions.args()
     args.add("--internal_apk_path", proto_apk)
+    if runtime_enabled_sdk_config:
+        args.add("--runtime_enabled_sdk_config_path", runtime_enabled_sdk_config)
+        inputs.append(runtime_enabled_sdk_config)
+
     args.add("--output_module_path", out)
     ctx.actions.run(
-        inputs = [proto_apk],
+        inputs = inputs,
         outputs = [out],
         executable = bundletool_module_builder,
         arguments = [args],

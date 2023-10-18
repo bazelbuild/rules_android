@@ -17,7 +17,7 @@ filegroup(
 bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
-    visibility = ["//rules:__pkg__"],
+    visibility = ["//:__subpackages__"],
     deps = [
         "//rules:android_binary_bzl",
         "//rules:common_bzl",

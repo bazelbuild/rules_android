@@ -1,7 +1,7 @@
 # The android_application rule.
 
-load("@rules_python//python:defs.bzl", "py_binary")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 licenses(["notice"])
 
@@ -23,6 +23,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     deps = [
         "//rules:common_bzl",
+        "//rules/android_sandboxed_sdk:bzl",
         "//rules/flags:bzl",
     ],
 )
