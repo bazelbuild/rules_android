@@ -462,9 +462,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
 
         if _is_instrumentation(ctx):
             filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_filtered.jar")
-
-            # TODO(b/303286042): Use AndroidPreDexInfo.pre_dex_jar to be the filter_jar
-            filter_jar = ctx.attr.instruments[ApkInfo].deploy_jar
+            filter_jar = ctx.attr.instruments[AndroidPreDexJarInfo].pre_dex_jar
             common.filter_zip_exclude(
                 ctx,
                 output = filtered_deploy_jar,
