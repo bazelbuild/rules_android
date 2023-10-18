@@ -341,8 +341,15 @@ def matches(fqn, dct):
     # For now, default external dependency ACLs to True to enable rollout features for all
     # external users. See https://github.com/bazelbuild/rules_android/issues/68
     # Note that this only affects Bazel builds with OSS rules_android.
-    if fqn.startswith("@"):
+    if fqn.startswith("@") and not fqn.startswith("@//"):
         return True
+
+    # "@//" is the same as the main workspace. It's not completely accurate to treat these as
+    # absolute labels, because "@//" from within an external repository refers to the main
+    # workspace, and "//" from within an external repository refers to labels within that
+    # repository, but this should be fine for ACL resolution.
+    if fqn.startswith("@//"):
+        fqn = fqn[1:]
 
     if not fqn.startswith("//"):
         fail("Fully qualified target should start with '//', got: " + fqn)

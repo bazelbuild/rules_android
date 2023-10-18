@@ -20,8 +20,6 @@ android_library(
     resource_files = glob(["res/**"]),
     deps = [
         ":native",
-        "@androidsdk//com.android.support:appcompat-v7-25.0.0",
-        "@androidsdk//com.android.support:support-v4-25.2.0",
     ],
 )
 
