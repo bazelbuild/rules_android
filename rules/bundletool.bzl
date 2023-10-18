@@ -84,18 +84,27 @@ def _build_sdk_apks(
         ctx,
         out = None,
         aapt2 = None,
+        sdk_archive = None,
         sdk_bundle = None,
         debug_key = None,
         bundletool = None,
         host_javabase = None):
+    if bool(sdk_archive) == bool(sdk_bundle):
+        fail("Exactly one of sdk_archive or sdk_bundle need to be set in %s." % ctx.label.name)
     apks_out = ctx.actions.declare_directory(
         "%s_apks_out" % paths.basename(out.path).replace(".", "_"),
         sibling = out,
     )
+    inputs = [debug_key]
     args = ctx.actions.args()
     args.add("build-sdk-apks")
     args.add("--aapt2", aapt2.executable.path)
-    args.add("--sdk-bundle", sdk_bundle)
+    if sdk_archive:
+        args.add("--sdk-archive", sdk_archive)
+        inputs.append(sdk_archive)
+    if sdk_bundle:
+        args.add("--sdk-bundle", sdk_bundle)
+        inputs.append(sdk_bundle)
     args.add("--ks", debug_key)
     args.add("--ks-pass=pass:android")
     args.add("--ks-key-alias=androiddebugkey")
@@ -107,10 +116,7 @@ def _build_sdk_apks(
         host_javabase = host_javabase,
         executable = bundletool,
         arguments = [args],
-        inputs = [
-            sdk_bundle,
-            debug_key,
-        ],
+        inputs = inputs,
         tools = [aapt2],
         outputs = [apks_out],
         mnemonic = "BuildSdkApksDir",
