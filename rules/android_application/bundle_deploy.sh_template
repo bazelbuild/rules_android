@@ -1,5 +1,6 @@
 #!/bin/bash --posix
 
+java_executable="%java_executable%"
 bundletool="%bundletool_path%"
 aab="%aab%"
 oldest_signer_properties="%oldest_signer_properties%"
@@ -36,9 +37,9 @@ if [[ ! -z "$min_rotation_api" ]]; then
   args+=(--rotation-min-sdk-version="$min_rotation_api")
 fi
 
-java -jar "$bundletool" build-apks "${args[@]}" || exit
+"$java_executable" -jar "$bundletool" build-apks "${args[@]}" || exit
 
-java -jar "$bundletool" install-apks \
+"$java_executable" -jar "$bundletool" install-apks \
   --adb="$(which adb)" \
   --apks "$tmp" \
   --modules=_ALL_ || exit
