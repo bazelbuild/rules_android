@@ -20,12 +20,13 @@ x_defaults:
     - "//test/..."
     - "-//src/tools/enforce_min_sdk_floor/..."
     - "-//src/java/com/example/sampleapp/..."
-      # TODO(rules_android): Switch these to use Java runfiles lookup and re-enable.
+    # TODO(https://github.com/bazelbuild/rules_android/issues/170):
+    # Re-enable when tests use proper way to find data files.
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:ExtractApiDescriptorsCommandTest"
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig:GenerateRuntimeEnabledSdkConfigCommandTest"
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest:GenerateSdkDependenciesManifestCommandTest"
-    # TODO(https://github.com/bazelbuild/rules_android/issues/164):
-    # Re-enable when android_local_test supports Android Platforms.
+    # TODO(https://github.com/bazelbuild/rules_android/issues/169):
+    # Re-enable when these are less fragile.
     - "-//test/rules/android_local_test/..."
     build_flags:
     - "--enable_bzlmod=false"
@@ -34,7 +35,7 @@ x_defaults:
     - "--enable_bzlmod=false"
     - "--incompatible_enable_android_toolchain_resolution=false"
      # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
-    - "--java_runtime_version=remotejdk_17"
+    - "--java_runtime_version=17"
 
 tasks:
   ubuntu2004:
