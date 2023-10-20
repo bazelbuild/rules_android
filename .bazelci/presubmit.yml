@@ -1,6 +1,6 @@
 ---
 
-bazel: 7.0.0rc2
+bazel: 7.0.0rc1
 
 x_defaults:
   common: &common
