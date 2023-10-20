@@ -1,14 +1,17 @@
 ---
 
+bazel: 7.0.0rc2
+
 x_defaults:
   common: &common
-    bazel: last_green
     build_targets:
     - "//src/..."
     - "//test/..."
     - "//android/..."
     - "//rules/..."
     - "-//src/java/com/example/sampleapp/..."
+      # TODO(rules_android): Switch these to use Java runfiles lookup and re-enable.
+    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/..."
     - "//toolchains/..."
     - "//tools/..."
     - "-//tools/android/..." # TODO(#122): Un-exclude this once #122 is fixed.
@@ -17,9 +20,21 @@ x_defaults:
     - "//test/..."
     - "-//src/tools/enforce_min_sdk_floor/..."
     - "-//src/java/com/example/sampleapp/..."
+      # TODO(rules_android): Switch these to use Java runfiles lookup and re-enable.
+    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:ExtractApiDescriptorsCommandTest"
+    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig:GenerateRuntimeEnabledSdkConfigCommandTest"
+    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest:GenerateSdkDependenciesManifestCommandTest"
+    # TODO(https://github.com/bazelbuild/rules_android/issues/164):
+    # Re-enable when android_local_test supports Android Platforms.
+    - "-//test/rules/android_local_test/..."
+    build_flags:
+    - "--enable_bzlmod=false"
+    - "--incompatible_enable_android_toolchain_resolution=false"
     test_flags:
+    - "--enable_bzlmod=false"
+    - "--incompatible_enable_android_toolchain_resolution=false"
      # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
-    - "--java_runtime_version=17"
+    - "--java_runtime_version=remotejdk_17"
 
 tasks:
   ubuntu2004:
@@ -33,16 +48,28 @@ tasks:
     platform: ubuntu2004
     build_flags:
     - "--enable_bzlmod"
+    - "--incompatible_enable_android_toolchain_resolution=false"
+    test_flags:
+    - "--enable_bzlmod"
+    - "--incompatible_enable_android_toolchain_resolution=false"
     <<: *common
   macos_bzlmods:
     name: Bzlmod macos
     platform: macos
     build_flags:
     - "--enable_bzlmod"
+    - "--incompatible_enable_android_toolchain_resolution=false"
+    test_flags:
+    - "--enable_bzlmod"
+    - "--incompatible_enable_android_toolchain_resolution=false"
     <<: *common
   macos_arm64_bzlmod:
     name: Bzlmod macos_arm64
     platform: macos_arm64
     build_flags:
     - "--enable_bzlmod"
+    - "--incompatible_enable_android_toolchain_resolution=false"
+    test_flags:
+    - "--enable_bzlmod"
+    - "--incompatible_enable_android_toolchain_resolution=false"
     <<: *common
