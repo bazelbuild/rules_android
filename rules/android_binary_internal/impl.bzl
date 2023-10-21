@@ -53,7 +53,7 @@ def _process_manifest(ctx, **unused_ctxs):
         ctx,
         manifest = ctx.file.manifest,
         manifest_values = ctx.attr.manifest_values,
-        floor = acls.get_min_sdk_floor(str(ctx.label)) if _is_test_binary(ctx) else 0,
+        floor = acls.get_min_sdk_floor(str(ctx.label)),
         enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
     )
 
