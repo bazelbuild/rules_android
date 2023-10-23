@@ -51,6 +51,16 @@ MANIFEST_MIN_SDK = """<?xml version="1.0" encoding="utf-8"?>
 </manifest>
 """.encode("utf-8")
 
+MANIFEST_MIN_SDK_COMMENT = """<?xml version="1.0" encoding="utf-8"?><!--
+External comment
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example" >
+<!-- Internal comment -->
+<uses-sdk android:minSdkVersion="12" />
+</manifest>
+""".encode("utf-8")
+
 
 class EnforceMinSdkFloorTest(unittest.TestCase):
 
@@ -80,6 +90,11 @@ class EnforceMinSdkFloorTest(unittest.TestCase):
     out, _ = _BumpMinSdk(MANIFEST_MIN_SDK, 14)
     min_sdk = ET.fromstring(out).find(USES_SDK).get(MIN_SDK_ATTRIB)
     self.assertEqual(min_sdk, "14")
+
+  def test_bump_keeps_comments(self):
+    out, _ = _BumpMinSdk(MANIFEST_MIN_SDK_COMMENT, 14)
+    self.assertTrue(b"External comment" in out)
+    self.assertTrue(b"Internal comment" in out)
 
   def test_set_default_no_uses(self):
     out, _ = _SetDefaultMinSdk(MANIFEST_NO_USES_SDK, "11")

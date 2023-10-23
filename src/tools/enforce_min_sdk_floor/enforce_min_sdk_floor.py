@@ -22,9 +22,9 @@ sets it to the floor.
 import os
 import sys
 
-import xml.etree.ElementTree as ET
 from absl import app
 from absl import flags
+import lxml.etree as ET
 
 BUMP = "bump"
 VALIDATE = "validate"
@@ -85,6 +85,23 @@ def ParseNamespaces(xml_content):
       pass
 
 
+def GetXmlString(root, pre_root_comments):
+  """Returns the XML string for a node + any comments to appear before the node."""
+  if not pre_root_comments:
+    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+
+  result = b""
+  for i, x in enumerate(pre_root_comments):
+    xml_declaration = i == 0
+    result = (
+        result
+        + ET.tostring(x, encoding="utf-8", xml_declaration=xml_declaration)
+        + b"\n"
+    )
+  result = result + ET.tostring(root, encoding="utf-8", xml_declaration=False)
+  return result
+
+
 def _BumpMinSdk(xml_content, min_sdk_floor):
   """Checks the min SDK in xml_content and replaces with min_sdk_floor if needed.
 
@@ -105,21 +122,27 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
   ParseNamespaces(xml_content)
 
   root = ET.fromstring(xml_content)
+  pre_root_comments = [
+      x for x in root.itersiblings(tag=ET.Comment, preceding=True)
+  ]
+
   uses_sdk = root.find(USES_SDK)
   if uses_sdk is None:
     ET.SubElement(root, USES_SDK, {MIN_SDK_ATTRIB: str(min_sdk_floor)})
     return (
-        ET.tostring(root, encoding="utf-8", xml_declaration=True),
+        GetXmlString(root, pre_root_comments),
         "No uses-sdk element found while floor is specified "
-        + f"({min_sdk_floor}). Min SDK added.")
+        + f"({min_sdk_floor}). Min SDK added.",
+    )
 
   min_sdk = uses_sdk.get(MIN_SDK_ATTRIB)
   if min_sdk is None:
     uses_sdk.set(MIN_SDK_ATTRIB, str(min_sdk_floor))
     return (
-        ET.tostring(root, encoding="utf-8", xml_declaration=True),
+        GetXmlString(root, pre_root_comments),
         "No minSdkVersion attribute found while floor is specified"
-        + f"({min_sdk_floor}). Min SDK added.")
+        + f"({min_sdk_floor}). Min SDK added.",
+    )
 
   try:
     min_sdk_int = int(min_sdk)
@@ -132,9 +155,10 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
   if min_sdk_int < min_sdk_floor:
     uses_sdk.set(MIN_SDK_ATTRIB, str(min_sdk_floor))
     return (
-        ET.tostring(root, encoding="utf-8", xml_declaration=True),
+        GetXmlString(root, pre_root_comments),
         f"minSdkVersion attribute specified in the manifest ({min_sdk}) "
-        + f"is less than the floor ({min_sdk_floor}). Min SDK replaced.")
+        + f"is less than the floor ({min_sdk_floor}). Min SDK replaced.",
+    )
   return (
       xml_content,
       f"minSdkVersion attribute specified in the manifest ({min_sdk}) "
