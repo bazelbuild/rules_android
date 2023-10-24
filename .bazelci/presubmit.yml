@@ -2,75 +2,117 @@
 
 bazel: last_green
 
-x_defaults:
-  common: &common
-    build_targets:
-    - "//src/..."
-    - "//test/..."
+tools_flags: &tools_flags
+  ? "--enable_bzlmod=false"
+  ? "--incompatible_enable_android_toolchain_resolution=false"
+  # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
+  ? "--java_runtime_version=17"
+rules_flags: &rules_flags
+  ? "--enable_bzlmod=false"
+  ? "--incompatible_enable_android_toolchain_resolution=false"
+
+tools: &tools
+  name: "Tools"
+  build_targets:
     - "//android/..."
-    - "//rules/..."
+    - "//src/..."
     - "-//src/java/com/example/sampleapp/..."
-      # TODO(rules_android): Switch these to use Java runfiles lookup and re-enable.
+    # TODO(https://github.com/bazelbuild/rules_android/issues/170):
+    # Re-enable when tests use proper way to find data files.
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/..."
+    - "//test/..."
+    - "-//test/rules/..." # Tested in `rules`
     - "//toolchains/..."
     - "//tools/..."
     - "-//tools/android/..." # TODO(#122): Un-exclude this once #122 is fixed.
-    test_targets:
+  test_targets:
     - "//src/..."
-    - "//test/..."
-    - "-//src/tools/enforce_min_sdk_floor/..."
     - "-//src/java/com/example/sampleapp/..."
+    - "//test/..."
+    - "-//test/rules/..."
     # TODO(https://github.com/bazelbuild/rules_android/issues/170):
     # Re-enable when tests use proper way to find data files.
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:ExtractApiDescriptorsCommandTest"
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig:GenerateRuntimeEnabledSdkConfigCommandTest"
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest:GenerateSdkDependenciesManifestCommandTest"
+  build_flags:
+    <<: *tools_flags
+  test_flags:
+    <<: *tools_flags
+tools_bzlmod: &tools_bzlmod
+  name: "Tools Bzlmod"
+  build_flags:
+    <<: *tools_flags
+    ? "--enable_bzlmod"
+  test_flags:
+    <<: *tools_flags
+    ? "--enable_bzlmod"
+  <<: *tools
+rules: &rules
+  name: "Rules"
+  build_targets:
+    - "//rules/..."
+  test_targets:
+    - "//test/rules/..."
     # TODO(https://github.com/bazelbuild/rules_android/issues/169):
     # Re-enable when these are less fragile.
     - "-//test/rules/android_local_test/..."
-    build_flags:
-    - "--enable_bzlmod=false"
-    - "--incompatible_enable_android_toolchain_resolution=false"
-    test_flags:
-    - "--enable_bzlmod=false"
-    - "--incompatible_enable_android_toolchain_resolution=false"
-     # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
-    - "--java_runtime_version=17"
+  build_flags:
+    <<: *rules_flags
+  test_flags:
+    <<: *rules_flags
+rules_bzlmod: &rules_bzlmod
+  name: "Rules Bzlmod"
+  build_flags:
+    <<: *rules_flags
+    ? "--enable_bzlmod"
+  test_flags:
+    <<: *rules_flags
+    ? "--enable_bzlmod"
+  <<: *rules
 
 tasks:
-  ubuntu2004:
-    <<: *common
-  macos:
-    <<: *common
-  macos_arm64:
-    <<: *common
-  ubuntu2004_bzlmod:
-    name: Bzlmod ubuntu2004
+  ubuntu2004_tools:
     platform: ubuntu2004
-    build_flags:
-    - "--enable_bzlmod"
-    - "--incompatible_enable_android_toolchain_resolution=false"
-    test_flags:
-    - "--enable_bzlmod"
-    - "--incompatible_enable_android_toolchain_resolution=false"
-    <<: *common
-  macos_bzlmods:
-    name: Bzlmod macos
+    <<: *tools
+  ubuntu2004_rules:
+    platform: ubuntu2004
+    <<: *rules
+  macos_tools:
     platform: macos
-    build_flags:
-    - "--enable_bzlmod"
-    - "--incompatible_enable_android_toolchain_resolution=false"
-    test_flags:
-    - "--enable_bzlmod"
-    - "--incompatible_enable_android_toolchain_resolution=false"
-    <<: *common
-  macos_arm64_bzlmod:
-    name: Bzlmod macos_arm64
+    <<: *tools
+  macos_rules:
+    platform: macos
+    <<: *rules
+  macos_arm64_tools:
     platform: macos_arm64
+    <<: *tools
+  macos_arm64_rules:
+    platform: macos_arm64
+    <<: *rules
+  ubuntu2004_tools_bzlmod:
+    platform: ubuntu2004
+    <<: *tools_bzlmod
+  ubuntu2004_rules_bzlmod:
+    platform: ubuntu2004
+    <<: *rules_bzlmod
+  macos_bzlmods_tools:
+    platform: macos
+    <<: *tools_bzlmod
+  macos_bzlmods_rules:
+    platform: macos
+    <<: *rules_bzlmod
+  macos_arm64_tools_bzlmod:
+    platform: macos_arm64
+    <<: *tools_bzlmod
+  macos_arm64_rules_bzlmod:
+    platform: macos_arm64
+    <<: *rules_bzlmod
+  basicapp:
+    platform: ubuntu2004
+    name: basicapp
+    working_directory: examples/basicapp
     build_flags:
-    - "--enable_bzlmod"
-    - "--incompatible_enable_android_toolchain_resolution=false"
-    test_flags:
-    - "--enable_bzlmod"
-    - "--incompatible_enable_android_toolchain_resolution=false"
-    <<: *common
+      <<: *rules_flags
+    build_targets:
+      - "//java/com/basicapp:basic_app"

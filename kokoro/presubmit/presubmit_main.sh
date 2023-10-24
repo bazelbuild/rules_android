@@ -87,11 +87,18 @@ function main() {
     "--experimental_google_legacy_api"
     "--experimental_enable_android_migration_apis"
     "--build_tests_only"
+    "--test_output=errors"
+  )
+
+  TOOL_ARGS=(
     # Java tests use language version at least 11, but they might depend on
     # libraries that were built for Java 17.
     "--java_language_version=11"
     "--java_runtime_version=17"
-    "--test_output=errors"
+    "--noenable_bzlmod"
+    "--noincompatible_enable_android_toolchain_resolution"
+  )
+  RULE_ARGS=(
     "--noenable_bzlmod"
     "--noincompatible_enable_android_toolchain_resolution"
   )
@@ -100,13 +107,12 @@ function main() {
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
 
   # Fetch all external deps; should reveal any bugs related to external dep
-  # references. First run this query with bzlmod enabled to catch missing
-  # bzlmod deps.
-  "$bazel" aquery 'deps(...)' "${COMMON_ARGS[@]}" --enable_bzlmod > /dev/null
-  # Perform the same aquery with bzlmod disabled to sniff out WORKSPACE issues
-  "$bazel" aquery 'deps(...)' "${COMMON_ARGS[@]}" --noenable_bzlmod > /dev/null
+  # references. First run with bzlmod enabled to catch missing bzlmod deps.
+  "$bazel" sync --enable_bzlmod > /dev/null
+  # Perform the same sync with bzlmod disabled to sniff out WORKSPACE issues
+  "$bazel" sync --noenable_bzlmod > /dev/null
 
-  TEST_TARGETS=(
+  TOOL_TEST_TARGETS=(
     "//src/common/golang/..."
     "//src/tools/ak/..."
     "//src/tools/javatests/..."
@@ -114,23 +120,41 @@ function main() {
     "//src/tools/java/..."
     "//src/tools/mi/..."
     "//test/..."
+    "-//test/rules/..." # Tested below.
     # TODO(https://github.com/bazelbuild/rules_android/issues/170):
     # Re-enable when tests use proper way to find data files.
     "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:ExtractApiDescriptorsCommandTest"
     "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig:GenerateRuntimeEnabledSdkConfigCommandTest"
     "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest:GenerateSdkDependenciesManifestCommandTest"
+  )
+
+  "$bazel" test \
+    "${COMMON_ARGS[@]}" \
+    "${TOOL_ARGS[@]}" \
+    -- \
+    "${TOOL_TEST_TARGETS[@]}"
+
+  RULE_TEST_TARGETS=(
+    "//rules/..."
+    "//test/rules/..."
     # TODO(https://github.com/bazelbuild/rules_android/issues/169):
     # Re-enable when these are less fragile.
     "-//test/rules/android_local_test/..."
   )
 
-  "$bazel" test "${COMMON_ARGS[@]}" \
+  "$bazel" test \
+    "${COMMON_ARGS[@]}" \
+    "${RULE_ARGS[@]}" \
     -- \
-    "${TEST_TARGETS[@]}"
+    "${RULE_TEST_TARGETS[@]}"
 
   # Go to basic app workspace in the source tree
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
-  "$bazel" build "${COMMON_ARGS[@]}" //java/com/basicapp:basic_app
+  "$bazel" build \
+    "${COMMON_ARGS[@]}" \
+    "${RULE_ARGS[@]}" \
+    -- \
+    //java/com/basicapp:basic_app
 }
 
 main
