@@ -48,8 +48,7 @@ function main() {
   echo "== installing bazelisk ========================================="
   bazel_install_dir=$(mktemp -d)
   BAZELISK_VERSION="1.18.0"
-  # Update to last_green after fixing rules_java.
-  export USE_BAZEL_VERSION="7.0.0rc1"
+  export USE_BAZEL_VERSION="last_green"
   DownloadBazelisk "$BAZELISK_VERSION" linux amd64 "$bazel_install_dir"
   bazel="$bazel_install_dir/bazel"
   echo "============================================================="
