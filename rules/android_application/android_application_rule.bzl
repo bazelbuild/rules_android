@@ -454,10 +454,12 @@ def android_application_macro(_android_binary, **attrs):
         if not feature_module.startswith("//") or ":" not in feature_module:
             _log.error("feature_modules expects fully qualified paths, i.e. //some/path:target")
         module_targets = get_feature_module_paths(feature_module)
-        attrs["deps"].append(str(module_targets.title_lib))
+        deps = [d for d in attrs.pop("deps", [])]
+        deps.append(str(module_targets.title_lib))
 
     _android_binary(
         name = base_split_name,
+        deps = deps,
         **attrs
     )
 
