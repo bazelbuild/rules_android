@@ -1,7 +1,6 @@
 ---
 
-# Update to last_green after fixing rules_java.
-bazel: 7.0.0rc1
+bazel: last_green
 
 x_defaults:
   common: &common
