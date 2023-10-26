@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.android.bundle.RuntimeEnabledSdkConfigProto.RuntimeEnabledSdk;
 import com.android.bundle.RuntimeEnabledSdkConfigProto.RuntimeEnabledSdkConfig;
 import com.google.devtools.build.android.sandboxedsdktoolbox.info.SdkInfo;
+import com.google.devtools.build.android.sandboxedsdktoolbox.mixin.DebugKeystoreCommandMixin;
 import com.google.devtools.build.android.sandboxedsdktoolbox.mixin.HostAppInfoMixin;
 import com.google.devtools.build.android.sandboxedsdktoolbox.mixin.SdkDependenciesCommandMixin;
 import java.io.IOException;
@@ -41,6 +42,7 @@ public final class GenerateRuntimeEnabledSdkConfigCommand implements Runnable {
   Path outputConfigPath;
 
   @Mixin SdkDependenciesCommandMixin sdkDependenciesMixin;
+  @Mixin DebugKeystoreCommandMixin debugKeystoreMixin;
   @Mixin HostAppInfoMixin hostAppInfoMixin;
 
   @Override
@@ -52,7 +54,7 @@ public final class GenerateRuntimeEnabledSdkConfigCommand implements Runnable {
             + "For older versions it's 50.",
         sdkDependenciesMixin.getSdkDependencies().size());
 
-    String debugCertificateDigest = sdkDependenciesMixin.getDebugCertificateDigest();
+    String debugCertificateDigest = debugKeystoreMixin.getDebugCertificateDigest();
 
     RuntimeEnabledSdkConfig.Builder builder = RuntimeEnabledSdkConfig.newBuilder();
     for (SdkInfo sdkInfo : sdkDependenciesMixin.getSdkDependencies()) {

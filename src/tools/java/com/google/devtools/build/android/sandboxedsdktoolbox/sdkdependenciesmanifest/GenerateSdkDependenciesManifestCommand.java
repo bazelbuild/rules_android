@@ -17,6 +17,7 @@ package com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesman
 
 import static com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest.AndroidManifestWriter.writeManifest;
 
+import com.google.devtools.build.android.sandboxedsdktoolbox.mixin.DebugKeystoreCommandMixin;
 import com.google.devtools.build.android.sandboxedsdktoolbox.mixin.SdkDependenciesCommandMixin;
 import java.nio.file.Path;
 import picocli.CommandLine.Command;
@@ -38,12 +39,13 @@ public final class GenerateSdkDependenciesManifestCommand implements Runnable {
   Path outputManifestPath;
 
   @Mixin SdkDependenciesCommandMixin sdkDependenciesMixin;
+  @Mixin DebugKeystoreCommandMixin debugKeystoreMixin;
 
   @Override
   public void run() {
     writeManifest(
         manifestPackage,
-        sdkDependenciesMixin.getDebugCertificateDigest(),
+        debugKeystoreMixin.getDebugCertificateDigest(),
         sdkDependenciesMixin.getSdkDependencies(),
         outputManifestPath);
   }
