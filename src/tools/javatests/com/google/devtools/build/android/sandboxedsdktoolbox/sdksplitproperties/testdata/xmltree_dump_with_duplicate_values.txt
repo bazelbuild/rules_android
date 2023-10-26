@@ -1,0 +1,25 @@
+N: android=http://schemas.android.com/apk/res/android (line=2)
+  E: manifest (line=2)
+    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=42
+    A: http://schemas.android.com/apk/res/android:compileSdkVersion(0x01010572)=34
+    A: http://schemas.android.com/apk/res/android:compileSdkVersionCodename(0x01010573)="VanillaIceCream" (Raw: "VanillaIceCream")
+    A: package="com.example.host.app" (Raw: "com.example.host.app")
+    A: platformBuildVersionCode=34
+    A: platformBuildVersionName="VanillaIceCream" (Raw: "VanillaIceCream")
+      E: uses-sdk (line=6)
+        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=30
+        A: http://schemas.android.com/apk/res/android:targetSdkVersion(0x01010270)=23
+      E: application (line=10)
+        A: http://schemas.android.com/apk/res/android:label(0x01010001)=@0x7f010000
+  E: manifest (line=2)
+    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=84
+    A: http://schemas.android.com/apk/res/android:compileSdkVersion(0x01010572)=34
+    A: http://schemas.android.com/apk/res/android:compileSdkVersionCodename(0x01010573)="VanillaIceCream" (Raw: "VanillaIceCream")
+    A: package="wrong.host.app" (Raw: "wrong.host.app")
+    A: platformBuildVersionCode=68
+    A: platformBuildVersionName="VanillaIceCream" (Raw: "VanillaIceCream")
+      E: uses-sdk (line=6)
+        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=12
+        A: http://schemas.android.com/apk/res/android:targetSdkVersion(0x01010270)=23
+      E: application (line=10)
+        A: http://schemas.android.com/apk/res/android:label(0x01010001)=@0x7f010000
