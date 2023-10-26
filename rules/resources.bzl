@@ -20,6 +20,7 @@ load(":busybox.bzl", _busybox = "busybox")
 load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
+load(":proguard.bzl", _proguard = "proguard")
 load(
     ":providers.bzl",
     "ResourcesNodeInfo",
@@ -469,6 +470,21 @@ def _filter_multi_cpu_configuration_targets(
         filtered_targets.append(t)
     return filtered_targets
 
+def _get_proguard_specs_for_manifest(ctx, merged_manifest):
+    assumes_value_spec = _proguard.get_proguard_temp_artifact_with_prefix(
+        ctx,
+        ctx.label,
+        "migrated",
+        "proguard_minsdkversion.cfg",
+    )
+    _proguard.generate_min_sdk_version_assumevalues(
+        ctx,
+        output = assumes_value_spec,
+        manifest = merged_manifest,
+        generate_exec = ctx.executable._minsdkversion_assumevalues_proguard_spec_generator,
+    )
+    return assumes_value_spec
+
 def _package(
         ctx,
         assets = [],
@@ -493,7 +509,7 @@ def _package(
         enable_data_binding = False,
         enable_manifest_merging = True,
         should_compile_java_srcs = True,
-        minsdk_proguard_config = None,
+        generate_minsdk_proguard_config = False,
         aapt = None,
         has_local_proguard_specs = False,
         android_jar = None,
@@ -551,8 +567,8 @@ def _package(
         produce build failures.
       enable_manifest_merging: boolean. If true, manifest merging will be performed.
       should_compile_java_srcs: boolean. If native android_binary should perform java compilation.
-      minsdk_proguard_config: Optional file. Proguard config for the minSdkVersion to include in the
-        returned resource context.
+      generate_minsdk_proguard_config: boolean. Whether to generate the Proguard specs for the
+      minSdkVersion.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       has_local_proguard_specs: If the target has proguard specs.
       android_jar: File. The Android jar.
@@ -757,6 +773,11 @@ def _package(
         debug = compilation_mode != _compilation_mode.OPT,
         should_throw_on_conflict = should_throw_on_conflict,
     )
+
+    minsdk_proguard_config = None
+    if generate_minsdk_proguard_config:
+        minsdk_proguard_config = _get_proguard_specs_for_manifest(ctx, processed_manifest)
+
     packaged_resources_ctx[_PACKAGED_FINAL_MANIFEST] = processed_manifest
     packaged_resources_ctx[_PACKAGED_RESOURCE_APK] = resource_apk
     packaged_resources_ctx[_PACKAGED_VALIDATION_RESULT] = resource_files_zip
@@ -2107,6 +2128,7 @@ testing = struct(
     add_g3itr = _add_g3itr,
     filter_multi_cpu_configuration_targets = _filter_multi_cpu_configuration_targets,
     get_legacy_mergee_manifests = _get_legacy_mergee_manifests,
+    get_proguard_specs_for_manifest = _get_proguard_specs_for_manifest,
     make_databinding_outputs = _make_databinding_outputs,
     ResourcesPackageContextInfo = _ResourcesPackageContextInfo,
     ResourcesProcessContextInfo = _ResourcesProcessContextInfo,
