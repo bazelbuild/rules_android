@@ -21,6 +21,7 @@ import com.google.devtools.build.android.sandboxedsdktoolbox.clientsources.Gener
 import com.google.devtools.build.android.sandboxedsdktoolbox.runtimeenabledsdkconfig.GenerateRuntimeEnabledSdkConfigCommand;
 import com.google.devtools.build.android.sandboxedsdktoolbox.runtimeenabledsdkconfig.GenerateRuntimeEnabledSdkTableCommand;
 import com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest.GenerateSdkDependenciesManifestCommand;
+import com.google.devtools.build.android.sandboxedsdktoolbox.sdksplitproperties.GenerateSdkSplitPropertiesCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -34,6 +35,7 @@ import picocli.CommandLine.Command;
       GenerateRuntimeEnabledSdkConfigCommand.class,
       GenerateRuntimeEnabledSdkTableCommand.class,
       GenerateSdkDependenciesManifestCommand.class,
+      GenerateSdkSplitPropertiesCommand.class,
     })
 public final class SandboxedSdkToolbox {
 
