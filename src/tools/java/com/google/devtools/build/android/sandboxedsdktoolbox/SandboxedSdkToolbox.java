@@ -19,6 +19,7 @@ import com.google.devtools.build.android.sandboxedsdktoolbox.apidescriptors.Extr
 import com.google.devtools.build.android.sandboxedsdktoolbox.apidescriptors.ExtractApiDescriptorsFromAsarCommand;
 import com.google.devtools.build.android.sandboxedsdktoolbox.clientsources.GenerateClientSourcesCommand;
 import com.google.devtools.build.android.sandboxedsdktoolbox.runtimeenabledsdkconfig.GenerateRuntimeEnabledSdkConfigCommand;
+import com.google.devtools.build.android.sandboxedsdktoolbox.runtimeenabledsdkconfig.GenerateRuntimeEnabledSdkTableCommand;
 import com.google.devtools.build.android.sandboxedsdktoolbox.sdkdependenciesmanifest.GenerateSdkDependenciesManifestCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -31,6 +32,7 @@ import picocli.CommandLine.Command;
       ExtractApiDescriptorsFromAsarCommand.class,
       GenerateClientSourcesCommand.class,
       GenerateRuntimeEnabledSdkConfigCommand.class,
+      GenerateRuntimeEnabledSdkTableCommand.class,
       GenerateSdkDependenciesManifestCommand.class,
     })
 public final class SandboxedSdkToolbox {
