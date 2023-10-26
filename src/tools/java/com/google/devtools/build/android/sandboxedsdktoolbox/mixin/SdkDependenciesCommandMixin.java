@@ -16,7 +16,6 @@
 package com.google.devtools.build.android.sandboxedsdktoolbox.mixin;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.devtools.build.android.sandboxedsdktoolbox.mixin.CertificateDigestGenerator.generateCertificateDigest;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.devtools.build.android.sandboxedsdktoolbox.info.SdkInfo;
@@ -34,9 +33,6 @@ public final class SdkDependenciesCommandMixin {
 
   private List<Path> sdkModuleConfigPaths = new ArrayList<>();
   private List<Path> sdkArchivePaths = new ArrayList<>();
-  private Path debugKeystorePath;
-  private String debugKeystorePassword;
-  private String debugKeystoreAlias;
 
   public ImmutableSet<SdkInfo> getSdkDependencies() {
     checkValid();
@@ -47,9 +43,6 @@ public final class SdkDependenciesCommandMixin {
         .collect(toImmutableSet());
   }
 
-  public String getDebugCertificateDigest() {
-    return generateCertificateDigest(debugKeystorePath, debugKeystorePassword, debugKeystoreAlias);
-  }
 
   @Option(names = "--sdk-module-configs", split = ",", required = false)
   void setSdkModuleConfigPaths(List<Path> sdkModuleConfigPaths) {
@@ -59,21 +52,6 @@ public final class SdkDependenciesCommandMixin {
   @Option(names = "--sdk-archives", split = ",", required = false)
   void setSdkArchivePaths(List<Path> sdkArchivePaths) {
     this.sdkArchivePaths = sdkArchivePaths;
-  }
-
-  @Option(names = "--debug-keystore", required = true)
-  void setDebugKeystorePath(Path debugKeystorePath) {
-    this.debugKeystorePath = debugKeystorePath;
-  }
-
-  @Option(names = "--debug-keystore-pass", required = true)
-  void setDebugKeystorePassword(String debugKeystorePassword) {
-    this.debugKeystorePassword = debugKeystorePassword;
-  }
-
-  @Option(names = "--debug-keystore-alias", required = true)
-  void setDebugKeystoreAlias(String debugKeystoreAlias) {
-    this.debugKeystoreAlias = debugKeystoreAlias;
   }
 
   private void checkValid() {
