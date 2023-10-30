@@ -25,6 +25,11 @@ tools: &tools
     - "//toolchains/..."
     - "//tools/..."
     - "-//tools/android/..." # TODO(#122): Un-exclude this once #122 is fixed.
+    # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
+    - "-//src/tools/ak/rjar:rjar_test"
+    - "-//src/tools/ak/rjar/testdata/..."
+    - "-//src/tools/ak/shellapk:shellapk_test"
+    - "-//src/tools/ak/shellapk/testdata/..."
   test_targets:
     - "//src/..."
     - "-//src/java/com/example/sampleapp/..."
@@ -35,6 +40,10 @@ tools: &tools
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:ExtractApiDescriptorsCommandTest"
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig:GenerateRuntimeEnabledSdkConfigCommandTest"
     - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest:GenerateSdkDependenciesManifestCommandTest"
+    # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
+    - "-//src/tools/enforce_min_sdk_floor/..."
+    # TODO(#180): Fix sdksplitproperties
+    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdksplitproperties/..."
   build_flags:
     <<: *tools_flags
   test_flags:
@@ -57,6 +66,8 @@ rules: &rules
     # TODO(https://github.com/bazelbuild/rules_android/issues/169):
     # Re-enable when these are less fragile.
     - "-//test/rules/android_local_test/..."
+    # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
+    - "-//test/rules/android_binary_internal/r8_integration/..."
   build_flags:
     <<: *rules_flags
   test_flags:
@@ -108,11 +119,12 @@ tasks:
   macos_arm64_rules_bzlmod:
     platform: macos_arm64
     <<: *rules_bzlmod
-  basicapp:
-    platform: ubuntu2004
-    name: basicapp
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-    build_targets:
-      - "//java/com/basicapp:basic_app"
+  # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
+  #basicapp:
+  #  platform: ubuntu2004
+  #  name: basicapp
+  #  working_directory: examples/basicapp
+  #  build_flags:
+  #    <<: *rules_flags
+  #  build_targets:
+  #    - "//java/com/basicapp:basic_app"
