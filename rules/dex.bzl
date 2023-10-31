@@ -65,7 +65,7 @@ def _process_incremental_dexing(
             dex_archives.append(dex_archive)
         dex_archives += _to_dexed_classpath(
             dex_archives_dict = {d.jar: d.dex for d in info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()},
-            classpath = _filter(java_info.transitive_runtime_jars.to_list(), excludes = _get_library_r_jars(deps)),
+            classpath = [jar for jar in java_info.transitive_runtime_jars.to_list() if jar not in _get_library_r_jars(deps)],
             runtime_jars = runtime_jars,
         )
     else:
@@ -527,16 +527,9 @@ def _merge_infos(infos):
     )
 
 def _filter_dexopts(tokenized_dexopts, includes):
-    return _normalize_dexopts(_filter(tokenized_dexopts, includes = includes))
-
-def _filter(candidates, includes = [], excludes = []):
-    if excludes and includes:
-        fail("Only one of excludes list and includes list can be set.")
-    if includes:
-        return [c for c in candidates if c in includes]
-    if excludes:
-        return [c for c in candidates if c not in excludes]
-    return candidates
+    return _normalize_dexopts(
+        [opt for opt in tokenized_dexopts if opt.split("=")[0] in includes],
+    )
 
 def _normalize_dexopts(tokenized_dexopts):
     def _dx_to_dexbuilder(opt):
