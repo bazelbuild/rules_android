@@ -22,18 +22,11 @@ tools: &tools
     - "//toolchains/..."
     - "//tools/..."
     - "-//tools/android/..." # TODO(#122): Un-exclude this once #122 is fixed.
-    # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
-    - "-//src/tools/ak/rjar:rjar_test"
-    - "-//src/tools/ak/rjar/testdata/..."
-    - "-//src/tools/ak/shellapk:shellapk_test"
-    - "-//src/tools/ak/shellapk/testdata/..."
   test_targets:
     - "//src/..."
     - "-//src/java/com/example/sampleapp/..."
     - "//test/..."
     - "-//test/rules/..."
-    # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
-    - "-//src/tools/enforce_min_sdk_floor/..."
   build_flags:
     <<: *tools_flags
   test_flags:
@@ -53,8 +46,6 @@ rules: &rules
     - "//rules/..."
   test_targets:
     - "//test/rules/..."
-    # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
-    - "-//test/rules/android_binary_internal/r8_integration/..."
   build_flags:
     <<: *rules_flags
   test_flags:
@@ -106,12 +97,11 @@ tasks:
   macos_arm64_rules_bzlmod:
     platform: macos_arm64
     <<: *rules_bzlmod
-  # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
-  #basicapp:
-  #  platform: ubuntu2004
-  #  name: basicapp
-  #  working_directory: examples/basicapp
-  #  build_flags:
-  #    <<: *rules_flags
-  #  build_targets:
-  #    - "//java/com/basicapp:basic_app"
+  basicapp:
+    platform: ubuntu2004
+    name: basicapp
+    working_directory: examples/basicapp
+    build_flags:
+      <<: *rules_flags
+    build_targets:
+      - "//java/com/basicapp:basic_app"
