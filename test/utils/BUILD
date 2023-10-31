@@ -23,5 +23,8 @@ filegroup(
 bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
-    visibility = ["//tools/build_defs/android:__subpackages__"],
+    visibility = [
+        "//test:__subpackages__",
+        "//tools/build_defs/android:__subpackages__",
+    ],
 )
