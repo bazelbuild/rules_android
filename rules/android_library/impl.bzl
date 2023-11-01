@@ -33,8 +33,8 @@ load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "ut
 load("//rules/flags:flags.bzl", _flags = "flags")
 
 _USES_DEPRECATED_IMPLICIT_EXPORT_ERROR = (
-    "Use android_library.exports to explicitly specify the exported " +
-    "targets of %s."
+    "Setting `deps` without `srcs` or `resource_files` is not supported. Consider using " +
+    "`exports` to explicitly specify the exported targets of %s."
 )
 
 _SRCS_CONTAIN_RESOURCE_LABEL_ERROR = (
