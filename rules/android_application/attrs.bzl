@@ -26,7 +26,7 @@ load(
 
 ANDROID_APPLICATION_ATTRS = _attrs.add(
     dict(
-        application_id = attr.string(),
+        manifest_values = attr.string_dict(),
         base_module = attr.label(allow_files = False),
         bundle_config_file = attr.label(
             allow_single_file = [".pb.json"],
