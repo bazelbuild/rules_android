@@ -68,9 +68,6 @@ def _verify_attrs(attrs, fqn):
         if hasattr(attrs, attr):
             _log.error("Unsupported attr: %s in android_application" % attr)
 
-    if not attrs.get("manifest_values", {}).get("applicationId"):
-        _log.error("%s missing required applicationId in manifest_values" % fqn)
-
     for attr in ["deps"]:
         if attr not in attrs:
             _log.error("%s missing require attribute `%s`" % (fqn, attr))
@@ -265,7 +262,13 @@ def _generate_runtime_enabled_sdk_config(ctx, base_proto_apk):
     )
     return config
 
+def _validate_manifest_values(manifest_values):
+    if "applicationId" not in manifest_values:
+        _log.error("missing required applicationId in manifest_values")
+
 def _impl(ctx):
+    _validate_manifest_values(ctx.attr.manifest_values)
+
     # Convert base apk to .proto_ap_
     base_apk = ctx.attr.base_module[ApkInfo].unsigned_apk
     base_proto_apk = ctx.actions.declare_file(ctx.label.name + "/modules/base.proto-ap_")
@@ -305,7 +308,7 @@ def _impl(ctx):
             base_apk = base_apk,
             feature_target = feature,
             java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package),
-            application_id = ctx.attr.application_id,
+            application_id = ctx.attr.manifest_values.get("applicationId"),
         )
         module = ctx.actions.declare_file(
             proto_apk.basename + ".zip",
@@ -473,6 +476,6 @@ def android_application_macro(_android_binary, **attrs):
         feature_modules = feature_modules,
         sdk_archives = sdk_archives,
         sdk_bundles = sdk_bundles,
-        application_id = attrs["manifest_values"]["applicationId"],
+        manifest_values = attrs.get("manifest_values"),
         visibility = attrs.get("visibility", None),
     )
