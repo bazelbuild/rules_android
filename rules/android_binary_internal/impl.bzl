@@ -744,6 +744,7 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
             seeds = proguard_output.seeds,
             library_jar = proguard_output.library_jar,
             config = proguard_output.config,
+            usage = proguard_output.usage,
             proto_mapping = proguard_output.proto_mapping,
             rewritten_startup_profile = proguard_output.startup_profile_rewritten,
             rewriten_merged_baseline_profile = proguard_output.baseline_profile_rewritten,
