@@ -44,6 +44,7 @@ load("//rules/acls:android_binary_raw_access_to_resource_paths_allowlist.bzl", "
 load("//rules/acls:android_binary_resource_name_obfuscation_opt_out_allowlist.bzl", "ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST")
 load("//rules/acls:android_binary_starlark_dex_desugar_proguard.bzl", "ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK", "ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT")
 load("//rules/acls:android_binary_starlark_javac.bzl", "ANDROID_BINARY_STARLARK_JAVAC_FALLBACK", "ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT")
+load("//rules/acls:android_binary_starlark_rollout.bzl", "ANDROID_BINARY_STARLARK_FALLBACK", "ANDROID_BINARY_STARLARK_ROLLOUT")
 load("//rules/acls:android_binary_starlark_split_transition.bzl", "ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_FALLBACK", "ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_ROLLOUT")
 load("//rules/acls:android_binary_with_sandboxed_sdks_allowlist.bzl", "ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST")
 load("//rules/acls:android_build_stamping_rollout.bzl", "ANDROID_BUILD_STAMPING_FALLBACK", "ANDROID_BUILD_STAMPING_ROLLOUT")
@@ -248,6 +249,9 @@ def _in_allow_proguard_apply_mapping(fqn):
 def _use_r8(fqn):
     return matches(fqn, USE_R8_DICT)
 
+def _in_android_binary_starlark_rollout(fqn):
+    return matches(fqn, ANDROID_BINARY_STARLARK_ROLLOUT_DICT) and not matches(fqn, ANDROID_BINARY_STARLARK_FALLBACK_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -335,6 +339,8 @@ ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT = make_dict(ANDROID_B
 ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST)
 ALLOW_PROGUARD_APPLY_MAPPING_DICT = make_dict(ALLOW_PROGUARD_APPLY_MAPPING)
 USE_R8_DICT = make_dict(USE_R8)
+ANDROID_BINARY_STARLARK_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_ROLLOUT)
+ANDROID_BINARY_STARLARK_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_FALLBACK)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -434,6 +440,7 @@ acls = struct(
     in_android_binary_raw_access_to_resource_paths_allowlist = _in_android_binary_raw_access_to_resource_paths_allowlist,
     in_android_binary_resource_name_obfuscation_opt_out_allowlist = _in_android_binary_resource_name_obfuscation_opt_out_allowlist,
     in_allow_proguard_apply_mapping = _in_allow_proguard_apply_mapping,
+    in_android_binary_starlark_rollout = _in_android_binary_starlark_rollout,
     use_r8 = _use_r8,
 )
 
