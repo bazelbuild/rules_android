@@ -239,9 +239,8 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
         proguard_output_map = optimize_ctx.proguard_output.mapping if is_binary_optimized else None
         binary_jar = proguarded_jar if proguarded_jar else deploy_jar
         java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
-        runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
-        if proto_ctx.class_jar:
-            runtime_jars.append(proto_ctx.class_jar)
+        binary_runtime_jars = deploy_ctx.binary_runtime_jars
+
         forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
 
         if (main_dex_list and multidex != "manual_main_dex") or \
@@ -332,7 +331,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 output = classes_dex_zip,
                 deps = _get_dex_desugar_aspect_deps(ctx),
                 dexopts = ctx.attr.dexopts,
-                runtime_jars = runtime_jars,
+                runtime_jars = binary_runtime_jars,
                 main_dex_list = main_dex_list,
                 min_sdk_version = ctx.attr.min_sdk_version,
                 proguarded_jar = proguarded_jar,
@@ -412,16 +411,20 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
 
 def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, proto_ctx, **_unused_ctxs):
     deploy_jar, filtered_deploy_jar, desugar_dict = None, None, {}
-
+    binary_runtime_jars = []
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         java_toolchain = common.get_java_toolchain(ctx)
         java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
         info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
         incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
         dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
-        binary_runtime_jars = java_info.runtime_output_jars + [packaged_resources_ctx.class_jar]
+        binary_runtime_jars += java_info.runtime_output_jars
+        binary_runtime_jars.append(packaged_resources_ctx.class_jar)
         if proto_ctx.class_jar:
             binary_runtime_jars.append(proto_ctx.class_jar)
+        if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
+            # In offline instrumentation mode, we add the Jacoco runtime to the classpath.
+            binary_runtime_jars.extend(ctx.attr._jacoco_runtime[DefaultInfo].files.to_list())
 
         if ctx.fragments.android.desugar_java8:
             desugared_jars = []
@@ -478,6 +481,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
     return ProviderInfo(
         name = "deploy_ctx",
         value = struct(
+            binary_runtime_jars = binary_runtime_jars,
             deploy_jar = deploy_jar,
             desugar_dict = desugar_dict,
             filtered_deploy_jar = filtered_deploy_jar,
