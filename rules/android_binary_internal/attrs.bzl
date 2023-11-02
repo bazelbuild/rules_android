@@ -15,6 +15,7 @@
 """Attributes."""
 
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
+load("//rules:android_split_transition.bzl", "android_split_transition")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -32,7 +33,7 @@ def make_deps(allow_rules, providers, aspects):
         allow_rules = allow_rules,
         providers = providers,
         aspects = aspects,
-        cfg = android_common.multi_cpu_configuration,
+        cfg = android_split_transition,
     )
 
 DEPS_ALLOW_RULES = [
@@ -133,7 +134,7 @@ ATTRS = _attrs.replace(
             _defined_resource_files = attr.bool(default = False),
             _enable_manifest_merging = attr.bool(default = True),
             _cc_toolchain_split = attr.label(
-                cfg = android_common.multi_cpu_configuration,
+                cfg = android_split_transition,
                 default = "@bazel_tools//tools/cpp:current_cc_toolchain",
                 aspects = [split_config_aspect],
             ),

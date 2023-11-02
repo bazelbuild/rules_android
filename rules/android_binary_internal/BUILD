@@ -13,6 +13,7 @@ bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
     deps = [
+        "//rules:android_split_transition_bzl",
         "//rules:common_bzl",
     ],
     visibility = ["//:__subpackages__"],
