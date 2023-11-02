@@ -143,6 +143,78 @@ mv "${APKS_OUT_DIR}/standalones/standalone.apk" "${DEBUG_APK_PATH}"
         progress_message = "Extract debug SDK APK to %s" % out.short_path,
     )
 
+def _build_sdk_apks_for_app(
+        ctx,
+        out = None,
+        aapt2 = None,
+        sdk_archive = None,
+        sdk_bundle = None,
+        sdk_split_properties_inherited_from_app = None,
+        debug_key = None,
+        bundletool = None,
+        host_javabase = None):
+    if bool(sdk_archive) == bool(sdk_bundle):
+        fail("Exactly one of sdk_archive or sdk_bundle need to be set in %s." % ctx.label.name)
+
+    split_out_dir = ctx.actions.declare_directory(
+        "%s_split_out" % paths.basename(out.path).replace(".", "_"),
+        sibling = out,
+    )
+    inputs = [debug_key, sdk_split_properties_inherited_from_app]
+    args = ctx.actions.args()
+    args.add("build-sdk-apks-for-app")
+    args.add("--app-properties", sdk_split_properties_inherited_from_app)
+    args.add("--aapt2", aapt2.executable.path)
+    if sdk_archive:
+        args.add("--sdk-archive", sdk_archive)
+        inputs.append(sdk_archive)
+    if sdk_bundle:
+        args.add("--sdk-bundle", sdk_bundle)
+        inputs.append(sdk_bundle)
+    args.add("--ks", debug_key)
+    args.add("--ks-pass=pass:android")
+    args.add("--ks-key-alias=androiddebugkey")
+    args.add("--key-pass=pass:android")
+    args.add("--output-format=DIRECTORY")
+    args.add("--output", split_out_dir.path)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = bundletool,
+        arguments = [args],
+        inputs = inputs,
+        tools = [aapt2],
+        outputs = [split_out_dir],
+        mnemonic = "BuildSdkSplit",
+        progress_message = "Building SDK split %s" % out.short_path,
+    )
+
+    # Now move split out of bundletool output dir.
+    ctx.actions.run_shell(
+        command = """
+set -e
+SPLIT_APKS=(%s/splits/*.apk)
+OUTPUT_SPLIT=%s
+
+if [[ "${#SPLIT_APKS[@]}" -ne 1 ]]
+then
+    echo "Expected a single APK split but got ${#SPLIT_APKS[@]}"
+    exit 1
+fi
+
+mv "${SPLIT_APKS[0]}" "${OUTPUT_SPLIT}"
+""" % (
+            split_out_dir.path,
+            out.path,
+        ),
+        tools = [],
+        arguments = [],
+        inputs = [split_out_dir],
+        outputs = [out],
+        mnemonic = "MoveSplitApk",
+        progress_message = "Move SDK split APK from Bundletool output: %s" % out.short_path,
+    )
+
 def _build_sdk_bundle(
         ctx,
         out = None,
@@ -352,6 +424,7 @@ bundletool = struct(
     build = _build,
     build_device_json = _build_device_json,
     build_sdk_apks = _build_sdk_apks,
+    build_sdk_apks_for_app = _build_sdk_apks_for_app,
     build_sdk_bundle = _build_sdk_bundle,
     build_sdk_module = _build_sdk_module,
     bundle_to_apks = _bundle_to_apks,

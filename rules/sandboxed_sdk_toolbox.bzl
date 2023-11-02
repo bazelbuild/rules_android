@@ -157,6 +157,46 @@ def _generate_runtime_enabled_sdk_config(
         progress_message = "Generate RuntimeEnabledSdkConfig proto message %s" % output.short_path,
     )
 
+def _generate_runtime_enabled_sdk_table(
+        ctx,
+        output = None,
+        sdk_archives = None,
+        sdk_module_configs = None,
+        sandboxed_sdk_toolbox = None,
+        host_javabase = None):
+    """Generates a XML file with metadata expected by the SDK Runtime library.
+
+    This will be used to load sandboxed SDKs in compatibility mode on devices without the sandbox.
+
+    Args:
+      ctx: The context.
+      output: Output XML file.
+      sdk_archives: List of SDK archives, as ASAR files. They will also be listed as dependencies.
+      sdk_module_configs: List of SDK Module config JSON files with SDK packages and versions.
+      sandboxed_sdk_toolbox: Toolbox executable files.
+      host_javabase: Javabase used to run the toolbox.
+    """
+    inputs = []
+    args = ctx.actions.args()
+    args.add("generate-runtime-enabled-sdk-table")
+    if sdk_module_configs:
+        args.add("--sdk-module-configs", ",".join([config.path for config in sdk_module_configs]))
+        inputs.extend(sdk_module_configs)
+    if sdk_archives:
+        args.add("--sdk-archives", ",".join([archive.path for archive in sdk_archives]))
+        inputs.extend(sdk_archives)
+    args.add("--output-table", output)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = sandboxed_sdk_toolbox,
+        arguments = [args],
+        inputs = inputs,
+        outputs = [output],
+        mnemonic = "GenRuntimeEnabledSdkTable",
+        progress_message = "Generate SDK dependencies XML metadata for app %s" % output.short_path,
+    )
+
 def _generate_sdk_dependencies_manifest(
         ctx,
         output = None,
@@ -206,10 +246,65 @@ def _generate_sdk_dependencies_manifest(
         progress_message = "Generate SDK dependencies manifest %s" % output.short_path,
     )
 
+def _generate_sdk_split_properties(
+        ctx,
+        output = None,
+        sdk_archive = None,
+        sdk_module_config = None,
+        runtime_enabled_sdk_config = None,
+        manifest_xml_tree = None,
+        sandboxed_sdk_toolbox = None,
+        host_javabase = None):
+    """Generates the SdkSplitPropertiesInheritiedFromApp proto message.
+
+    This message is used by Bundletool to create an app split that contains the sandboxed SDK.
+    This is the deployment format of sandboxed SDKs on devices that don't have the Privacy Sandbox.
+
+    Args:
+      ctx: The context.
+      output: File where the final manifest will be written.
+      sdk_archive: SDK archive as an ASAR file. Exactly one of sdk_archive or sdk_module_config
+        must be set.
+      sdk_module_config: SDK Module config JSON file form an SDK bundle. Exactly one of sdk_archive
+        or sdk_module_config must be set.
+      runtime_enabled_sdk_config: A RuntimeEnabledSdkConfig file with all the SDKs targeted by the
+        host app, including the target SDK.
+      manifest_xml_tree: A file with the AAPT2's xmltree dump of the host app manifest.
+        This will be used to read the app id, version code and minSdkVersion.
+      sandboxed_sdk_toolbox: Toolbox executable files.
+      host_javabase: Javabase used to run the toolbox.
+    """
+    if (bool(sdk_archive) == bool(sdk_module_config)):
+        fail("Exactly one of sdk_archive or sdk_module_config must be set in %s" % ctx.label.name)
+    inputs = [runtime_enabled_sdk_config, manifest_xml_tree]
+    args = ctx.actions.args()
+    args.add("generate-sdk-split-properties")
+    args.add("--runtime-enabled-sdk-config", runtime_enabled_sdk_config)
+    args.add("--manifest-xml-tree", manifest_xml_tree)
+    if sdk_module_config:
+        args.add("--sdk-modules-config", sdk_module_config)
+        inputs.append(sdk_module_config)
+    if sdk_archive:
+        args.add("--sdk-archive", sdk_archive)
+        inputs.append(sdk_archive)
+    args.add("--output-properties", output)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = sandboxed_sdk_toolbox,
+        arguments = [args],
+        inputs = inputs,
+        outputs = [output],
+        mnemonic = "GenSdkSplitProperties",
+        progress_message = "Generate SDK split properties %s" % output.short_path,
+    )
+
 sandboxed_sdk_toolbox = struct(
     extract_api_descriptors = _extract_api_descriptors,
     extract_api_descriptors_from_asar = _extract_api_descriptors_from_asar,
     generate_client_sources = _generate_client_sources,
     generate_runtime_enabled_sdk_config = _generate_runtime_enabled_sdk_config,
+    generate_runtime_enabled_sdk_table = _generate_runtime_enabled_sdk_table,
     generate_sdk_dependencies_manifest = _generate_sdk_dependencies_manifest,
+    generate_sdk_split_properties = _generate_sdk_split_properties,
 )
