@@ -74,7 +74,6 @@ def _make_app_runner(
         test_args = None,
         instrumented_app_package_name = None,
         use_adb_root = True,
-        enable_metrics_logging = False,
         use_studio_deployer = True,
         is_test = False):
     path_type = "path" if ctx.attr._mi_is_cmd else "short_path"
@@ -101,7 +100,6 @@ def _make_app_runner(
 
     args["studio_deployer"] = getattr(ctx.file._studio_deployer, path_type)
     args["use_adb_root"] = str(use_adb_root).lower()
-    args["enable_metrics_logging"] = str(enable_metrics_logging).lower()
     args["use_studio_deployer"] = str(use_studio_deployer).lower()
 
     args["use_direct_deploy"] = True
@@ -279,7 +277,6 @@ def make_direct_launcher(
         test_args = test_args,
         instrumented_app_package_name = instrumented_app_package_name,
         use_adb_root = use_adb_root,
-        enable_metrics_logging = flags.get(ctx).enable_metrics_logging,
         use_studio_deployer = flags.get(ctx).use_studio_deployer,
         is_test = is_test,
     ))

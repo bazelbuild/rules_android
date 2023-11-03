@@ -17,7 +17,6 @@ load(":deploy_info.bzl", "make_deploy_info_pb")
 load(":providers.bzl", "MIAppInfo", "MIAppLaunchInfo")
 load(":utils.bzl", "utils")
 load(":workspace.bzl", "make_dex_sync", "make_generic_sync", "merge_syncs")
-load("//rules/flags:flags.bzl", "flags")
 
 HOST_TEST_WORKSPACE = "host_test_runner_workspace"
 
@@ -89,7 +88,6 @@ def _make_app_runner(
         instrumented_app = None,
         googplayservices_container_app = None,
         use_adb_root = True,
-        enable_metrics_logging = False,
         is_test = False):
     path_type = "path" if ctx.attr._mi_is_cmd else "short_path"
 
@@ -117,7 +115,6 @@ def _make_app_runner(
 
     args["studio_deployer"] = getattr(ctx.file._studio_deployer, path_type)
     args["use_adb_root"] = str(use_adb_root).lower()
-    args["enable_metrics_logging"] = str(enable_metrics_logging).lower()
 
     android_test_runner = None
     if is_test and hasattr(ctx.attr, "_android_test_runner"):
@@ -302,7 +299,6 @@ def make_launcher(
         instrumented_app = instrumented_app,
         googplayservices_container_app = googplayservices_container_app,
         use_adb_root = use_adb_root,
-        enable_metrics_logging = flags.get(ctx).enable_metrics_logging,
         is_test = is_test,
     ))
 
