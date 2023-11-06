@@ -68,6 +68,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "android_split_transition_bzl",
+    srcs = [
+        "android_split_transition.bzl",
+    ],
+    deps = [
+        ":common_bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+)
+
+bzl_library(
     name = "bzl",
     srcs = [
         "android_ndk_repository.bzl",
