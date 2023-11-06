@@ -17,9 +17,6 @@ tools: &tools
     - "//android/..."
     - "//src/..."
     - "-//src/java/com/example/sampleapp/..."
-    # TODO(https://github.com/bazelbuild/rules_android/issues/170):
-    # Re-enable when tests use proper way to find data files.
-    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/..."
     - "//test/..."
     - "-//test/rules/..." # Tested in `rules`
     - "//toolchains/..."
@@ -35,15 +32,8 @@ tools: &tools
     - "-//src/java/com/example/sampleapp/..."
     - "//test/..."
     - "-//test/rules/..."
-    # TODO(https://github.com/bazelbuild/rules_android/issues/170):
-    # Re-enable when tests use proper way to find data files.
-    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:ExtractApiDescriptorsCommandTest"
-    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig:GenerateRuntimeEnabledSdkConfigCommandTest"
-    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest:GenerateSdkDependenciesManifestCommandTest"
     # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
     - "-//src/tools/enforce_min_sdk_floor/..."
-    # TODO(#180): Fix sdksplitproperties
-    - "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdksplitproperties/..."
   build_flags:
     <<: *tools_flags
   test_flags:
