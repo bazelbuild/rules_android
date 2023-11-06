@@ -24,10 +24,22 @@ import java.nio.file.Path;
 public final class TestData {
 
   /** Path to the javatests directory in runfiles. */
-  public static final Path JAVATESTS_DIR =
-      Path.of(
+  public static final Path JAVATESTS_DIR;
+
+  static {
+    Path javatestsDir = Path.of(
+        System.getenv("TEST_SRCDIR"),
+        "rules_android/src/tools/javatests/");
+
+    // rules_android will be _main with bzlmod, so check both for compatibility.
+    if (!Files.exists(javatestsDir)) {
+      javatestsDir = Path.of(
           System.getenv("TEST_SRCDIR"),
-          "/rules_android/src/tools/javatests/");
+          "_main/src/tools/javatests/");
+    }
+
+    JAVATESTS_DIR = javatestsDir;
+  }
 
   /** Reads the contents of a file, assuming its path is absolute. */
   public static String readFromAbsolutePath(Path absolutePath) throws Exception {
