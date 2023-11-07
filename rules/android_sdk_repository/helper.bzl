@@ -114,7 +114,10 @@ def create_android_sdk_rules(
         "build-tools/%s/zipalign.exe" % build_tools_directory,
         "platform-tools/adb.exe",
     ] + native.glob(
-        ["build-tools/%s/aapt2.exe" % build_tools_directory],
+        [
+            "build-tools/%s/aapt2.exe" % build_tools_directory,
+            "build-tools/%s/dexdump.exe" % build_tools_directory,
+        ],
         allow_empty = True,
     )
 
@@ -124,7 +127,11 @@ def create_android_sdk_rules(
         "build-tools/%s/zipalign" % build_tools_directory,
         "platform-tools/adb",
     ] + native.glob(
-        ["extras", "build-tools/%s/aapt2" % build_tools_directory],
+        [
+            "extras",
+            "build-tools/%s/aapt2" % build_tools_directory,
+            "build-tools/%s/dexdump" % build_tools_directory,
+        ],
         allow_empty = True,
         exclude_directories = 0,
     )
@@ -132,15 +139,20 @@ def create_android_sdk_rules(
     # This filegroup is used to pass the minimal contents of the SDK to the
     # Android integration tests. Note that in order to work on Windows, we cannot
     # include directories and must keep the size small.
+    build_tools_major_version = int(build_tools_version.split(".")[0])
     native.filegroup(
         name = "files",
-        srcs = [
-            "build-tools/%s/lib/apksigner.jar" % build_tools_directory,
-            "build-tools/%s/lib/d8.jar" % build_tools_directory,
-            "build-tools/%s/lib/dx.jar" % build_tools_directory,
-            "build-tools/%s/mainDexClasses.rules" % build_tools_directory,
-            ":build_tools_libs",
-        ] + [
+        srcs = (
+                   [
+                       "build-tools/%s/lib/dx.jar" % build_tools_directory,
+                       "build-tools/%s/mainDexClasses.rules" % build_tools_directory,
+                   ] if build_tools_major_version <= 30 else []
+               ) +
+               [
+                   "build-tools/%s/lib/apksigner.jar" % build_tools_directory,
+                   "build-tools/%s/lib/d8.jar" % build_tools_directory,
+                   ":build_tools_libs",
+               ] + [
             "platforms/android-%d/%s" % (api_level, filename)
             for api_level in api_levels
             for filename in ["android.jar", "framework.aidl"]

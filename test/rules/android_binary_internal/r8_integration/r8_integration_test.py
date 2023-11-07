@@ -39,8 +39,10 @@ class R8IntegrationTest(unittest.TestCase):
         "res/layout/unused_activity.xml" in apk_files,
     )
 
-    build_tools_dir = "external/androidsdk-supplemental/build-tools"
-    build_tools_version = os.listdir(build_tools_dir)[0]
+    build_tools_dir = "external/androidsdk/build-tools"
+    build_tools_version = [
+        f.name for f in os.scandir(build_tools_dir) if f.is_dir()
+    ][0]
     dexdump = os.path.join(build_tools_dir, build_tools_version, "dexdump")
 
     dexdump_proc = subprocess.run(
