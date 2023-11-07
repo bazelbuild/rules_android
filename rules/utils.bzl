@@ -424,6 +424,14 @@ def get_android_sdk(ctx):
     else:
         return ctx.attr._android_sdk[AndroidSdkInfo]
 
+# Add command line setting prefix
+def _add_cls_prefix(name):
+    return "//command_line_option:" + name
+
+# Get command line setting from flag name
+def _get_cls(settings, name, default = None):
+    return settings.get(_add_cls_prefix(name), default)
+
 def _get_compilation_mode(ctx):
     """Retrieves the compilation mode from the context.
 
@@ -455,6 +463,8 @@ utils = struct(
     sanitize_java_package = _sanitize_java_package,
     hex = _hex,
     list_or_depset_to_list = _list_or_depset_to_list,
+    add_cls_prefix = _add_cls_prefix,
+    get_cls = _get_cls,
 )
 
 log = struct(
