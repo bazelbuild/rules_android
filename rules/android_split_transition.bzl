@@ -39,38 +39,31 @@ The intended order of checks is:
 
 load(":utils.bzl", "utils")
 
-def _add_cls_prefix(name):
-    return "//command_line_option:" + name
-
-# get command line setting from flag name
-def _get_cls(settings, name, default = None):
-    return settings.get(_add_cls_prefix(name), default)
-
 def _android_split_transition_impl(settings, __):
-    if _get_cls(settings, "incompatible_enable_android_toolchain_resolution"):
+    if utils.get_cls(settings, "incompatible_enable_android_toolchain_resolution"):
         # Always use `--android_platforms` when toolchain resolution is enabled.
-        platforms_to_split = _get_cls(settings, "android_platforms")
+        platforms_to_split = utils.get_cls(settings, "android_platforms")
         if not platforms_to_split:
             # If `--android_platforms` is unset, instead use only the first
             # value from `--platforms`.
-            target_platform = utils.only(_get_cls(settings, "platforms"))
+            target_platform = utils.only(utils.get_cls(settings, "platforms"))
             platforms_to_split = [target_platform]
         return _handle_android_platforms(settings, platforms_to_split)
 
     # Fall back to the legacy flags.
 
-    if _get_cls(settings, "fat_apk_cpu"):
+    if utils.get_cls(settings, "fat_apk_cpu"):
         return _handle_fat_apk_cpus(settings)
 
-    if (_get_cls(settings, "android_cpu") and
-        _get_cls(settings, "android_crosstool_top") and
-        _get_cls(settings, "android_crosstool_top") != _get_cls(settings, "crosstool_top")):
+    if (utils.get_cls(settings, "android_cpu") and
+        utils.get_cls(settings, "android_crosstool_top") and
+        utils.get_cls(settings, "android_crosstool_top") != utils.get_cls(settings, "crosstool_top")):
         return _handle_android_cpu(settings)
 
-    return _handle_default_split(settings, _get_cls(settings, "cpu"))
+    return _handle_default_split(settings, utils.get_cls(settings, "cpu"))
 
 def _non_split_cpus(new_split_options, name, settings):
-    if not _get_cls(settings, "fat_apk_hwasan") or not name.contains("arm64-v8a"):
+    if not utils.get_cls(settings, "fat_apk_hwasan") or not name.contains("arm64-v8a"):
         return
 
     # A HWASAN build is different from a regular one in these ways:
@@ -81,8 +74,8 @@ def _non_split_cpus(new_split_options, name, settings):
     #   non-HWASAN artifacts do not conflict
     new_settings = dict(settings)
     new_settings.update({
-        _add_cls_prefix("cc_output_directory_tag"): "hwasan",
-        _add_cls_prefix("android hwasan"): True,
+        utils.add_cls_prefix("cc_output_directory_tag"): "hwasan",
+        utils.add_cls_prefix("android hwasan"): True,
     })
     new_split_options[name + "-hwasan"] = new_settings
 
@@ -100,11 +93,11 @@ def _handle_android_platforms(settings, platforms_to_split):
         split_options = dict(settings)
 
         # Disable fat APKs for the child configurations.
-        split_options[_add_cls_prefix("fat_apk_cpu")] = []
-        split_options[_add_cls_prefix("android_platforms")] = []
+        split_options[utils.add_cls_prefix("fat_apk_cpu")] = []
+        split_options[utils.add_cls_prefix("android_platforms")] = []
 
         # The cpu flag will be set by platform mapping if a mapping exists.
-        split_options[_add_cls_prefix("platforms")] = [platform]
+        split_options[utils.add_cls_prefix("platforms")] = [platform]
         _cc_flags_from_android(settings, split_options)
 
         result[name] = split_options
@@ -126,16 +119,16 @@ def _handle_android_cpu(settings):
 
     This also sets other C++ flags based on the corresponding Android flags.
     """
-    android_cpu = settings[_add_cls_prefix("android_cpu")]
+    android_cpu = settings[utils.add_cls_prefix("android_cpu")]
     split_options = dict(settings)
-    split_options[_add_cls_prefix("cpu")] = android_cpu
+    split_options[utils.add_cls_prefix("cpu")] = android_cpu
     _cc_flags_from_android(settings, split_options)
 
     # Ensure platforms aren't set so that platform mapping can take place.
-    split_options[_add_cls_prefix("platforms")] = []
+    split_options[utils.add_cls_prefix("platforms")] = []
 
     # Because configuration is based on cpu flags we need to disable C++ toolchain resolution
-    split_options[_add_cls_prefix("incompatible_enable_cc_toolchain_resolution")] = False
+    split_options[utils.add_cls_prefix("incompatible_enable_cc_toolchain_resolution")] = False
     return _handle_default_split(split_options, android_cpu)
 
 def _handle_fat_apk_cpus(settings):
@@ -144,39 +137,39 @@ def _handle_fat_apk_cpus(settings):
     Also sets other C++ flags based on the corresponding Android flags.
     """
     result = dict()
-    for cpu in sorted(_get_cls(settings, "fat_apk_cpu")):
+    for cpu in sorted(utils.get_cls(settings, "fat_apk_cpu")):
         split_options = dict(settings)
 
         # Disable fat APKs for the child configurations.
-        split_options[_add_cls_prefix("fat_apk_cpu")] = []
-        split_options[_add_cls_prefix("android_platforms")] = []
+        split_options[utils.add_cls_prefix("fat_apk_cpu")] = []
+        split_options[utils.add_cls_prefix("android_platforms")] = []
 
         # Set the cpu & android_cpu.
         # TODO(bazel-team): --android_cpu doesn't follow --cpu right now; it should.
-        split_options[_add_cls_prefix("android_cpu")] = cpu
-        split_options[_add_cls_prefix("cpu")] = cpu
+        split_options[utils.add_cls_prefix("android_cpu")] = cpu
+        split_options[utils.add_cls_prefix("cpu")] = cpu
         _cc_flags_from_android(settings, split_options)
 
         # Ensure platforms aren't set so that platform mapping can take place.
-        split_options[_add_cls_prefix("platforms")] = []
+        split_options[utils.add_cls_prefix("platforms")] = []
 
         # Because configuration is based on cpu flags we need to disable C++ toolchain resolution
-        split_options[_add_cls_prefix("incompatible_enable_cc_toolchain_resolution")] = False
+        split_options[utils.add_cls_prefix("incompatible_enable_cc_toolchain_resolution")] = False
         result[cpu] = split_options
         _non_split_cpus(result, cpu, split_options)
 
     return result
 
 def _cc_flags_from_android(settings, new_settings):
-    new_settings[_add_cls_prefix("compiler")] = _get_cls(settings, "android_compiler")
-    new_settings[_add_cls_prefix("grte_top")] = _get_cls(settings, "android_grte_top")
-    new_settings[_add_cls_prefix("dynamic_mode")] = _get_cls(settings, "android_dynamic_mode")
+    new_settings[utils.add_cls_prefix("compiler")] = utils.get_cls(settings, "android_compiler")
+    new_settings[utils.add_cls_prefix("grte_top")] = utils.get_cls(settings, "android_grte_top")
+    new_settings[utils.add_cls_prefix("dynamic_mode")] = utils.get_cls(settings, "android_dynamic_mode")
 
-    android_crosstool_top = _get_cls(settings, "android_crosstool_top")
+    android_crosstool_top = utils.get_cls(settings, "android_crosstool_top")
     if android_crosstool_top:
-        new_settings[_add_cls_prefix("crosstool_top")] = android_crosstool_top
+        new_settings[utils.add_cls_prefix("crosstool_top")] = android_crosstool_top
 
-    new_settings[_add_cls_prefix("Android configuration distinguisher")] = "android"
+    new_settings[utils.add_cls_prefix("Android configuration distinguisher")] = "android"
 
 android_split_transition = transition(
     implementation = _android_split_transition_impl,
