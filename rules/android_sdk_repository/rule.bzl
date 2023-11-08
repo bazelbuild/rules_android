@@ -46,8 +46,9 @@ def _read_api_levels(repo_ctx, android_sdk_path):
     for entry in platforms_path.readdir():
         name = entry.basename
         if name.startswith("android-"):
-            level = int(name[len("android-"):])
-            api_levels.append(level)
+            level = name[len("android-"):]
+            if level.isdigit():
+                api_levels.append(int(level))
     return api_levels
 
 def _newest_build_tools(repo_ctx, android_sdk_path):
