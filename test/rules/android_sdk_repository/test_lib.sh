@@ -209,3 +209,23 @@ EOF
   check_android_sdk_provider --@androidsdk//:api_level=31
   expect_log "api_level: 31"
 }
+
+function test_non_numeric_api_level() {
+  # create a couple numeric api levels, and a non-numeric api level
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31 23 TiramisuPrivacySandbox
+  add_build_tools "${sdk_path}" 30.3.4
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  check_android_sdk_provider
+  # Non-numeric api level should be ignored, and highest numeric api level
+  # should still be picked.
+  expect_log "api_level: 31"
+}
