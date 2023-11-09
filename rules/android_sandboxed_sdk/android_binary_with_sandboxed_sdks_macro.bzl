@@ -31,7 +31,7 @@ load(
     _get_android_toolchain = "get_android_toolchain",
     _utils = "utils",
 )
-load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkBundleInfo")
+load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkApkInfo", "AndroidSandboxedSdkBundleInfo")
 
 def _gen_sdk_dependencies_manifest_impl(ctx):
     manifest = ctx.actions.declare_file(ctx.label.name + "_sdk_dep_manifest.xml")
@@ -288,17 +288,16 @@ def _android_binary_with_sandboxed_sdks_impl(ctx):
     }
     install_script = ctx.actions.declare_file("%s_install_script.sh" % ctx.label.name)
     template = None
-    extra_files = []
+    sdk_apks = []
+    sdk_splits = []
 
     if ctx.attr.use_compat_splits:
-        sdk_splits = _get_all_split_sdk_apks(ctx)
+        sdk_splits.extend(_get_all_split_sdk_apks(ctx))
         substitutions["%sdk_splits%"] = ",".join([split.short_path for split in sdk_splits])
-        extra_files.extend(sdk_splits)
         template = ctx.file._install_splits_script_template
     else:
-        sdk_apks = _get_sandboxed_sdk_apks(ctx)
+        sdk_apks.extend(_get_sandboxed_sdk_apks(ctx))
         substitutions["%sdk_apks%"] = ",".join([apk.short_path for apk in sdk_apks])
-        extra_files.extend(sdk_apks)
         template = ctx.file._install_apks_script_template
 
     ctx.actions.expand_template(
@@ -309,13 +308,18 @@ def _android_binary_with_sandboxed_sdks_impl(ctx):
     )
 
     return [
+        AndroidSandboxedSdkApkInfo(
+            app_apk_info = ctx.attr.internal_android_binary[ApkInfo],
+            sandboxed_sdk_apks = sdk_apks,
+            sandboxed_sdk_splits = sdk_splits,
+        ),
         DefaultInfo(
             executable = install_script,
-            files = depset([app_apk] + extra_files),
+            files = depset([app_apk] + sdk_splits + sdk_apks),
             runfiles = ctx.runfiles([
                 adb,
                 app_apk,
-            ] + extra_files),
+            ] + sdk_apks + sdk_splits),
         ),
     ]
 

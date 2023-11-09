@@ -45,3 +45,15 @@ AndroidSandboxedSdkBundleInfo = provider(
         asb = "Path to the final ASB, unsigned.",
     ),
 )
+
+AndroidSandboxedSdkApkInfo = provider(
+    doc = "Provides information about App and Sandboxed SDK APKs.",
+    fields = dict(
+        app_apk_info = "ApkInfo for the host app.",
+        sandboxed_sdk_apks = "List of APKs for sandboxed SDK dependencies of the host app. " +
+                             "Only present when compat splits are not requested. APKs are signed " +
+                             "with debug keys.",
+        sandboxed_sdk_splits = "List of APK splits that contain the sandboxed SDK dependencies " +
+                               "of the host app. Only present when compat splits are requested.",
+    ),
+)
