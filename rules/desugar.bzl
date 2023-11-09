@@ -40,7 +40,9 @@ def _desugar(
     args = ctx.actions.args()
     args.use_param_file("@%s", use_always = True)  # Required for workers.
     args.set_param_file_format("multiline")
-    args.add("--input", input)
+
+    # Explicitly calls input.path here to work around b/310015642
+    args.add("--input", input.path)
     args.add("--output", output)
     args.add_all(classpath, before_each = "--classpath_entry")
     args.add_all(bootclasspath, before_each = "--bootclasspath_entry")
