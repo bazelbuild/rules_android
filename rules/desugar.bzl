@@ -65,6 +65,7 @@ def _desugar(
         mnemonic = "Desugar",
         progress_message = "Desugaring " + input.short_path + " for Android",
         execution_requirements = {"supports-workers": "1"},
+        use_default_shell_env = True,
         toolchain = toolchain_type,
     )
 
