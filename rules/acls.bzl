@@ -62,7 +62,6 @@ load("//rules/acls:android_local_test_jdk_sts_rollout.bzl", "ANDROID_LOCAL_TEST_
 load("//rules/acls:android_multidex_native_min_sdk_allowlist.bzl", "ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST")
 load("//rules/acls:android_test_lockdown.bzl", "ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS", "ANDROID_TEST_LOCKDOWN_TARGETS")
 load("//rules/acls:b122039567.bzl", "B122039567")
-load("//rules/acls:b123854163.bzl", "B123854163")
 load("//rules/acls:baseline_profiles_optimizer_integration.bzl", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION")
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
@@ -150,9 +149,6 @@ def _in_android_test_lockdown_allowlist(fqn, generator):
 
 def _in_b122039567(fqn):
     return matches(fqn, B122039567_DICT)
-
-def _in_b123854163(fqn):
-    return matches(fqn, B123854163_DICT)
 
 def _in_android_library_resources_without_srcs(fqn):
     return matches(fqn, ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_DICT)
@@ -303,7 +299,6 @@ ANDROID_TEST_LOCKDOWN_TARGETS_DICT = make_dict(ANDROID_TEST_LOCKDOWN_TARGETS)
 APP_INSTALLATION_SNAPSHOT_DICT = make_dict(APP_INSTALLATION_SNAPSHOT)
 APP_INSTALLATION_SNAPSHOT_FALLBACK_DICT = make_dict(APP_INSTALLATION_SNAPSHOT_FALLBACK)
 B122039567_DICT = make_dict(B122039567)
-B123854163_DICT = make_dict(B123854163)
 CAN_USE_DEX2OAT_OPTIONS_DICT = make_dict(CAN_USE_DEX2OAT_OPTIONS)
 FIX_RESOURCE_TRANSIVITY_FALLBACK_DICT = make_dict(FIX_RESOURCE_TRANSITIVITY_FALLBACK)
 FIX_RESOURCE_TRANSIVITY_ROLLOUT_DICT = make_dict(FIX_RESOURCE_TRANSITIVITY_ROLLOUT)
@@ -401,7 +396,6 @@ acls = struct(
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
     in_aar_propagate_resources = _in_aar_propagate_resources,
     in_b122039567 = _in_b122039567,
-    in_b123854163 = _in_b123854163,
     in_android_application_with_sandboxed_sdks_allowlist_dict = _in_android_application_with_sandboxed_sdks_allowlist_dict,
     in_android_archive_dogfood = _in_android_archive_dogfood,
     in_android_archive_excluded_deps_denylist = _in_android_archive_excluded_deps_denylist,
