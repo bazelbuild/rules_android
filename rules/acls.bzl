@@ -68,7 +68,6 @@ load("//rules/acls:fix_export_exporting_rollout.bzl", "FIX_EXPORT_EXPORTING_FALL
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
 load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
-load("//rules/acls:local_test_rollout.bzl", "LOCAL_TEST_FALLBACK", "LOCAL_TEST_ROLLOUT")
 load("//rules/acls:local_test_starlark_resources.bzl", "LOCAL_TEST_STARLARK_RESOURCES_FALLBACK", "LOCAL_TEST_STARLARK_RESOURCES_ROLLOUT")
 load("//rules/acls:min_sdk_floors.bzl", "MIN_SDK_FLOORS")
 load(
@@ -166,9 +165,6 @@ def _in_install_apps_in_data(fqn):
 
 def _in_local_test_multi_proto(fqn):
     return matches(fqn, LOCAL_TEST_MULTI_PROTO_PKG_DICT)
-
-def _in_local_test_rollout(fqn):
-    return not matches(fqn, LOCAL_TEST_FALLBACK_DICT) and matches(fqn, LOCAL_TEST_ROLLOUT_DICT)
 
 def _in_local_test_starlark_resources(fqn):
     return not matches(fqn, LOCAL_TEST_STARLARK_RESOURCES_FALLBACK_DICT) and matches(fqn, LOCAL_TEST_STARLARK_RESOURCES_ROLLOUT_DICT)
@@ -281,8 +277,6 @@ FIX_EXPORT_EXPORTING_FALLBACK_DICT = make_dict(FIX_EXPORT_EXPORTING_FALLBACK)
 FIX_EXPORT_EXPORTING_ROLLOUT_DICT = make_dict(FIX_EXPORT_EXPORTING_ROLLOUT)
 AIT_INSTALL_APPS_IN_DATA_DICT = make_dict(INSTALL_APPS_IN_DATA)
 LOCAL_TEST_MULTI_PROTO_PKG_DICT = make_dict(LOCAL_TEST_MULTI_PROTO_PKG)
-LOCAL_TEST_FALLBACK_DICT = make_dict(LOCAL_TEST_FALLBACK)
-LOCAL_TEST_ROLLOUT_DICT = make_dict(LOCAL_TEST_ROLLOUT)
 LOCAL_TEST_STARLARK_RESOURCES_FALLBACK_DICT = make_dict(LOCAL_TEST_STARLARK_RESOURCES_FALLBACK)
 LOCAL_TEST_STARLARK_RESOURCES_ROLLOUT_DICT = make_dict(LOCAL_TEST_STARLARK_RESOURCES_ROLLOUT)
 TEST_TO_INSTRUMENT_TEST_FALLBACK_DICT = make_dict(TEST_TO_INSTRUMENT_TEST_FALLBACK)
@@ -390,7 +384,6 @@ acls = struct(
     in_fix_export_exporting_rollout = _in_fix_export_exporting_rollout,
     in_install_apps_in_data = _in_install_apps_in_data,
     in_local_test_multi_proto = _in_local_test_multi_proto,
-    in_local_test_rollout = _in_local_test_rollout,
     in_local_test_starlark_resources = _in_local_test_starlark_resources,
     in_test_to_instrument_test_rollout = _in_test_to_instrument_test_rollout,
     in_allow_resource_conflicts = _in_allow_resource_conflicts,
