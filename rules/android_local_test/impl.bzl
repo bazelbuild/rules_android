@@ -310,10 +310,12 @@ def _process_stub(ctx, deploy_jar_ctx, jvm_ctx, stub_preprocess_ctx, **_unused_s
         jvm_ctx.coverage_start_class,
         merged_instr,
     )
+
     return ProviderInfo(
         name = "stub_ctx",
         value = struct(
             stub = stub,
+            providers = [testing.TestEnvironment(utils.expand_make_vars(ctx, ctx.attr.env))],
         ),
         runfiles = ctx.runfiles(
             files = runfiles,
