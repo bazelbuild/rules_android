@@ -66,7 +66,6 @@ load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
 load("//rules/acls:fix_export_exporting_rollout.bzl", "FIX_EXPORT_EXPORTING_FALLBACK", "FIX_EXPORT_EXPORTING_ROLLOUT")
-load("//rules/acls:host_dex2oat_rollout.bzl", "AIT_USE_HOST_DEX2OAT_ROLLOUT", "AIT_USE_HOST_DEX2OAT_ROLLOUT_FALLBACK")
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
 load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
@@ -165,9 +164,6 @@ def _in_dex2oat_opts(fqn):
 
 def _in_fix_export_exporting_rollout(fqn):
     return not matches(fqn, FIX_EXPORT_EXPORTING_FALLBACK_DICT) and matches(fqn, FIX_EXPORT_EXPORTING_ROLLOUT_DICT)
-
-def _in_host_dex2oat_rollout(fqn):
-    return not matches(fqn, AIT_USE_HOST_DEX2OAT_ROLLOUT_FALLBACK_DICT) and matches(fqn, AIT_USE_HOST_DEX2OAT_ROLLOUT_DICT)
 
 def _in_install_apps_in_data(fqn):
     return matches(fqn, AIT_INSTALL_APPS_IN_DATA_DICT)
@@ -289,8 +285,6 @@ B122039567_DICT = make_dict(B122039567)
 CAN_USE_DEX2OAT_OPTIONS_DICT = make_dict(CAN_USE_DEX2OAT_OPTIONS)
 FIX_EXPORT_EXPORTING_FALLBACK_DICT = make_dict(FIX_EXPORT_EXPORTING_FALLBACK)
 FIX_EXPORT_EXPORTING_ROLLOUT_DICT = make_dict(FIX_EXPORT_EXPORTING_ROLLOUT)
-AIT_USE_HOST_DEX2OAT_ROLLOUT_DICT = make_dict(AIT_USE_HOST_DEX2OAT_ROLLOUT)
-AIT_USE_HOST_DEX2OAT_ROLLOUT_FALLBACK_DICT = make_dict(AIT_USE_HOST_DEX2OAT_ROLLOUT_FALLBACK)
 AIT_INSTALL_APPS_IN_DATA_DICT = make_dict(INSTALL_APPS_IN_DATA)
 LOCAL_TEST_MULTI_PROTO_PKG_DICT = make_dict(LOCAL_TEST_MULTI_PROTO_PKG)
 LOCAL_TEST_FALLBACK_DICT = make_dict(LOCAL_TEST_FALLBACK)
@@ -401,7 +395,6 @@ acls = struct(
     in_databinding_allowed = _in_databinding_allowed,
     in_dex2oat_opts = _in_dex2oat_opts,
     in_fix_export_exporting_rollout = _in_fix_export_exporting_rollout,
-    in_host_dex2oat_rollout = _in_host_dex2oat_rollout,
     in_install_apps_in_data = _in_install_apps_in_data,
     in_local_test_multi_proto = _in_local_test_multi_proto,
     in_local_test_rollout = _in_local_test_rollout,
