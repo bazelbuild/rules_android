@@ -32,6 +32,24 @@ android_local_test(
     ],
 )
 
+android_local_test(
+    name = "environment",
+    srcs = ["SampleTestWithEnvSetting.java"],
+    data = ["env_location_data.txt"],
+    env = {
+        "android_local_test_test_env": "peekaboo",
+        "android_local_test_loc_env": "$(location :env_location_data.txt)",
+    },
+    manifest = "AndroidManifest.xml",
+    test_class = "com.starlark_resources.SampleTestWithEnvSetting",
+    deps = [
+        "//java/com/google/thirdparty/robolectric",
+        "//third_party/java/hamcrest:android",
+        "//third_party/java/robolectric",
+        "@rules_android_maven//:junit_junit",
+    ],
+)
+
 rule_test(
     name = "no_deps_with_resources_rule_test",
     target_under_test = ":no_deps_with_resources",
