@@ -453,12 +453,12 @@ def android_application_macro(_android_binary, **attrs):
     # In the future bundle_config will accept a build rule rather than a raw file.
     bundle_config_file = bundle_config_file or bundle_config
 
-    deps = [d for d in attrs.pop("deps", [])]
+    deps = attrs.pop("deps", [])
     for feature_module in feature_modules:
         if not feature_module.startswith("//") or ":" not in feature_module:
             _log.error("feature_modules expects fully qualified paths, i.e. //some/path:target")
         module_targets = get_feature_module_paths(feature_module)
-        deps.append(str(module_targets.title_lib))
+        deps = deps + [str(module_targets.title_lib)]
 
     _android_binary(
         name = base_split_name,
