@@ -428,7 +428,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
 
         if ctx.fragments.android.desugar_java8:
             desugared_jars = []
-            desugar_dict = {d.jar: d.desugared_jar for d in dex_archives}
+            desugar_dict = {d.jar: d.desugared_jar for d in dex_archives if d.desugared_jar}
 
             for jar in binary_runtime_jars:
                 desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_migrated_desugared.jar")
@@ -446,8 +446,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
                 desugar_dict[jar] = desugared_jar
 
             for jar in java_info.transitive_runtime_jars.to_list():
-                if jar in desugar_dict:
-                    desugared_jars.append(desugar_dict[jar] if desugar_dict[jar] else jar)
+                desugared_jars.append(desugar_dict.get(jar, jar))
 
             runtime_jars = depset(desugared_jars)
         else:
