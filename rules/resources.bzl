@@ -2095,7 +2095,7 @@ def _is_resource_name_obfuscation_enabled(ctx, is_resource_shrunk):
     return (ctx.fragments.android.use_android_resource_name_obfuscation or
             _FEATURE_RESOURCE_NAME_OBFUSCATION in ctx.features) and \
            is_resource_shrunk and \
-           not acls.in_android_binary_raw_access_to_resource_paths_allowlist(str(ctx.label))
+           not acls.in_android_binary_resource_name_obfuscation_opt_out_allowlist(str(ctx.label))
 
 resources = struct(
     process = _process,
