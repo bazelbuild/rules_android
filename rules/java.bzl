@@ -393,7 +393,6 @@ def _singlejar(
         args.add_all("--include_prefixes", include_prefixes)
 
     args.use_param_file("@%s")
-    args.set_param_file_format("multiline")
 
     ctx.actions.run(
         executable = java_toolchain[java_common.JavaToolchainInfo].single_jar,
