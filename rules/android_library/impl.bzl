@@ -94,7 +94,9 @@ def _check_deps_without_java_srcs(ctx):
     if _uses_deprecated_implicit_export(ctx):
         log.error(_USES_DEPRECATED_IMPLICIT_EXPORT_ERROR % ctx.label)
     if _uses_resources_and_deps_without_srcs(ctx):
-        return True
+        if (acls.in_android_library_resources_without_srcs_generator_functions(gfn) or
+            acls.in_android_library_resources_without_srcs(str(ctx.label))):
+            return True
     return False
 
 def _validate_rule_context(ctx):
