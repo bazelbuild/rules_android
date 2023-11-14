@@ -14,7 +14,12 @@
 
 """Bazel rule for Android sdk repository."""
 
-load("//rules:android_revision.bzl", "compare_android_revisions", "parse_android_revision")
+load(
+    "//rules:android_revision.bzl",
+    "compare_android_revisions",
+    "is_android_revision",
+    "parse_android_revision",
+)
 
 _SDK_REPO_TEMPLATE = Label(":template.bzl")
 _EMPTY_SDK_REPO_TEMPLATE = Label(":empty.template.bzl")
@@ -59,8 +64,9 @@ def _newest_build_tools(repo_ctx, android_sdk_path):
         return None
     for entry in build_tools_path.readdir():
         name = entry.basename
-        revision = parse_android_revision(name)
-        highest = compare_android_revisions(highest, revision)
+        if is_android_revision(name):
+            revision = parse_android_revision(name)
+            highest = compare_android_revisions(highest, revision)
     return highest
 
 def _find_system_images(repo_ctx, android_sdk_path):

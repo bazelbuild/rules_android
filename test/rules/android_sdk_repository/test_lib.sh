@@ -110,10 +110,12 @@ EOF
 }
 
 function test_build_tools_largest() {
-  # create several build tools
+  # create several build tools, including ones with malformed names
+  # (e.g. .DStore) to confirm they are properly excluded and do not cause
+  # crashes.
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31
-  add_build_tools "${sdk_path}" 10.1.2 20.2.3 30.3.4
+  add_build_tools "${sdk_path}" 10.1.2 20.2.3 30.3.4 .DStore
 
   # Add to repository.
   cat >> WORKSPACE <<EOF

@@ -26,6 +26,9 @@ AndroidRevisionInfo = provider(
     },
 )
 
+def is_android_revision(input):
+    return all([c.isdigit() for c in input.strip().split(".")])
+
 def parse_android_revision(input):
     """Parse and Android revision string and return an AndroidRevisionInfo.
 
@@ -35,10 +38,10 @@ def parse_android_revision(input):
     Returns:
       An AndroidRevisionInfo provider representing the input.
     """
-    input = input.strip()
-    parts = input.split(".")
-    if len(parts) < 1:
+    if not is_android_revision(input):
         fail("Invalid Android revision %s" % input)
+    parts = input.strip().split(".")
+
     major = int(parts[0]) if len(parts) >= 1 else 0
     minor = int(parts[1]) if len(parts) >= 2 else 0
     micro = int(parts[2]) if len(parts) >= 3 else 0
