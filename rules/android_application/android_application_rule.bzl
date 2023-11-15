@@ -19,6 +19,7 @@ load(
     _aapt = "aapt",
 )
 load("//rules:acls.bzl", _acls = "acls")
+load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
 load(
     "//rules:bundletool.bzl",
     _bundletool = "bundletool",
@@ -388,7 +389,7 @@ def _impl(ctx):
 
 android_application = rule(
     attrs = ANDROID_APPLICATION_ATTRS,
-    cfg = android_common.android_platforms_transition,
+    cfg = android_platforms_transition,
     fragments = [
         "android",
         "java",
