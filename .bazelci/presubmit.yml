@@ -53,9 +53,6 @@ rules: &rules
     - "//rules/..."
   test_targets:
     - "//test/rules/..."
-    # TODO(https://github.com/bazelbuild/rules_android/issues/169):
-    # Re-enable when these are less fragile.
-    - "-//test/rules/android_local_test/..."
     # TODO(#171): Fix use of lxml in enforce_min_sdk_floor
     - "-//test/rules/android_binary_internal/r8_integration/..."
   build_flags:
