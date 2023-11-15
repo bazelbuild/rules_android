@@ -22,6 +22,7 @@ bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
     deps = [
+        "//rules:android_platforms_transition_bzl",
         "//rules:common_bzl",
         "//rules/android_sandboxed_sdk:bzl",
         "//rules/flags:bzl",
