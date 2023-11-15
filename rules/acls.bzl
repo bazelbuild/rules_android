@@ -31,7 +31,6 @@ load("//rules/acls:aar_import_deps_checker.bzl", "AAR_IMPORT_DEPS_CHECKER_FALLBA
 load("//rules/acls:aar_import_explicit_exports_manifest.bzl", "AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST")
 load("//rules/acls:aar_import_exports_r_java.bzl", "AAR_IMPORT_EXPORTS_R_JAVA")
 load("//rules/acls:aar_propagate_resources.bzl", "AAR_PROPAGATE_RESOURCES_FALLBACK", "AAR_PROPAGATE_RESOURCES_ROLLOUT")
-load("//rules/acls:ait_install_snapshots.bzl", "APP_INSTALLATION_SNAPSHOT", "APP_INSTALLATION_SNAPSHOT_FALLBACK")
 load("//rules/acls:allow_resource_conflicts.bzl", "ALLOW_RESOURCE_CONFLICTS")
 load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
 load("//rules/acls:android_application_with_sandboxed_sdks_allowlist.bzl", "ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST")
@@ -154,9 +153,6 @@ def _in_android_library_starlark_resource_outputs_rollout(fqn):
 def _in_android_library_use_aosp_aidl_compiler_allowlist(fqn):
     return matches(fqn, ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST_DICT)
 
-def _in_app_installation_snapshot(fqn):
-    return not matches(fqn, APP_INSTALLATION_SNAPSHOT_FALLBACK_DICT) and matches(fqn, APP_INSTALLATION_SNAPSHOT_DICT)
-
 def _in_databinding_allowed(fqn):
     return not matches(fqn, DATABINDING_DISALLOWED_DICT) and matches(fqn, DATABINDING_ALLOWED_DICT)
 
@@ -274,8 +270,6 @@ ANDROID_BUILD_STAMPING_ROLLOUT_DICT = make_dict(ANDROID_BUILD_STAMPING_ROLLOUT)
 ANDROID_BUILD_STAMPING_FALLBACK_DICT = make_dict(ANDROID_BUILD_STAMPING_FALLBACK)
 ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS_DICT = make_dict(ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS)
 ANDROID_TEST_LOCKDOWN_TARGETS_DICT = make_dict(ANDROID_TEST_LOCKDOWN_TARGETS)
-APP_INSTALLATION_SNAPSHOT_DICT = make_dict(APP_INSTALLATION_SNAPSHOT)
-APP_INSTALLATION_SNAPSHOT_FALLBACK_DICT = make_dict(APP_INSTALLATION_SNAPSHOT_FALLBACK)
 B122039567_DICT = make_dict(B122039567)
 CAN_USE_DEX2OAT_OPTIONS_DICT = make_dict(CAN_USE_DEX2OAT_OPTIONS)
 FIX_EXPORT_EXPORTING_FALLBACK_DICT = make_dict(FIX_EXPORT_EXPORTING_FALLBACK)
@@ -383,7 +377,6 @@ acls = struct(
     in_lint_registry_rollout = _in_lint_registry_rollout,
     in_android_build_stamping_rollout = _in_android_build_stamping_rollout,
     in_android_test_lockdown_allowlist = _in_android_test_lockdown_allowlist,
-    in_app_installation_snapshot = _in_app_installation_snapshot,
     in_databinding_allowed = _in_databinding_allowed,
     in_dex2oat_opts = _in_dex2oat_opts,
     in_fix_export_exporting_rollout = _in_fix_export_exporting_rollout,
