@@ -69,7 +69,6 @@ def make_aspect(
             [JavaInfo],  # JavaLiteProtoLibrary aspect.
         ],
         fragments = ["cpp", "java"],
-        host_fragments = ["jvm"],
         implementation = aspect_impl,
     )
 
