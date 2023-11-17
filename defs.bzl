@@ -40,6 +40,7 @@ def rules_android_workspace():
             "androidx.test.ext:junit:1.2.0-alpha01",
             "com.android.tools.build:bundletool:1.15.5",
             "com.android.tools.build:gradle:8.2.0-alpha15",
+            "org.hamcrest:hamcrest-core:2.2",
             "org.robolectric:robolectric:4.10.3",
             "com.google.guava:guava:32.1.2-jre",
             "com.google.protobuf:protobuf-java-util:3.9.2",

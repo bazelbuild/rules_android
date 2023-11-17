@@ -137,9 +137,6 @@ function main() {
   RULE_TEST_TARGETS=(
     "//rules/..."
     "//test/rules/..."
-    # TODO(https://github.com/bazelbuild/rules_android/issues/169):
-    # Re-enable when these are less fragile.
-    "-//test/rules/android_local_test/..."
   )
 
   "$bazel" test \
