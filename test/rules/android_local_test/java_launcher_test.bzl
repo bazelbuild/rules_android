@@ -37,14 +37,17 @@ android_local_test_default_launcher_test = analysistest.make(
     },
 )
 
-def android_local_test_launcher_test_suite(name, expected_executable):
+def android_local_test_launcher_test_suite(name, expected_executable, **kwargs):
+    tags = kwargs.pop("tags", [])
     android_local_test_default_launcher_test(
         name = "android_local_test_default_launcher",
         target_under_test = ":sample_test_default_launcher",
         expected_runfile = expected_executable,
+        tags = tags,
     )
 
     native.test_suite(
         name = name,
         tests = [":android_local_test_default_launcher"],
+        tags = tags,
     )

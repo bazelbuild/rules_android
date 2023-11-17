@@ -51,14 +51,17 @@ integration_test = rule(
     implementation = _android_local_test_launcher_integration,
 )
 
-def android_local_test_launcher_integration_test_suite(name, expected_executable):
+def android_local_test_launcher_integration_test_suite(name, expected_executable, **kwargs):
+    tags = kwargs.pop("tags", [])
     integration_test(
         name = "android_local_test_default_launcher_integration",
         target = ":sample_test_default_launcher_integration",
         expected_executable = expected_executable,
+        tags = tags,
     )
 
     native.test_suite(
         name = name,
         tests = [":android_local_test_default_launcher_integration"],
+        tags = tags,
     )

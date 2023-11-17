@@ -43,10 +43,12 @@ android_local_test(
     manifest = "AndroidManifest.xml",
     test_class = "com.starlark_resources.SampleTestWithEnvSetting",
     deps = [
-        "//java/com/google/thirdparty/robolectric",
-        "//third_party/java/hamcrest:android",
-        "//third_party/java/robolectric",
+        "@robolectric//bazel:android-all",
+        "@rules_android_maven//:androidx_test_core",
+        "@rules_android_maven//:androidx_test_ext_junit",
         "@rules_android_maven//:junit_junit",
+        "@rules_android_maven//:org_hamcrest_hamcrest_core",
+        "@rules_android_maven//:org_robolectric_robolectric",
     ],
 )
 

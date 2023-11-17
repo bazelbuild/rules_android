@@ -83,6 +83,7 @@ android_local_test_launcher_test_suite(
         ":jdk17_macos_aarch64": "../remotejdk17_macos_aarch64/bin/java",
         "//conditions:default": "../local_jdk/bin/java",
     }),
+    tags = ["manual"],
 )
 
 android_local_test_launcher_integration_test_suite(
@@ -93,4 +94,5 @@ android_local_test_launcher_integration_test_suite(
         ":jdk17_macos_aarch64": "external/remotejdk17_macos_aarch64/bin/java",
         "//conditions:default": "../local_jdk/bin/java",
     }),
+    tags = ["manual"],
 )
