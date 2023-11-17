@@ -298,6 +298,11 @@ _ATTRS = dict(
         default = "@bazel_tools//tools/android:dex_list_obfuscator",
         executable = True,
     ),
+    manifest_validation_tool = attr.label(
+        cfg = "exec",
+        default = "@androidsdk//:fail",
+        executable = True,
+    ),
 )
 
 def _impl(ctx):
