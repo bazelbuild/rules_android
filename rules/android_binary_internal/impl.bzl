@@ -106,16 +106,35 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
     )
 
 def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
-    manifest_validation_ctx = _resources.validate_min_sdk(
+    validation_outputs = []
+
+    min_sdk_validation_output = _resources.validate_min_sdk(
         ctx,
         manifest = packaged_resources_ctx.processed_manifest,
         floor = acls.get_min_sdk_floor(str(ctx.label)),
         enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
     )
+    if min_sdk_validation_output:
+        validation_outputs.append(min_sdk_validation_output)
+
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        manifest_validation_output = _resources.validate_manifest(
+            ctx,
+            manifest = packaged_resources_ctx.processed_manifest,
+            should_validate_multidex =
+                ctx.attr.multidex == "native" and
+                not acls.in_android_binary_multidex_native_min_sdk_allowlist(str(ctx.label)),
+            min_sdk_version = ctx.attr.min_sdk_version,
+            manifest_validation_tool = get_android_toolchain(ctx).manifest_validation_tool.files_to_run,
+        )
+        if manifest_validation_output:
+            validation_outputs.append(manifest_validation_output)
 
     return ProviderInfo(
         name = "manifest_validation_ctx",
-        value = manifest_validation_ctx,
+        value = struct(
+            validation_outputs = validation_outputs,
+        ),
     )
 
 def _process_native_libs(ctx, **_unusued_ctxs):

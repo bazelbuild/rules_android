@@ -1235,11 +1235,10 @@ def _validate_min_sdk(
         FilesToRunprovider
 
     Returns:
-      A dict containing _ManifestValidationContextInfo provider fields.
+      A file containing the log of validation results, or None if validation not performed.
     """
-    manifest_validation_ctx = {_VALIDATION_OUTPUTS: []}
     if not manifest or floor <= 0:
-        return _ManifestValidationContextInfo(**manifest_validation_ctx)
+        return None
 
     args = ctx.actions.args()
     args.add("-action", "validate")
@@ -1261,9 +1260,47 @@ def _validate_min_sdk(
         progress_message = "Validating AndroidManifest min SDK %s" % str(ctx.label),
         toolchain = None,
     )
-    manifest_validation_ctx[_VALIDATION_OUTPUTS].append(log)
 
-    return _ManifestValidationContextInfo(**manifest_validation_ctx)
+    return log
+
+def _validate_manifest(
+        ctx,
+        manifest,
+        should_validate_multidex = True,
+        min_sdk_version = 0,
+        manifest_validation_tool = None):
+    """Validates that the minSdkVersion value of the final manifest is expected.
+
+    Args:
+      ctx: The rules context.
+      manifest: File. The AndroidManifest.xml file.
+      should_validate_multidex: Boolean. Whether to validate minSdkVersion for multidex.
+      min_sdk_version: Int. The expected minSdkVersion value in the manifest.
+      manifest_validation_tool: FilesToRunProvider. The manifest validation tool executable.
+    Returns:
+      A file containing the log of validation results, or None if validation not performed.
+    """
+    if (not should_validate_multidex and min_sdk_version <= 0) or not manifest_validation_tool:
+        return None
+
+    output = ctx.actions.declare_file(ctx.label.name + "_manifest_validation_output")
+
+    args = ctx.actions.args()
+    args.add("--manifest", manifest)
+    args.add("--output", output)
+    args.add("--validate_multidex", should_validate_multidex)
+    args.add("--expected_min_sdk_version", min_sdk_version)
+
+    ctx.actions.run(
+        executable = manifest_validation_tool,
+        arguments = [args],
+        outputs = [output],
+        inputs = [manifest],
+        mnemonic = "ValidateManifest",
+        progress_message = "Validating %{input}",
+    )
+
+    return output
 
 def _process_starlark(
         ctx,
@@ -2120,6 +2157,7 @@ resources = struct(
     # Exposed for android_binary
     is_resource_shrinking_enabled = _is_resource_shrinking_enabled,
     validate_min_sdk = _validate_min_sdk,
+    validate_manifest = _validate_manifest,
     shrink = _shrink,
     optimize = _optimize,
 )
