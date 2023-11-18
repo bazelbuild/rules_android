@@ -1319,6 +1319,7 @@ def _process_starlark(
         neverlink = False,
         enable_data_binding = False,
         propagate_resources = True,
+        propagate_transitive_resources_class_jars = True,
         fix_resource_transitivity = False,
         aapt = None,
         android_jar = None,
@@ -1369,6 +1370,9 @@ def _process_starlark(
       propagate_resources: boolean. If false, the target will no longer propagate
         providers required for Android Resource processing/packaging. But will
         continue to propagate others (AndroidLibraryResourceClassJarProvider).
+      propagate_transitive_resources_class_jars: boolean. If false, the target will no longer propagate
+        the transitive Android Resource class jars as part of the AndroidLibraryResourceClassJarProvider
+        provider and will only propagate the direct Android Resource class jar.
       fix_resource_transitivity: Whether to ensure that transitive resources are
         correctly marked as transitive.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
@@ -1928,14 +1932,13 @@ def _process_starlark(
                         deps,
                         exports,
                     )
-                ],
+                ] if propagate_transitive_resources_class_jars else [],
                 order = "preorder",
             ),
         ),
     )
 
     return resources_ctx
-
 
 def _process(
         ctx,
@@ -1967,6 +1970,7 @@ def _process(
         fix_resource_transitivity = False,
         fix_export_exporting = False,
         propagate_resources = True,
+        propagate_transitive_resources_class_jars = True,
         zip_tool = None):
     out_ctx = _process_starlark(
         ctx,
@@ -1990,6 +1994,7 @@ def _process(
         fix_resource_transitivity = fix_resource_transitivity,
         neverlink = neverlink,
         propagate_resources = propagate_resources,
+        propagate_transitive_resources_class_jars = propagate_transitive_resources_class_jars,
         android_jar = android_jar,
         aapt = aapt,
         android_kit = android_kit,
@@ -2000,7 +2005,6 @@ def _process(
         host_javabase = host_javabase,
         zip_tool = zip_tool,
     )
-
 
     if _VALIDATION_OUTPUTS not in out_ctx:
         out_ctx[_VALIDATION_OUTPUTS] = []
