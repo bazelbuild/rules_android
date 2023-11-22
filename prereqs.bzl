@@ -23,9 +23,9 @@ def rules_android_prereqs(dev_mode = False):
         http_archive,
         name = "rules_java",
         urls = [
-            "https://github.com/bazelbuild/rules_java/releases/download/7.0.6/rules_java-7.0.6.tar.gz",
+            "https://github.com/bazelbuild/rules_java/releases/download/7.3.0/rules_java-7.3.0.tar.gz",
         ],
-        sha256 = "e81e9deaae0d9d99ef3dd5f6c1b32338447fe16d5564155531ea4eb7ef38854b",
+        sha256 = "8d2ae8941c8028eb826e4c83ad3a0acb73d3237861d9ce788a3a97d60ceac45b",
     )
 
     maybe(
