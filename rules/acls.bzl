@@ -61,7 +61,6 @@ load("//rules/acls:baseline_profiles_optimizer_integration.bzl", "BASELINE_PROFI
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
-load("//rules/acls:fix_export_exporting_rollout.bzl", "FIX_EXPORT_EXPORTING_FALLBACK", "FIX_EXPORT_EXPORTING_ROLLOUT")
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
 load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
@@ -149,9 +148,6 @@ def _in_databinding_allowed(fqn):
 
 def _in_dex2oat_opts(fqn):
     return matches(fqn, CAN_USE_DEX2OAT_OPTIONS_DICT)
-
-def _in_fix_export_exporting_rollout(fqn):
-    return not matches(fqn, FIX_EXPORT_EXPORTING_FALLBACK_DICT) and matches(fqn, FIX_EXPORT_EXPORTING_ROLLOUT_DICT)
 
 def _in_install_apps_in_data(fqn):
     return matches(fqn, AIT_INSTALL_APPS_IN_DATA_DICT)
@@ -256,8 +252,6 @@ ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS_DICT = make_dict(ANDROID_TEST_LOCKDOWN
 ANDROID_TEST_LOCKDOWN_TARGETS_DICT = make_dict(ANDROID_TEST_LOCKDOWN_TARGETS)
 B122039567_DICT = make_dict(B122039567)
 CAN_USE_DEX2OAT_OPTIONS_DICT = make_dict(CAN_USE_DEX2OAT_OPTIONS)
-FIX_EXPORT_EXPORTING_FALLBACK_DICT = make_dict(FIX_EXPORT_EXPORTING_FALLBACK)
-FIX_EXPORT_EXPORTING_ROLLOUT_DICT = make_dict(FIX_EXPORT_EXPORTING_ROLLOUT)
 AIT_INSTALL_APPS_IN_DATA_DICT = make_dict(INSTALL_APPS_IN_DATA)
 LOCAL_TEST_MULTI_PROTO_PKG_DICT = make_dict(LOCAL_TEST_MULTI_PROTO_PKG)
 TEST_TO_INSTRUMENT_TEST_FALLBACK_DICT = make_dict(TEST_TO_INSTRUMENT_TEST_FALLBACK)
@@ -359,7 +353,6 @@ acls = struct(
     in_android_test_lockdown_allowlist = _in_android_test_lockdown_allowlist,
     in_databinding_allowed = _in_databinding_allowed,
     in_dex2oat_opts = _in_dex2oat_opts,
-    in_fix_export_exporting_rollout = _in_fix_export_exporting_rollout,
     in_install_apps_in_data = _in_install_apps_in_data,
     in_local_test_multi_proto = _in_local_test_multi_proto,
     in_test_to_instrument_test_rollout = _in_test_to_instrument_test_rollout,
