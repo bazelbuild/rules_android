@@ -1965,7 +1965,6 @@ def _process(
         res_v3_dummy_manifest = None,
         res_v3_dummy_r_txt = None,
         fix_resource_transitivity = False,
-        fix_export_exporting = False,
         propagate_resources = True,
         zip_tool = None):
     out_ctx = _process_starlark(
