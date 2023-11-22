@@ -54,7 +54,6 @@ load("//rules/acls:android_library_starlark_resource_outputs.bzl", "ANDROID_LIBR
 load("//rules/acls:android_library_use_aosp_aidl_compiler.bzl", "ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST")
 load("//rules/acls:android_lint_checks_rollout.bzl", "ANDROID_LINT_CHECKS_FALLBACK", "ANDROID_LINT_CHECKS_ROLLOUT")
 load("//rules/acls:android_lint_rollout.bzl", "ANDROID_LINT_FALLBACK", "ANDROID_LINT_ROLLOUT")
-load("//rules/acls:android_local_test_jdk_sts_rollout.bzl", "ANDROID_LOCAL_TEST_JDK_STS_FALLBACK", "ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT")
 load("//rules/acls:android_multidex_native_min_sdk_allowlist.bzl", "ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST")
 load("//rules/acls:android_test_lockdown.bzl", "ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS", "ANDROID_TEST_LOCKDOWN_TARGETS")
 load("//rules/acls:b122039567.bzl", "B122039567")
@@ -190,9 +189,6 @@ def _in_android_apk_to_bundle_features(fqn):
 def _get_android_archive_duplicate_class_allowlist(fqn):
     return ANDROID_ARCHIVE_DUPLICATE_CLASS_ALLOWLIST.get(fqn, [])
 
-def _in_android_local_test_jdk_sts_rollout(fqn):
-    return not matches(fqn, ANDROID_LOCAL_TEST_JDK_STS_FALLBACK_DICT) and matches(fqn, ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT_DICT)
-
 def _in_shared_library_resource_linking_allowlist(fqn):
     return matches(fqn, SHARED_LIBRARY_RESOURCE_LINKING_DICT)
 
@@ -278,8 +274,6 @@ BASELINE_PROFILES_OPTIMIZER_INTEGRATION_DICT = make_dict(BASELINE_PROFILES_OPTIM
 MIN_SDK_FLOORS_DICT = make_min_sdk_dict(MIN_SDK_FLOORS)
 ANDROID_APK_TO_BUNDLE_FEATURES_DICT = make_dict(ANDROID_APK_TO_BUNDLE_FEATURES)
 ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST_DICT = make_dict(ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST)
-ANDROID_LOCAL_TEST_JDK_STS_FALLBACK_DICT = make_dict(ANDROID_LOCAL_TEST_JDK_STS_FALLBACK)
-ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT_DICT = make_dict(ANDROID_LOCAL_TEST_JDK_STS_ROLLOUT)
 DATABINDING_ALLOWED_DICT = make_dict(DATABINDING_ALLOWED)
 DATABINDING_DISALLOWED_DICT = make_dict(DATABINDING_DISALLOWED)
 SHARED_LIBRARY_RESOURCE_LINKING_DICT = make_dict(SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST)
@@ -376,7 +370,6 @@ acls = struct(
     in_baseline_profiles_rollout = _in_baseline_profiles_rollout,
     in_baseline_profiles_optimizer_integration = _in_baseline_profiles_optimizer_integration,
     in_android_apk_to_bundle_features = _in_android_apk_to_bundle_features,
-    in_android_local_test_jdk_sts_rollout = _in_android_local_test_jdk_sts_rollout,
     in_shared_library_resource_linking_allowlist = _in_shared_library_resource_linking_allowlist,
     in_android_binary_starlark_dex_desugar_proguard = _in_android_binary_starlark_dex_desugar_proguard,
     in_android_binary_min_sdk_version_attribute_allowlist = _in_android_binary_min_sdk_version_attribute_allowlist,
