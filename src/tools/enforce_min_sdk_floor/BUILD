@@ -1,6 +1,8 @@
+load("@py_deps//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+
 # Description:
 #   Package for tool to enforce min SDK floor on AndroidManifests
-load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,6 +13,7 @@ py_binary(
     srcs = ["enforce_min_sdk_floor.py"],
     deps = [
         "@bazel_tools//third_party/py/abseil",
+        requirement("lxml"),
     ],
 )
 
