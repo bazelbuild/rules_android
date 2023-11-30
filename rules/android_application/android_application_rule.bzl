@@ -49,7 +49,6 @@ load(
 load(
     "//rules:utils.bzl",
     "get_android_toolchain",
-    "utils",
     _log = "log",
 )
 load(
@@ -241,7 +240,7 @@ def _generate_runtime_enabled_sdk_config(ctx, base_proto_apk):
     if not (sdk_archives or module_configs):
         return None
 
-    debug_key = utils.only(ctx.attr.base_module[ApkInfo].signing_keys)
+    debug_key = ctx.file._sandboxed_sdks_debug_key
     manifest_xml_tree = ctx.actions.declare_file(ctx.label.name + "/manifest_tree_dump.txt")
     _aapt.dump_manifest_xml_tree(
         ctx,
