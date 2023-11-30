@@ -41,11 +41,6 @@ def _android_platforms_transition_impl(settings, __):
         if not sets.is_subset(sets.make(new_platforms), sets.make(android_platforms)):
             new_platforms = [android_platforms[0]]
 
-    # If we are using toolchain resolution for Android, also use it for CPP.
-    # This needs to be before the Android Binary is analyzed so that all native dependencies
-    # use the same configuration.
-    new_settings[utils.add_cls_prefix("incompatible_enable_cc_toolchain_resolution")] = True
-
     new_settings[utils.add_cls_prefix("platforms")] = new_platforms
     return new_settings
 
@@ -55,13 +50,11 @@ android_platforms_transition = transition(
         "//command_line_option:android_platforms",
         "//command_line_option:platforms",
         "//command_line_option:incompatible_enable_android_toolchain_resolution",
-        "//command_line_option:incompatible_enable_cc_toolchain_resolution",
     ],
     outputs = [
         "//command_line_option:android_platforms",
         "//command_line_option:platforms",
         "//command_line_option:incompatible_enable_android_toolchain_resolution",
-        "//command_line_option:incompatible_enable_cc_toolchain_resolution",
     ],
 )
 

@@ -128,7 +128,6 @@ def _handle_android_cpu(settings):
     split_options[utils.add_cls_prefix("platforms")] = []
 
     # Because configuration is based on cpu flags we need to disable C++ toolchain resolution
-    split_options[utils.add_cls_prefix("incompatible_enable_cc_toolchain_resolution")] = False
     return _handle_default_split(split_options, android_cpu)
 
 def _handle_fat_apk_cpus(settings):
@@ -153,8 +152,6 @@ def _handle_fat_apk_cpus(settings):
         # Ensure platforms aren't set so that platform mapping can take place.
         split_options[utils.add_cls_prefix("platforms")] = []
 
-        # Because configuration is based on cpu flags we need to disable C++ toolchain resolution
-        split_options[utils.add_cls_prefix("incompatible_enable_cc_toolchain_resolution")] = False
         result[cpu] = split_options
         _non_split_cpus(result, cpu, split_options)
 
@@ -191,7 +188,6 @@ android_split_transition = transition(
         "//command_line_option:fat_apk_cpu",
         "//command_line_option:fat_apk_hwasan",
         "//command_line_option:incompatible_enable_android_toolchain_resolution",
-        "//command_line_option:incompatible_enable_cc_toolchain_resolution",
         "//command_line_option:platforms",
     ],
     outputs = [
@@ -212,7 +208,6 @@ android_split_transition = transition(
         "//command_line_option:fat_apk_cpu",
         "//command_line_option:fat_apk_hwasan",
         "//command_line_option:incompatible_enable_android_toolchain_resolution",
-        "//command_line_option:incompatible_enable_cc_toolchain_resolution",
         "//command_line_option:platforms",
     ],
 )
