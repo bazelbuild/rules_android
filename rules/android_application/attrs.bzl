@@ -90,6 +90,10 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
             cfg = "exec",
             default = Label("//tools/jdk:current_java_runtime"),
         ),
+        _sandboxed_sdks_debug_key = attr.label(
+            allow_single_file = True,
+            default = Label("//tools/android:debug_keystore"),
+        ),
     ),
     _attrs.ANDROID_SDK,
 )
