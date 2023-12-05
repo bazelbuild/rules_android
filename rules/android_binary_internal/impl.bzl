@@ -326,32 +326,21 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
         )
 
         classes_dex_zip = _dex.get_dx_artifact(ctx, "classes.dex.zip")
-        if optimizing_dexer and is_binary_optimized:
-            _dex.process_optimized_dexing(
-                ctx,
-                output = classes_dex_zip,
-                input = proguarded_jar,
-                proguard_output_map = proguard_output_map,
-                postprocessing_output_map = postprocessing_output_map,
-                dexopts = ctx.attr.dexopts,
-                native_multidex = multidex == "native",
-                min_sdk_version = ctx.attr.min_sdk_version,
-                main_dex_list = main_dex_list,
-                library_jar = optimize_ctx.proguard_output.library_jar,
-                startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None,
-                optimizing_dexer = optimizing_dexer.files_to_run,
-                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-            )
-        elif incremental_dexing:
+        if incremental_dexing:
             _dex.process_incremental_dexing(
                 ctx,
                 output = classes_dex_zip,
                 deps = _get_dex_desugar_aspect_deps(ctx),
                 dexopts = ctx.attr.dexopts,
+                native_multidex = multidex == "native",
                 runtime_jars = binary_runtime_jars,
                 main_dex_list = main_dex_list,
                 min_sdk_version = ctx.attr.min_sdk_version,
                 proguarded_jar = proguarded_jar,
+                library_jar = optimize_ctx.proguard_output.library_jar,
+                proguard_output_map = proguard_output_map,
+                postprocessing_output_map = postprocessing_output_map,
+                startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None,
                 inclusion_filter_jar = binary_jar if _is_instrumentation(ctx) and not is_binary_optimized else None,
                 java_info = java_info,
                 desugar_dict = deploy_ctx.desugar_dict,
@@ -360,6 +349,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 dexbuilder_after_proguard = get_android_toolchain(ctx).dexbuilder_after_proguard.files_to_run,
                 dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
                 dexsharder = get_android_toolchain(ctx).dexsharder.files_to_run,
+                optimizing_dexer = optimizing_dexer.files_to_run if optimizing_dexer else None,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
         else:
