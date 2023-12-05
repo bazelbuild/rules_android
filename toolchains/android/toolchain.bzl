@@ -303,6 +303,11 @@ _ATTRS = dict(
         default = "@androidsdk//:fail",
         executable = True,
     ),
+    rex_wrapper = attr.label(
+        cfg = "exec",
+        default = "@androidsdk//:fail",
+        executable = True,
+    ),
 )
 
 def _impl(ctx):
