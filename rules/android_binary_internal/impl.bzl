@@ -292,19 +292,18 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 dex_list_obfuscator = get_android_toolchain(ctx).dex_list_obfuscator.files_to_run,
             )
 
-        # TODO(b/261110876): potentially add codepaths below to support rex (postprocessingRewritesMap)
         if proguard_output_map:
+            enable_postprocess_dexing = _dex.enable_postprocess_dexing(ctx)
+
             # Proguard map from preprocessing will be merged with Proguard map for desugared
             # library.
-            if optimizing_dexer and ctx.fragments.android.desugar_java8_libs:
+            if (optimizing_dexer or enable_postprocess_dexing) and ctx.fragments.android.desugar_java8_libs:
                 postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
                 final_proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
-
-            elif optimizing_dexer:
+            elif (optimizing_dexer or enable_postprocess_dexing):
                 # No desugared library, Proguard map from postprocessing is the final Proguard map.
                 postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
                 final_proguard_output_map = postprocessing_output_map
-
             elif ctx.fragments.android.desugar_java8_libs:
                 # No postprocessing, Proguard map from merging with the desugared library map is the
                 # final Proguard map.
@@ -374,6 +373,25 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 dexbuilder = get_android_sdk(ctx).dx,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
+
+        # TODO(b/261110876): Remove dex postprocessing once Optimizing dexing is enabled by default
+        if _dex.enable_postprocess_dexing(ctx):
+            rexed_dex_zip = ctx.actions.declare_file(ctx.label.name + "/_rex/rexed_dexes.zip")
+
+            # TODO(zhaoqxu): Populate final_rex_package_map to the Native rule if needed.
+            _final_rex_package_map = _dex.postprocess_dexing(
+                ctx,
+                rexed_dex_zip = rexed_dex_zip,
+                classes_dex_zip = classes_dex_zip,
+                proguard_map = proguard_output_map,
+                postprocessing_output_map = postprocessing_output_map,
+                main_dex_list = main_dex_list,
+                multidex = ctx.attr.multidex,
+                rexopts = getattr(ctx.attr, "rexopts", []),
+                rex_wrapper = get_android_toolchain(ctx).rex_wrapper.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+            )
+            classes_dex_zip = rexed_dex_zip
 
         if ctx.fragments.android.desugar_java8_libs and classes_dex_zip.extension == "zip":
             final_classes_dex_zip = _dex.get_dx_artifact(ctx, "final_classes_dex.zip")
@@ -689,17 +707,19 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
     )
     desugar_java8_libs_generates_map = ctx.fragments.android.desugar_java8
     optimizing_dexing = bool(ctx.attr._optimizing_dexer)
+    enable_postprocess_dexing = _dex.enable_postprocess_dexing(ctx)
 
-    # TODO(b/261110876): potentially add codepaths below to support rex (postprocessingRewritesMap)
     if generate_proguard_map:
         # Determine the output of the Proguard map from shrinking the app. This depends on the
         # additional steps which can process the map before the final Proguard map artifact is
         # generated.
-        if not has_proguard_specs:
+        if not has_proguard_specs and not enable_postprocess_dexing:
             # When no shrinking happens a generating rule for the output map artifact is still needed.
             proguard_output_map = proguard.get_proguard_output_map(ctx)
         elif optimizing_dexing:
             proguard_output_map = proguard.get_proguard_temp_artifact(ctx, "pre_dexing.map")
+        elif enable_postprocess_dexing:
+            proguard_output_map = proguard.get_proguard_temp_artifact(ctx, "proguard_output_for_rex.map")
         elif desugar_java8_libs_generates_map:
             # Proguard map from shrinking will be merged with desugared library proguard map.
             proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
