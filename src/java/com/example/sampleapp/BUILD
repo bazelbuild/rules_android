@@ -23,7 +23,30 @@ android_library(
     ],
 )
 
+# Somewhat annoying hack: explicitly copy the JDK's JNI header and pass
+# it as a dep to the cc_library below. This prevents commands such as
+# `bazel build src/...` from breaking while attempgint to build the
+# JNI target.
+genrule(
+    name = "jni_h",
+    srcs = ["@bazel_tools//tools/jdk:jni_header"],
+    outs = [":jni.h"],
+    cmd = "cp $< $@",
+)
+
+genrule(
+    name = "jni_md_h",
+    srcs = select({
+        "//conditions:default":["@bazel_tools//tools/jdk:jni_md_header-linux"],
+        "@platforms//os:windows": ["@bazel_tools//tools/jdk:jni_md_header-windows"],
+        "@platforms//os:macos": ["@bazel_tools//tools/jdk:jni_md_header-darwin"],
+    }),
+    outs = [":jni_md.h"],
+    cmd = "cp $< $@",
+)
+
 cc_library(
     name = "native",
-    srcs = ["native.c"],
+    srcs = ["native.c", ":jni.h", ":jni_md.h"],
+    includes = ["."],
 )
