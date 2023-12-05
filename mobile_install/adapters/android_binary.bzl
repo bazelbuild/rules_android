@@ -13,8 +13,8 @@
 # limitations under the License.
 """Rule adapter for android_binary."""
 
+load("//rules/flags:flags.bzl", "flags")
 load(":adapters/base.bzl", "make_adapter")
-load(":launcher.bzl", "make_launcher")
 load(":launcher_direct.bzl", "make_direct_launcher")
 load(":process.bzl", "process")
 load(
@@ -29,7 +29,6 @@ load(
 load(":resources.bzl", "get_assets_dir")
 load(":transform.bzl", "dex", "filter_jars")
 load(":utils.bzl", "utils")
-load("//rules/flags:flags.bzl", "flags")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
@@ -126,20 +125,12 @@ def adapt(target, ctx):
     launcher = utils.isolated_declare_file(ctx, ctx.label.name + "_mi/launcher")
     mi_app_info = process(ctx, sibling = launcher, **extract(target, ctx))
 
-    if flags.get(ctx).use_direct_deploy:
-        mi_app_launch_info = make_direct_launcher(
-            ctx,
-            mi_app_info,
-            launcher,
-            use_adb_root = flags.get(ctx).use_adb_root,
-        )
-    else:
-        mi_app_launch_info = make_launcher(
-            ctx,
-            mi_app_info,
-            launcher,
-            use_adb_root = flags.get(ctx).use_adb_root,
-        )
+    mi_app_launch_info = make_direct_launcher(
+        ctx,
+        mi_app_info,
+        launcher,
+        use_adb_root = flags.get(ctx).use_adb_root,
+    )
 
     return [
         mi_app_info,

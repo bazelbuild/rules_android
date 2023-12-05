@@ -51,7 +51,6 @@ MIAppLaunchInfo = provider(
         launcher = "The launcher file",
         launcher_flags = "The flagfile for the app",
         runfiles = "The list of files needed to launch an app",
-        sync = "Sync.pb for one or many apps",
     ),
 )
 
