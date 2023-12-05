@@ -35,9 +35,14 @@ def _process_incremental_dexing(
         deps = [],
         runtime_jars = [],
         dexopts = [],
+        native_multidex = True,
         main_dex_list = None,
         min_sdk_version = 0,
         proguarded_jar = None,
+        library_jar = None,
+        proguard_output_map = None,
+        postprocessing_output_map = None,
+        startup_profile = None,
         inclusion_filter_jar = None,
         java_info = None,
         desugar_dict = {},
@@ -46,9 +51,20 @@ def _process_incremental_dexing(
         dexbuilder_after_proguard = None,
         dexmerger = None,
         dexsharder = None,
+        optimizing_dexer = None,
         toolchain_type = None):
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
-    incremental_dexopts = _filter_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    should_optimize_dex = optimizing_dexer and proguarded_jar
+    incremental_dexopts = _filter_dexopts(
+        tokenized_dexopts = dexopts,
+        includes = ctx.fragments.android.get_dexopts_supported_in_incremental_dexing,
+        needs_normalization = not should_optimize_dex,
+    )
+    merger_dexopts = _filter_dexopts(
+        tokenized_dexopts = dexopts,
+        includes = ctx.fragments.android.get_dexopts_supported_in_dex_merger,
+        needs_normalization = not should_optimize_dex,
+    )
     if not proguarded_jar:
         dex_archives = []
         for jar in runtime_jars:
@@ -81,6 +97,7 @@ def _process_incremental_dexing(
                 min_sdk_version = min_sdk_version,
                 shuffle_jars = shuffle_jars,
                 dexbuilder_after_proguard = dexbuilder_after_proguard,
+                optimizing_dexer = optimizing_dexer,
                 toolchain_type = toolchain_type,
             )
             inclusion_filter_jar = None
@@ -105,8 +122,24 @@ def _process_incremental_dexing(
             inputs = dex_archives,
             multidex_strategy = "minimal",
             main_dex_list = main_dex_list,
-            dexopts = _filter_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_dex_merger),
+            dexopts = merger_dexopts,
             dexmerger = dexmerger,
+            toolchain_type = toolchain_type,
+        )
+    elif should_optimize_dex:
+        _optimized_dex_merge(
+            ctx,
+            output = output,
+            inputs = dex_archives,
+            main_dex_list = main_dex_list,
+            min_sdk_version = min_sdk_version,
+            dexopts = merger_dexopts,
+            native_multidex = native_multidex,
+            library_jar = library_jar,
+            proguard_output_map = proguard_output_map,
+            postprocessing_output_map = postprocessing_output_map,
+            startup_profile = startup_profile,
+            optimizing_dexer = optimizing_dexer,
             toolchain_type = toolchain_type,
         )
     else:
@@ -139,66 +172,6 @@ def _process_incremental_dexing(
             progress_message = "Merging dex shards for %s." % ctx.label,
             java_toolchain = _common.get_java_toolchain(ctx),
         )
-
-def _process_optimized_dexing(
-        ctx,
-        output,
-        input = None,
-        proguard_output_map = None,
-        postprocessing_output_map = None,
-        dexopts = [],
-        native_multidex = True,
-        min_sdk_version = 0,
-        main_dex_list = None,
-        library_jar = None,
-        startup_profile = None,
-        optimizing_dexer = None,
-        toolchain_type = None):
-    inputs = [input]
-    outputs = [output]
-
-    args = ctx.actions.args()
-    args.add(input)
-    args.add("--release")
-    args.add("--no-desugaring")
-    args.add("--output", output)
-    args.add_all(dexopts)
-
-    if proguard_output_map:
-        args.add("--pg-map", proguard_output_map)
-        args.add("--pg-map-output", postprocessing_output_map)
-        inputs.append(proguard_output_map)
-        outputs.append(postprocessing_output_map)
-
-    if startup_profile and native_multidex:
-        args.add("--startup-profile", startup_profile)
-        inputs.append(startup_profile)
-
-    # TODO(b/261110876): Pass min SDK through here based on the value in the merged manifest. The
-    # current value is statically defined for the entire depot.
-    # We currently set the minimum SDK version to 21 if you are doing native multidex as that is
-    # required for native multidex to work in the first place and as a result is required for
-    # correct behavior from the dexer.
-    sdk = max(min_sdk_version, 21) if native_multidex else min_sdk_version
-    if sdk != 0:
-        args.add("--min-api", sdk)
-    if main_dex_list:
-        args.add("--main-dex-list", main_dex_list)
-        inputs.append(main_dex_list)
-    if library_jar:
-        args.add("--lib", library_jar)
-        inputs.append(library_jar)
-
-    ctx.actions.run(
-        outputs = outputs,
-        executable = optimizing_dexer,
-        inputs = inputs,
-        arguments = [args],
-        mnemonic = "OptimizingDex",
-        progress_message = "Optimized dexing for " + str(ctx.label),
-        use_default_shell_env = True,
-        toolchain = toolchain_type,
-    )
 
 def _process_monolithic_dexing(
         ctx,
@@ -317,11 +290,14 @@ def _shard_proguarded_jar_and_dex(
         min_sdk_version = 0,
         shuffle_jars = None,
         dexbuilder_after_proguard = None,
+        optimizing_dexer = None,
         toolchain_type = None):
     if num_shards <= 1:
         fail("num_shards expects to be larger than 1.")
 
-    shards = _make_shard_artifacts(ctx, num_shards, ".jar.dex.zip")
+    should_optimize_dex = optimizing_dexer and proguarded_jar
+    shard_suffix = ".zip" if should_optimize_dex else ".jar.dex.zip"
+    shards = _make_shard_artifacts(ctx, num_shards, shard_suffix)
     shuffle_outputs = _make_shard_artifacts(ctx, num_shards, ".jar")
     inputs = []
     args = ctx.actions.args()
@@ -349,15 +325,26 @@ def _shard_proguarded_jar_and_dex(
     )
 
     for i in range(len(shards)):
-        _dex(
-            ctx,
-            input = shuffle_outputs[i],
-            output = shards[i],
-            incremental_dexopts = dexopts,
-            min_sdk_version = min_sdk_version,
-            dex_exec = dexbuilder_after_proguard,
-            toolchain_type = toolchain_type,
-        )
+        if should_optimize_dex:
+            _optimizing_dex(
+                ctx,
+                input = shuffle_outputs[i],
+                output = shards[i],
+                incremental_dexopts = dexopts,
+                min_sdk_version = min_sdk_version,
+                dex_exec = optimizing_dexer,
+                toolchain_type = toolchain_type,
+            )
+        else:
+            _dex(
+                ctx,
+                input = shuffle_outputs[i],
+                output = shards[i],
+                incremental_dexopts = dexopts,
+                min_sdk_version = min_sdk_version,
+                dex_exec = dexbuilder_after_proguard,
+                toolchain_type = toolchain_type,
+            )
     return shards
 
 def _make_shard_artifacts(ctx, n, suffix):
@@ -451,6 +438,7 @@ def _dex(
         incremental_dexopts: List of strings. Additional command-line flags for the dexing tool when building dexes.
         min_sdk_version: Integer. The minimum targeted sdk version.
         dex_exec: File. The executable dex builder file.
+        toolchain_type: The Android toolchain.
     """
     args = ctx.actions.args()
     args.use_param_file("@%s", use_always = True)  # Required for workers.
@@ -477,6 +465,46 @@ def _dex(
         mnemonic = "DexBuilder",
         progress_message = "Dexing " + input.path + " with applicable dexopts " + str(incremental_dexopts),
         execution_requirements = execution_requirements,
+        toolchain = toolchain_type,
+    )
+
+def _optimizing_dex(
+        ctx,
+        input,
+        output = None,
+        incremental_dexopts = [],
+        min_sdk_version = 0,
+        dex_exec = None,
+        toolchain_type = None):
+    """Performs optimizing intermediate dexing of a JAR.
+
+    Args:
+        ctx: The context.
+        input: File. The jar to be dexed.
+        output: File. The archive file containing all of the dexes.
+        incremental_dexopts: List of strings. Additional command-line flags for the dexing tool when building dexes.
+        min_sdk_version: Integer. The minimum targeted sdk version.
+        dex_exec: File. The executable dex builder file.
+        toolchain_type: The Android toolchain.
+    """
+    args = ctx.actions.args()
+    args.add("--intermediate")
+    args.add("--release")
+    args.add("--no-desugaring")
+    args.add("--output", output)
+    args.add_all(incremental_dexopts)
+    args.add(input)
+
+    if min_sdk_version > 0:
+        args.add("--min_sdk_version", min_sdk_version)
+
+    ctx.actions.run(
+        executable = dex_exec,
+        arguments = [args],
+        inputs = [input],
+        outputs = [output],
+        mnemonic = "ShardedOptimizingDex",
+        progress_message = "Optimized dexing " + input.path + " with applicable dexopts " + str(incremental_dexopts),
         toolchain = toolchain_type,
     )
 
@@ -570,6 +598,86 @@ def _dex_merge(
         toolchain = toolchain_type,
     )
 
+def _optimized_dex_merge(
+        ctx,
+        output = None,
+        inputs = [],
+        main_dex_list = None,
+        min_sdk_version = 0,
+        dexopts = [],
+        native_multidex = True,
+        library_jar = None,
+        proguard_output_map = None,
+        postprocessing_output_map = None,
+        startup_profile = None,
+        optimizing_dexer = None,
+        toolchain_type = None):
+    outputs = [output]
+
+    # Use a param file to pass through all flags with paths that might get large.
+    param_file = ctx.actions.declare_file(output.path + ".params")
+    param_file_args = ctx.actions.args()
+    param_file_args.add_all(inputs)
+    param_file_args.add("--output", output)
+    args = ctx.actions.args()
+    args.add("--release")
+
+    # --no-desugaring is unnecessary here. But it is left in for now to match
+    # the native Blaze android_binary rules.
+    # TODO(b/307352234): Drop --no-desugaring here after migrating off the
+    # native android_binary rules.
+    args.add("--no-desugaring")
+    args.add_all(dexopts)
+
+    if proguard_output_map:
+        inputs.append(proguard_output_map)
+        param_file_args.add("--pg-map", proguard_output_map)
+
+    if postprocessing_output_map:
+        param_file_args.add("--pg-map-output", postprocessing_output_map)
+        outputs.append(postprocessing_output_map)
+
+    if main_dex_list:
+        inputs.append(main_dex_list)
+        param_file_args.add("--main-dex-list", main_dex_list)
+
+    if startup_profile and native_multidex:
+        param_file_args.add("--startup-profile", startup_profile)
+        inputs.append(startup_profile)
+
+    # TODO(b/261110876): Pass min SDK through here based on the value in the merged manifest. The
+    # current value is statically defined for the entire depot.
+    # We currently set the minimum SDK version to 21 if you are doing native multidex as that is
+    # required for native multidex to work in the first place and as a result is required for
+    # correct behavior from the dexer.
+    sdk = max(min_sdk_version, 21) if native_multidex else min_sdk_version
+    if sdk > 0:
+        args.add("--min-api", sdk)
+
+    if main_dex_list:
+        inputs.append(main_dex_list)
+        param_file_args.add("--main-dex-list", main_dex_list)
+    if library_jar:
+        inputs.append(library_jar)
+        param_file_args.add("--lib", library_jar)
+
+    ctx.actions.write(
+        param_file,
+        content = param_file_args,
+    )
+    inputs.append(param_file)
+    args.add("@" + param_file.path)
+
+    ctx.actions.run(
+        executable = optimizing_dexer,
+        arguments = [args],
+        inputs = inputs,
+        outputs = outputs,
+        mnemonic = "OptimizingDex",
+        progress_message = "Optimized dexing for " + ctx.label.name,
+        toolchain = toolchain_type,
+    )
+
 def _merge_infos(infos):
     dex_archives_dict = {}
     for info in infos:
@@ -583,10 +691,15 @@ def _merge_infos(infos):
             {dexopts: depset(direct = [], transitive = dex_archives) for dexopts, dex_archives in dex_archives_dict.items()},
     )
 
-def _filter_dexopts(tokenized_dexopts, includes):
-    return _normalize_dexopts(
-        [opt for opt in tokenized_dexopts if opt.split("=")[0] in includes],
-    )
+def _filter_dexopts(
+        tokenized_dexopts,
+        includes,
+        needs_normalization = True):
+    filtered = [opt for opt in tokenized_dexopts if opt.split("=")[0] in includes]
+    if needs_normalization:
+        return _normalize_dexopts(filtered)
+    else:
+        return filtered
 
 def _normalize_dexopts(tokenized_dexopts):
     def _dx_to_dexbuilder(opt):
@@ -722,7 +835,6 @@ dex = struct(
     normalize_dexopts = _normalize_dexopts,
     process_monolithic_dexing = _process_monolithic_dexing,
     process_incremental_dexing = _process_incremental_dexing,
-    process_optimized_dexing = _process_optimized_dexing,
     postprocess_dexing = _postprocess_dexing,
     transform_dex_list_through_proguard_map = _transform_dex_list_through_proguard_map,
 )
