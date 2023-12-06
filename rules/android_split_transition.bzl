@@ -127,7 +127,6 @@ def _handle_android_cpu(settings):
     # Ensure platforms aren't set so that platform mapping can take place.
     split_options[utils.add_cls_prefix("platforms")] = []
 
-    # Because configuration is based on cpu flags we need to disable C++ toolchain resolution
     return _handle_default_split(split_options, android_cpu)
 
 def _handle_fat_apk_cpus(settings):
