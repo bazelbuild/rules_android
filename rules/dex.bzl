@@ -79,10 +79,14 @@ def _process_incremental_dexing(
                 toolchain_type = toolchain_type,
             )
             dex_archives.append(dex_archive)
+
+        # Use dicts rather than lists for more efficient filtering
+        library_r_jar_dict = {jar: True for jar in _get_library_r_jars(deps)}
+        runtime_jars_dict = {jar: True for jar in runtime_jars}
         dex_archives += _to_dexed_classpath(
             dex_archives_dict = {d.jar: d.dex for d in info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()},
-            classpath = [jar for jar in java_info.transitive_runtime_jars.to_list() if jar not in _get_library_r_jars(deps)],
-            runtime_jars = runtime_jars,
+            classpath = [jar for jar in java_info.transitive_runtime_jars.to_list() if jar not in library_r_jar_dict],
+            runtime_jars_dict = runtime_jars_dict,
         )
     else:
         java_resource_jar = ctx.actions.declare_file(ctx.label.name + "_files/java_resources.jar")
@@ -408,11 +412,11 @@ def _append_java8_legacy_dex(
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
-def _to_dexed_classpath(dex_archives_dict = {}, classpath = [], runtime_jars = []):
+def _to_dexed_classpath(dex_archives_dict = {}, classpath = [], runtime_jars_dict = {}):
     dexed_classpath = []
     for jar in classpath:
         if jar not in dex_archives_dict:
-            if jar not in runtime_jars:
+            if jar not in runtime_jars_dict:
                 fail("Dependencies on .jar artifacts are not allowed in Android binaries, please use " +
                      "a java_import to depend on " + jar.short_path +
                      ". If this is an implicit dependency then the rule that " +
