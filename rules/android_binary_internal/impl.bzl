@@ -343,6 +343,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None,
                 inclusion_filter_jar = binary_jar if _is_instrumentation(ctx) and not is_binary_optimized else None,
                 java_info = java_info,
+                transitive_runtime_jars_for_archive = deploy_ctx.transitive_runtime_jars_for_archive,
                 desugar_dict = deploy_ctx.desugar_dict,
                 shuffle_jars = get_android_toolchain(ctx).shuffle_jars.files_to_run,
                 dexbuilder = get_android_toolchain(ctx).dexbuilder.files_to_run,
@@ -437,6 +438,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
 
 def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, proto_ctx, **_unused_ctxs):
     deploy_jar, filtered_deploy_jar, desugar_dict = None, None, {}
+    transitive_runtime_jars_for_archive = []
     binary_runtime_jars = []
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         java_toolchain = common.get_java_toolchain(ctx)
@@ -471,7 +473,17 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
                 desugared_jars.append(desugared_jar)
                 desugar_dict[jar] = desugared_jar
 
-            for jar in java_info.transitive_runtime_jars.to_list():
+            # Remove the library resource JARs from the binary's runtime classpath.
+            # Resource classes from android_library dependencies are replaced by the binary's resource
+            # class. We remove them only at the top level so that resources included by a library
+            # that is a dependency of a java_library are still included, since these resources are
+            # propagated via android-specific providers and won't show up when we collect the library
+            # resource JARs.
+            # TODO(b/69552500): Instead, handle this properly so R JARs aren't put on the classpath
+            # for both binaries and libraries.
+            library_r_jar_dict = {jar: True for jar in _get_library_r_jars(ctx.attr.deps)}
+            transitive_runtime_jars_for_archive = [jar for jar in java_info.transitive_runtime_jars.to_list() if jar not in library_r_jar_dict]
+            for jar in transitive_runtime_jars_for_archive:
                 desugared_jars.append(desugar_dict.get(jar, jar))
 
             runtime_jars = depset(desugared_jars)
@@ -507,6 +519,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
         name = "deploy_ctx",
         value = struct(
             binary_runtime_jars = binary_runtime_jars,
+            transitive_runtime_jars_for_archive = transitive_runtime_jars_for_archive,
             deploy_jar = deploy_jar,
             desugar_dict = desugar_dict,
             filtered_deploy_jar = filtered_deploy_jar,
@@ -571,6 +584,12 @@ def finalize(
         providers.append(packaged_resources_ctx.android_application_resource)
 
     return providers
+
+def _get_library_r_jars(deps):
+    transitive_resource_jars = []
+    for dep in utils.collect_providers(AndroidLibraryResourceClassJarProvider, deps):
+        transitive_resource_jars += dep.jars.to_list()
+    return transitive_resource_jars
 
 def _is_test_binary(ctx):
     """Whether this android_binary target is a test binary.
