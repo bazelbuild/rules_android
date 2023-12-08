@@ -46,6 +46,7 @@ def _process_incremental_dexing(
         inclusion_filter_jar = None,
         java_info = None,
         desugar_dict = {},
+        transitive_runtime_jars_for_archive = [],
         shuffle_jars = None,
         dexbuilder = None,
         dexbuilder_after_proguard = None,
@@ -81,11 +82,10 @@ def _process_incremental_dexing(
             dex_archives.append(dex_archive)
 
         # Use dicts rather than lists for more efficient filtering
-        library_r_jar_dict = {jar: True for jar in _get_library_r_jars(deps)}
         runtime_jars_dict = {jar: True for jar in runtime_jars}
         dex_archives += _to_dexed_classpath(
             dex_archives_dict = {d.jar: d.dex for d in info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()},
-            classpath = [jar for jar in java_info.transitive_runtime_jars.to_list() if jar not in library_r_jar_dict],
+            classpath = transitive_runtime_jars_for_archive,
             runtime_jars_dict = runtime_jars_dict,
         )
     else:
@@ -566,12 +566,6 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
         )
 
         return java8_legacy_dex, java8_legacy_dex_map
-
-def _get_library_r_jars(deps):
-    transitive_resource_jars = []
-    for dep in utils.collect_providers(AndroidLibraryResourceClassJarProvider, deps):
-        transitive_resource_jars += dep.jars.to_list()
-    return transitive_resource_jars
 
 def _dex_merge(
         ctx,
