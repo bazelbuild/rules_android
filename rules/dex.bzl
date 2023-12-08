@@ -252,6 +252,7 @@ def _postprocess_dexing(
         args.add("--rex_output_package_map", final_rex_package_map)
         outputs.append(postprocessing_output_map)
         outputs.append(final_rex_package_map)
+        inputs.append(proguard_map)
 
     # the Rex flag --keep-main-dex is used to support builds with API level below 21 that do not
     # support native multi-dex. This flag indicates to Rex to use the main_dex_list file which can
@@ -264,7 +265,7 @@ def _postprocess_dexing(
             args.add("--main_dex_list", main_dex_list)
 
     if rexopts:
-        args.add(rexopts)
+        args.add_all(rexopts)
 
     ctx.actions.run(
         outputs = outputs,
