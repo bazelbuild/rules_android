@@ -23,6 +23,7 @@ load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
 
 _DEX_MEMORY = 4096
 _DEX_THREADS = 5
+_DEXOPTS_SUPPORTED_IN_DEXBUILDER = ["--no-locals", "--no-optimize", "--no-warnings", "--positions"]
 
 _tristate = _attrs.tristate
 
@@ -89,13 +90,18 @@ def _process_incremental_dexing(
             runtime_jars_dict = runtime_jars_dict,
         )
     else:
+        toplevel_dexbuilder_dexopts = _filter_dexopts(
+            tokenized_dexopts = dexopts,
+            includes = _DEXOPTS_SUPPORTED_IN_DEXBUILDER,
+            needs_normalization = not should_optimize_dex,
+        )
         java_resource_jar = ctx.actions.declare_file(ctx.label.name + "_files/java_resources.jar")
         if ctx.fragments.android.incremental_dexing_shards_after_proguard > 1:
             dex_archives = _shard_proguarded_jar_and_dex(
                 ctx,
                 java_resource_jar = java_resource_jar,
                 num_shards = ctx.fragments.android.incremental_dexing_shards_after_proguard,
-                dexopts = incremental_dexopts,
+                dexopts = toplevel_dexbuilder_dexopts,
                 proguarded_jar = proguarded_jar,
                 main_dex_list = main_dex_list,
                 min_sdk_version = min_sdk_version,
@@ -112,7 +118,7 @@ def _process_incremental_dexing(
                 ctx,
                 input = proguarded_jar,
                 output = dex_archive,
-                incremental_dexopts = incremental_dexopts,
+                incremental_dexopts = toplevel_dexbuilder_dexopts,
                 min_sdk_version = min_sdk_version,
                 dex_exec = dexbuilder_after_proguard,
                 toolchain_type = toolchain_type,
