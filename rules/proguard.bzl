@@ -472,7 +472,7 @@ def _create_optimization_actions(
     baseline_profile_rewritten = None
     if startup_profile:
         startup_profile_rewritten = _baseline_profiles.get_profile_artifact(ctx, "rewritten-startup-prof.txt")
-    if baseline_profile and startup_profile:
+    if baseline_profile or startup_profile:
         baseline_profile_rewritten = _baseline_profiles.get_profile_artifact(ctx, "rewritten-merged-prof.txt")
 
     outputs = _get_proguard_output(
