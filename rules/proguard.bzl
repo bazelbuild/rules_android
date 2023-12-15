@@ -280,7 +280,7 @@ def _optimization_action(
         inputs.append(startup_profile)
 
     if startup_profile_rewritten:
-        args.add("-printstartupprofile", startup_profile)
+        args.add("-printstartupprofile", startup_profile_rewritten)
         outputs.append(startup_profile_rewritten)
 
     if baseline_profile:
