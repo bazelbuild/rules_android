@@ -36,9 +36,6 @@ versioned_deps = struct(
     jar_tool = struct(
         head = "@bazel_tools//tools/jdk:JavaBuilder_deploy.jar",
     ),
-    make_sync = struct(
-        head = "//tools/android:gen_fail",
-    ),
     merge_syncs = struct(
         head = "//tools/android:gen_fail",
     ),
@@ -55,9 +52,6 @@ versioned_deps = struct(
         head = "//rules:res_v3_dummy_R.txt",
     ),
     resource_extractor = struct(
-        head = "//tools/android:gen_fail",
-    ),
-    sync_merger = struct(
         head = "//tools/android:gen_fail",
     ),
 )

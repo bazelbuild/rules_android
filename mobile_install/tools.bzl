@@ -146,12 +146,6 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-    _make_sync = attr.label(
-        default = versioned_deps.make_sync.head,
-        allow_files = True,
-        cfg = "exec",
-        executable = True,
-    ),
     _merge_syncs = attr.label(
         default = versioned_deps.merge_syncs.head,
         allow_files = True,
@@ -192,12 +186,6 @@ TOOL_ATTRS = dict(
         allow_single_file = True,
         cfg = "exec",
         default = versioned_deps.resource_extractor.head,
-        executable = True,
-    ),
-    _sync_merger = attr.label(
-        default = versioned_deps.sync_merger.head,
-        allow_files = True,
-        cfg = "exec",
         executable = True,
     ),
 
