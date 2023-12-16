@@ -634,7 +634,7 @@ def _package(
         transitive_resource_apks.append(dep.transitive_resource_apks)
     mergee_manifests = depset([
         node_info.manifest
-        for node_info in depset(transitive = transitive_resources_nodes + direct_resources_nodes).to_list()
+        for node_info in depset(transitive = direct_resources_nodes + transitive_resources_nodes).to_list()
         if node_info.exports_manifest
     ])
 

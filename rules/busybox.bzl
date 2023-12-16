@@ -778,15 +778,9 @@ def _escape_mv(s):
 def _owner_label(file):
     return "//" + file.owner.package + ":" + file.owner.name
 
-# We need to remove the "/_migrated/" path segment from file paths in order for sorting to
-# match the order of the native manifest merging action.
-def _manifest_short_path(manifest):
-    return manifest.short_path.replace("/_migrated/", "/")
-
 def _mergee_manifests_flag(manifests):
-    ordered_manifests = sorted(manifests.to_list(), key = _manifest_short_path)
     entries = []
-    for manifest in ordered_manifests:
+    for manifest in manifests:
         label = _owner_label(manifest).replace(":", "\\:")
         entries.append((manifest.path + ":" + label).replace(",", "\\,"))
     flag_entry = ",".join(entries)
