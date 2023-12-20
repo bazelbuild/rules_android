@@ -20,13 +20,11 @@ load(":process.bzl", "process")
 load(
     ":providers.bzl",
     "MIAndroidAarNativeLibsInfo",
-    "MIAndroidAssetsInfo",
     "MIAndroidDexInfo",
     "MIAndroidResourcesInfo",
     "MIJavaResourcesInfo",
     "providers",
 )
-load(":resources.bzl", "get_assets_dir")
 load(":transform.bzl", "dex", "filter_jars")
 load(":utils.bzl", "utils")
 
@@ -62,17 +60,6 @@ def extract(target, ctx):
                 ctx.rule.attr.deps,
             ),
         ),
-        android_assets_info = providers.make_mi_android_assets_info(
-            assets = depset(ctx.rule.files.assets),
-            assets_dir = get_assets_dir(
-                ctx.rule.files.assets[0],
-                ctx.rule.attr.assets_dir,
-            ) if ctx.rule.files.assets else None,
-            deps = providers.collect(
-                MIAndroidAssetsInfo,
-                ctx.rule.attr.deps,
-            ),
-        ),
         android_dex_info = providers.make_mi_android_dex_info(
             dex_shards = dex(
                 ctx,
@@ -105,8 +92,6 @@ def extract(target, ctx):
                 ctx.rule.attr.deps,
             ),
         ),
-        android_jar = ctx.rule.attr._android_sdk[AndroidSdkInfo].android_jar,
-        instrumented_app = ctx.rule.attr.instruments,
         apk = target.android.apk,
     )
 

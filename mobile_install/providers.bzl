@@ -31,17 +31,12 @@ MIAppInfo = provider(
     doc = "A provider with all relevant details about an app",
     fields = dict(
         manifest_package_name = "A file containing the manifest package name",
-        package = "Name of the package",
-        app_name = "Name of the App",
-        shell_apk = "The shell.apk file for the app",
         splits = "The split apk files for the app",
         r_dex = "The R dex files",
-        merged_manifest = "The Merged manifest file",
         merged_dex_shards = "The Merged dex shards",
         dex_shards = "The dex files for the app",
         native_zip = "The native zip file",
         apk = "The generated android.apk path for the app",
-        instrumented_app = "The MIAppInfo provider of binary_under_test to be instrumented",
     ),
 )
 
