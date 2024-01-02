@@ -783,6 +783,20 @@ def _owner_label(file):
 def _manifest_short_path(manifest):
     return manifest.short_path.replace("/_migrated/", "/")
 
+def _mergee_manifests_with_priorities_flag(manifests):
+    entries = []
+    seen = dict()
+    for manifest in manifests:
+        if manifest in seen:
+            continue
+        seen[manifest] = True
+        label = _owner_label(manifest).replace(":", "\\:")
+        entries.append((manifest.path + ":" + label).replace(",", "\\,"))
+    flag_entry = ",".join(entries)
+    if not flag_entry:
+        return None
+    return flag_entry
+
 def _mergee_manifests_flag(manifests):
     ordered_manifests = sorted(manifests.to_list(), key = _manifest_short_path)
     entries = []
@@ -800,7 +814,10 @@ def _merge_manifests(
         out_log_file = None,
         merge_type = "APPLICATION",
         manifest = None,
-        mergee_manifests = depset(),
+        mergee_manifests = None,
+        direct_mergee_manifests = None,
+        transitive_mergee_manifests = None,
+        enable_manifest_priorities = None,
         manifest_values = None,
         java_package = None,
         busybox = None,
@@ -824,7 +841,10 @@ def _merge_manifests(
 
     outputs = [out_file]
     directs = [manifest] if manifest else []
-    transitives = [mergee_manifests]
+
+    transitives = []
+    if mergee_manifests:
+        transitives = [mergee_manifests]
 
     # Args for busybox
     args = ctx.actions.args()
@@ -833,11 +853,19 @@ def _merge_manifests(
     args.add("--")
     if manifest:
         args.add("--manifest", manifest)
-    args.add_all(
-        "--mergeeManifests",
-        [mergee_manifests],
-        map_each = _mergee_manifests_flag,
-    )
+
+    if mergee_manifests:
+        if enable_manifest_priorities:
+            args.add(
+                "--mergeeManifests",
+                _mergee_manifests_with_priorities_flag(direct_mergee_manifests + transitive_mergee_manifests),
+            )
+        else:
+            args.add_all(
+                "--mergeeManifests",
+                [mergee_manifests],
+                map_each = _mergee_manifests_flag,
+            )
     if manifest_values:
         args.add(
             "--manifestValues",

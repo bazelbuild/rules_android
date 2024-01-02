@@ -214,6 +214,10 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
                     Label("//tools/android:android_jar"),
                 ],
             ),
+            _enable_manifest_merging_dependency_priorities = attr.label(
+                doc = """When enabled respect the manifest priorities during manifest merging.""",
+                default = "//rules/flags:enable_manifest_merging_dependency_priorities",
+            ),
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,

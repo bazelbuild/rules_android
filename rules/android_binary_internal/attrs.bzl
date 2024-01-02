@@ -166,6 +166,10 @@ ATTRS = _attrs.replace(
                 cfg = "exec",
                 executable = True,
             ),
+            _enable_manifest_merging_dependency_priorities = attr.label(
+                doc = """When enabled respect the manifest priorities during manifest merging.""",
+                default = "//rules/flags:enable_manifest_merging_dependency_priorities",
+            ),
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,

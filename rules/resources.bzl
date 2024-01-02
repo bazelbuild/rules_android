@@ -14,6 +14,7 @@
 
 """Bazel Android Resources."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//rules:acls.bzl", "acls")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
@@ -632,11 +633,22 @@ def _package(
         for pkg, r_txts in dep.packages_to_r_txts.items():
             packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
         transitive_resource_apks.append(dep.transitive_resource_apks)
-    mergee_manifests = depset([
+
+    # We need to distinguish direct vs transitive manifests so that we can provide them
+    # to the manifest merger in the correct order. The merger uses the ordering to determine
+    # merging priority. If we flatten the depsets, this information is lost.
+    direct_mergee_manifests = [
         node_info.manifest
-        for node_info in depset(transitive = transitive_resources_nodes + direct_resources_nodes).to_list()
+        for node_info in depset(transitive = direct_resources_nodes, order="preorder").to_list()
         if node_info.exports_manifest
-    ])
+    ]
+
+    transitive_mergee_manifests = [
+        node_info.manifest
+        for node_info in depset(transitive = transitive_resources_nodes, order="preorder").to_list()
+        if node_info.exports_manifest
+    ]
+    mergee_manifests = depset(direct_mergee_manifests, transitive = [depset(transitive_mergee_manifests)], order="preorder")
 
     if not acls.in_shared_library_resource_linking_allowlist(str(ctx.label)):
         # to_list() safe to use as we expect this to be an empty depset in the non-error case
@@ -682,8 +694,11 @@ def _package(
                 ),
                 manifest = g3itr_manifest,
                 mergee_manifests = mergee_manifests,
+                direct_mergee_manifests = direct_mergee_manifests,
+                transitive_mergee_manifests = transitive_mergee_manifests,
                 manifest_values = manifest_values,
                 merge_type = "APPLICATION",
+                enable_manifest_priorities = ctx.attr._enable_manifest_merging_dependency_priorities[BuildSettingInfo].value,
                 java_package = java_package,
                 busybox = busybox,
                 host_javabase = host_javabase,
