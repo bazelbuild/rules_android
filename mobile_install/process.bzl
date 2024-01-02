@@ -125,6 +125,7 @@ def process(
 
     return MIAppInfo(
         manifest_package_name = manifest_package_name,
+        merged_manifest = merged_manifest,
         r_dex = r_dex,
         merged_dex_shards = merged_dex_shards,
         native_zip = native_zip,
