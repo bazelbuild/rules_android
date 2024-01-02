@@ -243,10 +243,17 @@ def _is_stamping_enabled(ctx):
     return getattr(ctx.attr, "stamp", 0)
 
 def _get_build_info(ctx, cc_toolchain):
-    if _is_stamping_enabled(ctx):
-        return cc_toolchain.build_info_files().non_redacted_build_info_files.to_list()
+    # TODO(gnish): This is a temporary workaround until Blaze with Starlark CcToolchainInfo is released.
+    if hasattr(cc_toolchain, "_build_info_files"):
+        # For Starlark CcToolchainInfo.
+        build_info_collection = cc_toolchain._build_info_files
     else:
-        return cc_toolchain.build_info_files().redacted_build_info_files.to_list()
+        # For native CcToolchainInfo.
+        build_info_collection = cc_toolchain.build_info_files()
+    if _is_stamping_enabled(ctx):
+        return build_info_collection.non_redacted_build_info_files.to_list()
+    else:
+        return build_info_collection.redacted_build_info_files.to_list()
 
 def _get_shared_native_deps_path(
         linker_inputs,
