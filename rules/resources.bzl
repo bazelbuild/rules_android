@@ -1100,7 +1100,9 @@ def _validate_resources(resource_files = None):
 
 def _process_manifest_values(ctx, manifest_values, min_sdk_floor):
     expanded_manifest_values = utils.expand_make_vars(ctx, manifest_values)
-    if _MIN_SDK_VERSION in expanded_manifest_values and min_sdk_floor > 0:
+
+    # We cannot bump non-integer minSdkVersion values. These are used for pre-release versions of Android.
+    if _MIN_SDK_VERSION in expanded_manifest_values and min_sdk_floor > 0 and expanded_manifest_values[_MIN_SDK_VERSION].isdigit():
         expanded_manifest_values[_MIN_SDK_VERSION] = str(
             max(int(expanded_manifest_values[_MIN_SDK_VERSION]), min_sdk_floor),
         )
