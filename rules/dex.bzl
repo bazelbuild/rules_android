@@ -286,7 +286,7 @@ def _postprocess_dexing(
     return final_rex_package_map
 
 def _enable_postprocess_dexing(ctx):
-    return not getattr(ctx.attr, "optimizing_dexer", None) and (
+    return not getattr(ctx.attr, "_optimizing_dexer", None) and (
         ctx.fragments.android.use_rex_to_compress_dex_files or
         getattr(ctx.attr, "rewrite_dexes_with_rex", False)
     )
