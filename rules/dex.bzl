@@ -818,7 +818,7 @@ def _transform_dex_list_through_proguard_map(
         executable = dex_list_obfuscator,
         arguments = [args],
         outputs = [obfuscated_main_dex_list],
-        inputs = [main_dex_list],
+        inputs = [main_dex_list, proguard_output_map],
         mnemonic = "MainDexProguardClasses",
         progress_message = "Obfuscating main dex classes list",
         toolchain = toolchain_type,
