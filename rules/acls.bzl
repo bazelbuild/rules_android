@@ -47,6 +47,7 @@ load("//rules/acls:android_binary_starlark_rollout.bzl", "ANDROID_BINARY_STARLAR
 load("//rules/acls:android_binary_with_sandboxed_sdks_allowlist.bzl", "ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST")
 load("//rules/acls:android_build_stamping_rollout.bzl", "ANDROID_BUILD_STAMPING_FALLBACK", "ANDROID_BUILD_STAMPING_ROLLOUT")
 load("//rules/acls:android_feature_splits_dogfood.bzl", "ANDROID_FEATURE_SPLITS_DOGFOOD")
+load("//rules/acls:android_instrumentation_test_device_transition.bzl", "ANDROID_INSTRUMENTATION_TEST_DEVICE_TRANSITION_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_DEVICE_TRANSITION_ROLLOUT")
 load("//rules/acls:android_instrumentation_test_manifest_check_rollout.bzl", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT")
 load("//rules/acls:android_instrumentation_test_prebuilt_test_apk.bzl", "ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_FALLBACK", "ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT")
 load("//rules/acls:android_library_resources_without_srcs.bzl", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS")
@@ -164,6 +165,9 @@ def _in_allow_resource_conflicts(fqn):
 def _in_partial_jetification_targets(fqn):
     return not matches(fqn, PARTIAL_JETIFICATION_TARGETS_FALLBACK_DICT) and matches(fqn, PARTIAL_JETIFICATION_TARGETS_ROLLOUT_DICT)
 
+def _in_android_instrumentation_test_device_transition_rollout(fqn):
+    return not matches(fqn, ANDROID_INSTRUMENTATION_TEST_DEVICE_TRANSITION_FALLBACK_DICT) and matches(fqn, ANDROID_INSTRUMENTATION_TEST_DEVICE_TRANSITION_ROLLOUT_DICT)
+
 def _in_android_instrumentation_test_manifest_check_rollout(fqn):
     return not matches(fqn, ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK_DICT) and matches(fqn, ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT_DICT)
 
@@ -259,6 +263,8 @@ TEST_TO_INSTRUMENT_TEST_ROLLOUT_DICT = make_dict(TEST_TO_INSTRUMENT_TEST_ROLLOUT
 ALLOW_RESOURCE_CONFLICTS_DICT = make_dict(ALLOW_RESOURCE_CONFLICTS)
 PARTIAL_JETIFICATION_TARGETS_ROLLOUT_DICT = make_dict(PARTIAL_JETIFICATION_TARGETS_ROLLOUT)
 PARTIAL_JETIFICATION_TARGETS_FALLBACK_DICT = make_dict(PARTIAL_JETIFICATION_TARGETS_FALLBACK)
+ANDROID_INSTRUMENTATION_TEST_DEVICE_TRANSITION_ROLLOUT_DICT = make_dict(ANDROID_INSTRUMENTATION_TEST_DEVICE_TRANSITION_ROLLOUT)
+ANDROID_INSTRUMENTATION_TEST_DEVICE_TRANSITION_FALLBACK_DICT = make_dict(ANDROID_INSTRUMENTATION_TEST_DEVICE_TRANSITION_FALLBACK)
 ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT_DICT = make_dict(ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT)
 ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK_DICT = make_dict(ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_FALLBACK)
 ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT_DICT = make_dict(ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT)
@@ -358,6 +364,7 @@ acls = struct(
     in_test_to_instrument_test_rollout = _in_test_to_instrument_test_rollout,
     in_allow_resource_conflicts = _in_allow_resource_conflicts,
     in_partial_jetification_targets = _in_partial_jetification_targets,
+    in_android_instrumentation_test_device_transition_rollout = _in_android_instrumentation_test_device_transition_rollout,
     in_android_instrumentation_test_manifest_check_rollout = _in_android_instrumentation_test_manifest_check_rollout,
     in_android_instrumentation_test_prebuilt_test_apk = _in_android_instrumentation_test_prebuilt_test_apk,
     in_baseline_profiles_rollout = _in_baseline_profiles_rollout,
