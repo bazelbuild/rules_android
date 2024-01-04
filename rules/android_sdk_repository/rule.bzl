@@ -206,4 +206,6 @@ def android_sdk_repository(
     _bind(name, "android/dx_jar_import", ":dx_jar_import")
     _bind(name, "android_sdk_for_testing", ":files")
     _bind(name, "has_android_sdk", ":has_android_sdk")
+
+    native.register_toolchains("@%s//:sdk-toolchain" % name)
     native.register_toolchains("@%s//:all" % name)
