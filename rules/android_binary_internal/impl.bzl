@@ -292,15 +292,16 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 dex_list_obfuscator = get_android_toolchain(ctx).dex_list_obfuscator.files_to_run,
             )
 
+        should_optimize_dex = optimizing_dexer and proguarded_jar
         if proguard_output_map:
             enable_postprocess_dexing = _dex.enable_postprocess_dexing(ctx)
 
             # Proguard map from preprocessing will be merged with Proguard map for desugared
             # library.
-            if (optimizing_dexer or enable_postprocess_dexing) and ctx.fragments.android.desugar_java8_libs:
+            if (should_optimize_dex or enable_postprocess_dexing) and ctx.fragments.android.desugar_java8_libs:
                 postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
                 final_proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
-            elif (optimizing_dexer or enable_postprocess_dexing):
+            elif (should_optimize_dex or enable_postprocess_dexing):
                 # No desugared library, Proguard map from postprocessing is the final Proguard map.
                 postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
                 final_proguard_output_map = postprocessing_output_map
@@ -326,7 +327,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
         )
 
         classes_dex_zip = _dex.get_dx_artifact(ctx, "classes.dex.zip")
-        if incremental_dexing:
+        if incremental_dexing or should_optimize_dex:
             _dex.process_incremental_dexing(
                 ctx,
                 output = classes_dex_zip,
