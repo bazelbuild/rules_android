@@ -352,6 +352,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
                 dexsharder = get_android_toolchain(ctx).dexsharder.files_to_run,
                 optimizing_dexer = optimizing_dexer.files_to_run if optimizing_dexer else None,
+                min_sdk_config = packaged_resources_ctx.resource_minsdk_proguard_config,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
         else:
