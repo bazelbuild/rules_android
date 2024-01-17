@@ -98,6 +98,12 @@ ATTRS = _attrs.replace(
                 """,
             ),
             proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
+            _rewrite_resources_through_optimizer = attr.bool(
+                default = False,
+                doc = """
+                Allow for the optimizer to process resources. This is not supported in proguard.
+                """,
+            ),
             resource_apks = attr.label_list(
                 allow_rules = ["apk_import"],
                 providers = [
