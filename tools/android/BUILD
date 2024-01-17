@@ -12,6 +12,12 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "debug_keystore",
+    actual = "@bazel_tools//tools/android:debug_keystore",
+    visibility = ["//visibility:public"],
+)
+
 genrule(
     name = "gen_fail",
     outs = ["fail.sh"],
