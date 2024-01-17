@@ -13,7 +13,6 @@
 # limitations under the License.
 """Processes the target or collected data."""
 
-load("//rules/flags:flags.bzl", "flags")
 load(":apks.bzl", "make_split_apks")
 load(":native_libs.bzl", "make_native_zip", "make_swigdeps_file")
 load(":providers.bzl", "MIAppInfo")
@@ -80,21 +79,19 @@ def process(
         sibling,
     )
 
-    # Add in pre-built java8_legacy_dex if desugaring Java 8 libs (b/77924509)
-    if flags.get(ctx).mi_desugar_java8_libs:
-        java8_legacy = utils.isolated_declare_file(ctx, ctx.label.name + "_mi/dex_java8_legacy/java8_legacy.zip")
-        ctx.actions.run_shell(
-            command = "cp $1 $2",
-            arguments = [
-                ctx.file._mi_java8_legacy_dex.path,
-                java8_legacy.path,
-            ],
-            inputs = [ctx.file._mi_java8_legacy_dex],
-            outputs = [java8_legacy],
-            mnemonic = "CopyJava8Legacy",
-            progress_message = "MI Copy %s to %s" % (ctx.file._mi_java8_legacy_dex.path, java8_legacy.path),
-        )
-        merged_dex_shards.append(java8_legacy)
+    java8_legacy = utils.isolated_declare_file(ctx, ctx.label.name + "_mi/dex_java8_legacy/java8_legacy.zip")
+    ctx.actions.run_shell(
+        command = "cp $1 $2",
+        arguments = [
+            ctx.file._mi_java8_legacy_dex.path,
+            java8_legacy.path,
+        ],
+        inputs = [ctx.file._mi_java8_legacy_dex],
+        outputs = [java8_legacy],
+        mnemonic = "CopyJava8Legacy",
+        progress_message = "MI Copy %s to %s" % (ctx.file._mi_java8_legacy_dex.path, java8_legacy.path),
+    )
+    merged_dex_shards.append(java8_legacy)
 
     # Creates the custom R.
     r_dex = make_r(
