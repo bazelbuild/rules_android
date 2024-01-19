@@ -184,8 +184,6 @@ def _optimization_action(
         startup_profile_rewritten = None,
         baseline_profile = None,
         baseline_profile_rewritten = None,
-        resource_files = None,
-        resource_files_rewritten = None,
         runtype = None,
         last_stage_output = None,
         next_stage_output = None,
@@ -223,8 +221,6 @@ def _optimization_action(
       startup_profile_rewritten: File. Optional file used to write the optimized startup profile.
       baseline_profile: File. Optional. The merged baseline profile to be optimized.
       baseline_profile_rewritten: File. Optional file used to write the optimized profile rules.
-      resource_files: File. Optional. Resources files to be optimzied.
-      resource_files_rewritten: File. Optional file used to write the optimized resources.
       runtype: String. Optional string identifying this run. One of [INITIAL, OPTIMIZATION, FINAL]
       last_stage_output: File. Optional input file to this optimization stage, which was output by
         the previous optimization stage.
@@ -295,14 +291,6 @@ def _optimization_action(
         args.add("-printbaselineprofile", baseline_profile_rewritten)
         outputs.append(baseline_profile_rewritten)
 
-    if resource_files:
-        args.add("-inputresourceszip", resource_files)
-        inputs.append(resource_files)
-
-    if resource_files_rewritten:
-        args.add("-outputresourceszip", resource_files_rewritten)
-        outputs.append(resource_files_rewritten)
-
     if runtype:
         args.add("-runtype " + runtype)
 
@@ -334,9 +322,6 @@ def _get_proguard_temp_artifact(ctx, name):
 def _get_proguard_output_map(ctx):
     return ctx.actions.declare_file(ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX) + "_proguard_MIGRATED_.map")
 
-def _get_proguard_output_resources(ctx):
-    return _get_proguard_temp_artifact(ctx, "_resource_files.zip")
-
 def _apply_proguard(
         ctx,
         input_jar = None,
@@ -349,7 +334,6 @@ def _apply_proguard(
         proguard_usage = None,
         startup_profile = None,
         baseline_profile = None,
-        resource_files = None,
         proguard_tool = None):
     """Top-level method to apply proguard to a jar.
 
@@ -365,7 +349,6 @@ def _apply_proguard(
       proguard_usage: File. The output proguard usage.
       startup_profile: File. The input merged startup profile to be optimized.
       baseline_profile: File. The input merged baseline profile to be optimized.
-      resource_files: File. The zipped resources to be optimized.
       proguard_tool: FilesToRun. The proguard executable.
 
     Returns:
@@ -381,7 +364,6 @@ def _apply_proguard(
             combined_library_jar = None,
             startup_profile_rewritten = None,
             baseline_profile_rewritten = None,
-            resource_files_rewritten = None,
         )
 
         # Fail at execution time if these artifacts are requested, to avoid issue where outputs are
@@ -416,7 +398,6 @@ def _apply_proguard(
         library_jars,
         startup_profile,
         baseline_profile,
-        resource_files,
         proguard_tool,
     )
 
@@ -428,8 +409,7 @@ def _get_proguard_output(
         proguard_output_map,
         combined_library_jar,
         startup_profile_rewritten,
-        baseline_profile_rewritten,
-        resource_files_rewritten):
+        baseline_profile_rewritten):
     """Helper method to get a struct of all proguard outputs."""
 
     # Proto Output Map is currently empty from ProGuard.
@@ -450,7 +430,6 @@ def _get_proguard_output(
         config = config_output,
         startup_profile_rewritten = startup_profile_rewritten,
         baseline_profile_rewritten = baseline_profile_rewritten,
-        resource_files_rewritten = resource_files_rewritten,
     )
 
 def _create_optimization_actions(
@@ -466,7 +445,6 @@ def _create_optimization_actions(
         library_jars = depset(),
         startup_profile = None,
         baseline_profile = None,
-        resource_files = None,
         proguard_tool = None):
     """Helper method to create all optimizaction actions based on the target configuration."""
     if not proguard_specs:
@@ -492,13 +470,10 @@ def _create_optimization_actions(
 
     startup_profile_rewritten = None
     baseline_profile_rewritten = None
-    resource_files_rewritten = None
     if startup_profile:
         startup_profile_rewritten = _baseline_profiles.get_profile_artifact(ctx, "rewritten-startup-prof.txt")
     if baseline_profile or startup_profile:
         baseline_profile_rewritten = _baseline_profiles.get_profile_artifact(ctx, "rewritten-merged-prof.txt")
-    if resource_files:
-        resource_files_rewritten = _get_proguard_output_resources(ctx)
 
     outputs = _get_proguard_output(
         ctx,
@@ -509,7 +484,6 @@ def _create_optimization_actions(
         combined_library_jar,
         startup_profile_rewritten,
         baseline_profile_rewritten,
-        resource_files_rewritten,
     )
 
     # TODO(timpeut): Validate that optimizer target selection is correct
@@ -533,8 +507,6 @@ def _create_optimization_actions(
             startup_profile_rewritten = outputs.startup_profile_rewritten,
             baseline_profile = baseline_profile,
             baseline_profile_rewritten = outputs.baseline_profile_rewritten,
-            resource_files = resource_files,
-            resource_files_rewritten = outputs.resource_files_rewritten,
             final = True,
             mnemonic = mnemonic,
             progress_message = "Trimming binary with %s: %s" % (mnemonic, ctx.label),
@@ -561,8 +533,6 @@ def _create_optimization_actions(
         startup_profile_rewritten = None,
         baseline_profile = baseline_profile,
         baseline_profile_rewritten = None,
-        resource_files = resource_files,
-        resource_files_rewritten = None,
         final = False,
         runtype = "INITIAL",
         next_stage_output = last_stage_output,
@@ -629,8 +599,6 @@ def _create_optimization_actions(
         startup_profile_rewritten = outputs.startup_profile_rewritten,
         baseline_profile = None,
         baseline_profile_rewritten = outputs.baseline_profile_rewritten,
-        resource_files = None,
-        resource_files_rewritten = outputs.resource_files_rewritten,
         final = True,
         runtype = "FINAL",
         last_stage_output = last_stage_output,

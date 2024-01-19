@@ -747,9 +747,6 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
         startup_profile = bp_ctx.baseline_profile_output.startup_profile
         baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
 
-    use_resource_shrinking = is_resource_shrinking_enabled and has_proguard_specs
-    enable_rewrite_resources_through_optimizer = use_resource_shrinking and ctx.attr._rewrite_resources_through_optimizer
-
     proguard_output = proguard.apply_proguard(
         ctx,
         input_jar = deploy_ctx.deploy_jar,
@@ -762,15 +759,15 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
         proguard_usage = proguard_usage,
         startup_profile = startup_profile,
         baseline_profile = baseline_profile,
-        resource_files = packaged_resources_ctx.validation_result if enable_rewrite_resources_through_optimizer else None,
         proguard_tool = get_android_sdk(ctx).proguard,
     )
 
+    use_resource_shrinking = is_resource_shrinking_enabled and has_proguard_specs
     shrunk_resource_output = None
     if use_resource_shrinking:
         shrunk_resource_output = _resources.shrink(
             ctx,
-            resources_zip = proguard_output.resource_files_rewritten if enable_rewrite_resources_through_optimizer else packaged_resources_ctx.validation_result,
+            resources_zip = packaged_resources_ctx.validation_result,
             aapt = get_android_toolchain(ctx).aapt2.files_to_run,
             android_jar = get_android_sdk(ctx).android_jar,
             r_txt = packaged_resources_ctx.r_txt,
