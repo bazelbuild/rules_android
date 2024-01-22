@@ -54,11 +54,8 @@ def extract(target, ctx):
         package = target[AndroidIdeInfo].java_package,
         resource_apk = target[AndroidIdeInfo].resource_apk,
         resource_src_jar = target[AndroidIdeInfo].resource_jar.source_jar,  # This is the R with real ids.
-        aar_native_libs_info = providers.make_mi_android_aar_native_libs_info(
-            deps = providers.collect(
-                MIAndroidAarNativeLibsInfo,
-                ctx.rule.attr.deps,
-            ),
+        aar_native_libs_info = MIAndroidAarNativeLibsInfo(
+            transitive_native_libs = ctx.rule.attr.application_resources[AndroidBinaryNativeLibsInfo].transitive_native_libs,
         ),
         android_dex_info = providers.make_mi_android_dex_info(
             dex_shards = dex(

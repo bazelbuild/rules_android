@@ -16,7 +16,6 @@
 load(":adapters/base.bzl", "make_adapter")
 load(
     ":providers.bzl",
-    "MIAndroidAarNativeLibsInfo",
     "MIAndroidAssetsInfo",
     "MIAndroidDexInfo",
     "MIAndroidResourcesInfo",
@@ -55,14 +54,6 @@ def _adapt(target, ctx):
         resources = target[AndroidResourcesInfo].direct_android_resources
 
     return [
-        providers.make_mi_android_aar_native_libs_info(
-            native_libs = target[AndroidNativeLibsInfo].native_libs,
-            deps = providers.collect(
-                MIAndroidAarNativeLibsInfo,
-                ctx.rule.attr.deps,
-                ctx.rule.attr.exports,
-            ),
-        ),
         providers.make_mi_android_assets_info(
             assets = assets,
             assets_dir = assets_dir,
