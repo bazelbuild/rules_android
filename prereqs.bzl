@@ -16,6 +16,7 @@
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("//bzlmod_extensions:apksig.bzl", _apksig_archive = "apksig")
 
 def rules_android_prereqs(dev_mode = False):
     """Downloads prerequisite repositories for rules_android."""
@@ -132,6 +133,8 @@ def rules_android_prereqs(dev_mode = False):
         ],
         sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
     )
+
+    _apksig_archive()
 
     if dev_mode:
         maybe(
