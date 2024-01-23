@@ -39,7 +39,7 @@ use_repo(
 )
 
 # python-related dependency setup
-bazel_dep(name = "rules_python", version = "0.26.0", repo_name = "rules_python")
+bazel_dep(name = "rules_python", version = "0.28.0", repo_name = "rules_python")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
@@ -96,3 +96,7 @@ bazel_binaries = use_extension(
 )
 bazel_binaries.download(version = "last_green")
 use_repo(bazel_binaries, "bazel_binaries")
+
+# extension for apksignerextensions
+apksig_extension = use_extension("//bzlmod_extensions:apksig.bzl", "apksig_extension")
+use_repo(apksig_extension, "apksig")

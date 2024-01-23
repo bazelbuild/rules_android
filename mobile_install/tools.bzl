@@ -79,7 +79,7 @@ TOOL_ATTRS = dict(
         executable = True,
     ),
     _apk_signer = attr.label(
-        default = Label("@androidsdk//:apksigner"),
+        default = Label("@apksig//:apksigner_deploy.jar"),
         allow_files = True,
         cfg = "exec",
         executable = True,
