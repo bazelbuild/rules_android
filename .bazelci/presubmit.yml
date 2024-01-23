@@ -4,12 +4,12 @@ bazel: last_green
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
-  ? "--incompatible_enable_android_toolchain_resolution=false"
+  ? "--incompatible_enable_android_toolchain_resolution=true"
   # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
   ? "--java_runtime_version=17"
 rules_flags: &rules_flags
   ? "--enable_bzlmod=false"
-  ? "--incompatible_enable_android_toolchain_resolution=false"
+  ? "--incompatible_enable_android_toolchain_resolution=true"
 
 tools: &tools
   name: "Tools"
