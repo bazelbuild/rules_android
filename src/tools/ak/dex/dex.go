@@ -190,7 +190,7 @@ func desugarJar(in, out string) error {
 func dex(in, out string) error {
 	args := []string{
 		"--min-api",
-		"21",
+		"24",
 		"--no-desugaring",
 		"--output",
 		out,
