@@ -18,5 +18,5 @@ sh_test(
     name = "extract_desugar_pgcfg_flags_test",
     srcs = ["extract_desugar_pgcfg_flags_test.sh"],
     args = ["--binary_under_test $(location :extract_desugar_pgcfg_flags)"],
-    tools = [":extract_desugar_pgcfg_flags"],
+    data = [":extract_desugar_pgcfg_flags"],
 )
