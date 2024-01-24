@@ -282,7 +282,7 @@ def d8_merge(
       out_dex_zip: The file to output.
     """
     args = ctx.actions.args()
-    args.add("--min-api", "24")
+    args.add("--min-api", "21")
     args.add("--no-desugaring")
     args.add("--output", out_dex_zip.path)
     args.add(dex_archive)
