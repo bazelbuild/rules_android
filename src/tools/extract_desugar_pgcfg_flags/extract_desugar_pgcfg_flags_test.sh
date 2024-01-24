@@ -41,13 +41,13 @@ set -euxo pipefail
 # Create dummy data
 dummy_json_file="$(mktemp)"
 # Dummy data: shrinker_config is a list of strings, and another unrelated field.
-echo "{\"shrinker_config\": [\"a\", \"b\", \"c\"], \"foo\": \"bar\"}" > "$dummy_json_file"
+echo "{\"shrinker_config\": [\"-keepclassmembers a b c\", \"foobar\", \"-someflag 1 2 3\"], \"foo\": \"bar\"}" > "$dummy_json_file"
 
 # Dummy output dummy output file
-test_output_file="$(mktemp)"
-expected_output_file="$(mktemp)"
+test_output_file="$(mktemp -p /tmp test.XXXX)"
+expected_output_file="$(mktemp -p /tmp golden.XXXX)"
 # Expected outcome is a\nb\nc
-echo -ne "a\nb\nc" > "$expected_output_file"
+echo -ne "-keepclassmembers a b c\nfoobar\n-someflag 1 2 3" > "$expected_output_file"
 
 # Run the binary on the test data
 "$BINARY_UNDER_TEST" --input_json "$dummy_json_file" --output_file "$test_output_file"

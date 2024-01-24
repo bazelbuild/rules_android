@@ -18,7 +18,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -57,15 +56,15 @@ func main() {
 
 	// The r8 desugar config json schema is pretty complicated (+subject to change), and we only
 	// need one field, so instead of reading into a predefined data structure, we just read into a
-	// map[string]any to keep things simple.
-	var result map[string]any
+	// simple struct containing only the relevant shrinker_config string[] field.
+	type shrinkerConfig struct {
+		ShrinkerConfigFlags []string `json:"shrinker_config"`
+	}
+
+	var result shrinkerConfig
 	json.Unmarshal(jsonBytes, &result)
 
-	// Read the shrinker_config field as a string, then trim the demarcating [ ] characters.
-	shrinkerConfigAsString := strings.TrimRight(strings.TrimLeft(fmt.Sprintf("%v", result["shrinker_config"]), "["), "]")
-	shrinkerConfigList := strings.Split(shrinkerConfigAsString, " ")
-	// Massage into newline-separated flag list.
-	shrinkerConfigFlags := strings.Join(shrinkerConfigList, "\n")
+	shrinkerConfigFlags := strings.Join(result.ShrinkerConfigFlags, "\n")
 
 	// Write the shrinker config to the output file
 	shrinkerConfigFile, err := os.Create(*outputFileFlag)
