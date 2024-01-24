@@ -18,3 +18,7 @@
 BASELINE_PROFILES_OPTIMIZER_INTEGRATION = [
     "//test/rules/android_binary_internal:__subpackages__",
 ]
+
+# keep sorted
+BASELINE_PROFILES_OPTIMIZER_INTEGRATION_FALLBACK = [
+]
