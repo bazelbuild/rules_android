@@ -13,20 +13,20 @@
 # limitations under the License.
 """Rule adapter for android_binary."""
 
-load(":adapters/base.bzl", "make_adapter")
-load(":providers.bzl", "MIAppInfo")
-load(":utils.bzl", "utils")
+load("//mobile_install:providers.bzl", "MIAppInfo")
+load("//mobile_install:utils.bzl", "utils")
+load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return ["unsigned_apk"]
 
-def adapt(target, ctx):
+def adapt(_, ctx):
     # adapt is made visibile for testing
     """Adapts the android rule
 
     Args:
-        target: The target.
+        _: Unused.
         ctx: The context.
     Returns:
          A list of providers

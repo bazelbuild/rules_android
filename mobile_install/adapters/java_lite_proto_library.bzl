@@ -18,8 +18,8 @@ Creates a "lite.jar" at every proto traversed. This adapter is used to just
 propagate the deps, the proto_library rules.
 """
 
-load(":adapters/base.bzl", "make_adapter")
-load(":providers.bzl", "MIAndroidDexInfo", "MIJavaResourcesInfo", "providers")
+load("//mobile_install:providers.bzl", "MIAndroidDexInfo", "MIJavaResourcesInfo", "providers")
+load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""

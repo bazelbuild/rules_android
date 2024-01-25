@@ -13,18 +13,18 @@
 # limitations under the License.
 """Rule adapter for java_rpc_toolchain.bzl."""
 
-load(":adapters/base.bzl", "make_adapter")
-load(":providers.bzl", "MIAndroidDexInfo", "providers")
+load("//mobile_install:providers.bzl", "MIAndroidDexInfo", "providers")
+load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return ["runtime"]  # all potential implicit runtime deps
 
-def _adapt(unused_target, ctx):
+def _adapt(_, ctx):
     """Adapts the rule and target data.
 
     Args:
-      unused_target: The target.
+      _: The target.
       ctx: The context.
 
     Returns:

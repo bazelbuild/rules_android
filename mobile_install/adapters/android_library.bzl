@@ -13,9 +13,8 @@
 # limitations under the License.
 """Rule adapter for android_library."""
 
-load(":adapters/base.bzl", "make_adapter")
 load(
-    ":providers.bzl",
+    "//mobile_install:providers.bzl",
     "MIAndroidAarNativeLibsInfo",
     "MIAndroidAssetsInfo",
     "MIAndroidDexInfo",
@@ -24,8 +23,9 @@ load(
     "MIJavaResourcesInfo",
     "providers",
 )
-load(":resources.bzl", "get_assets_dir")
-load(":transform.bzl", "dex", "filter_jars")
+load("//mobile_install:resources.bzl", "get_assets_dir")
+load("//mobile_install:transform.bzl", "dex", "filter_jars")
+load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
