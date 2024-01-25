@@ -118,12 +118,6 @@ def _make_resources_flag(
         ],
     )
 
-def _disable_warnings(ctx, args):
-    if (ctx.fragments.android.persistent_busybox_tools or
-        ctx.fragments.android.persistent_multiplex_busybox_tools):
-        # Disable warnings - this are output to stdin/stderr which breaks worker mode
-        args.add("--logWarnings=false")
-
 def _path(f):
     return f.path
 
@@ -289,8 +283,7 @@ def _package(
     transitive_input_files = []
 
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
+    args.use_param_file("@%s")
     args.add("--tool", "AAPT2_PACKAGE")
     args.add("--")
     args.add("--aapt2", aapt.executable)
@@ -402,15 +395,13 @@ def _package(
         resource_apks,
         join_with = ":",
     )
-
     transitive_input_files.append(resource_apks)
-    _disable_warnings(ctx, args)
 
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [aapt, busybox],
+        tools = [aapt],
         arguments = [args],
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
@@ -436,8 +427,7 @@ def _parse(
       host_javabase: Target. The host javabase.
     """
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
+    args.use_param_file("@%s")
     args.add("--tool", "PARSE")
     args.add("--")
     args.add(
@@ -449,9 +439,7 @@ def _parse(
     )
     args.add("--output", out_symbols)
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
@@ -505,8 +493,7 @@ def _merge_assets(
       host_javabase: Target. The host javabase.
     """
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
+    args.use_param_file("@%s")
     args.add("--tool", "MERGE_ASSETS")
     args.add("--")
     args.add("--assetsOutput", out_assets_zip)
@@ -532,13 +519,10 @@ def _merge_assets(
         join_with = "&",
     )
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = depset(
             assets + [symbols],
@@ -589,8 +573,7 @@ def _validate_and_link(
 
     # Retrieves the list of files at runtime when a directory is passed.
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
+    args.use_param_file("@%s")
     args.add("--tool", "LINK_STATIC_LIBRARY")
     args.add("--")
     args.add("--aapt2", aapt.executable)
@@ -621,9 +604,7 @@ def _validate_and_link(
     )
     input_files.extend(resource_apks)
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
@@ -663,8 +644,7 @@ def _compile(
 
     # Retrieves the list of files at runtime when a directory is passed.
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
+    args.use_param_file("@%s")
     args.add("--tool", "COMPILE_LIBRARY_RESOURCES")
     args.add("--")
     args.add("--aapt2", aapt.executable)
@@ -678,9 +658,7 @@ def _compile(
     )
     args.add("--output", out_file)
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
@@ -742,8 +720,7 @@ def _merge_compiled(
     transitive_input_files = []
 
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
+    args.use_param_file("@%s")
     args.add("--tool", "MERGE_COMPILED")
     args.add("--")
     args.add("--classJarOutput", out_class_jar)
@@ -782,13 +759,10 @@ def _merge_compiled(
         )
         transitive_input_files.append(transitive_compiled_resources)
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
@@ -796,12 +770,6 @@ def _merge_compiled(
         progress_message =
             "Merging compiled Android Resources in " + out_class_jar.short_path,
     )
-
-def _java_run(ctx, mnemonic = None, *args, **kwargs):
-    enable_workers = ctx.fragments.android.persistent_busybox_tools
-    multiplex_workers = ctx.fragments.android.persistent_multiplex_busybox_tools
-
-    _java.run(ctx, mnemonic = mnemonic, supports_workers = enable_workers, supports_multiplex_workers = multiplex_workers, *args, **kwargs)
 
 def _escape_mv(s):
     """Escapes `:` and `,` in manifest values so they can be used as a busybox flag."""
@@ -861,7 +829,6 @@ def _merge_manifests(
     # Args for busybox
     args = ctx.actions.args()
     args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
     args.add("--tool", "MERGE_MANIFEST")
     args.add("--")
     if manifest:
@@ -884,13 +851,10 @@ def _merge_manifests(
         args.add("--log", out_log_file)
         outputs.append(out_log_file)
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = depset(directs, transitive = transitives),
         outputs = outputs,
@@ -930,8 +894,6 @@ def _process_databinding(
     res_dirs = _get_unique_res_dirs(resource_files)
 
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
     args.add("--tool", "PROCESS_DATABINDING")
     args.add("--")
     args.add("--output_resource_directory", databinding_resources_dirname)
@@ -939,9 +901,7 @@ def _process_databinding(
     args.add("--dataBindingInfoOut", out_databinding_info)
     args.add("--appId", java_package)
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
@@ -988,8 +948,6 @@ def _generate_binary_r(
       host_javabase: A Target. The host javabase.
     """
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
     args.add("--tool", "GENERATE_BINARY_R")
     args.add("--")
     args.add("--primaryRTxt", r_txt)
@@ -1009,14 +967,12 @@ def _generate_binary_r(
     # TODO(b/154003916): support transitive "--library transitive_r_txt_path,transitive_manifest_path" flags
     args.add("--classJarOutput", out_class_jar)
     args.add("--targetLabel", str(ctx.label))
+    args.use_param_file("@%s")
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = depset([r_txt, manifest], transitive = transitive_r_txts + transitive_manifests),
         outputs = [out_class_jar],
@@ -1056,8 +1012,6 @@ def _make_aar(
         when a resource conflict occurs.
     """
     args = ctx.actions.args()
-    args.use_param_file("@%s", use_always = True)
-    args.set_param_file_format("multiline")
     args.add("--tool", "GENERATE_AAR")
     args.add("--")
     args.add(
@@ -1077,13 +1031,10 @@ def _make_aar(
     if should_throw_on_conflict:
         args.add("--throwOnResourceConflict")
 
-    _disable_warnings(ctx, args)
-
-    _java_run(
+    _java.run(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = (
             resource_files +

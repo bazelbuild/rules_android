@@ -409,10 +409,6 @@ def _run(
         ctx,
         host_javabase,
         jvm_flags = [],
-        mnemonic = None,
-        supports_workers = False,
-        supports_multiplex_workers = False,
-        execution_requirements = {},
         **args):
     """Run a java binary
 
@@ -420,10 +416,6 @@ def _run(
       ctx: The context.
       host_javabase: Target. The host_javabase.
       jvm_flags: Additional arguments to the JVM itself.
-      mnemonic: A description of the action being executed.
-      supports_workers: This action is worker-compatible (enabled with --strategy=MyAction=worker).
-      supports_multiplex_workers: This action is multiplex worker-compatible.
-      execution_requirements: Information to schedule the action, in key-value pairs.
       **args: Additional arguments to pass to ctx.actions.run(). Some will get modified.
     """
 
@@ -460,13 +452,7 @@ def _run(
 
     args["arguments"] = jvm_flags + [jar_args] + args.get("arguments", default = [])
 
-    if supports_workers:
-        execution_requirements["worker-key-mnemonic"] = mnemonic
-        execution_requirements["supports-workers"] = "1"
-        if supports_multiplex_workers:
-            execution_requirements["supports-multiplex-workers"] = "1"
-
-    ctx.actions.run(execution_requirements = execution_requirements, mnemonic = mnemonic, **args)
+    ctx.actions.run(**args)
 
 def _create_deploy_jar(
         ctx,
