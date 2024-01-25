@@ -14,6 +14,7 @@
 
 import os
 import subprocess
+import sys
 import unittest
 import zipfile
 
@@ -38,12 +39,6 @@ class R8IntegrationTest(unittest.TestCase):
         expect_unused_activity_resource,
         "res/layout/unused_activity.xml" in apk_files,
     )
-
-    build_tools_dir = "external/androidsdk/build-tools"
-    build_tools_version = [
-        f.name for f in os.scandir(build_tools_dir) if f.is_dir()
-    ][0]
-    dexdump = os.path.join(build_tools_dir, build_tools_version, "dexdump")
 
     dexdump_proc = subprocess.run(
         [dexdump, classes_dex],
@@ -90,4 +85,5 @@ class R8IntegrationTest(unittest.TestCase):
 
 
 if __name__ == "__main__":
-  unittest.main()
+  dexdump = sys.argv.pop()
+  unittest.main(argv=None)
