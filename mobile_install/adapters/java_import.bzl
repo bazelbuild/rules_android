@@ -13,15 +13,15 @@
 # limitations under the License.
 """Rule adapter for java_import."""
 
-load(":adapters/base.bzl", "make_adapter")
 load(
-    ":providers.bzl",
+    "//mobile_install:providers.bzl",
     "MIAndroidDexInfo",
     "MIJavaResourcesInfo",
     "providers",
 )
-load(":transform.bzl", "dex", "extract_jar_resources")
-load(":utils.bzl", "utils")
+load("//mobile_install:transform.bzl", "dex", "extract_jar_resources")
+load("//mobile_install:utils.bzl", "utils")
+load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""

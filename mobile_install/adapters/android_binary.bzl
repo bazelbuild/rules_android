@@ -13,20 +13,20 @@
 # limitations under the License.
 """Rule adapter for android_binary."""
 
-load("//rules/flags:flags.bzl", "flags")
-load(":adapters/base.bzl", "make_adapter")
-load(":launcher_direct.bzl", "make_direct_launcher")
-load(":process.bzl", "process")
+load("//mobile_install:launcher_direct.bzl", "make_direct_launcher")
+load("//mobile_install:process.bzl", "process")
 load(
-    ":providers.bzl",
+    "//mobile_install:providers.bzl",
     "MIAndroidAarNativeLibsInfo",
     "MIAndroidDexInfo",
     "MIAndroidResourcesInfo",
     "MIJavaResourcesInfo",
     "providers",
 )
-load(":transform.bzl", "dex", "filter_jars")
-load(":utils.bzl", "utils")
+load("//mobile_install:transform.bzl", "dex", "filter_jars")
+load("//mobile_install:utils.bzl", "utils")
+load("//rules/flags:flags.bzl", "flags")
+load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""

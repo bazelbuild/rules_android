@@ -13,18 +13,18 @@
 # limitations under the License.
 """Rule adapter for proto_lang_toolchain."""
 
-load(":adapters/base.bzl", "make_adapter")
-load(":providers.bzl", "MIAndroidDexInfo", "MIJavaResourcesInfo", "providers")
+load("//mobile_install:providers.bzl", "MIAndroidDexInfo", "MIJavaResourcesInfo", "providers")
+load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return ["runtime"]
 
-def _adapt(unused_target, ctx):
+def _adapt(_, ctx):
     """Adapts the rule and target data.
 
     Args:
-      unused_target: The target.
+      _: The target.
       ctx: The context.
 
     Returns:

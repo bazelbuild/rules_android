@@ -13,16 +13,16 @@
 # limitations under the License.
 """Provides access to the base set of rule adapters with a simple interface."""
 
-load(":adapters/aar_import.bzl", "aar_import")
-load(":adapters/android_binary.bzl", "android_binary")
-load(":adapters/android_library.bzl", "android_library")
-load(":adapters/android_sdk.bzl", "android_sdk")
-load(":adapters/apk_import.bzl", "apk_import")
-load(":adapters/java_import.bzl", "java_import")
-load(":adapters/java_library.bzl", "java_library")
-load(":adapters/java_lite_proto_library.bzl", "java_lite_proto_library")
-load(":adapters/proto_library.bzl", "proto_library")
-load(":adapters/proto_lang_toolchain.bzl", "proto_lang_toolchain")
+load("//mobile_install/adapters:aar_import.bzl", "aar_import")
+load("//mobile_install/adapters:android_binary.bzl", "android_binary")
+load("//mobile_install/adapters:android_library.bzl", "android_library")
+load("//mobile_install/adapters:android_sdk.bzl", "android_sdk")
+load("//mobile_install/adapters:apk_import.bzl", "apk_import")
+load("//mobile_install/adapters:java_import.bzl", "java_import")
+load("//mobile_install/adapters:java_library.bzl", "java_library")
+load("//mobile_install/adapters:java_lite_proto_library.bzl", "java_lite_proto_library")
+load("//mobile_install/adapters:proto_lang_toolchain.bzl", "proto_lang_toolchain")
+load("//mobile_install/adapters:proto_library.bzl", "proto_library")
 
 # Visible for testing
 ADAPTERS = dict(
