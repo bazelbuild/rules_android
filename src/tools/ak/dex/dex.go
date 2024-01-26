@@ -268,10 +268,14 @@ func shardFn(name string, shardCount int) int {
 	// synthetics are in the same shard as their context, as a synthetic is named
 	// <context>$$ExternalSyntheticXXXN.
 	index := len(name)
-	if strings.HasSuffix(name, ".dex") {
+	if strings.HasSuffix(name, ".class.dex") {
+		// DexBuilder creates archives with .class.dex files
+		index -= 10
+	} else if strings.HasSuffix(name, ".dex") {
+		// D8 creates archives with .dex files
 		index -= 4
 	} else {
-		log.Fatalf("Name expected to end with '.dex', was: %s", name)
+		log.Fatalf("Name expected to end with '.dex' or '.class.dex', was: %s", name)
 	}
 	trimIndex := strings.IndexAny(name, "$-")
 	if trimIndex > -1 {
