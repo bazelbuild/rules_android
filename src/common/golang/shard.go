@@ -58,6 +58,9 @@ func ZipShard(r *zip.Reader, zws []*zip.Writer, fn Func) error {
 		if !f.Mode().IsRegular() {
 			continue
 		}
+		if !strings.HasSuffix(f.Name, ".dex") {
+			continue
+		}
 		si := fn(f.Name, sc)
 		if si < 0 || si > sc {
 			return fmt.Errorf("s.Shard(%s, %d) yields invalid shard index: %d", f.Name, sc, si)

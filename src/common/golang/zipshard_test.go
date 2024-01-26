@@ -63,7 +63,7 @@ func TestSepSharder(t *testing.T) {
 }
 
 func TestBadSharder(t *testing.T) {
-	srcZip, err := makeZip(map[string]string{"hello": "world"})
+	srcZip, err := makeZip(map[string]string{"hello.dex": "world"})
 	if err != nil {
 		t.Fatalf("Could not make initial zip: %v", err)
 	}
@@ -96,22 +96,22 @@ func TestZipShard(t *testing.T) {
 		{
 			name: "Vanilla",
 			contents: map[string]string{
-				"foo/hello":        "world",
-				"bar/something":    "stuff",
-				"blah/nothing":     "here",
-				"blah/everything":  "nowhere",
-				"hello/everything": "nowhere",
+				"foo/hello.dex":        "world",
+				"bar/something.dex":    "stuff",
+				"blah/nothing.dex":     "here",
+				"blah/everything.dex":  "nowhere",
+				"hello/everything.dex": "nowhere",
 			},
 			shardCount: 5,
 			want: map[int][]string{
-				0: {"hello/everything"},
-				3: {"foo/hello", "bar/something"},
-				4: {"blah/nothing", "blah/everything"},
+				0: {"hello/everything.dex"},
+				3: {"foo/hello.dex", "bar/something.dex"},
+				4: {"blah/nothing.dex", "blah/everything.dex"},
 			},
 		},
 		{
 			name:        "no output shards",
-			contents:    map[string]string{"something": "something"},
+			contents:    map[string]string{"something.dex": "something"},
 			shardCount:  0,
 			zipShardErr: errors.New("no output writers"),
 		},
