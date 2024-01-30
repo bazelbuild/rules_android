@@ -45,8 +45,7 @@ var (
 			"android_jar",
 			"desugar_core_libs",
 			"classpath",
-			"d8",
-			"intermediate",
+			"dexbuilder",
 			"in",
 			"out",
 		},
@@ -57,9 +56,9 @@ var (
 	}
 
 	// Flag variables
-	desugar, androidJar, d8, in   string
-	classpaths, outs, outputDir   flags.StringList
-	desugarCoreLibs, intermediate bool
+	desugar, androidJar, dexbuilder, in string
+	classpaths, outs, outputDir         flags.StringList
+	desugarCoreLibs                     bool
 
 	initOnce sync.Once
 )
@@ -71,8 +70,7 @@ func Init() {
 		flag.StringVar(&androidJar, "android_jar", "", "Required for desugar, path to android.jar")
 		flag.Var(&classpaths, "classpath", "(Optional) Path to library resource(s) for desugar")
 		flag.BoolVar(&desugarCoreLibs, "desugar_core_libs", false, "Desugar Java 8 core libs, default false")
-		flag.StringVar(&d8, "d8", "", "Path to d8 dexer")
-		flag.BoolVar(&intermediate, "intermediate", false, "Compile for later merging, default false")
+		flag.StringVar(&dexbuilder, "dexbuilder", "", "Path to dexbuilder")
 		flag.StringVar(&in, "in", "", "Path to input")
 		flag.Var(&outs, "out", "Path to output, if more than one specified, output is sharded across files.")
 	})
@@ -87,8 +85,8 @@ func Run() {
 	if desugar != "" && androidJar == "" {
 		log.Fatal("--android_jar is required for desugaring")
 	}
-	if d8 == "" || in == "" || outs == nil {
-		log.Fatal("Missing required flags. Must specify --d8 --in --out")
+	if dexbuilder == "" || in == "" || outs == nil {
+		log.Fatal("Missing required flags. Must specify --dexbuilder --in --out")
 	}
 	sc := len(outs)
 	if sc > 256 {
@@ -116,12 +114,12 @@ func Run() {
 			}
 		}
 		if sc == 1 {
-			if err = dex(jar, outs[0]); err != nil {
+			if err = dexBuilder(jar, outs[0]); err != nil {
 				log.Fatalf("Dex error: %v", err)
 			}
 		} else {
 			out := filepath.Join(tmp.Dir, "dexed.zip")
-			if err = dex(jar, out); err != nil {
+			if err = dexBuilder(jar, out); err != nil {
 				log.Fatalf("Dex error: %v", err)
 			}
 			if err = zipShard(out, outs); err != nil {
@@ -187,20 +185,15 @@ func desugarJar(in, out string) error {
 	return runCmd(desugar, args)
 }
 
-func dex(in, out string) error {
+func dexBuilder(in, out string) error {
 	args := []string{
-		"--min-api",
-		"21",
-		"--no-desugaring",
-		"--output",
+		"--input_jar",
+		in,
+		"--output_zip",
 		out,
 	}
-	if intermediate {
-		args = append(args, "--file-per-class")
-		args = append(args, "--intermediate")
-	}
-	args = append(args, in)
-	return runCmd(d8, args)
+
+	return runCmd(dexbuilder, args)
 }
 
 func runCmd(cmd string, args []string) error {
