@@ -96,6 +96,11 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
+    _dexbuilder = attr.label(
+        cfg = "exec",
+        default = Label("//tools/android:dexbuilder"),
+        executable = True,
+    ),
     _host_java_runtime = attr.label(
         default = Label("//tools/jdk:current_host_java_runtime"),
         cfg = "exec",
