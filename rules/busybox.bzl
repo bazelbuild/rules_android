@@ -275,9 +275,6 @@ def _package(
     if not manifest:
         fail("No manifest given, the manifest is mandatory.")
 
-    direct_data_flag = []
-    direct_compiled_resources = []
-
     output_files = []
     input_files = []
     transitive_input_files = []
@@ -838,6 +835,11 @@ def _merge_manifests(
         [mergee_manifests],
         map_each = _mergee_manifests_flag,
     )
+
+    if getattr(ctx.fragments, "bazel_android", None):
+        if ctx.fragments.bazel_android.merge_android_manifest_permissions:
+            args.add("--mergeManifestPermissions")
+
     if manifest_values:
         args.add(
             "--manifestValues",

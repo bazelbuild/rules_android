@@ -54,6 +54,7 @@ def make_rule(
         _skylark_testable = True,
         fragments = [
             "android",
+            "bazel_android",  # NOTE: Only exists for Bazel
             "java",
             "cpp",
         ],

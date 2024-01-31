@@ -14,18 +14,18 @@
 
 """android_feature_module rule."""
 
-load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
+load("//rules:acls.bzl", "acls")
 load("//rules:java.bzl", _java = "java")
 load(
     "//rules:providers.bzl",
     "AndroidFeatureModuleInfo",
 )
-load("//rules:acls.bzl", "acls")
 load(
     "//rules:utils.bzl",
     "get_android_toolchain",
     "utils",
 )
+load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
 
 def _impl(ctx):
     validation = ctx.actions.declare_file(ctx.label.name + "_validation")
@@ -75,6 +75,7 @@ android_feature_module = rule(
     attrs = ANDROID_FEATURE_MODULE_ATTRS,
     fragments = [
         "android",
+        "bazel_android",  # NOTE: Only exists for Bazel
         "java",
     ],
     implementation = _impl,

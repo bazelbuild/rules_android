@@ -41,7 +41,10 @@ def _impl_proxy(ctx):
 
 aar_import = rule(
     attrs = _ATTRS,
-    fragments = ["android"],
+    fragments = [
+        "android",
+        "bazel_android",  # NOTE: Only exists for Bazel
+    ],
     implementation = _impl_proxy,
     doc = RULE_DOC,
     provides = [
