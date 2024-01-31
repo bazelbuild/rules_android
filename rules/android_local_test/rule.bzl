@@ -36,6 +36,7 @@ def make_rule(
         cfg = config_common.config_feature_flag_transition("feature_flags"),
         fragments = [
             "android",
+            "bazel_android",  # NOTE: Only exists for Bazel
             "java",
         ],
         test = True,
