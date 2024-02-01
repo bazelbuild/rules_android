@@ -119,6 +119,7 @@ function main() {
     "//src/tools/jdeps/..."
     "//src/tools/java/..."
     "//src/tools/mi/..."
+    "//src/validations/..."
     "//test/..."
     "-//test/rules/..." # Tested below.
     # TODO(https://github.com/bazelbuild/rules_android/issues/170):

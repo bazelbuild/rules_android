@@ -14,7 +14,7 @@
 """Tests for validate_manifest."""
 
 import unittest
-from src.validations.validate_manifest. import validate_manifest
+from src.validations.validate_manifest import validate_manifest
 
 MANIFEST = """<?xml version='1.0' encoding='utf-8'?>
 <manifest
