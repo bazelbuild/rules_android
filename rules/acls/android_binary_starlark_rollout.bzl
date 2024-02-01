@@ -14,6 +14,8 @@
 
 """Allow list for rollout of Starlark android_binary rule."""
 
-ANDROID_BINARY_STARLARK_ROLLOUT = []
+ANDROID_BINARY_STARLARK_ROLLOUT = [
+    "//test/rules/android_binary_internal:__subpackages__",
+]
 
 ANDROID_BINARY_STARLARK_FALLBACK = []

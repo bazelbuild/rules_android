@@ -16,4 +16,5 @@
 
 # keep sorted.
 ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST = [
+    "//test/rules/android_binary_internal:__subpackages__",
 ]
