@@ -300,7 +300,7 @@ _ATTRS = dict(
     ),
     manifest_validation_tool = attr.label(
         cfg = "exec",
-        default = "@androidsdk//:fail",
+        default = Label("//src/validations/validate_manifest"),
         executable = True,
     ),
     rex_wrapper = attr.label(
