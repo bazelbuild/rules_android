@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -48,6 +49,7 @@ var (
 			"dexbuilder",
 			"in",
 			"out",
+			"min_sdk_version",
 		},
 	}
 
@@ -59,6 +61,7 @@ var (
 	desugar, androidJar, dexbuilder, in string
 	classpaths, outs, outputDir         flags.StringList
 	desugarCoreLibs                     bool
+	minSdkVersion                       int
 
 	initOnce sync.Once
 )
@@ -73,6 +76,7 @@ func Init() {
 		flag.StringVar(&dexbuilder, "dexbuilder", "", "Path to dexbuilder")
 		flag.StringVar(&in, "in", "", "Path to input")
 		flag.Var(&outs, "out", "Path to output, if more than one specified, output is sharded across files.")
+		flag.IntVar(&minSdkVersion, "min_sdk_version", 0, "Passthrough to d8 for desugaring and dexing.")
 	})
 }
 
@@ -176,6 +180,9 @@ func desugarJar(in, out string) error {
 		"--output",
 		out,
 	}
+	if minSdkVersion > 0 {
+		args = append(args, "--min_sdk_version", strconv.Itoa(minSdkVersion))
+	}
 	if desugarCoreLibs {
 		args = append(args, "--desugar_supported_core_libs")
 	}
@@ -192,7 +199,9 @@ func dexBuilder(in, out string) error {
 		"--output_zip",
 		out,
 	}
-
+	if minSdkVersion > 0 {
+		args = append(args, "--min_sdk_version", strconv.Itoa(minSdkVersion))
+	}
 	return runCmd(dexbuilder, args)
 }
 
