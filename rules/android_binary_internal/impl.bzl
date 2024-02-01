@@ -126,6 +126,7 @@ def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
                 not acls.in_android_binary_multidex_native_min_sdk_allowlist(str(ctx.label)),
             min_sdk_version = ctx.attr.min_sdk_version,
             manifest_validation_tool = get_android_toolchain(ctx).manifest_validation_tool.files_to_run,
+            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
         )
         if manifest_validation_output:
             validation_outputs.append(manifest_validation_output)

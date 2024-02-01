@@ -1270,7 +1270,8 @@ def _validate_manifest(
         manifest,
         should_validate_multidex = True,
         min_sdk_version = 0,
-        manifest_validation_tool = None):
+        manifest_validation_tool = None,
+        toolchain_type = None):
     """Validates that the minSdkVersion value of the final manifest is expected.
 
     Args:
@@ -1279,6 +1280,7 @@ def _validate_manifest(
       should_validate_multidex: Boolean. Whether to validate minSdkVersion for multidex.
       min_sdk_version: Int. The expected minSdkVersion value in the manifest.
       manifest_validation_tool: FilesToRunProvider. The manifest validation tool executable.
+      toolchain_type: The Android Toolchain.
     Returns:
       A file containing the log of validation results, or None if validation not performed.
     """
@@ -1290,7 +1292,7 @@ def _validate_manifest(
     args = ctx.actions.args()
     args.add("--manifest", manifest)
     args.add("--output", output)
-    args.add("--validate_multidex", should_validate_multidex)
+    args.add("--validate_multidex=%s" % should_validate_multidex)
     args.add("--expected_min_sdk_version", min_sdk_version)
 
     ctx.actions.run(
@@ -1300,6 +1302,7 @@ def _validate_manifest(
         inputs = [manifest],
         mnemonic = "ValidateManifest",
         progress_message = "Validating %{input}",
+        toolchain = toolchain_type,
     )
 
     return output
