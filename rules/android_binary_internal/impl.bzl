@@ -42,6 +42,7 @@ load(
     "get_android_toolchain",
     "utils",
 )
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":r8.bzl", "process_r8", "process_resource_shrinking_r8")
 
 def _base_validations_processor(ctx, **_unused_ctxs):
@@ -74,6 +75,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         resource_files = ctx.files.resource_files,
         manifest = manifest_ctx.processed_manifest,
         manifest_values = manifest_ctx.processed_manifest_values,
+        manifest_merge_order = ctx.attr._manifest_merge_order[BuildSettingInfo].value,
         resource_configs = ctx.attr.resource_configuration_filters,
         densities = ctx.attr.densities,
         nocompress_extensions = ctx.attr.nocompress_extensions,

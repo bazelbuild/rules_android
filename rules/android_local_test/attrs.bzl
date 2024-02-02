@@ -214,6 +214,9 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
                     Label("//tools/android:android_jar"),
                 ],
             ),
+            _manifest_merge_order = attr.label(
+                default = "//rules/flags:manifest_merge_order",
+            ),
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,

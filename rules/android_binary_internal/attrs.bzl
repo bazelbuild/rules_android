@@ -166,6 +166,9 @@ ATTRS = _attrs.replace(
                 cfg = "exec",
                 executable = True,
             ),
+            _manifest_merge_order = attr.label(
+                default = "//rules/flags:manifest_merge_order",
+            ),
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,

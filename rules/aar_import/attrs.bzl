@@ -67,6 +67,9 @@ ATTRS = _attrs.add(
             cfg = "exec",
             default = Label("//tools/jdk:current_java_runtime"),
         ),
+        _manifest_merge_order = attr.label(
+            default = "//rules/flags:manifest_merge_order",
+        ),
     ),
     _attrs.DATA_CONTEXT,
     _attrs.ANDROID_TOOLCHAIN_ATTRS,

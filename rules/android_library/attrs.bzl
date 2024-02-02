@@ -229,6 +229,9 @@ ATTRS = _attrs.add(
             default = "//rules/flags",
         ),
         _package_name = attr.string(),  # for sending the package name to the outputs callback
+        _manifest_merge_order = attr.label(
+            default = "//rules/flags:manifest_merge_order",
+        ),
     ),
     _attrs.COMPILATION,
     _attrs.DATA_CONTEXT,

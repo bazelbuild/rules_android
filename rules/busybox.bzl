@@ -780,10 +780,17 @@ def _owner_label(file):
 def _manifest_short_path(manifest):
     return manifest.short_path.replace("/_migrated/", "/")
 
-def _mergee_manifests_flag(manifests):
-    ordered_manifests = sorted(manifests.to_list(), key = _manifest_short_path)
+def _mergee_manifests_dependency_order_flag(manifests):
+    return _mergee_manifests_flag(manifests, sort = False)
+
+def _mergee_manifests_flag(manifests, sort = True):
+    if sort:
+        manifests = sorted(manifests.to_list(), key = _manifest_short_path)
+    else:
+        manifests = manifests.to_list()
+
     entries = []
-    for manifest in ordered_manifests:
+    for manifest in manifests:
         label = _owner_label(manifest).replace(":", "\\:")
         entries.append((manifest.path + ":" + label).replace(",", "\\,"))
     flag_entry = ",".join(entries)
@@ -798,6 +805,7 @@ def _merge_manifests(
         merge_type = "APPLICATION",
         manifest = None,
         mergee_manifests = depset(),
+        manifest_merge_order = "legacy",
         manifest_values = None,
         java_package = None,
         busybox = None,
@@ -811,6 +819,8 @@ def _merge_manifests(
       merge_type: A string, either APPLICATION or LIBRARY. Type of merging.
       manifest: A File. The primary AndroidManifest.xml.
       mergee_manifests: A depset of Files. All transitive manifests to be merged.
+      manifest_merge_order: The order to merge manifests: either "legacy" (i.e. alphabetically) or
+        "dependency" (i.e. in order that the manifests appear in deps).
       manifest_values: A dictionary. Manifest values to substitute.
       java_package: A string. Custom java package to insert in manifest package attribute.
       busybox: A FilesToRunProvider. The ResourceProcessorBusyBox executable.
@@ -818,6 +828,9 @@ def _merge_manifests(
     """
     if merge_type not in ["APPLICATION", "LIBRARY"]:
         fail("Unexpected manifest merge type: " + merge_type)
+
+    if manifest_merge_order not in ["legacy", "dependency"]:
+        fail("Unexpected manifest merge order: " + manifest_merge_order)
 
     outputs = [out_file]
     directs = [manifest] if manifest else []
@@ -830,15 +843,24 @@ def _merge_manifests(
     args.add("--")
     if manifest:
         args.add("--manifest", manifest)
-    args.add_all(
-        "--mergeeManifests",
-        [mergee_manifests],
-        map_each = _mergee_manifests_flag,
-    )
 
     if getattr(ctx.fragments, "bazel_android", None):
         if ctx.fragments.bazel_android.merge_android_manifest_permissions:
             args.add("--mergeManifestPermissions")
+
+    if mergee_manifests:
+        if manifest_merge_order == "dependency":
+            args.add_all(
+                "--mergeeManifests",
+                [mergee_manifests],
+                map_each = _mergee_manifests_dependency_order_flag,
+            )
+        else:
+            args.add_all(
+                "--mergeeManifests",
+                [mergee_manifests],
+                map_each = _mergee_manifests_flag,
+            )
 
     if manifest_values:
         args.add(
