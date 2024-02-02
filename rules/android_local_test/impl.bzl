@@ -93,6 +93,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         deps = ctx.attr.deps,
         manifest = manifest_ctx.processed_manifest,
         manifest_values = manifest_ctx.processed_manifest_values,
+        manifest_merge_order = ctx.attr._manifest_merge_order[BuildSettingInfo].value,
         resource_files = ctx.files.resource_files,
         assets = ctx.files.assets,
         assets_dir = ctx.attr.assets_dir,

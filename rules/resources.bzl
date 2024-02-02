@@ -15,6 +15,7 @@
 """Bazel Android Resources."""
 
 load("//rules:acls.bzl", "acls")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
 load(":common.bzl", _common = "common")
@@ -493,6 +494,7 @@ def _package(
         resource_apks = [],
         manifest = None,
         manifest_values = None,
+        manifest_merge_order = "legacy",
         instruments = None,
         resource_configs = None,
         densities = [],
@@ -533,6 +535,8 @@ def _package(
       resource_apks: sequence of resource only apk files
       manifest: File. The input top-level AndroidManifest.xml.
       manifest_values: String dictionary. Manifest values to substitute.
+      manifest_merge_order: The order to merge manifests: either "legacy" (i.e. alphabetically) or
+        "dependency" (i.e. in order that the manifests appear in deps).
       instruments: Optional target. The value of the "instruments" attr if set.
       resource_configs: sequence of Strings. A list of resource_configuration_filters
         to apply.
@@ -632,11 +636,18 @@ def _package(
         for pkg, r_txts in dep.packages_to_r_txts.items():
             packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
         transitive_resource_apks.append(dep.transitive_resource_apks)
-    mergee_manifests = depset([
-        node_info.manifest
-        for node_info in depset(transitive = transitive_resources_nodes + direct_resources_nodes).to_list()
-        if node_info.exports_manifest
-    ])
+    if manifest_merge_order == "legacy":
+        mergee_manifests = depset([
+            node_info.manifest
+            for node_info in depset(transitive = transitive_resources_nodes + direct_resources_nodes).to_list()
+            if node_info.exports_manifest
+        ])
+    else:
+        mergee_manifests = depset([
+            node_info.manifest
+            for node_info in depset(transitive = direct_resources_nodes + transitive_resources_nodes, order = "preorder").to_list()
+            if node_info.exports_manifest
+        ])
 
     if not acls.in_shared_library_resource_linking_allowlist(str(ctx.label)):
         # to_list() safe to use as we expect this to be an empty depset in the non-error case
@@ -684,6 +695,7 @@ def _package(
                 mergee_manifests = mergee_manifests,
                 manifest_values = manifest_values,
                 merge_type = "APPLICATION",
+                manifest_merge_order = manifest_merge_order,
                 java_package = java_package,
                 busybox = busybox,
                 host_javabase = host_javabase,
@@ -1770,17 +1782,13 @@ def _process_starlark(
     # TODO(b/117338320): Transitive lists defined here are incorrect; direct should come
     # before transitive, and the order should be topological order instead of preorder.
     # However, some applications may depend on this incorrect order.
-    if defines_resources:
+    if (defines_resources or fix_resource_transitivity) and (
+        ctx.attr._manifest_merge_order[BuildSettingInfo].value == "legacy"
+    ):
         transitive_resources_nodes = transitive_resources_nodes + direct_resources_nodes
         direct_resources_nodes = []
         transitive_compiled_resources = transitive_compiled_resources + direct_compiled_resources
         direct_compiled_resources = []
-    else:
-        if fix_resource_transitivity:
-            transitive_resources_nodes = transitive_resources_nodes + direct_resources_nodes
-            direct_resources_nodes = []
-            transitive_compiled_resources = transitive_compiled_resources + direct_compiled_resources
-            direct_compiled_resources = []
 
         # TODO(b/144163743): If the resource transitivity fix is disabled and resources-related
         # inputs are missing, we implicitly export deps here. This legacy behavior must exist in the
