@@ -98,9 +98,9 @@ def android_binary_internal_macro(**attrs):
       **attrs: Rule attributes
     """
     user_link_flags = select({
-        "@bazel_tools//src/conditions:darwin_x86_64": "-Wl,-install_name",
-        "@bazel_tools//src/conditions:darwin_arm64": "-Wl,-install_name",
-        "//conditions:default": "-Wl,-soname",
+        "@bazel_tools//src/conditions:darwin_x86_64": "-Wl,-install_name,lib{target_name}",
+        "@bazel_tools//src/conditions:darwin_arm64": "-Wl,-install_name,lib{target_name}",
+        "//conditions:default": "-Wl,-soname=lib{target_name}",
     })
     if 'user_link_flags' not in attrs:
         attrs["user_link_flags"] = user_link_flags

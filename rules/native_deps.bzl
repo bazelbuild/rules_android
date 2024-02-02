@@ -84,7 +84,7 @@ def process(ctx, filename, merged_native_libs = {}):
         )
         linker_input = cc_common.create_linker_input(
             owner = ctx.label,
-            user_link_flags = [ "{link_flags}=lib{target_name}".format(link_flags = ctx.attr.user_link_flags, target_name = actual_target_name) ]
+            user_link_flags = [ ctx.attr.user_link_flags.format(target_name = actual_target_name) ]
         )
         cc_info = cc_common.merge_cc_infos(
             cc_infos = _concat(
