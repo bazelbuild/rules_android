@@ -18,6 +18,9 @@ maybe(
     name = "androidndk",
 )
 
+load("@rules_python//python:repositories.bzl", "py_repositories")
+py_repositories()
+
 load("defs_dev.bzl", "rules_android_workspace")
 
 rules_android_workspace()
