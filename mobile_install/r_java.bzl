@@ -110,5 +110,5 @@ def make_r(ctx, r_java_zip, main_package, packages, sibling):
     # To ensure R.zip is at the beginning of all the dex_shards,which ranges
     # between 01-16, the R.zip is named as 00.zip
     r_dex = utils.isolated_declare_file(ctx, "00.zip", sibling = r_java)
-    utils.d8_merge(ctx, r_jar, r_dex)
+    utils.merge_dex_shards(ctx, [r_jar], r_dex)
     return r_dex

@@ -235,14 +235,36 @@ def only(collection, allow_empty = False):
 def make_substitutions(**kwargs):
     return {"%%%s%%" % key: val for key, val in kwargs.items()}
 
-def merge_dex_shards(ctx, dex_shards, out_merged_dex):
-    merged_shards = isolated_declare_file(
+def merge_dex_shards(
         ctx,
-        out_merged_dex.basename + "_merged.zip",
-        sibling = out_merged_dex,
+        dex_archives,
+        out_dex_zip):
+    """Merge dex archive zips into a single archive with dex files merged up to dex file limits.
+
+    Args:
+      ctx: The context.
+      dex_archives: A list or depset of Dex zip archives.
+      out_dex_zip: The file to output.
+    """
+    args = ctx.actions.args()
+
+
+    args.add("--multidex", "best_effort")
+    args.add("--output", out_dex_zip.path)
+    args.add_all(dex_archives, before_each = "--input")
+    args.use_param_file(param_file_arg = "@%s", use_always = True)
+    args.set_param_file_format("multiline")
+
+    ctx.actions.run(
+        executable = ctx.executable._dexmerger,
+        arguments = [args],
+        tools = [],
+        inputs = dex_archives,
+        outputs = [out_dex_zip],
+        mnemonic = "DexMerge",
+        progress_message = "MI Merging dexes",
+        toolchain = None,
     )
-    _merge_archives(ctx, dex_shards, merged_shards)
-    d8_merge(ctx, merged_shards, out_merged_dex)
 
 def strip_r(ctx, jar, out_jar):
     """Strips the R from the Jar.
@@ -266,51 +288,6 @@ def strip_r(ctx, jar, out_jar):
         outputs = [out_jar],
         mnemonic = "StripR",
         progress_message = "MI Stripping R from " + jar.path,
-        toolchain = None,
-    )
-
-def d8_merge(
-        ctx,
-        dex_archive,
-        out_dex_zip):
-    """Dex a Jar.
-
-    Args:
-      ctx: The context.
-      dex_archive: The input Dex.
-      out_dex_zip: The file to output.
-    """
-    args = ctx.actions.args()
-    args.add("--min-api", "21")
-    args.add("--no-desugaring")
-    args.add("--output", out_dex_zip.path)
-    args.add(dex_archive)
-
-    ctx.actions.run(
-        executable = ctx.executable._d8,
-        arguments = [args],
-        tools = [],
-        inputs = [dex_archive],
-        outputs = [out_dex_zip],
-        mnemonic = "DexMerge",
-        progress_message = "MI Merging dexes " + dex_archive.path,
-        toolchain = None,
-    )
-
-def _merge_archives(ctx, in_archives, out_archive):
-    args = ctx.actions.args()
-    args.use_param_file(param_file_arg = "-flagfile=%s", use_always = True)
-    args.set_param_file_format("multiline")
-    args.add_joined("-in", in_archives, join_with = ",")
-    args.add("-out", out_archive)
-
-    ctx.actions.run(
-        executable = ctx.executable._android_kit,
-        arguments = ["repack", args],
-        inputs = in_archives,
-        outputs = [out_archive],
-        mnemonic = "MergeArchives",
-        progress_message = "MI Merging archives into %s" % out_archive.path,
         toolchain = None,
     )
 
@@ -345,7 +322,6 @@ def _get_extension_registry_class_jar(target):
 
 utils = struct(
     create_flag_file = create_flag_file,
-    d8_merge = d8_merge,
     declare_file = declare_file,
     isolated_declare_file = isolated_declare_file,
     dex = dex,

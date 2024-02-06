@@ -90,10 +90,9 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-    _d8 = attr.label(
-        default = Label("//tools/android:d8"),
-        allow_files = True,
+    _dexmerger = attr.label(
         cfg = "exec",
+        default = Label("//tools/android:dexmerger"),
         executable = True,
     ),
     _dexbuilder = attr.label(

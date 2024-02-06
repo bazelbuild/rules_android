@@ -13,9 +13,9 @@
 # limitations under the License.
 """Transform contains data transformation methods."""
 
+load("//rules/flags:flags.bzl", _flags = "flags")
 load(":constants.bzl", "constants")
 load(":utils.bzl", "utils")
-load("//rules/flags:flags.bzl", _flags = "flags")
 
 def _declare_file(ctx, filename, sibling = None):
     return utils.isolated_declare_file(ctx, filename, sibling = sibling)
@@ -139,7 +139,7 @@ def merge_dex_shards(ctx, data, sibling):
       A list of merged dex shards.
     """
     merged_dex_shards = []
-    for idx, shard in enumerate(data):
+    for idx, shard_archives in enumerate(data):
         #  To ensure resource is added at the beginning, R.zip is named as 00.zip
         #  Thus data shards starts from 1 instead of 0 and ranges through 16
         idx += 1
@@ -152,6 +152,6 @@ def merge_dex_shards(ctx, data, sibling):
             "dex_shards/" + shard_name + ".zip",
             sibling = sibling,
         )
-        utils.merge_dex_shards(ctx, shard, merged_dex_shard)
+        utils.merge_dex_shards(ctx, shard_archives, merged_dex_shard)
         merged_dex_shards.append(merged_dex_shard)
     return merged_dex_shards
