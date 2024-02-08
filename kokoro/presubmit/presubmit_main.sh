@@ -86,6 +86,9 @@ function main() {
     "--verbose_failures"
     "--experimental_google_legacy_api"
     "--experimental_enable_android_migration_apis"
+  )
+
+  TEST_ARGS=(
     "--build_tests_only"
     "--test_output=errors"
   )
@@ -132,6 +135,7 @@ function main() {
   "$bazel" test \
     "${COMMON_ARGS[@]}" \
     "${TOOL_ARGS[@]}" \
+    "${TEST_ARGS[@]}" \
     -- \
     "${TOOL_TEST_TARGETS[@]}"
 
@@ -143,6 +147,7 @@ function main() {
   "$bazel" test \
     "${COMMON_ARGS[@]}" \
     "${RULE_ARGS[@]}" \
+    "${TEST_ARGS[@]}" \
     -- \
     "${RULE_TEST_TARGETS[@]}"
 
@@ -153,6 +158,15 @@ function main() {
     "${RULE_ARGS[@]}" \
     -- \
     //java/com/basicapp:basic_app
+
+  # Mobile-install test with no deployment
+  "$bazel" mobile-install \
+    "${COMMON_ARGS[@]}" \
+    "${RULE_ARGS[@]}" \
+    -- \
+    //java/com/basicapp:basic_app \
+    --nodeploy
+
 }
 
 main

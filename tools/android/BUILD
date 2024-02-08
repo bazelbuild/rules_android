@@ -62,7 +62,7 @@ alias(
 
 alias(
     name = "desugared_java8_legacy_apis",
-    actual = ":gen_fail", # TODO(#122): Fix library desugaring
+    actual = ":gen_fail",  # TODO(#122): Fix library desugaring
     visibility = ["//visibility:public"],
 )
 
@@ -72,7 +72,6 @@ java_binary(
     visibility = ["//visibility:public"],
     runtime_deps = ["@android_gmaven_r8//jar"],
 )
-
 
 java_binary(
     name = "r8",
@@ -86,4 +85,16 @@ java_binary(
     main_class = "com.android.build.shrinker.ResourceShrinkerCli",
     visibility = ["//visibility:public"],
     runtime_deps = ["@rules_android_maven//:com_android_tools_build_gradle"],
+)
+
+alias(
+    name = "dexbuilder",
+    actual = "@bazel_tools//tools/android:dexbuilder",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "dexmerger",
+    actual = "@bazel_tools//tools/android:dexmerger",
+    visibility = ["//visibility:public"],
 )
