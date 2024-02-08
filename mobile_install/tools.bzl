@@ -66,7 +66,7 @@ TOOL_ATTRS = dict(
         default = Label(
             "@androidsdk//:aapt2_binary",
         ),
-        allow_single_file = True,
+        allow_files = True,
         cfg = "exec",
         executable = True,
     ),
@@ -119,7 +119,7 @@ TOOL_ATTRS = dict(
         default = Label(
             "@androidsdk//:zipalign_binary",
         ),
-        allow_single_file = True,
+        allow_files = True,
         cfg = "exec",
         executable = True,
     ),
