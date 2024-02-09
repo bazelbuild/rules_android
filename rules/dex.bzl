@@ -54,6 +54,7 @@ def _process_incremental_dexing(
         dexmerger = None,
         dexsharder = None,
         optimizing_dexer = None,
+        min_sdk_config = None,
         toolchain_type = None):
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
     should_optimize_dex = optimizing_dexer and proguarded_jar
@@ -108,6 +109,7 @@ def _process_incremental_dexing(
                 shuffle_jars = shuffle_jars,
                 dexbuilder_after_proguard = dexbuilder_after_proguard,
                 optimizing_dexer = optimizing_dexer,
+                min_sdk_config = min_sdk_config,
                 toolchain_type = toolchain_type,
             )
             inclusion_filter_jar = None
@@ -150,6 +152,7 @@ def _process_incremental_dexing(
             postprocessing_output_map = postprocessing_output_map,
             startup_profile = startup_profile,
             optimizing_dexer = optimizing_dexer,
+            min_sdk_config = min_sdk_config,
             toolchain_type = toolchain_type,
         )
     else:
@@ -302,6 +305,7 @@ def _shard_proguarded_jar_and_dex(
         shuffle_jars = None,
         dexbuilder_after_proguard = None,
         optimizing_dexer = None,
+        min_sdk_config = None,
         toolchain_type = None):
     if num_shards <= 1:
         fail("num_shards expects to be larger than 1.")
@@ -344,6 +348,7 @@ def _shard_proguarded_jar_and_dex(
                 incremental_dexopts = dexopts,
                 min_sdk_version = min_sdk_version,
                 dex_exec = optimizing_dexer,
+                min_sdk_config = min_sdk_config,
                 toolchain_type = toolchain_type,
             )
         else:
@@ -486,6 +491,7 @@ def _optimizing_dex(
         incremental_dexopts = [],
         min_sdk_version = 0,
         dex_exec = None,
+        min_sdk_config = None,
         toolchain_type = None):
     """Performs optimizing intermediate dexing of a JAR.
 
@@ -505,14 +511,18 @@ def _optimizing_dex(
     args.add("--output", output)
     args.add_all(incremental_dexopts)
     args.add(input)
+    inputs = [input]
 
-    if min_sdk_version > 0:
+    if min_sdk_config:
+        inputs.append(min_sdk_config)
+        args.add("--min_api_pgcfg_file", min_sdk_config)
+    elif min_sdk_version > 0:
         args.add("--min_sdk_version", min_sdk_version)
 
     ctx.actions.run(
         executable = dex_exec,
         arguments = [args],
-        inputs = [input],
+        inputs = inputs,
         outputs = [output],
         mnemonic = "ShardedOptimizingDex",
         progress_message = "Optimized dexing " + input.path + " with applicable dexopts " + str(incremental_dexopts),
@@ -616,6 +626,7 @@ def _optimized_dex_merge(
         postprocessing_output_map = None,
         startup_profile = None,
         optimizing_dexer = None,
+        min_sdk_config = None,
         toolchain_type = None):
     outputs = [output]
 
@@ -650,14 +661,13 @@ def _optimized_dex_merge(
         param_file_args.add("--startup-profile", startup_profile)
         inputs.append(startup_profile)
 
-    # TODO(b/261110876): Pass min SDK through here based on the value in the merged manifest. The
-    # current value is statically defined for the entire depot.
-    # We currently set the minimum SDK version to 21 if you are doing native multidex as that is
-    # required for native multidex to work in the first place and as a result is required for
-    # correct behavior from the dexer.
-    sdk = max(min_sdk_version, 21) if native_multidex else min_sdk_version
-    if sdk > 0:
-        args.add("--min-api", sdk)
+    if min_sdk_config:
+        inputs.append(min_sdk_config)
+        args.add("--min_api_pgcfg_file", min_sdk_config)
+    else:
+        sdk = max(min_sdk_version, 21) if native_multidex else min_sdk_version
+        if sdk > 0:
+            args.add("--min-api", sdk)
 
     if main_dex_list:
         inputs.append(main_dex_list)
