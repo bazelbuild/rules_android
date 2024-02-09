@@ -15,6 +15,7 @@
 """Bazel Android Resources."""
 
 load("//rules:acls.bzl", "acls")
+load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
@@ -199,7 +200,7 @@ def _generate_dummy_manifest(
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="%s">""" % (java_package or "com.default")
 
-    min_sdk_version = max(min_sdk_version, acls.get_min_sdk_floor(str(ctx.label)))
+    min_sdk_version = max(min_sdk_version, _min_sdk_version.DEPOT_FLOOR)
     content = content + """
     <uses-sdk android:minSdkVersion="%s" />""" % min_sdk_version
 
@@ -1110,7 +1111,7 @@ def _validate_resources(resource_files = None):
             if res_type not in _RESOURCE_FOLDER_TYPES:
                 fail(_INCORRECT_RESOURCE_LAYOUT_ERROR % resource_file)
 
-def _process_manifest_values(ctx, manifest_values, min_sdk_floor):
+def _process_manifest_values(ctx, manifest_values, min_sdk_floor = _min_sdk_version.DEPOT_FLOOR):
     expanded_manifest_values = utils.expand_make_vars(ctx, manifest_values)
 
     # We cannot bump non-integer minSdkVersion values. These are used for pre-release versions of Android.
@@ -1124,7 +1125,7 @@ def _bump_min_sdk(
         ctx,
         manifest = None,
         manifest_values = None,
-        floor = None,
+        floor = _min_sdk_version.DEPOT_FLOOR,
         enforce_min_sdk_floor_tool = None):
     """Bumps the min SDK attribute of AndroidManifest to the floor.
 
@@ -1237,8 +1238,8 @@ def _set_default_min_sdk(
 def _validate_min_sdk(
         ctx,
         manifest,
-        floor,
-        enforce_min_sdk_floor_tool):
+        floor = _min_sdk_version.DEPOT_FLOOR,
+        enforce_min_sdk_floor_tool = None):
     """Validates that the min SDK attribute of AndroidManifest is at least at the floor.
 
     Args:
@@ -1528,7 +1529,7 @@ def _process_starlark(
                 ctx,
                 out_manifest = generated_manifest,
                 java_package = java_package if java_package else ctx.label.package.replace("/", "."),
-                min_sdk_version = acls.get_min_sdk_floor(str(ctx.label)),
+                min_sdk_version = _min_sdk_version.DEPOT_FLOOR,
             )
             r_txt = ctx.actions.declare_file(
                 "_migrated/" + ctx.label.name + "_symbols/R.txt",

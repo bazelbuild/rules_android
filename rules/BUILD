@@ -112,3 +112,9 @@ bzl_library(
         "//rules/flags:bzl",
     ],
 )
+
+bzl_library(
+    name = "min_sdk_version_bzl",
+    srcs = ["min_sdk_version.bzl"],
+    visibility = ["//:__subpackages__"],
+)

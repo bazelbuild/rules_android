@@ -14,7 +14,6 @@
 
 """Bazel rule for Android local test."""
 
-load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
@@ -49,7 +48,7 @@ DEFAULT_JIT_FLAGS = ["-XX:+TieredCompilation", "-XX:TieredStopAtLevel=1"]
 # the best across all P% layers from profiling.
 DEFAULT_GC_FLAGS = ["-Xmx8g"]
 
-# disable class loading by default for faster classloading and consistent enviroment across
+# disable class loading by default for faster classloading and consistent environment across
 # local and remote execution
 DEFAULT_VERIFY_FLAGS = ["-Xverify:none"]
 
@@ -61,7 +60,6 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
     manifest_values = resources.process_manifest_values(
         ctx,
         ctx.attr.manifest_values,
-        acls.get_min_sdk_floor(str(ctx.label)),
     )
     if ctx.file.manifest == None:
         # No manifest provided, generate one
@@ -78,7 +76,6 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
             ctx,
             manifest = ctx.file.manifest,
             manifest_values = ctx.attr.manifest_values,
-            floor = acls.get_min_sdk_floor(str(ctx.label)),
             enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
         )
 
