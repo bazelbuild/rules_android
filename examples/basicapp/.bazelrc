@@ -4,3 +4,5 @@ common --experimental_enable_android_migration_apis
 
 # Flags to enable mobile-install v3
 mobile-install --mode=skylark --mobile_install_aspect=@rules_android//mobile_install:mi.bzl --mobile_install_supported_rules=android_binary
+# Required to invoke the Studio deployer jar
+mobile-install --tool_java_runtime_version=17
