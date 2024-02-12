@@ -109,14 +109,6 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
 def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
     validation_outputs = []
 
-    min_sdk_validation_output = _resources.validate_min_sdk(
-        ctx,
-        manifest = packaged_resources_ctx.processed_manifest,
-        enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
-    )
-    if min_sdk_validation_output:
-        validation_outputs.append(min_sdk_validation_output)
-
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
         manifest_validation_output = _resources.validate_manifest(
             ctx,

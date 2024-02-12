@@ -1235,49 +1235,6 @@ def _set_default_min_sdk(
 
     return _ManifestContextInfo(**manifest_ctx)
 
-def _validate_min_sdk(
-        ctx,
-        manifest,
-        floor = _min_sdk_version.DEPOT_FLOOR,
-        enforce_min_sdk_floor_tool = None):
-    """Validates that the min SDK attribute of AndroidManifest is at least at the floor.
-
-    Args:
-      ctx: The rules context.
-      manifest: File. The AndroidManifest.xml file.
-      floor: int. The min SDK floor. No validation is done if floor <= 0.
-      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
-        FilesToRunprovider
-
-    Returns:
-      A file containing the log of validation results, or None if validation not performed.
-    """
-    if not manifest or floor <= 0:
-        return None
-
-    args = ctx.actions.args()
-    args.add("-action", "validate")
-    args.add("-manifest", manifest)
-    args.add("-min_sdk_floor", floor)
-
-    out_dir = "_migrated/_min_sdk_validated/" + ctx.label.name + "/"
-    log = ctx.actions.declare_file(
-        out_dir + "log.txt",
-    )
-    args.add("-log", log.path)
-
-    ctx.actions.run(
-        executable = enforce_min_sdk_floor_tool,
-        inputs = [manifest],
-        outputs = [log],
-        arguments = [args],
-        mnemonic = "ValidateMinSdkFloor",
-        progress_message = "Validating AndroidManifest min SDK %s" % str(ctx.label),
-        toolchain = None,
-    )
-
-    return log
-
 def _validate_manifest(
         ctx,
         manifest,
@@ -2169,7 +2126,6 @@ resources = struct(
 
     # Exposed for android_binary
     is_resource_shrinking_enabled = _is_resource_shrinking_enabled,
-    validate_min_sdk = _validate_min_sdk,
     validate_manifest = _validate_manifest,
     shrink = _shrink,
     optimize = _optimize,

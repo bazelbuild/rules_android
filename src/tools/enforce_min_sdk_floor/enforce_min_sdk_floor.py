@@ -27,7 +27,6 @@ from absl import flags
 import lxml.etree as ET
 
 BUMP = "bump"
-VALIDATE = "validate"
 SET_DEFAULT = "set_default"
 
 USES_SDK = "uses-sdk"
@@ -38,8 +37,8 @@ FLAGS = flags.FLAGS
 flags.DEFINE_enum(
     "action",
     None,
-    [BUMP, VALIDATE, SET_DEFAULT],
-    f"Action to perform, either {BUMP}, {VALIDATE}, or {SET_DEFAULT}")
+    [BUMP, SET_DEFAULT],
+    f"Action to perform: either {BUMP} or {SET_DEFAULT}")
 flags.DEFINE_string(
     "manifest",
     None,
@@ -164,8 +163,6 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
       f"minSdkVersion attribute specified in the manifest ({min_sdk}) "
       + f"is not less than the floor ({min_sdk_floor}). Manifest unchanged.")
 
-
-def _ValidateMinSdk(xml_content, min_sdk_floor):
   """Checks the min SDK in xml_content and raises MinSdkError if it is either not specified or less than the floor.
 
   Args:
@@ -274,14 +271,8 @@ def main(unused_argv):
     )
     with open(output_path, "wb") as f:
       f.write(out_contents)
-
-  elif FLAGS.action == VALIDATE:
-    try:
-      log_message = _ValidateMinSdk(manifest, FLAGS.min_sdk_floor)
-    except MinSdkError as e:
-      sys.exit(str(e))
   else:
-    sys.exit(f"Action must be either {BUMP} or {VALIDATE}")
+    sys.exit(f"Action must be either {BUMP} or {SET_DEFAULT}")
 
   if FLAGS.log is not None:
     log_path = FLAGS.log
