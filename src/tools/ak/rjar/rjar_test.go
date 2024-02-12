@@ -44,8 +44,9 @@ func TestCreateRJar(t *testing.T) {
 	inJava := dataPath("R.java")
 	pkgs := dataPath("pkgs.txt")
 	targetLabel := "//test:test"
+	jvmOpts := ""
 
-	if err := doWork(inJava, pkgs, out, path.Join(os.Getenv("TEST_SRCDIR"), java), jarDexer, targetLabel); err != nil {
+	if err := doWork(inJava, pkgs, out, path.Join(os.Getenv("TEST_SRCDIR"), java), jarDexer, targetLabel, jvmOpts); err != nil {
 		t.Fatalf("Error creating R.jar: %v", err)
 	}
 

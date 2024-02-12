@@ -38,7 +38,7 @@ var (
 		Init:  Init,
 		Run:   Run,
 		Desc:  desc,
-		Flags: []string{"rjava", "pkgs", "rjar", "jdk", "jartool", "target_label"},
+		Flags: []string{"rjava", "pkgs", "rjar", "jdk", "jartool", "target_label", "jvm_opts"},
 	}
 
 	// Variables to hold flag values.
@@ -48,6 +48,7 @@ var (
 	jdk         string
 	jartool     string
 	targetLabel string
+	jvmOpts     string
 
 	initOnce sync.Once
 
@@ -116,6 +117,7 @@ func Init() {
 		flag.StringVar(&jdk, "jdk", "", "Jdk path")
 		flag.StringVar(&jartool, "jartool", "", "Jartool path")
 		flag.StringVar(&targetLabel, "target_label", "", "The target label")
+		flag.StringVar(&jvmOpts, "jvm_opts", "", "JVM options to pass to underlying tool")
 	})
 }
 
@@ -125,12 +127,12 @@ func desc() string {
 
 // Run is the entry point for rjar. Will exit on error.
 func Run() {
-	if err := doWork(rjava, pkgs, rjar, jdk, jartool, targetLabel); err != nil {
+	if err := doWork(rjava, pkgs, rjar, jdk, jartool, targetLabel, jvmOpts); err != nil {
 		log.Fatalf("Error creating R.jar: %v", err)
 	}
 }
 
-func doWork(rjava, pkgs, rjar, jdk, jartool string, targetLabel string) error {
+func doWork(rjava, pkgs, rjar, jdk, jartool string, targetLabel string, jvmOpts string) error {
 	f, err := os.Stat(rjava)
 	if os.IsNotExist(err) || (err == nil && f.Size() == 0) {
 		// If we don't have an input r_java or have an empty r_java just write
@@ -220,10 +222,10 @@ func doWork(rjava, pkgs, rjar, jdk, jartool string, targetLabel string) error {
 	if err = os.MkdirAll(filepath.Dir(rjar), 0777); err != nil {
 		return err
 	}
-	return compileRJar(srcs, rjar, jdk, jartool, targetLabel)
+	return compileRJar(srcs, rjar, jdk, jartool, targetLabel, jvmOpts)
 }
 
-func compileRJar(srcs []string, rjar, jdk, jartool string, targetLabel string) error {
+func compileRJar(srcs []string, rjar, jdk, jartool string, targetLabel string, jvmOpts string) error {
 	control, err := ioutil.TempFile("", "control")
 	if err != nil {
 		return err
@@ -255,7 +257,16 @@ func compileRJar(srcs []string, rjar, jdk, jartool string, targetLabel string) e
 	if err := control.Sync(); err != nil {
 		return err
 	}
-	c, err := exec.Command(jdk, "-jar", jartool, fmt.Sprintf("@%s", control.Name())).CombinedOutput()
+	jvmArgs := []string{jdk}
+	if len(jvmOpts) > 0 {
+		// Only append jvmOpts to the arg list if it's populated. Appending empty entries to the arg
+		// list can cause the command line to be parsed incorrectly.
+		jvmArgs = append(jvmArgs, strings.Split(jvmOpts, " ")...)
+	}
+	jvmArgs = append(jvmArgs, []string{
+		"-jar", jartool, fmt.Sprintf("@%s", control.Name()),
+	}...)
+	c, err := exec.Command(jvmArgs[0], jvmArgs[1:]...).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("%v:\n%s", err, c)
 	}
