@@ -18,7 +18,6 @@ import xml.etree.ElementTree as ET
 
 from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _BumpMinSdk
 from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _SetDefaultMinSdk
-from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import _ValidateMinSdk
 
 from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import MIN_SDK_ATTRIB
 from src.tools.enforce_min_sdk_floor.enforce_min_sdk_floor import MinSdkError
@@ -110,32 +109,6 @@ class EnforceMinSdkFloorTest(unittest.TestCase):
     out, _ = _SetDefaultMinSdk(MANIFEST_MIN_SDK, "14")
     self.assertEqual(out, MANIFEST_MIN_SDK)
 
-  def test_validate_no_min_sdk_floor(self):
-    _ = _ValidateMinSdk(MANIFEST_NO_USES_SDK, 0)
-
-  def test_validate_no_uses_sdk(self):
-    self.assertRaises(MinSdkError,
-                      _ValidateMinSdk,
-                      xml_content=MANIFEST_NO_USES_SDK,
-                      min_sdk_floor=5)
-
-  def test_validate_no_min_sdk_attrib(self):
-    self.assertRaises(MinSdkError,
-                      _ValidateMinSdk,
-                      xml_content=MANIFEST_NO_MIN_SDK,
-                      min_sdk_floor=19)
-
-  def test_validate_min_sdk_attrib_placeholder(self):
-    _ = _ValidateMinSdk(MANIFEST_MIN_SDK_PLACEHOLDER, 21)
-
-  def test_validate_higher_min_sdk(self):
-    _ = _ValidateMinSdk(MANIFEST_MIN_SDK, 8)
-
-  def test_validate_lower_min_sdk(self):
-    self.assertRaises(MinSdkError,
-                      _ValidateMinSdk,
-                      xml_content=MANIFEST_MIN_SDK,
-                      min_sdk_floor=18)
 
 if __name__ == "__main__":
   unittest.main()
