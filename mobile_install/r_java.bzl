@@ -67,9 +67,6 @@ def _make_r_jar(ctx, r_java, packages, out_r_jar):
         content = "\n".join(packages.to_list()),
     )
 
-    # Get the JVM options
-    jvm_opts = ctx.attr._java_toolchain[java_common.JavaToolchainInfo].jvm_opt.to_list()
-
     rjar_args = ctx.actions.args()
     rjar_args.add("rjar")
     rjar_args.add("--jdk", utils.host_jvm_path(ctx))
@@ -78,15 +75,14 @@ def _make_r_jar(ctx, r_java, packages, out_r_jar):
     rjar_args.add("--pkgs", r_packages.path)
     rjar_args.add("--rjar", out_r_jar.path)
     rjar_args.add("--target_label", str(ctx.label))
-    rjar_args.add_joined("--jvm_opts", jvm_opts, join_with = " ")
+    rjar_args.add_joined("--jvm_opts", ctx.attr._java_toolchain[java_common.JavaToolchainInfo].jvm_opt, join_with = " ")
 
     # Call action binary.
     ctx.actions.run(
         executable = ctx.executable._android_kit,
         arguments = [rjar_args],
         tools = ctx.attr._jar_tool.files,
-        inputs = ([r_packages, r_java] +
-                  ctx.attr._java_jdk.files.to_list()),
+        inputs = depset([r_packages, r_java], transitive = [ctx.attr._java_jdk.files]),
         outputs = [out_r_jar],
         mnemonic = "RJar",
         progress_message = "MI RJar " + out_r_jar.path,
