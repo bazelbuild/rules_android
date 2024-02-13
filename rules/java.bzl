@@ -476,6 +476,71 @@ def _create_deploy_jar(
     )
     return output
 
+def _check_one_version(
+        ctx,
+        inputs = depset(),
+        java_toolchain = None,
+        one_version_enforcement_level = "OFF",
+        is_test_binary = False):
+    """Runs a Java one version enforcement check.
+
+    Args:
+      ctx: The context.
+      inputs: Depset. All inputs used for creating a deploy jar.
+      java_toolchain: Target. The java_toolchain Target.
+      one_version_enforcement_level: String. The enforcement level of one version check. Can only be
+        'OFF', 'WARNING' or 'ERROR'.
+      is_test_binary: Boolean. Whether this binary is used for testing.
+
+    Returns:
+      A file containing the results of one version check.
+    """
+    if one_version_enforcement_level == "OFF":
+        return None
+
+    java_toolchain = java_toolchain[java_common.JavaToolchainInfo]
+
+    tool = java_toolchain._one_version_tool
+
+    if is_test_binary:
+        allowlist = java_toolchain._one_version_allowlist_for_tests
+    else:
+        allowlist = java_toolchain._one_version_allowlist
+
+    if not tool or not allowlist:
+        return None
+
+    output = ctx.actions.declare_file(ctx.label.name + "-one-version.txt")
+
+    args = ctx.actions.args()
+    args.set_param_file_format("shell")
+    args.use_param_file("@%s", use_always = True)
+
+    args.add("--output", output)
+    args.add("--whitelist", allowlist)
+    if one_version_enforcement_level == "WARNING":
+        args.add("--succeed_on_found_violations")
+    args.add_all(
+        "--inputs",
+        inputs,
+        map_each = _expand_to_jar_and_target,
+    )
+
+    ctx.actions.run(
+        executable = tool,
+        arguments = [args],
+        outputs = [output],
+        inputs = depset([allowlist], transitive = [inputs]),
+        mnemonic = "JavaOneVersion",
+        progress_message = "Checking for one-version violations in %{label}",
+        toolchain = "@bazel_tools//tools/jdk:toolchain_type",
+    )
+
+    return output
+
+def _expand_to_jar_and_target(jar):
+    return jar.path + "," + str(jar.owner)
+
 def _resource_set_for_deploy_jar(_os, _inputs_size):
     # parameters are unused but required by the resource_set API
     return {"memory": _SINGLEJAR_MEMORY_FOR_DEPLOY_JAR_MB, "cpu": 1}
@@ -483,6 +548,7 @@ def _resource_set_for_deploy_jar(_os, _inputs_size):
 java = struct(
     compile = _compile,
     compile_android = _compile_android,
+    check_one_version = _check_one_version,
     resolve_package = _resolve_package,
     resolve_package_from_label = _resolve_package_from_label,
     root = _root,
