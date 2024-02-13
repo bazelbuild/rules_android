@@ -44,8 +44,8 @@ dummy_json_file="$(mktemp)"
 echo "{\"shrinker_config\": [\"-keepclassmembers a b c\", \"foobar\", \"-someflag 1 2 3\"], \"foo\": \"bar\"}" > "$dummy_json_file"
 
 # Dummy output dummy output file
-test_output_file="$(mktemp -p /tmp test.XXXX)"
-expected_output_file="$(mktemp -p /tmp golden.XXXX)"
+test_output_file="$(mktemp /tmp/test.XXXX)"
+expected_output_file="$(mktemp /tmp/golden.XXXX)"
 # Expected outcome is a\nb\nc
 echo -ne "-keepclassmembers a b c\nfoobar\n-someflag 1 2 3" > "$expected_output_file"
 

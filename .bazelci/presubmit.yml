@@ -7,9 +7,11 @@ tools_flags: &tools_flags
   ? "--incompatible_enable_android_toolchain_resolution=false"
   # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
   ? "--java_runtime_version=17"
+  ? "--android_platforms=//:armeabi-v7a"
 rules_flags: &rules_flags
   ? "--enable_bzlmod=false"
   ? "--incompatible_enable_android_toolchain_resolution=false"
+  ? "--android_platforms=//:armeabi-v7a"
 
 tools: &tools
   name: "Tools"

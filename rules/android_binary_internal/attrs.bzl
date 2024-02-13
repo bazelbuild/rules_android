@@ -128,6 +128,9 @@ ATTRS = _attrs.replace(
                 default = "native",
                 values = ["native", "legacy", "manual_main_dex"],
             ),
+            user_link_flags = attr.string(
+                default = "-Wl,-soname",
+            ),
             _java_toolchain = attr.label(
                 default = Label("//tools/jdk:toolchain_android_only"),
             ),

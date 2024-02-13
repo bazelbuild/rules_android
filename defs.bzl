@@ -23,7 +23,7 @@ load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_jav
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 load("@rules_python//python:pip.bzl", "pip_parse")
-load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+load("@rules_python//python:repositories.bzl", "python_register_toolchains")
 
 # Handle python pip requirements.
 load("//py_support:vendored_py_requirements.bzl", pip_install_deps = "install_deps")
@@ -102,8 +102,6 @@ def rules_android_workspace():
 
     rules_proto_dependencies()
     rules_proto_toolchains()
-
-    py_repositories()
 
     python_register_toolchains(
         name = "python3_11",
