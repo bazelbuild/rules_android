@@ -322,6 +322,53 @@ def _get_proguard_temp_artifact(ctx, name):
 def _get_proguard_output_map(ctx):
     return ctx.actions.declare_file(ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX) + "_proguard_MIGRATED_.map")
 
+def _create_empty_proguard_output(
+        ctx,
+        proguard_output_jar,
+        proguard_output_map = None,
+        proguard_seeds = None,
+        proguard_usage = None):
+    """ Creates empty proguard outputs.
+
+    These outputs will fail at execution time when any of them are explicitly requested. This is
+    required for targets which use a select to provide an empty list to proguard_specs, as it is
+    impossible to tell what a select will produce at the time of implicit output determination.
+
+    Args:
+      ctx: The context.
+      proguard_output_jar: File. The output optimized jar.
+      proguard_output_map: File. The output proguard map.
+      proguard_seeds: File. The output proguard seeds.
+      proguard_usage: File. The output proguard usage.
+
+    Returns:
+      A struct of proguard outputs.
+    """
+
+    outputs = _get_proguard_output(
+        ctx,
+        proguard_output_jar = proguard_output_jar,
+        proguard_seeds = proguard_seeds,
+        proguard_usage = proguard_usage,
+        proguard_output_map = proguard_output_map,
+        combined_library_jar = None,
+        startup_profile_rewritten = None,
+        baseline_profile_rewritten = None,
+    )
+
+    # Fail at execution time if these artifacts are requested, to avoid issue where outputs are
+    # declared without having any proguard specs. This can happen if specs is a select() that
+    # resolves to an empty list.
+    _fail_action(
+        ctx,
+        outputs.output_jar,
+        outputs.mapping,
+        outputs.config,
+        outputs.seeds,
+        outputs.usage,
+    )
+    return outputs
+
 def _apply_proguard(
         ctx,
         input_jar = None,
@@ -355,29 +402,13 @@ def _apply_proguard(
       A struct of proguard outputs.
     """
     if not proguard_specs:
-        outputs = _get_proguard_output(
+        return _create_empty_proguard_output(
             ctx,
-            proguard_output_jar = proguard_output_jar,
-            proguard_seeds = None,
-            proguard_usage = None,
-            proguard_output_map = proguard_output_map,
-            combined_library_jar = None,
-            startup_profile_rewritten = None,
-            baseline_profile_rewritten = None,
-        )
-
-        # Fail at execution time if these artifacts are requested, to avoid issue where outputs are
-        # declared without having any proguard specs. This can happen if specs is a select() that
-        # resolves to an empty list.
-        _fail_action(
-            ctx,
-            outputs.output_jar,
-            outputs.mapping,
-            outputs.config,
+            proguard_output_jar,
+            proguard_output_map,
             proguard_seeds,
             proguard_usage,
         )
-        return outputs
 
     library_jar_list = [get_android_sdk(ctx).android_jar]
     if ctx.fragments.android.desugar_java8:
@@ -667,6 +698,7 @@ def _fail_action(ctx, *outputs):
 
 proguard = struct(
     apply_proguard = _apply_proguard,
+    create_empty_proguard_output = _create_empty_proguard_output,
     process_specs = _process_specs,
     generate_min_sdk_version_assumevalues = _generate_min_sdk_version_assumevalues,
     get_proguard_output_map = _get_proguard_output_map,
