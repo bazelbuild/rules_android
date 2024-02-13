@@ -435,6 +435,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
     deploy_jar, filtered_deploy_jar, desugar_dict = None, None, {}
     transitive_runtime_jars_for_archive = []
     binary_runtime_jars = []
+    one_version_enforcement_output = None
     if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
         java_toolchain = common.get_java_toolchain(ctx)
         java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
@@ -510,6 +511,16 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
             )
             deploy_jar = filtered_deploy_jar
 
+        if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+            # TODO(b/269498486): Switch this action to a validation action and add the output to validation_outputs.
+            one_version_enforcement_output = java.check_one_version(
+                ctx,
+                inputs = runtime_jars,
+                java_toolchain = java_toolchain,
+                one_version_enforcement_level = ctx.fragments.java.one_version_enforcement_level,
+                is_test_binary = _is_test_binary(ctx),
+            )
+
     return ProviderInfo(
         name = "deploy_ctx",
         value = struct(
@@ -518,6 +529,7 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
             deploy_jar = deploy_jar,
             desugar_dict = desugar_dict,
             filtered_deploy_jar = filtered_deploy_jar,
+            one_version_enforcement_output = one_version_enforcement_output,
             providers = [],
         ),
     )
