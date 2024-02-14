@@ -14,6 +14,7 @@
 
 """Starlark Android Binary for Android Rules."""
 
+load("//rules:acls.bzl", "acls")
 load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
 load(
     "//rules:attrs.bzl",
@@ -26,10 +27,22 @@ _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_
 
 _DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
 
+def _outputs(name, _package_name):
+    outputs = {}
+    label = "//%s:%s" % (_package_name, name)
+    if acls.in_android_binary_starlark_rollout(label):
+        outputs = dict(
+            deploy_jar = "%{name}_migrated_deploy.jar",
+            unsigned_apk = "%{name}_unsigned.apk",
+            signed_apk = "%{name}.apk",
+        )
+    return outputs
+
 def make_rule(
         attrs = ATTRS,
         implementation = impl,
         provides = _DEFAULT_PROVIDES,
+        outputs = _outputs,
         additional_toolchains = []):
     """Makes the rule.
 
@@ -59,6 +72,7 @@ def make_rule(
             "cpp",
         ],
         cfg = android_platforms_transition,
+        outputs = outputs,
     )
 
 android_binary_internal = make_rule()
@@ -97,4 +111,15 @@ def android_binary_internal_macro(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    android_binary_internal(**sanitize_attrs(attrs))
+
+    # Required for ACLs check in _outputs(), since the callback can't access the native module.
+    attrs["$package_name"] = native.package_name()
+
+    # _package_name is an allowed attribute but is also private. We need to allow
+    # the $ form of the attribute to stop the sanitize function from removing it.
+    android_binary_internal(
+        **sanitize_attrs(
+            attrs,
+            allowed_attrs = list(ATTRS.keys()) + ["$package_name"],
+        )
+    )

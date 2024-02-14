@@ -128,10 +128,54 @@ ATTRS = _attrs.replace(
                 default = "native",
                 values = ["native", "legacy", "manual_main_dex"],
             ),
+            debug_key = attr.label(
+                cfg = "exec",
+                default = "//tools/android:debug_keystore",
+                allow_single_file = True,
+                doc = """
+                      File containing the debug keystore to be used to sign the debug apk. Usually
+                      you do not want to use a key other than the default key, so this attribute
+                      should be omitted.
+
+                      WARNING: Do not use your production keys, they should be strictly safeguarded
+                      and not kept in your source tree.
+                      """,
+            ),
+            debug_signing_keys = attr.label_list(
+                allow_files = True,
+                doc = """
+                      List of files, debug keystores to be used to sign the debug apk. Usually you
+                      do not want to use keys other than the default key, so this attribute should
+                      be omitted.
+
+                      WARNING: Do not use your production keys, they should be strictly safeguarded
+                      and not kept in your source tree.
+                      """,
+            ),
+            debug_signing_lineage_file = attr.label(
+                allow_single_file = True,
+                doc = """
+                      File containing the signing lineage for the debug_signing_keys. Usually you
+                      do not want to use keys other than the default key, so this attribute should
+                      be omitted.
+
+                      WARNING: Do not use your production keys, they should be strictly safeguarded
+                      and not kept in your source tree.
+                      """,
+            ),
+            key_rotation_min_sdk = attr.string(
+                doc = """
+                      Sets the minimum Android platform version (API Level) for which an APK's
+                      rotated signing key should be used to produce the APK's signature. The
+                      original signing key for the APK will be used for all previous platform
+                      versions.
+                      """,
+            ),
             _java_toolchain = attr.label(
                 default = Label("//tools/jdk:toolchain_android_only"),
             ),
             _defined_resource_files = attr.bool(default = False),
+            _package_name = attr.string(),  # for sending the package name to the outputs callback
             _enable_manifest_merging = attr.bool(default = True),
             _cc_toolchain_split = attr.label(
                 cfg = android_split_transition,

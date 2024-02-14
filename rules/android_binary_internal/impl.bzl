@@ -15,6 +15,7 @@
 """Implementation."""
 
 load("//rules:acls.bzl", "acls")
+load("//rules:apk_packaging.bzl", _apk_packaging = "apk_packaging")
 load("//rules:baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load("//rules:common.bzl", "common")
 load("//rules:data_binding.bzl", "data_binding")
@@ -132,13 +133,17 @@ def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
 
 def _process_native_libs(ctx, **_unusued_ctxs):
     providers = []
-    providers.append(_process_native_deps(
+    native_libs_info = _process_native_deps(
         ctx,
         filename = "nativedeps",
-    ))
+    )
+    providers.append(native_libs_info)
     return ProviderInfo(
         name = "native_libs_ctx",
-        value = struct(providers = providers),
+        value = struct(
+            native_libs_info = native_libs_info,
+            providers = providers,
+        ),
     )
 
 def _process_build_stamp(_unused_ctx, **_unused_ctxs):
@@ -486,7 +491,10 @@ def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_i
         else:
             runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jars])
 
-        output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
+        if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+            output = ctx.outputs.deploy_jar
+        else:
+            output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
         deploy_jar = java.create_deploy_jar(
             ctx,
             output = output,
@@ -554,25 +562,44 @@ def use_legacy_manifest_merger(ctx):
     return manifest_merger == "legacy"
 
 def finalize(
-        _unused_ctx,
+        ctx,
         providers,
         validation_outputs,
         packaged_resources_ctx,
+        apk_packaging_ctx,
         resource_shrinking_r8_ctx,
         **_unused_ctxs):
     """Final step of the android_binary_internal processor pipeline.
 
     Args:
-      _unused_ctx: The context.
+      ctx: The context.
       providers: The list of providers for the android_binary_internal rule.
       validation_outputs: Validation outputs for the rule.
       packaged_resources_ctx: The packaged resources from the resource processing step.
+      apk_packaging_ctx: The context from the APK packaging step.
       resource_shrinking_r8_ctx: The context from the R8 resource shrinking step.
       **_unused_ctxs: Other contexts.
 
     Returns:
       The list of providers the android_binary_internal rule should return.
     """
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        files = [
+            ctx.outputs.deploy_jar,
+            ctx.outputs.unsigned_apk,
+            ctx.outputs.signed_apk,
+        ]
+
+        # TODO(zhaoqxu): Add other default outputs from proguard, resource shrinking, dex, etc.
+        if apk_packaging_ctx.v4_signature_file:
+            files.append(apk_packaging_ctx.v4_signature_file)
+
+        providers.append(
+            DefaultInfo(
+                files = depset(files),
+            ),
+        )
+
     providers.append(
         OutputGroupInfo(
             _validation = depset(validation_outputs),
@@ -663,6 +690,7 @@ def _process_baseline_profiles(ctx, deploy_ctx, **_unused_ctxs):
 
 def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
     providers = []
+    art_profile_zip = None
     if (ctx.attr.generate_art_profile and
         acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label))):
         merged_baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
@@ -679,7 +707,7 @@ def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
             if merged_baseline_profile_rewritten:
                 merged_baseline_profile = merged_baseline_profile_rewritten
         if merged_baseline_profile:
-            providers.append(_baseline_profiles.process_art_profile(
+            art_profile_zip = _baseline_profiles.process_art_profile(
                 ctx,
                 final_classes_dex = dex_ctx.dex_info.final_classes_dex_zip,
                 merged_profile = merged_baseline_profile,
@@ -687,10 +715,20 @@ def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
                 profgen = get_android_toolchain(ctx).profgen.files_to_run,
                 zipper = get_android_toolchain(ctx).zipper.files_to_run,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-            ))
+            )
+            providers.append(
+                BaselineProfileProvider(
+                    # Unnecessary to pass the transitive profiles to native rule
+                    depset(),
+                    art_profile_zip,
+                ),
+            )
     return ProviderInfo(
         name = "ap_ctx",
-        value = struct(providers = providers),
+        value = struct(
+            art_profile_zip = art_profile_zip,
+            providers = providers,
+        ),
     )
 
 def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused_ctxs):
@@ -822,6 +860,52 @@ def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused
         ),
     )
 
+def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx, ap_ctx, r8_ctx, **_unused_ctxs):
+    apk_packaging_ctx = struct()
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        signing_keys = []
+        if ctx.files.debug_signing_keys:
+            signing_keys.extend(ctx.files.debug_signing_keys)
+        elif ctx.file.debug_key:
+            signing_keys.append(ctx.file.debug_key)
+
+        use_r8 = acls.use_r8(str(ctx.label)) and ctx.files.proguard_specs
+        if getattr(r8_ctx, "dex_info", None) and getattr(dex_ctx, "dex_info", None):
+            fail("Either R8 or Dex should be used, but not both!")
+        dex_info = r8_ctx.dex_info if use_r8 else dex_ctx.dex_info
+
+        apk_packaging_ctx = _apk_packaging.process(
+            ctx,
+            unsigned_apk = ctx.outputs.unsigned_apk,
+            signed_apk = ctx.outputs.signed_apk,
+            resources_apk = packaged_resources_ctx.resources_apk,
+            final_classes_dex_zip = dex_info.final_classes_dex_zip,
+            deploy_jar = dex_info.deploy_jar,
+            native_libs = native_libs_ctx.native_libs_info.native_libs,
+            native_libs_aars = native_libs_ctx.native_libs_info.transitive_native_libs,
+            native_libs_name = native_libs_ctx.native_libs_info.native_libs_name,
+            coverage_metadata = dex_info.deploy_jar if ctx.configuration.coverage_enabled else None,
+            merged_manifest = packaged_resources_ctx.processed_manifest,
+            art_profile_zip = ap_ctx.art_profile_zip,
+            java_resources_zip = dex_info.java_resource_jar,
+            compress_java_resources = ctx.fragments.android.compress_java_resources,
+            nocompress_extensions = ctx.attr.nocompress_extensions,
+            output_jar_creator = "bazel",
+            signing_keys = signing_keys,
+            signing_lineage = ctx.file.debug_signing_lineage_file,
+            signing_key_rotation_min_sdk = ctx.attr.key_rotation_min_sdk,
+            deterministic_signing = False,
+            java_toolchain = common.get_java_toolchain(ctx),
+            resource_extractor = get_android_toolchain(ctx).resource_extractor.files_to_run,
+            zip_aligner = get_android_sdk(ctx).zip_align,
+            apk_signer = get_android_sdk(ctx).apk_signer,
+            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+        )
+    return ProviderInfo(
+        name = "apk_packaging_ctx",
+        value = apk_packaging_ctx,
+    )
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
@@ -844,6 +928,7 @@ PROCESSORS = dict(
     ArtProfileProcessor = _process_art_profile,
     R8Processor = process_r8,
     ResourecShrinkerR8Processor = process_resource_shrinking_r8,
+    ApkPackagingProcessor = _process_apk_packaging,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(

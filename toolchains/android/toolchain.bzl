@@ -308,6 +308,12 @@ _ATTRS = dict(
         default = "@androidsdk//:fail",
         executable = True,
     ),
+    resource_extractor = attr.label(
+        cfg = "exec",
+        default = "@bazel_tools//tools/android:resource_extractor",
+        executable = True,
+    ),
+
 )
 
 def _impl(ctx):
