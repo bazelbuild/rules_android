@@ -160,11 +160,7 @@ def _process_art_profile(
         use_default_shell_env = True,
         toolchain = toolchain_type,
     )
-    return BaselineProfileProvider(
-        # Unnecessary to pass the transitive profiles to native rule
-        depset(),
-        output_profile_zip,
-    )
+    return output_profile_zip
 
 def _get_profile_dir(ctx):
     return ctx.label.name + _BASELINE_PROFILE_DIR_SUFFIX

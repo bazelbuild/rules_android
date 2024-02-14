@@ -368,8 +368,15 @@ def _singlejar(
         deploy_manifest_lines = [],
         include_build_data = False,
         include_prefixes = [],
+        resources = [],
+        resource_paths = [],
+        nocompress_suffixes = [],
+        output_jar_creator = None,
         java_toolchain = None,
         resource_set = None):
+    if type(inputs) == "list":
+        inputs = depset(inputs)
+
     args = ctx.actions.args()
     args.add("--output")
     args.add(output)
@@ -383,6 +390,12 @@ def _singlejar(
         args.add("--sources")
         args.add_all(inputs)
 
+    if resources:
+        if len(resource_paths) != len(resources):
+            fail("For each resource, a resource path must be provided!")
+        args.add_all("--resources", resource_paths)
+        inputs = depset(resources, transitive = [inputs])
+
     if build_target:
         args.add("--build_target", build_target)
     if check_desugar_deps:
@@ -391,6 +404,10 @@ def _singlejar(
         args.add_all("--deploy_manifest_lines", deploy_manifest_lines)
     if include_prefixes:
         args.add_all("--include_prefixes", include_prefixes)
+    if nocompress_suffixes:
+        args.add_all("--nocompress_suffixes", nocompress_suffixes)
+    if output_jar_creator:
+        args.add("--output_jar_creator", output_jar_creator)
 
     args.use_param_file("@%s")
 
