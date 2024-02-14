@@ -28,6 +28,7 @@ _ATTRS = dict(
     expected_output_group_info = attr.string_list_dict(),
     expected_native_libs_info = attr.label(),
     expected_generated_extension_registry_provider = attr.string_list_dict(),
+    expected_android_idl_info = attr.string_list_dict(),
 )
 
 def _expected_resources_node_info_impl(ctx):
@@ -239,22 +240,7 @@ def _assert_file_depset(expected_file_paths, actual_depset, error_msg_field_name
             path = path[len(ignore_label_prefix):]
         actual_paths.append(path)
 
-    if len(expected_file_paths) != len(actual_paths):
-        fail("""Error for %s, expected %d items, got %d items
-expected: %s
-actual: %s""" % (
-            error_msg_field_name,
-            len(expected_file_paths),
-            len(actual_paths),
-            expected_file_paths,
-            actual_paths,
-        ))
-    for i in range(len(expected_file_paths)):
-        if expected_file_paths[i] != actual_paths[i]:
-            fail("""Error for %s, actual file depset ordering does not match expected ordering:
-expected ordering: %s
-actual ordering: %s
-""" % (error_msg_field_name, expected_file_paths, actual_paths))
+    _assert_string_list(expected_file_paths, actual_paths, error_msg_field_name)
 
 def _assert_empty(contents, error_msg_field_name):
     """Asserts that the given is empty."""
@@ -381,6 +367,32 @@ def _assert_string(expected, actual, error_msg):
 expected value: %s
 actual value: %s
 """ % (error_msg, expected, actual))
+
+def _assert_string_list(expected, actual, error_msg_field_name):
+    """Asserts that expected string list and actual string list are equal.
+
+    Args:
+      expected: The expected string list.
+      actual: The actual string list.
+      error_msg_field_name: The field the actual string list is from.
+    """
+
+    if len(expected) != len(actual):
+        fail("""Error for %s, expected %d items, got %d items
+expected: %s
+actual: %s""" % (
+            error_msg_field_name,
+            len(expected),
+            len(actual),
+            expected,
+            actual,
+        ))
+    for i in range(len(expected)):
+        if expected[i] != actual[i]:
+            fail("""Error for %s, actual ordering does not match expected ordering:
+expected ordering: %s
+actual ordering: %s
+""" % (error_msg_field_name, expected, actual))
 
 def _assert_file(expected, actual, error_msg_field_name):
     if actual == None and expected == None:
@@ -551,6 +563,41 @@ def _assert_generated_extension_registry_provider(expected, actual):
             "GeneratedExtensionRegistryProvider." + key,
         )
 
+def _assert_android_idl_info(expected, actual, label_under_test):
+    if expected and not actual:
+        fail("AndroidIdlInfo is expected but not found!")
+
+    # Use the package from the target under test to shrink actual paths being compared down to the
+    # name of the target.
+    ignore_label_prefix = label_under_test.package + "/"
+
+    _assert_string_list(
+        [ignore_label_prefix + path for path in expected.transitive_idl_import_roots],
+        actual.transitive_idl_import_roots.to_list(),
+        "AndroidIdlInfo.transitive_idl_import_roots",
+    )
+
+    _assert_file_depset(
+        expected.transitive_idl_imports,
+        actual.transitive_idl_imports,
+        "AndroidIdlInfo.transitive_idl_imports",
+        ignore_label_prefix,
+    )
+
+    _assert_file_depset(
+        expected.transitive_idl_jars,
+        actual.transitive_idl_jars,
+        "AndroidIdlInfo.transitive_idl_jars",
+        ignore_label_prefix,
+    )
+
+    _assert_file_depset(
+        expected.transitive_idl_preprocessed,
+        actual.transitive_idl_preprocessed,
+        "AndroidIdlInfo.transitive_idl_preprocessed",
+        ignore_label_prefix,
+    )
+
 def _is_suffix_sublist(full, suffixes):
     """Returns whether suffixes is a sublist of suffixes of full."""
     for (fi, _) in enumerate(full):
@@ -618,6 +665,7 @@ asserts = struct(
         output_group_info = _assert_output_group_info,
         native_libs_info = _assert_native_libs_info,
         generated_extension_registry_provider = _assert_generated_extension_registry_provider,
+        android_idl_info = _assert_android_idl_info,
     ),
     files = _assert_files,
     r_class = struct(
