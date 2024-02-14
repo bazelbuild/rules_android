@@ -906,6 +906,37 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
         value = apk_packaging_ctx,
     )
 
+def _process_idl(ctx, **_unused_ctxs):
+    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        return ProviderInfo(name = "idl_ctx", value = struct())
+
+    deps = utils.collect_providers(AndroidIdlInfo, ctx.attr.deps)
+
+    android_idl_info = AndroidIdlInfo(
+        depset(
+            transitive = [dep.transitive_idl_import_roots for dep in deps],
+            order = "preorder",
+        ),
+        depset(
+            transitive = [dep.transitive_idl_imports for dep in deps],
+            order = "preorder",
+        ),
+        # TODO(b/146216105): Delete this field once AndroidIdlInfo is Starlarkified.
+        depset(),
+        depset(
+            transitive = [dep.transitive_idl_preprocessed for dep in deps],
+            order = "preorder",
+        ),
+    )
+
+    return ProviderInfo(
+        name = "idl_ctx",
+        value = struct(
+            android_idl_info = android_idl_info,
+            providers = [android_idl_info],
+        ),
+    )
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
@@ -928,6 +959,7 @@ PROCESSORS = dict(
     ArtProfileProcessor = _process_art_profile,
     R8Processor = process_r8,
     ResourecShrinkerR8Processor = process_resource_shrinking_r8,
+    IdlProcessor = _process_idl,
     ApkPackagingProcessor = _process_apk_packaging,
 )
 
