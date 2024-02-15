@@ -160,3 +160,28 @@ StarlarkAndroidDexInfo = provider(
         ),
     ),
 )
+
+# TODO(b/325299751): The provider is only used for testing purposes now. Change the name to
+# AndroidIdeInfo when it's fully Starlarkified in all Android rules.
+# buildifier: disable=name-conventions
+StarlarkAndroidIdeInfoForTesting = provider(
+    doc = "Provides Android-specific information for IDEs",
+    fields = dict(
+        java_package = "A string of the Java package.",
+        manifest = "A file of the Android manifest.",
+        generated_manifest = "A file of the generated Android manifest.",
+        idl_import_root = "A string of the idl import root.",
+        idl_srcs = "A list of files of the idl generated java files.",
+        idl_generated_java_files = "A list of files of the idl generated java files.",
+        idl_source_jar = "A file of the source Jar with the idl generated java files.",
+        idl_class_jar = "A file of the class Jar with the compiled idl generated java files.",
+        defines_android_resources = "A boolean if target specifies Android resources.",
+        resource_jar = "A struct of type JavaOutput containing Android resources JavaInfo outputs.",
+        resource_apk = "A file of the Apk containing Android resources.",
+        signed_apk = "A file of the signed Apk.",
+        aar = "A file of the Android archive.",
+        apks_under_test = "A list of files of the apks under test",
+        native_libs = "A dictionary of string to a list of files mapping architectures to" +
+                      "native libs.",
+    ),
+)

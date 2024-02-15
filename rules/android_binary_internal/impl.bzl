@@ -22,6 +22,7 @@ load("//rules:data_binding.bzl", "data_binding")
 load("//rules:desugar.bzl", _desugar = "desugar")
 load("//rules:dex.bzl", _dex = "dex")
 load("//rules:dex_desugar_aspect.bzl", _get_dex_desugar_aspect_deps = "get_aspect_deps")
+load("//rules:intellij.bzl", _intellij = "intellij")
 load("//rules:java.bzl", "java")
 load(
     "//rules:native_deps.bzl",
@@ -937,6 +938,30 @@ def _process_idl(ctx, **_unused_ctxs):
         ),
     )
 
+def _process_intellij(ctx, java_package, manifest_ctx, packaged_resources_ctx, jvm_ctx, native_libs_ctx, **_unused_ctxs):
+    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        return ProviderInfo(name = "intellij_ctx", value = struct())
+
+    android_ide_info = _intellij.make_android_ide_info(
+        ctx,
+        java_package = java_package,
+        manifest = manifest_ctx.processed_manifest,
+        defines_resources = True,
+        merged_manifest = packaged_resources_ctx.processed_manifest,
+        resources_apk = packaged_resources_ctx.resources_apk,
+        r_jar = utils.only(packaged_resources_ctx.r_java.outputs.jars) if packaged_resources_ctx.r_java else None,
+        java_info = jvm_ctx.java_info,
+        signed_apk = ctx.outputs.signed_apk,
+        native_libs = native_libs_ctx.native_libs_info.native_libs,
+    )
+    return ProviderInfo(
+        name = "intellij_ctx",
+        value = struct(
+            android_ide_info = android_ide_info,
+            providers = [android_ide_info],
+        ),
+    )
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
@@ -961,6 +986,7 @@ PROCESSORS = dict(
     ResourecShrinkerR8Processor = process_resource_shrinking_r8,
     IdlProcessor = _process_idl,
     ApkPackagingProcessor = _process_apk_packaging,
+    IntellijProcessor = _process_intellij,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
