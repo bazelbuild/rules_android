@@ -103,5 +103,9 @@ tasks:
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
+      ? "--android_platforms='//:armeabi-v7a'"
+      ? "--enable_bzlmod"
+      ? "--incompatible_enable_android_toolchain_resolution=true"
+      ? "--java_runtime_version=17"
     build_targets:
       - "//java/com/basicapp:basic_app"
