@@ -17,6 +17,7 @@
 load(
     "//rules:providers.bzl",
     "ResourcesNodeInfo",
+    "StarlarkAndroidIdeInfoForTesting",
     "StarlarkAndroidResourcesInfo",
 )
 
@@ -29,6 +30,7 @@ _ATTRS = dict(
     expected_native_libs_info = attr.label(),
     expected_generated_extension_registry_provider = attr.string_list_dict(),
     expected_android_idl_info = attr.string_list_dict(),
+    expected_android_ide_info = attr.label(),
 )
 
 def _expected_resources_node_info_impl(ctx):
@@ -360,7 +362,7 @@ def _assert_proguard_spec_provider(expected, actual):
             fail("Error validation of ProguardSpecProvider.%s not implemented." % key)
 
 def _assert_string(expected, actual, error_msg):
-    if type(actual) != "string":
+    if type(actual) != "string" and type(actual) != "NoneType":
         fail("Error for %s, actual value not of type string, got %s" % (error_msg, type(actual)))
     if actual != expected:
         fail("""Error for %s, expected and actual values are not the same:
@@ -598,6 +600,109 @@ def _assert_android_idl_info(expected, actual, label_under_test):
         ignore_label_prefix,
     )
 
+def _expected_android_ide_info_impl(ctx):
+    def none_if_empty_string(s):
+        return s if s else None
+
+    return [
+        StarlarkAndroidIdeInfoForTesting(
+            java_package = none_if_empty_string(ctx.attr.java_package),
+            manifest = none_if_empty_string(ctx.attr.manifest),
+            generated_manifest = none_if_empty_string(ctx.attr.generated_manifest),
+            idl_import_root = none_if_empty_string(ctx.attr.idl_import_root),
+            idl_srcs = ctx.attr.idl_srcs,
+            idl_generated_java_files = ctx.attr.idl_generated_java_files,
+            idl_source_jar = none_if_empty_string(ctx.attr.idl_source_jar),
+            idl_class_jar = none_if_empty_string(ctx.attr.idl_class_jar),
+            defines_android_resources = ctx.attr.defines_android_resources,
+            resource_jar = struct(**ctx.attr.resource_jar),
+            resource_apk = none_if_empty_string(ctx.attr.resource_apk),
+            signed_apk = none_if_empty_string(ctx.attr.signed_apk),
+            aar = none_if_empty_string(ctx.attr.aar),
+            apks_under_test = ctx.attr.apks_under_test,
+            native_libs = ctx.attr.native_libs,
+        ),
+    ]
+
+_expected_android_ide_info = rule(
+    implementation = _expected_android_ide_info_impl,
+    attrs = dict(
+        java_package = attr.string(),
+        manifest = attr.string(),
+        generated_manifest = attr.string(),
+        idl_import_root = attr.string(),
+        idl_srcs = attr.string_list(),
+        idl_generated_java_files = attr.string_list(),
+        idl_source_jar = attr.string(),
+        idl_class_jar = attr.string(),
+        defines_android_resources = attr.bool(default = True),
+        resource_jar = attr.string_dict(),
+        resource_apk = attr.string(),
+        signed_apk = attr.string(),
+        aar = attr.string(),
+        apks_under_test = attr.string_list(),
+        native_libs = attr.string_list_dict(),
+    ),
+    provides = [StarlarkAndroidIdeInfoForTesting],
+)
+
+def ExpectedAndroidIdeInfo(
+        label,
+        **kwargs):
+    name = label[1:] + "_expected_android_ide_info"
+    _expected_android_ide_info(
+        name = name,
+        **kwargs
+    )
+    return name
+
+def _assert_android_ide_info(expected, actual):
+    if expected and not actual:
+        fail("AndroidIdlInfo is expected but not found!")
+
+    _assert_string(expected.java_package, actual.java_package, "java_package")
+
+    _assert_file(expected.manifest, actual.manifest, "manifest")
+
+    _assert_file(expected.generated_manifest, actual.generated_manifest, "generated_manifest")
+
+    _assert_string(expected.idl_import_root, actual.idl_import_root, "idl_import_root")
+
+    _assert_files(expected.idl_srcs, actual.idl_srcs, "idl_srcs")
+
+    _assert_files(
+        expected.idl_generated_java_files,
+        actual.idl_generated_java_files,
+        "idl_generated_java_files",
+    )
+
+    _assert_file(expected.idl_source_jar, actual.idl_source_jar, "idl_source_jar")
+
+    _assert_file(expected.idl_class_jar, actual.idl_class_jar, "idl_class_jar")
+
+    if expected.defines_android_resources != actual.defines_android_resources:
+        fail("Expected 'defines_android_resources' to be %s, got %s")
+
+    # resource_jar is of type JavaOutput, so testing its class jar instead.
+    _assert_file(expected.resource_jar.class_jar, actual.resource_jar.class_jar, "resource_jar")
+
+    _assert_file(expected.resource_apk, actual.resource_apk, "resource_apk")
+
+    _assert_file(expected.signed_apk, actual.signed_apk, "signed_apk")
+
+    _assert_file(expected.aar, actual.aar, "aar")
+
+    _assert_files(expected.apks_under_test, actual.apks_under_test, "apks_under_test")
+
+    for config in expected.native_libs:
+        if config not in actual.native_libs:
+            fail("Error for native_libs: expected key %s was not found" % config)
+        _assert_files(
+            expected.native_libs[config],
+            actual.native_libs[config].to_list(),
+            "native_libs." + config,
+        )
+
 def _is_suffix_sublist(full, suffixes):
     """Returns whether suffixes is a sublist of suffixes of full."""
     for (fi, _) in enumerate(full):
@@ -666,6 +771,7 @@ asserts = struct(
         native_libs_info = _assert_native_libs_info,
         generated_extension_registry_provider = _assert_generated_extension_registry_provider,
         android_idl_info = _assert_android_idl_info,
+        android_ide_info = _assert_android_ide_info,
     ),
     files = _assert_files,
     r_class = struct(
