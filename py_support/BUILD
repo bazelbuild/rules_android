@@ -1,4 +1,5 @@
 # Configuration needed to manage python dependencies.
+# This package is needed for Bazel support.
 
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
