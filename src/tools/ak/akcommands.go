@@ -30,7 +30,6 @@ import (
 	"src/tools/ak/patch/patch"
 	"src/tools/ak/repack/repack"
 	"src/tools/ak/rjar/rjar"
-	"src/tools/ak/shellapk/shellapk"
 	"src/tools/ak/types"
 )
 
@@ -51,6 +50,5 @@ var (
 		"repack":           repack.Cmd,
 		"rjar":             rjar.Cmd,
 		"finalrjar":        finalrjar.Cmd,
-		"shellapk":         shellapk.Cmd,
 	}
 )
