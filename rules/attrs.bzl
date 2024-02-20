@@ -84,7 +84,6 @@ _JAVA_RUNTIME = dict(
     ),
 )
 
-
 # Android SDK attribute.
 _ANDROID_SDK = dict(
     _android_sdk = attr.label(
@@ -95,7 +94,11 @@ _ANDROID_SDK = dict(
         ),
         providers = [AndroidSdkInfo],
     ),
+    _dummy_android_sdk = attr.label(
+        default = "//toolchains/android_sdk:dummy_sdk_tools",
+    ),
 )
+
 
 # Compilation attributes for Android rules.
 _COMPILATION = _add(

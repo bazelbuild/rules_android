@@ -1,6 +1,8 @@
 # Description:
 #   Defines the Android SDK toolchain.
 
+load(":rule.bzl", "dummy_toolchain_dep")
+
 licenses(["notice"])
 
 filegroup(
@@ -30,4 +32,10 @@ toolchain(
     #],
     toolchain = "@androidsdk//:sdk",
     toolchain_type = ":toolchain_type",
+)
+
+dummy_toolchain_dep(
+    name = "dummy_sdk_tools",
+    sdk_toolchain = "@androidsdk//:sdk",
+    visibility = ["//visibility:public"],
 )
