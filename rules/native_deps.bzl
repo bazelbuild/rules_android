@@ -18,6 +18,7 @@ of split deps
 """
 
 load("//rules:common.bzl", "common")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 
 SplitConfigInfo = provider(
     doc = "Provides information about configuration for a split config dep",
@@ -305,7 +306,7 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
     # This does not need to be shareable, but we use this API to specify the
     # custom file root (matching the configuration)
     output_lib = ctx.actions.declare_shareable_artifact(
-        ctx.label.package + "/nativedeps/" + actual_target_name + "/lib" + actual_target_name + ".so",
+        paths.join(ctx.label.package, "nativedeps", actual_target_name, "lib" + actual_target_name + ".so"),
         build_config.bin_dir,
     )
 
