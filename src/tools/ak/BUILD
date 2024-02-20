@@ -63,6 +63,5 @@ go_library(
         "//src/tools/ak/patch",
         "//src/tools/ak/repack",
         "//src/tools/ak/rjar",
-        "//src/tools/ak/shellapk",
     ],
 )
