@@ -163,44 +163,6 @@ def _BumpMinSdk(xml_content, min_sdk_floor):
       f"minSdkVersion attribute specified in the manifest ({min_sdk}) "
       + f"is not less than the floor ({min_sdk_floor}). Manifest unchanged.")
 
-  """Checks the min SDK in xml_content and raises MinSdkError if it is either not specified or less than the floor.
-
-  Args:
-    xml_content: str, the contents of the AndroidManifest.xml file
-    min_sdk_floor: int, the min SDK floor
-  Returns:
-    str: log message
-  Raises:
-    MinSdkError: The min SDK is less than the specified floor.
-  """
-  if min_sdk_floor == 0:
-    return "No min SDK floor specified."
-
-  root = ET.fromstring(xml_content)
-
-  uses_sdk = root.find(USES_SDK)
-  if uses_sdk is None:
-    raise MinSdkError(
-        "No uses-sdk element found in manifest "
-        + f"while floor is specified ({min_sdk_floor}).")
-
-  min_sdk = uses_sdk.get(MIN_SDK_ATTRIB)
-  if min_sdk is None:
-    raise MinSdkError(
-        "No minSdkVersion attribute found in manifest "
-        + f"while floor is specified ({min_sdk_floor}).")
-
-  try:
-    min_sdk_int = int(min_sdk)
-  except ValueError:
-    return f"Placeholder minSdkVersion = {min_sdk}\n min SDK floor = {min_sdk_floor}"
-
-  if min_sdk_int < min_sdk_floor:
-    raise MinSdkError(
-        f"minSdkVersion attribute specified in  the manifest ({min_sdk}) "
-        + f"is less than the floor ({min_sdk_floor}).")
-  return f"minSdkVersion = {min_sdk}\n min SDK floor = {min_sdk_floor}"
-
 
 def _SetDefaultMinSdk(xml_content, default_min_sdk):
   """Checks the min SDK in xml_content and replaces with default_min_sdk if it is not already set.
