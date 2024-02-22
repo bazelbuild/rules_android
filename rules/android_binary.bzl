@@ -14,10 +14,10 @@
 
 """Bazel rule for building an APK."""
 
+load("//rules:acls.bzl", "acls")
+load("//rules/android_binary_internal:rule.bzl", "android_binary_internal_macro")
 load(":common.bzl", "common")
 load(":migration_tag_DONOTUSE.bzl", "add_migration_tag")
-load("//rules/android_binary_internal:rule.bzl", "android_binary_internal_macro")
-load("//rules:acls.bzl", "acls")
 
 def android_binary(**attrs):
     """Bazel android_binary rule.

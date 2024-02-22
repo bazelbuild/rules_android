@@ -14,8 +14,8 @@
 
 """Common attributes for Android rules."""
 
-load(":utils.bzl", "log")
 load(":native_toolchain_attrs.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE_DEFAULT")
+load(":utils.bzl", "log")
 
 def _add(attrs, *others):
     new = {}
