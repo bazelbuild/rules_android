@@ -36,15 +36,6 @@ versioned_deps = struct(
     jar_tool = struct(
         head = "@bazel_tools//tools/jdk:JavaBuilder_deploy.jar",
     ),
-    merge_syncs = struct(
-        head = "//tools/android:gen_fail",
-    ),
-    pack_dexes = struct(
-        head = "//tools/android:gen_fail",
-    ),
-    pack_generic = struct(
-        head = "//tools/android:gen_fail",
-    ),
     res_v3_dummy_manifest = struct(
         head = "//rules:res_v3_dummy_AndroidManifest.xml",
     ),
