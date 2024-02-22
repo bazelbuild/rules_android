@@ -153,12 +153,6 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-    _merge_syncs = attr.label(
-        default = versioned_deps.merge_syncs.head,
-        allow_files = True,
-        cfg = "exec",
-        executable = True,
-    ),
     _mi_android_java_toolchain = attr.label(
         default = Label("//tools/jdk:toolchain_android_only"),
     ),
@@ -168,18 +162,6 @@ TOOL_ATTRS = dict(
     ),
     _mi_host_javabase = attr.label(
         default = Label("//tools/jdk:current_host_java_runtime"),
-    ),
-    _pack_dexes = attr.label(
-        default = versioned_deps.pack_dexes.head,
-        allow_files = True,
-        cfg = "exec",
-        executable = True,
-    ),
-    _pack_generic = attr.label(
-        default = versioned_deps.pack_generic.head,
-        allow_files = True,
-        cfg = "exec",
-        executable = True,
     ),
     _res_v3_dummy_manifest = attr.label(
         allow_single_file = True,
