@@ -76,7 +76,7 @@ _ATTRS = dict(
     android_kit = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@androidsdk//:fail",  # TODO: "//src/tools/ak", needs Go
+        default = "//src/tools/ak",
         executable = True,
     ),
     android_resources_busybox = attr.label(
@@ -151,12 +151,6 @@ _ATTRS = dict(
     dexsharder = attr.label(
         cfg = "exec",
         default = Label("@bazel_tools//tools/android:dexsharder"),
-        executable = True,
-    ),
-    enforce_min_sdk_floor_tool = attr.label(
-        allow_files = True,
-        cfg = "exec",
-        default = "//src/tools/enforce_min_sdk_floor",
         executable = True,
     ),
     idlclass = attr.label(

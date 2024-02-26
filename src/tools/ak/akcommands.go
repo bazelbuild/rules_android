@@ -26,6 +26,7 @@ import (
 	"src/tools/ak/liteparse/liteparse"
 	"src/tools/ak/manifest/manifest"
 	"src/tools/ak/mindex/mindex"
+	"src/tools/ak/minsdkfloor/minsdkfloor"
 	"src/tools/ak/nativelib/nativelib"
 	"src/tools/ak/patch/patch"
 	"src/tools/ak/repack/repack"
@@ -50,5 +51,6 @@ var (
 		"repack":           repack.Cmd,
 		"rjar":             rjar.Cmd,
 		"finalrjar":        finalrjar.Cmd,
+		"minsdkfloor":      minsdkfloor.Cmd,
 	}
 )
