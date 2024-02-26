@@ -56,7 +56,6 @@ def _process_manifest(ctx, **unused_ctxs):
         ctx,
         manifest = ctx.file.manifest,
         manifest_values = ctx.attr.manifest_values,
-        enforce_min_sdk_floor_tool = get_android_toolchain(ctx).enforce_min_sdk_floor_tool.files_to_run,
     )
 
     return ProviderInfo(

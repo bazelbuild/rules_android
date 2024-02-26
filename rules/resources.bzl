@@ -23,6 +23,7 @@ load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
 load(":proguard.bzl", _proguard = "proguard")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain")
 load(
     ":providers.bzl",
     "ResourcesNodeInfo",
@@ -1125,8 +1126,7 @@ def _bump_min_sdk(
         ctx,
         manifest = None,
         manifest_values = None,
-        floor = _min_sdk_version.DEPOT_FLOOR,
-        enforce_min_sdk_floor_tool = None):
+        floor = _min_sdk_version.DEPOT_FLOOR):
     """Bumps the min SDK attribute of AndroidManifest to the floor.
 
     Args:
@@ -1134,8 +1134,6 @@ def _bump_min_sdk(
       manifest: File. The AndroidManifest.xml file.
       manifest_values: Dictionary. The optional manifest_values to process.
       floor: int. The min SDK floor. Manifest is unchanged if floor <= 0.
-      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
-        FilesToRunprovider
 
     Returns:
       A dict containing _ManifestContextInfo provider fields.
@@ -1172,13 +1170,13 @@ def _bump_min_sdk(
     )
     args.add("-output", out_manifest.path)
     ctx.actions.run(
-        executable = enforce_min_sdk_floor_tool,
+        executable = get_android_toolchain(ctx).android_kit.files_to_run,
         inputs = [manifest],
         outputs = [out_manifest, log],
-        arguments = [args],
+        arguments = ["minsdkfloor", args],
         mnemonic = "BumpMinSdkFloor",
         progress_message = "Bumping up AndroidManifest min SDK %s" % str(ctx.label),
-        toolchain = None,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
     manifest_ctx[_PROCESSED_MANIFEST] = out_manifest
 
@@ -1187,8 +1185,7 @@ def _bump_min_sdk(
 def _set_default_min_sdk(
         ctx,
         manifest,
-        default,
-        enforce_min_sdk_floor_tool):
+        default):
     """ Sets the min SDK attribute of AndroidManifest to default if it is not already set.
 
     Args:
@@ -1196,8 +1193,6 @@ def _set_default_min_sdk(
       manifest: File. The AndroidManifest.xml file.
       default: string. The default value for min SDK. The manifest is unchanged if it already
         specifies a min SDK.
-      enforce_min_sdk_floor_tool: FilesToRunProvider. The enforce_min_sdk_tool executable or
-        FilesToRunprovider
 
     Returns:
       A dict containing _ManifestContextInfo provider fields.
@@ -1223,13 +1218,13 @@ def _set_default_min_sdk(
     )
     args.add("-output", out_manifest.path)
     ctx.actions.run(
-        executable = enforce_min_sdk_floor_tool,
+        executable = get_android_toolchain(ctx).android_kit.files_to_run,
         inputs = [manifest],
         outputs = [out_manifest, log],
-        arguments = [args],
+        arguments = ["minsdkfloor", args],
         mnemonic = "SetDefaultMinSdkFloor",
         progress_message = "Setting AndroidManifest min SDK to default %s" % str(ctx.label),
-        toolchain = None,
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
     manifest_ctx[_PROCESSED_MANIFEST] = out_manifest
 

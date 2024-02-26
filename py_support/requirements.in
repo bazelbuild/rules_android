@@ -1,6 +1,0 @@
-# If this changes, regenerate requirements_lock.txt:
-# $ bazel run --enable_bzlmod=false //py_support:requirements.update
-
---extra-index-url https://pypi.python.org/simple/
-
-lxml
