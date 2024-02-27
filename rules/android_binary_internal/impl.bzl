@@ -250,7 +250,10 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
     optimizing_dexer = ctx.attr._optimizing_dexer
     java8_legacy_dex_map = None
 
-    if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
+    # For performance, the discrete dex/desugar pipeline should be run when not optimizing with R8.
+    using_r8 = acls.use_r8(str(ctx.label)) and is_binary_optimized
+
+    if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)) and not using_r8:
         proguarded_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None
         proguard_output_map = optimize_ctx.proguard_output.mapping if is_binary_optimized else None
         binary_jar = proguarded_jar if proguarded_jar else deploy_jar
@@ -696,7 +699,9 @@ def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
         merged_baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
         merged_baseline_profile_rewritten = \
             optimize_ctx.proguard_output.baseline_profile_rewritten if optimize_ctx.proguard_output else None
-        proguard_output_map = dex_ctx.dex_info.final_proguard_output_map
+        proguard_output_map = None
+        if dex_ctx.dex_info:
+            proguard_output_map = dex_ctx.dex_info.final_proguard_output_map
 
         if acls.in_baseline_profiles_optimizer_integration(str(ctx.label)):
             # Minified symbols are emitted when rewriting, so only use map for symbols which
@@ -732,10 +737,15 @@ def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
     )
 
 def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused_ctxs):
-    if not acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
+    if (not acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)) or
+        acls.use_r8(str(ctx.label))):
+        proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.jar")
         return ProviderInfo(
             name = "optimize_ctx",
-            value = struct(),
+            value = struct(
+                proguard_output = proguard.create_empty_proguard_output(ctx, proguard_output_jar),
+                providers = [],
+            ),
         )
 
     # Validate attributes and lockdown lists
