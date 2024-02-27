@@ -92,3 +92,10 @@ use_repo(bazel_binaries, "bazel_binaries")
 # extension for apksignerextensions
 apksig_extension = use_extension("//bzlmod_extensions:apksig.bzl", "apksig_extension")
 use_repo(apksig_extension, "apksig")
+
+# To include PR #92
+git_override(
+  module_name = "rules_robolectric",
+  remote = "https://github.com/robolectric/robolectric-bazel",
+  commit = "a5b25a8c27cc6add74bb01e62cd0dc72df8933ff",
+)

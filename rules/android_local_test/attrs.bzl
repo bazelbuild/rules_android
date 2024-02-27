@@ -175,9 +175,14 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
             env = attr.string_dict(
                 doc = "A dictionary of environment variables set for the execution of the test. Will be subject to make variable and $(location) expansion.",
             ),
-            robolectric_properties_file = attr.string(
-                doc = "The classpath to robolectric-deps.properties file.",
-                default = "${JAVA_RUNFILES}/robolectric/bazel/robolectric-deps.properties",
+            # TODO(jiayanl): Change this back to a string once Bazel is fully moved to bzlmod
+            robolectric_properties_file = attr.label(
+                doc = "The robolectric-deps.properties file. Note that the file is " +
+                      "not directly accessed from this target, instead we just infer " +
+                      "the file path from this. The actual artifact comes implicitly " +
+                      "from Robolectric.",
+                allow_single_file = True,
+                default = "@robolectric//bazel:properties",
             ),
             test_class = attr.string(
                 doc = """
