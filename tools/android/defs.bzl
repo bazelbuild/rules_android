@@ -14,27 +14,21 @@
 
 """A rule that returns android.jar from the current android sdk."""
 
+load(
+    "//rules:utils.bzl",
+    "ANDROID_SDK_TOOLCHAIN_TYPE",
+)
+
 def _android_jar_impl(ctx):
+    sdk_info = ctx.toolchains[ANDROID_SDK_TOOLCHAIN_TYPE].android_sdk_info
     return DefaultInfo(
-        files = depset([ctx.attr._sdk[AndroidSdkInfo].android_jar]),
+        files = depset([sdk_info.android_jar]),
     )
 
 android_jar = rule(
     implementation = _android_jar_impl,
-    # TODO: Should use a toolchain instead of a configuration_field on
-    # --android_sdk as below, however that appears to be broken when used
-    # from an local_repository: b/183060658.
-    #toolchains = [
-    #    "//toolchains/android_sdk:toolchain_type",
-    #],
-    attrs = {
-        "_sdk": attr.label(
-            allow_rules = ["android_sdk"],
-            default = configuration_field(
-                fragment = "android",
-                name = "android_sdk_label",
-            ),
-            providers = [AndroidSdkInfo],
-        ),
-    },
+    toolchains = [
+        ANDROID_SDK_TOOLCHAIN_TYPE,
+    ],
+    fragments = ["android"],
 )
