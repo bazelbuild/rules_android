@@ -39,6 +39,7 @@ bzl_library(
         ":utils",
         "//mobile_install/adapters:bzl",
         "//rules:bzl",
+        "//rules:min_sdk_version_bzl",
     ],
 )
 

@@ -17,9 +17,10 @@ This transition ensures that the platforms are set to valid Android Platforms.
 """
 
 load("@bazel_skylib//lib:sets.bzl", "sets")
+load(":min_sdk_version.bzl", "min_sdk_version")
 load(":utils.bzl", "utils")
 
-def _android_platforms_transition_impl(settings, __):
+def _android_platforms_transition_impl(settings, attrs):
     if not bool(utils.get_cls(settings, "incompatible_enable_android_toolchain_resolution")):
         # Leave the configuration unchanged
         return {}
@@ -41,6 +42,12 @@ def _android_platforms_transition_impl(settings, __):
         if not sets.is_subset(sets.make(new_platforms), sets.make(android_platforms)):
             new_platforms = [android_platforms[0]]
 
+    # We only attempt this transition for rules that have the min_sdk_version attribute and set it explicitly
+    if getattr(attrs, "min_sdk_version", 0):
+        new_settings[min_sdk_version.SETTING] = min_sdk_version.clamp(getattr(attrs, "min_sdk_version", 0))
+        # TODO(asinclair): How does the instruments case work? The two binaries need to use the same value.
+        # If the setting is already set then we don't transition?
+
     new_settings[utils.add_cls_prefix("platforms")] = new_platforms
     return new_settings
 
@@ -50,11 +57,13 @@ android_platforms_transition = transition(
         "//command_line_option:android_platforms",
         "//command_line_option:platforms",
         "//command_line_option:incompatible_enable_android_toolchain_resolution",
+        min_sdk_version.SETTING,
     ],
     outputs = [
         "//command_line_option:android_platforms",
         "//command_line_option:platforms",
         "//command_line_option:incompatible_enable_android_toolchain_resolution",
+        min_sdk_version.SETTING,
     ],
 )
 
