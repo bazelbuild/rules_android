@@ -83,6 +83,26 @@ External comment
 <uses-sdk android:minSdkVersion="24"/>
 </manifest>
 `)
+
+	ManifestNoUsesSdkNoNamespace = []byte(`<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.example">
+</manifest>
+`)
+	ManifestNoUsesSdkNoNamespaceUpdated = []byte(`<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.example" xmlns:android="http://schemas.android.com/apk/res/android">
+<uses-sdk android:minSdkVersion="24"/>
+</manifest>
+`)
+
+	ManifestManifestElementOnly = []byte(`
+<manifest package="com.example">
+</manifest>
+`)
+	ManifestManifestElementOnlyUpdated = []byte(`
+<manifest package="com.example" xmlns:android="http://schemas.android.com/apk/res/android">
+<uses-sdk android:minSdkVersion="24"/>
+</manifest>
+`)
 )
 
 func TestBumpMinSdkFloor(t *testing.T) {
@@ -101,6 +121,8 @@ func TestBumpMinSdkFloor(t *testing.T) {
 		{"Noop when minSdkVersion is greater and given sdk", 11, ManifestMinSdk, ManifestMinSdk},
 		{"Bump minSdkVersion and keep comments", 24, ManifestMinSdkComment, ManifestMinSdkCommentUpdated},
 		{"Add uses-sdk tag when missing and preserve comments.", 24, ManifestNoUsesSdkWithComment, ManifestNoUsesSdkWithCommentUpdated},
+		{"Add uses-sdk tag and namespace when both are missing.", 24, ManifestNoUsesSdkNoNamespace, ManifestNoUsesSdkNoNamespaceUpdated},
+		{"Add uses-sdk tag and namespace but not xml declariation when all are missing.", 24, ManifestManifestElementOnly, ManifestManifestElementOnlyUpdated},
 	}
 
 	for _, tc := range testCases {
@@ -132,6 +154,8 @@ func TestSetDefaultMinSdkFloor(t *testing.T) {
 		{"No change when minSdkVersion uses placeholder", "24", ManifestMinSdkPlaceholder, ManifestMinSdkPlaceholder},
 		{"No change when minSdkVersion is defined", "24", ManifestMinSdk, ManifestMinSdk},
 		{"Add uses-sdk tag when missing and preserve comments.", "24", ManifestNoUsesSdkWithComment, ManifestNoUsesSdkWithCommentUpdated},
+		{"Add uses-sdk tag and namespace when both are missing.", "24", ManifestNoUsesSdkNoNamespace, ManifestNoUsesSdkNoNamespaceUpdated},
+		{"Add uses-sdk tag and namespace but not xml declariation when all are missing.", "24", ManifestManifestElementOnly, ManifestManifestElementOnlyUpdated},
 	}
 
 	for _, tc := range testCases {

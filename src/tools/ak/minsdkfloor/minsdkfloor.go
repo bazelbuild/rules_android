@@ -253,6 +253,21 @@ func enforceMinSDKVersion(
 				}
 				usesSdkAdded = true
 			}
+			// Create android namespace if not presents,
+			// minSdkVersion requires android namepsace, so it also implies the missing minSdkVersion attr
+			if token.(xml.StartElement).Name.Local == "manifest" {
+				elem := token.(xml.StartElement)
+				nsDefined := false
+				for _, attr := range elem.Attr {
+					if attr.Name.Space == "xmlns" && attr.Name.Local == "android" {
+						nsDefined = true
+					}
+				}
+				if !nsDefined {
+					elem.Attr = append(elem.Attr, xml.Attr{Name: xml.Name{Space: "xmlns", Local: "android"}, Value: "http://schemas.android.com/apk/res/android"})
+					token = elem
+				}
+			}
 
 		case xml.EndElement:
 			// Create 'uses-sdk' if not already presents
