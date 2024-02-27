@@ -16,6 +16,7 @@
 
 # keep sorted
 ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT = [
+    "//:__subpackages__",
 ]
 
 # keep sorted
