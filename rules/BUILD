@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
 
 exports_files([
     "data_binding_annotation_template.txt",
@@ -27,8 +28,8 @@ bzl_library(
     srcs = [
         "aapt.bzl",
         "acls.bzl",
-        "apk_packaging.bzl",
         "android_neverlink_aspect.bzl",
+        "apk_packaging.bzl",
         "attrs.bzl",
         "bundletool.bzl",
         "busybox.bzl",
@@ -73,10 +74,10 @@ bzl_library(
     srcs = [
         "android_split_transition.bzl",
     ],
+    visibility = ["//:__subpackages__"],
     deps = [
         ":common_bzl",
     ],
-    visibility = ["//:__subpackages__"],
 )
 
 bzl_library(
@@ -84,12 +85,11 @@ bzl_library(
     srcs = [
         "android_platforms_transition.bzl",
     ],
+    visibility = ["//:__subpackages__"],
     deps = [
         ":common_bzl",
     ],
-    visibility = ["//:__subpackages__"],
 )
-
 
 bzl_library(
     name = "bzl",
@@ -118,4 +118,12 @@ bzl_library(
     name = "min_sdk_version_bzl",
     srcs = ["min_sdk_version.bzl"],
     visibility = ["//:__subpackages__"],
+)
+
+int_setting(
+    name = "min_sdk_version",
+    build_setting_default = 0,
+    visibility = [
+        "//:__subpackages__",
+    ],
 )

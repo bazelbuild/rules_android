@@ -1,6 +1,7 @@
 # Flags for Android rules and mobile-install
 
 load("//rules/flags:additional_flags.bzl", "additional_flags")
+load("//rules/flags:configurations.bzl", "configurations")
 load("//rules/flags:flag_defs.bzl", "define_flags")
 load("//rules/flags:flags.bzl", "flags")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
@@ -25,6 +26,8 @@ string_flag(
     build_setting_default = "rules_android/",
     visibility = ["//visibility:public"],
 )
+
+configurations()
 
 define_flags()
 

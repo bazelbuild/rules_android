@@ -13,10 +13,11 @@
 # limitations under the License.
 """Aspect for mobile-install."""
 
+load("//rules:min_sdk_version.bzl", "min_sdk_version")
+load("//rules/flags:flags.bzl", "flags")
 load(":adapters.bzl", "adapters")
 load(":debug.bzl", "debug")
 load(":tools.bzl", "TOOL_ATTRS")
-load("//rules/flags:flags.bzl", "flags")
 
 def aspect_impl(target, ctx):
     """Calls the adapter for a given rule and returns its providers.
@@ -61,6 +62,7 @@ def make_aspect(
         _mi_res_shards = attr.int(default = res_shards),
         _mi_is_test = attr.bool(default = is_test),
     )
+    attrs.update(min_sdk_version.attrs)
     attrs.update(tools)
     return aspect(
         attr_aspects = adapters.get_all_aspect_attrs(),

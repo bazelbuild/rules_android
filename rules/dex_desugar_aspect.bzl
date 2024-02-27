@@ -14,12 +14,13 @@
 
 """Aspect that transitively build .dex archives and desugar jars."""
 
-load(":utils.bzl", _get_android_sdk = "get_android_sdk", _utils = "utils")
-load(":dex.bzl", _dex = "dex")
-load(":desugar.bzl", _desugar = "desugar")
-load(":providers.bzl", "StarlarkAndroidDexInfo")
-load(":attrs.bzl", _attrs = "attrs")
 load("//rules:acls.bzl", "acls")
+load(":attrs.bzl", _attrs = "attrs")
+load(":desugar.bzl", _desugar = "desugar")
+load(":dex.bzl", _dex = "dex")
+load(":min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
+load(":providers.bzl", "StarlarkAndroidDexInfo")
+load(":utils.bzl", _get_android_sdk = "get_android_sdk", _utils = "utils")
 
 _tristate = _attrs.tristate
 
@@ -70,6 +71,8 @@ def _aspect_impl(target, ctx):
         return []
 
     incremental_dexing = getattr(ctx.rule.attr, "incremental_dexing", _tristate.auto)
+
+    # TODO b/319113178: Take this from configured _min_sdk_version attribute
     min_sdk_version = getattr(ctx.rule.attr, "min_sdk_version", 0)
 
     if incremental_dexing == _tristate.no or \
@@ -249,6 +252,7 @@ dex_desugar_aspect = aspect(
             ),
         },
         _attrs.ANDROID_SDK,
+        _min_sdk_version.attrs,
     ),
     fragments = ["android"],
     toolchains = ["//toolchains/android_sdk:toolchain_type"],
