@@ -48,6 +48,27 @@ java_plugin(
     ],
 )
 
+genrule(
+    name = "full_desugar_jdk_libs_config_json",
+    outs = ["full_desugar_jdk_libs_config.json"],
+    srcs = [
+        "@rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio",
+    ],
+    cmd = "unzip -q -c " +
+          "$(location @rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio) " +
+          "META-INF/desugar/d8/desugar.json > $@",
+)
+
+genrule(
+    name = "minify_desugar_jdk_libs_pgcfg",
+    outs = ["minify_desugar_jdk_libs.pgcfg"],
+    srcs = [
+        "//src/tools/extract_desugar_pgcfg_flags",
+        ":full_desugar_jdk_libs_config_json",
+    ],
+    cmd = "$(location //src/tools/extract_desugar_pgcfg_flags) --input_json $(location :full_desugar_jdk_libs_config_json) --output_file $@"
+)
+
 alias(
     name = "java8_legacy_dex",
     actual = ":gen_fail",
