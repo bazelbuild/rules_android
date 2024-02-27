@@ -175,7 +175,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
             deps = deps,
             java_start_class = java_start_class,
             coverage_start_class = coverage_start_class,
-            android_properties_file = ctx.attr.robolectric_properties_file,
+            android_properties_file = ctx.file.robolectric_properties_file.short_path,
             additional_jvm_flags = [],
         ),
         runfiles = ctx.runfiles(files = runfiles),

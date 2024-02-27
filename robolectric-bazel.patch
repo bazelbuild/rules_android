@@ -1,0 +1,12 @@
+diff --git a/bazel/BUILD b/bazel/BUILD
+index e51ac36..111988d 100644
+--- a/bazel/BUILD
++++ b/bazel/BUILD
+@@ -30,6 +30,7 @@ genrule(
+     outs = ["robolectric-deps.properties"],
+     cmd = "$(location :gen-deps) $(locations :android-all-jars-filegroup) > $@",
+     tools = [":gen-deps"],
++    visibility = ["//visibility:public"],
+ )
+
+ py_binary(
