@@ -22,7 +22,8 @@ def configurations(name = "configurations"):
         name = "min_sdk_version",
         build_setting_default = 0,
         visibility = [
-            "//:__subpackages__",
+            "//mobile_install:__subpackages__",
+            "//rules:__subpackages__",
             # Visibility so that release mi can depend on the released version of this file
             # We do not expect released mi to depend on this head target, though
             "//tools/android/mi/bin/release:__subpackages__",
