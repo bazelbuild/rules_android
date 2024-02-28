@@ -99,3 +99,22 @@ git_override(
   remote = "https://github.com/robolectric/robolectric-bazel",
   commit = "a5b25a8c27cc6add74bb01e62cd0dc72df8933ff",
 )
+
+android_sdk_repository_extension = use_extension("//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
+use_repo(android_sdk_repository_extension, "androidsdk")
+
+android_sdk_proxy_extensions = use_extension("@bazel_tools//tools/android:android_extensions.bzl", "android_sdk_proxy_extensions")
+android_sdk_proxy_extensions.configure(
+    has_androidsdk = "@androidsdk//:has_androidsdk",
+    dx_jar_import = "@androidsdk//:dx_jar_import",
+    android_sdk_for_testing = "@androidsdk//:files",
+)
+use_repo(android_sdk_proxy_extensions, "android_external")
+
+register_toolchains("@androidsdk//:sdk-toolchain")
+register_toolchains("@androidsdk//:all")
+
+register_toolchains(
+    "@androidsdk//:sdk-toolchain",
+    "@androidsdk//:all",
+)

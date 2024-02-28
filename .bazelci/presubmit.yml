@@ -109,7 +109,6 @@ tasks:
   ubuntu2004_basicapp_bzlmod:
     name: "Basic app ubuntu bzlmod"
     platform: ubuntu2004
-    name: basicapp
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -135,4 +134,3 @@ tasks:
       ? "--enable_bzlmod"
     build_targets:
       - "//java/com/basicapp:basic_app"
-
