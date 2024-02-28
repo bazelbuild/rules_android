@@ -213,6 +213,12 @@ ATTRS = _attrs.replace(
             _manifest_merge_order = attr.label(
                 default = "//rules/flags:manifest_merge_order",
             ),
+            _rewrite_resources_through_optimizer = attr.bool(
+                default = False,
+                doc = """
+                Allow for the optimizer to process resources. This is not supported in proguard.
+                """,
+            ),
         ),
         _attrs.COMPILATION,
         _attrs.DATA_CONTEXT,
