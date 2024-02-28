@@ -120,6 +120,6 @@ def android_binary_internal_macro(**attrs):
     android_binary_internal(
         **sanitize_attrs(
             attrs,
-            allowed_attrs = list(ATTRS.keys()) + ["$package_name"],
+            allowed_attrs = list(ATTRS.keys()) + ["$package_name", "$rewrite_resources_through_optimizer"],
         )
     )
