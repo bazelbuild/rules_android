@@ -597,17 +597,26 @@ def finalize(
         if apk_packaging_ctx.v4_signature_file:
             files.append(apk_packaging_ctx.v4_signature_file)
 
+        providers.extend(
+            [
+                DefaultInfo(
+                    files = depset(files),
+                ),
+                OutputGroupInfo(
+                    android_deploy_info = [
+                        apk_packaging_ctx.deploy_info,
+                        packaged_resources_ctx.processed_manifest,
+                    ],
+                    _validation = depset(validation_outputs),
+                ),
+            ],
+        )
+    else:
         providers.append(
-            DefaultInfo(
-                files = depset(files),
+            OutputGroupInfo(
+                _validation = depset(validation_outputs),
             ),
         )
-
-    providers.append(
-        OutputGroupInfo(
-            _validation = depset(validation_outputs),
-        ),
-    )
 
     # Add the AndroidApplicationResourceInfo provider from resource shrinking if it was performed.
     # TODO(ahumesky): This can be cleaned up after the rules are fully migrated to Starlark.
@@ -910,6 +919,7 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
             deterministic_signing = False,
             java_toolchain = common.get_java_toolchain(ctx),
             resource_extractor = get_android_toolchain(ctx).resource_extractor.files_to_run,
+            deploy_info_writer = get_android_toolchain(ctx).deploy_info_writer.files_to_run,
             zip_aligner = get_android_sdk(ctx).zip_align,
             apk_signer = get_android_sdk(ctx).apk_signer,
             toolchain_type = ANDROID_TOOLCHAIN_TYPE,
