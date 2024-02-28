@@ -307,6 +307,11 @@ _ATTRS = dict(
         default = "@bazel_tools//tools/android:resource_extractor",
         executable = True,
     ),
+    deploy_info_writer = attr.label(
+      cfg = "exec",
+      default = Label("//src/tools/deploy_info"),
+      executable = True,
+    )
 
 )
 

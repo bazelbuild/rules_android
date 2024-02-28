@@ -17,12 +17,14 @@ load(":java.bzl", "java")
 
 _PROVIDERS = "providers"
 _V4_SIGNATURE_FILE = "v4_signature_file"
+_DEPLOY_INFO = "deploy_info"
 
 _ApkContextInfo = provider(
     "Apk Context Info",
     fields = {
         _PROVIDERS: "The list of all providers to propagate.",
         _V4_SIGNATURE_FILE: "The v4 signature file.",
+        _DEPLOY_INFO: "A proto providing information about how to deploy and launch the APK",
     },
 )
 
@@ -49,6 +51,7 @@ def _process(
         deterministic_signing = False,
         java_toolchain = None,
         resource_extractor = None,
+        deploy_info_writer = None,
         zip_aligner = None,
         apk_signer = None,
         toolchain_type = None):
@@ -77,6 +80,7 @@ def _process(
         deterministic_signing: Boolean. Whether to enable deterministic DSA signing.
         java_toolchain: The JavaToolchain target.
         resource_extractor: FilesToRunProvider. The executable to extract resources from java_resources_zip.
+        deploy_info_writer: FilesToRunProvider. The executable to write the deploy info proto file.
         zip_aligner: FilesToRunProvider. The executable to zipalign the APK.
         apk_signer: FilesToRunProvider. The executable to sign the APK.
         toolchain_type: String. The Android toolchain type.
@@ -129,6 +133,16 @@ def _process(
         toolchain_type = toolchain_type,
     )
 
+    deploy_info = ctx.actions.declare_file(ctx.label.name + "_files/deploy_info.deployinfo.pb")
+    _create_deploy_info(
+        ctx,
+        deploy_info,
+        manifest = merged_manifest,
+        apks_to_deploy = [signed_apk] + ([v4_signature_file] if v4_signature_file else []),
+        deploy_info_writer = deploy_info_writer,
+        toolchain_type = toolchain_type,
+    )
+
     apk_packaging_ctx[_PROVIDERS].append(
         ApkInfo(
             signed_apk = signed_apk,
@@ -142,6 +156,7 @@ def _process(
         ),
     )
     apk_packaging_ctx[_V4_SIGNATURE_FILE] = v4_signature_file
+    apk_packaging_ctx[_DEPLOY_INFO] = deploy_info
 
     return _ApkContextInfo(**apk_packaging_ctx)
 
@@ -329,6 +344,28 @@ def _sign_apk(
         arguments = [args],
         mnemonic = "ApkSignerTool",
         progress_message = "Signing apk",
+        toolchain = toolchain_type,
+    )
+
+def _create_deploy_info(
+        ctx,
+        deploy_info,
+        manifest = None,
+        apks_to_deploy = [],
+        deploy_info_writer = None,
+        toolchain_type = None):
+    """Creates a deploy info proto."""
+    args = ctx.actions.args()
+    args.add("--manifest", manifest)
+    args.add_joined("--apk", apks_to_deploy, join_with = ",")
+    args.add("--deploy_info", deploy_info)
+
+    ctx.actions.run(
+        executable = deploy_info_writer,
+        arguments = [args],
+        outputs = [deploy_info],
+        mnemonic = "WriteDeployInfo",
+        progress_message = "Writing Deploy info proto file %s" % deploy_info.short_path,
         toolchain = toolchain_type,
     )
 
