@@ -1,21 +1,16 @@
-local_repository(
-    name = "rules_android",
-    path = "../..", # rules_android's WORKSPACE relative to this inner workspace
-)
+workspace(name = "basicapp")
 
-load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
-rules_android_prereqs()
-load("@rules_android//:defs.bzl", "rules_android_workspace")
-rules_android_workspace()
+# local_repository(
+#    name = "rules_android",
+#    path = "../../"
+# )
 
-load("@rules_android//rules:rules.bzl", "android_sdk_repository")
-android_sdk_repository(
-    name = "androidsdk",
-)
+# load("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository")
+# android_sdk_repository(name = "androidsdk")
 
-register_toolchains(
-    "@rules_android//toolchains/android:android_default_toolchain",
-    "@rules_android//toolchains/android_sdk:android_sdk_tools",
-)
-
-
+# Temporary until we break all //external:android dependency
+bind(name = "android/sdk", actual = "@//:androidsdk_sdk")
+bind(name = "android/d8_jar_import", actual = "@//:androidsdk_d8_jar_import")
+bind(name = "android/dx_jar_import", actual = "@//:androidsdk_dx_jar_import")
+bind(name = "android_sdk_for_testing", actual = "//:androidsdk_files")
+bind(name = "has_android_sdk", actual = "//:androidsdk_has_android_sdk")
