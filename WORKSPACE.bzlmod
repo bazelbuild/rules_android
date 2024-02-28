@@ -2,14 +2,15 @@ workspace(name = "rules_android")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-load("//rules:rules.bzl", "android_sdk_repository")
-
-maybe(
-    android_sdk_repository,
-    name = "androidsdk",
-)
 
 maybe(
     android_ndk_repository,
     name = "androidndk",
 )
+
+
+# TODO: remove bind when @bazel_tools//tools/android/... doesn't depends on //external
+bind(name = "android/sdk", actual = "//:androidsdk_sdk")
+bind(name = "android/dx_jar_import", actual = "//:androidsdk_dx_jar_import")
+bind(name = "android_sdk_for_testing", actual = "//:androidsdk_files")
+bind(name = "has_android_sdk", actual = "//:androidsdk_has_android_sdk")

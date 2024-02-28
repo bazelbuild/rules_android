@@ -41,3 +41,10 @@ register_toolchains(
     "@rules_android//toolchains/android_sdk:android_sdk_tools",
 )
 
+load("@bazel_tools//tools/android:android_extensions.bzl", "android_external_repository")
+android_external_repository(
+    name = "android_external",
+    has_androidsdk = "@androidsdk//:has_androidsdk",
+    dx_jar_import = "@androidsdk//:dx_jar_import",
+    android_sdk_for_testing = "@androidsdk//:files",
+)
