@@ -1,17 +1,16 @@
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
-package(default_applicable_licenses = ["//:license"])
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 licenses(["notice"])
 
 go_binary(
     name = "deploy_info",
     srcs = ["deploy_info.go"],
-    visibility = [
-        "//test/mobile_install:__subpackages__",
-        "//toolchains/android:__subpackages__",
-    ],
     deps = [
         "//src/common/golang:flagfile",
         "//src/common/golang:flags",
