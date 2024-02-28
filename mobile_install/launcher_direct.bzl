@@ -96,12 +96,6 @@ def _make_app_runner(
 
     args["use_direct_deploy"] = True
 
-    android_test_runner = None
-    if is_test and hasattr(ctx.attr, "_android_test_runner"):
-        android_test_runner = ctx.file._android_test_runner
-        args["android_test_runner"] = getattr(android_test_runner, path_type)
-        args["is_test"] = True
-
     if test_data:
         args["data_files"] = ",".join([f.short_path for f in test_data])
 
@@ -129,9 +123,6 @@ def _make_app_runner(
     )
 
     runner = [deploy]
-    if android_test_runner:
-        runner.extend(ctx.attr._java_jdk.files.to_list())
-        runner.append(android_test_runner)
     return runner
 
 def make_direct_launcher(

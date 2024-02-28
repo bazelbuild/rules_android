@@ -70,14 +70,6 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-    _android_test_runner = attr.label(
-        default = Label(
-            "@bazel_tools//tools/jdk:TestRunner_deploy.jar",
-        ),
-        allow_single_file = True,
-        cfg = "exec",
-        executable = True,
-    ),
     _apk_signer = attr.label(
         default = Label("@apksig//:apksigner_deploy.jar"),
         allow_files = True,
