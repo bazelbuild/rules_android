@@ -22,7 +22,6 @@ go_library(
     visibility = [
         "//src/tools/ak:__subpackages__",
         "//src/tools/resource_extractor:__subpackages__",
-        "//tools/android/incremental:__subpackages__",
     ],
     deps = [
         "//src/tools/ak/res/proto:res_data_go_proto",
