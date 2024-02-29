@@ -15,20 +15,22 @@
 """R8 processor steps for android_binary_internal."""
 
 load("//rules:acls.bzl", "acls")
+load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
+load("//rules:common.bzl", "common")
+load("//rules:java.bzl", "java")
+load(
+    "//rules:processing_pipeline.bzl",
+    "ProviderInfo",
+)
 load("//rules:proguard.bzl", "proguard")
+load("//rules:resources.bzl", _resources = "resources")
 load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
     "get_android_sdk",
     "get_android_toolchain",
+    "utils",
 )
-load(
-    "//rules:processing_pipeline.bzl",
-    "ProviderInfo",
-)
-load("//rules:common.bzl", "common")
-load("//rules:java.bzl", "java")
-load("//rules:resources.bzl", _resources = "resources")
 
 def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_ctxs):
     """Runs R8 for desugaring, optimization, and dexing.
@@ -78,6 +80,9 @@ def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_c
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
     min_sdk_version = getattr(ctx.attr, "min_sdk_version", None)
 
+    neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
+    neverlink_jars = depset(transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])
+
     args = ctx.actions.args()
     args.add("--release")
     if min_sdk_version:
@@ -85,6 +90,7 @@ def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_c
     args.add("--output", dexes_zip)
     args.add_all(proguard_specs, before_each = "--pg-conf")
     args.add("--lib", android_jar)
+    args.add_all(neverlink_jars, before_each = "--lib")
     args.add(deploy_jar)  # jar to optimize + desugar + dex
 
     java.run(
@@ -92,7 +98,7 @@ def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_c
         host_javabase = common.get_host_javabase(ctx),
         executable = get_android_toolchain(ctx).r8.files_to_run,
         arguments = [args],
-        inputs = [android_jar, deploy_jar] + proguard_specs,
+        inputs = depset([android_jar, deploy_jar] + proguard_specs, transitive = [neverlink_jars]),
         outputs = [dexes_zip],
         mnemonic = "AndroidR8",
         jvm_flags = ["-Xmx8G"],
