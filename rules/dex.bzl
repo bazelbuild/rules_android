@@ -45,7 +45,6 @@ def _process_incremental_dexing(
         postprocessing_output_map = None,
         startup_profile = None,
         inclusion_filter_jar = None,
-        java_info = None,
         desugar_dict = {},
         transitive_runtime_jars_for_archive = [],
         shuffle_jars = None,
