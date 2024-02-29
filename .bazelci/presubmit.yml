@@ -97,7 +97,8 @@ tasks:
   macos_arm64_rules_bzlmod:
     platform: macos_arm64
     <<: *rules_bzlmod
-  basicapp:
+  ubuntu2004_basicapp:
+    name: "Basic app ubuntu"
     platform: ubuntu2004
     name: basicapp
     working_directory: examples/basicapp
@@ -105,3 +106,33 @@ tasks:
       <<: *rules_flags
     build_targets:
       - "//java/com/basicapp:basic_app"
+  ubuntu2004_basicapp_bzlmod:
+    name: "Basic app ubuntu bzlmod"
+    platform: ubuntu2004
+    name: basicapp
+    working_directory: examples/basicapp
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  macos_arm64_basicapp:
+    name: "Basic app mac arm64"
+    platform: macos_arm64
+    name: basicapp
+    working_directory: examples/basicapp
+    build_flags:
+      <<: *rules_flags
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  macos_arm64_basicapp_bzlmod:
+    name: "Basic app mac arm64 bzlmod"
+    platform: macos_arm64
+    name: basicapp
+    working_directory: examples/basicapp
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+
