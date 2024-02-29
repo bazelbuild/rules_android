@@ -257,7 +257,6 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
         proguarded_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None
         proguard_output_map = optimize_ctx.proguard_output.mapping if is_binary_optimized else None
         binary_jar = proguarded_jar if proguarded_jar else deploy_jar
-        java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
         binary_runtime_jars = deploy_ctx.binary_runtime_jars
 
         forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
@@ -344,7 +343,6 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
                 postprocessing_output_map = postprocessing_output_map,
                 startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None,
                 inclusion_filter_jar = binary_jar if _is_instrumentation(ctx) and not is_binary_optimized else None,
-                java_info = java_info,
                 transitive_runtime_jars_for_archive = deploy_ctx.transitive_runtime_jars_for_archive,
                 desugar_dict = deploy_ctx.desugar_dict,
                 shuffle_jars = get_android_toolchain(ctx).shuffle_jars.files_to_run,
