@@ -86,14 +86,6 @@ _JAVA_RUNTIME = dict(
 
 # Android SDK attribute.
 _ANDROID_SDK = dict(
-    _android_sdk = attr.label(
-        allow_rules = ["android_sdk"],
-        default = configuration_field(
-            fragment = "android",
-            name = "android_sdk_label",
-        ),
-        providers = [AndroidSdkInfo],
-    ),
     _dummy_android_sdk = attr.label(
         default = "//toolchains/android_sdk:dummy_sdk_tools",
     ),

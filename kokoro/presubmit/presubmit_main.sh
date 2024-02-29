@@ -99,11 +99,9 @@ function main() {
     "--java_language_version=11"
     "--java_runtime_version=17"
     "--noenable_bzlmod"
-    "--noincompatible_enable_android_toolchain_resolution"
   )
   RULE_ARGS=(
     "--noenable_bzlmod"
-    "--noincompatible_enable_android_toolchain_resolution"
   )
 
   # Go to rules_android workspace and run relevant tests.

@@ -14,6 +14,10 @@
 
 """aar_import rule."""
 
+load(
+    "//rules:utils.bzl",
+    "ANDROID_SDK_TOOLCHAIN_TYPE",
+)
 load(":attrs.bzl", _ATTRS = "ATTRS")
 load(":impl.bzl", _impl = "impl")
 
@@ -56,5 +60,6 @@ aar_import = rule(
     toolchains = [
         "//toolchains/android:toolchain_type",
         "@bazel_tools//tools/jdk:toolchain_type",
+        ANDROID_SDK_TOOLCHAIN_TYPE,
     ],
 )

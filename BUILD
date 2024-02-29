@@ -53,3 +53,31 @@ platform(
             "@platforms//os:android",
         ],
 )
+
+# TODO: remove these alias when we no longer needs bind in WORKSPACE.bzlmod
+# Because @androidsdk is not defined in WORKSPACE.bzl, where the only valid place
+# we can call native function bind. Using these alias to forward the binding.
+alias(
+    name = "androidsdk_sdk",
+    actual = "@androidsdk//:sdk",
+)
+
+alias(
+    name = "androidsdk_d8_jar_import",
+    actual = "@androidsdk//:d8_jar_import",
+)
+
+alias(
+    name = "androidsdk_dx_jar_import",
+    actual = "@androidsdk//:dx_jar_import",
+)
+
+alias(
+    name = "androidsdk_files",
+    actual = "@androidsdk//:files",
+)
+
+alias(
+    name = "androidsdk_has_android_sdk",
+    actual = "@androidsdk//:has_android_sdk",
+)

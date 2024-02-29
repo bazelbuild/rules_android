@@ -18,6 +18,8 @@ load(":providers.bzl", "FailureInfo")
 
 ANDROID_TOOLCHAIN_TYPE = Label("//toolchains/android:toolchain_type")
 
+ANDROID_SDK_TOOLCHAIN_TYPE = Label("//toolchains/android_sdk:toolchain_type")
+
 _CUU = "\033[A"
 _EL = "\033[K"
 _DEFAULT = "\033[0m"
@@ -420,7 +422,7 @@ def get_android_toolchain(ctx):
 
 def get_android_sdk(ctx):
     if hasattr(ctx.fragments.android, "incompatible_use_toolchain_resolution") and ctx.fragments.android.incompatible_use_toolchain_resolution:
-        return ctx.toolchains["//toolchains/android_sdk:toolchain_type"].android_sdk_info
+        return ctx.toolchains[ANDROID_SDK_TOOLCHAIN_TYPE].android_sdk_info
     else:
         return ctx.attr._android_sdk[AndroidSdkInfo]
 
