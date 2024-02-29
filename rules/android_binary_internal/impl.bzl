@@ -253,7 +253,7 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
     # For performance, the discrete dex/desugar pipeline should be run when not optimizing with R8.
     using_r8 = acls.use_r8(str(ctx.label)) and is_binary_optimized
 
-    if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)) and not using_r8:
+    if not using_r8:
         proguarded_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None
         proguard_output_map = optimize_ctx.proguard_output.mapping if is_binary_optimized else None
         binary_jar = proguarded_jar if proguarded_jar else deploy_jar
@@ -438,97 +438,97 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
     )
 
 def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, proto_ctx, **_unused_ctxs):
-    deploy_jar, filtered_deploy_jar, desugar_dict = None, None, {}
+    filtered_deploy_jar, desugar_dict = None, {}
     transitive_runtime_jars_for_archive = []
     binary_runtime_jars = []
-    one_version_enforcement_output = None
-    if acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
-        java_toolchain = common.get_java_toolchain(ctx)
-        java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
-        info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
-        incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
-        dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
-        binary_runtime_jars += java_info.runtime_output_jars
-        binary_runtime_jars.append(packaged_resources_ctx.class_jar)
-        if proto_ctx.class_jar:
-            binary_runtime_jars.append(proto_ctx.class_jar)
-        if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
-            # In offline instrumentation mode, we add the Jacoco runtime to the classpath.
-            binary_runtime_jars.extend(ctx.attr._jacoco_runtime[DefaultInfo].files.to_list())
+    java_toolchain = common.get_java_toolchain(ctx)
 
-        if ctx.fragments.android.desugar_java8:
-            desugared_jars = []
-            desugar_dict = {d.jar: d.desugared_jar for d in dex_archives if d.desugared_jar}
+    java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
+    info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
+    incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
+    binary_runtime_jars += java_info.runtime_output_jars
+    binary_runtime_jars.append(packaged_resources_ctx.class_jar)
+    if proto_ctx.class_jar:
+        binary_runtime_jars.append(proto_ctx.class_jar)
+    if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
+        # In offline instrumentation mode, we add the Jacoco runtime to the classpath.
+        binary_runtime_jars.extend(ctx.attr._jacoco_runtime[DefaultInfo].files.to_list())
 
-            for jar in binary_runtime_jars:
-                desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_migrated_desugared.jar")
-                _desugar.desugar(
-                    ctx,
-                    input = jar,
-                    output = desugared_jar,
-                    classpath = java_info.transitive_compile_time_jars,
-                    bootclasspath = java_toolchain[java_common.JavaToolchainInfo].bootclasspath.to_list(),
-                    min_sdk_version = ctx.attr.min_sdk_version,
-                    desugar_exec = get_android_toolchain(ctx).desugar.files_to_run,
-                    toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-                )
-                desugared_jars.append(desugared_jar)
-                desugar_dict[jar] = desugared_jar
+    if ctx.fragments.android.desugar_java8:
+        desugared_jars = []
+        desugar_dict = {d.jar: d.desugared_jar for d in dex_archives if d.desugared_jar}
 
-            # Remove the library resource JARs from the binary's runtime classpath.
-            # Resource classes from android_library dependencies are replaced by the binary's resource
-            # class. We remove them only at the top level so that resources included by a library
-            # that is a dependency of a java_library are still included, since these resources are
-            # propagated via android-specific providers and won't show up when we collect the library
-            # resource JARs.
-            # TODO(b/69552500): Instead, handle this properly so R JARs aren't put on the classpath
-            # for both binaries and libraries.
-            library_r_jar_dict = {jar: True for jar in _get_library_r_jars(ctx.attr.deps)}
-            transitive_runtime_jars_for_archive = [jar for jar in java_info.transitive_runtime_jars.to_list() if jar not in library_r_jar_dict]
-            for jar in transitive_runtime_jars_for_archive:
-                desugared_jars.append(desugar_dict.get(jar, jar))
+        for jar in binary_runtime_jars:
+            desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_migrated_desugared.jar")
+            _desugar.desugar(
+                ctx,
+                input = jar,
+                output = desugared_jar,
+                classpath = java_info.transitive_compile_time_jars,
+                bootclasspath = java_toolchain[java_common.JavaToolchainInfo].bootclasspath.to_list(),
+                min_sdk_version = ctx.attr.min_sdk_version,
+                desugar_exec = get_android_toolchain(ctx).desugar.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+            )
+            desugared_jars.append(desugared_jar)
+            desugar_dict[jar] = desugared_jar
 
-            runtime_jars = depset(desugared_jars)
-        else:
-            runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jars])
+        # Remove the library resource JARs from the binary's runtime classpath.
+        # Resource classes from android_library dependencies are replaced by the binary's resource
+        # class. We remove them only at the top level so that resources included by a library
+        # that is a dependency of a java_library are still included, since these resources are
+        # propagated via android-specific providers and won't show up when we collect the library
+        # resource JARs.
+        # TODO(b/69552500): Instead, handle this properly so R JARs aren't put on the classpath
+        # for both binaries and libraries.
+        library_r_jar_dict = {jar: True for jar in _get_library_r_jars(ctx.attr.deps)}
+        transitive_runtime_jars_for_archive = [jar for jar in java_info.transitive_runtime_jars.to_list() if jar not in library_r_jar_dict]
+        for jar in transitive_runtime_jars_for_archive:
+            desugared_jars.append(desugar_dict.get(jar, jar))
 
-        if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-            output = ctx.outputs.deploy_jar
-        else:
-            output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
-        deploy_jar = java.create_deploy_jar(
+        runtime_jars = depset(desugared_jars)
+    else:
+        runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jars])
+
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        output = ctx.outputs.deploy_jar
+    else:
+        output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
+    deploy_jar = java.create_deploy_jar(
+        ctx,
+        output = output,
+        runtime_jars = runtime_jars,
+        java_toolchain = java_toolchain,
+        build_target = ctx.label.name,
+        deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
+    )
+
+    if _is_instrumentation(ctx):
+        filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_filtered.jar")
+        filter_jar = ctx.attr.instruments[AndroidPreDexJarInfo].pre_dex_jar
+        common.filter_zip_exclude(
             ctx,
-            output = output,
-            runtime_jars = runtime_jars,
-            java_toolchain = java_toolchain,
-            build_target = ctx.label.name,
-            deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
+            output = filtered_deploy_jar,
+            input = deploy_jar,
+            filter_zips = [filter_jar],
+            filter_types = [".class"],
+            # These files are generated by databinding in both the target and the instrumentation
+            # app with different contents. We want to keep the one from the target app.
+            filters = ["/BR\\.class$", "/databinding/[^/]+Binding\\.class$"],
         )
+        deploy_jar = filtered_deploy_jar
 
-        if _is_instrumentation(ctx):
-            filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_filtered.jar")
-            filter_jar = ctx.attr.instruments[AndroidPreDexJarInfo].pre_dex_jar
-            common.filter_zip_exclude(
-                ctx,
-                output = filtered_deploy_jar,
-                input = deploy_jar,
-                filter_zips = [filter_jar],
-                filter_types = [".class"],
-                # These files are generated by databinding in both the target and the instrumentation
-                # app with different contents. We want to keep the one from the target app.
-                filters = ["/BR\\.class$", "/databinding/[^/]+Binding\\.class$"],
-            )
-            deploy_jar = filtered_deploy_jar
-
-        if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-            # TODO(b/269498486): Switch this action to a validation action and add the output to validation_outputs.
-            one_version_enforcement_output = java.check_one_version(
-                ctx,
-                inputs = runtime_jars,
-                java_toolchain = java_toolchain,
-                one_version_enforcement_level = ctx.fragments.java.one_version_enforcement_level,
-                is_test_binary = _is_test_binary(ctx),
-            )
+    one_version_enforcement_output = None
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        # TODO(b/269498486): Switch this action to a validation action and add the output to validation_outputs.
+        one_version_enforcement_output = java.check_one_version(
+            ctx,
+            inputs = runtime_jars,
+            java_toolchain = java_toolchain,
+            one_version_enforcement_level = ctx.fragments.java.one_version_enforcement_level,
+            is_test_binary = _is_test_binary(ctx),
+        )
 
     return ProviderInfo(
         name = "deploy_ctx",
@@ -660,8 +660,7 @@ def _is_instrumentation(ctx):
 
 def _process_baseline_profiles(ctx, deploy_ctx, **_unused_ctxs):
     baseline_profile_output = None
-    if (ctx.attr.generate_art_profile and
-        acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label))):
+    if ctx.attr.generate_art_profile:
         enable_optimizer_integration = acls.in_baseline_profiles_optimizer_integration(str(ctx.label))
         has_proguard_specs = bool(ctx.files.proguard_specs)
 
@@ -701,8 +700,7 @@ def _process_baseline_profiles(ctx, deploy_ctx, **_unused_ctxs):
 def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
     providers = []
     art_profile_zip = None
-    if (ctx.attr.generate_art_profile and
-        acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label))):
+    if ctx.attr.generate_art_profile:
         merged_baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
         merged_baseline_profile_rewritten = \
             optimize_ctx.proguard_output.baseline_profile_rewritten if optimize_ctx.proguard_output else None
@@ -744,8 +742,7 @@ def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
     )
 
 def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused_ctxs):
-    if (not acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)) or
-        acls.use_r8(str(ctx.label))):
+    if acls.use_r8(str(ctx.label)):
         proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.jar")
         return ProviderInfo(
             name = "optimize_ctx",

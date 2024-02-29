@@ -14,7 +14,6 @@
 
 """Aspect that transitively build .dex archives and desugar jars."""
 
-load("//rules:acls.bzl", "acls")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
@@ -67,8 +66,6 @@ def _aspect_impl(target, ctx):
     Returns:
       A list of providers.
     """
-    if not acls.in_android_binary_starlark_dex_desugar_proguard(str(ctx.label)):
-        return []
 
     incremental_dexing = getattr(ctx.rule.attr, "incremental_dexing", _tristate.auto)
 
