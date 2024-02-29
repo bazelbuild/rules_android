@@ -196,8 +196,8 @@ def _build_apk(
     resources = []
     resource_paths = []
     for architecture in native_libs:
-        for native_lib in native_libs[architecture]:
-            path = "%s:lib/%s/%s" % (native_lib.short_path, architecture, native_lib.basename)
+        for native_lib in native_libs[architecture].to_list():
+            path = "%s:lib/%s/%s" % (native_lib.path, architecture, native_lib.basename)
             resources.append(native_lib)
             resource_paths.append(path)
 
@@ -224,7 +224,7 @@ def _build_apk(
     resource_paths = []
     if native_libs_name:
         resources = [native_libs_name]
-        resource_paths = ["%s%s" % (native_libs_name.short_path, native_libs_name.basename)]
+        resource_paths = ["%s:%s" % (native_libs_name.path, native_libs_name.basename)]
 
     java.singlejar(
         ctx,
