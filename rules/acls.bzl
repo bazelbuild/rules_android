@@ -41,7 +41,6 @@ load("//rules/acls:android_archive_exposed_package_allowlist.bzl", "ANDROID_ARCH
 load("//rules/acls:android_binary_min_sdk_version_attribute.bzl", "ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST")
 load("//rules/acls:android_binary_raw_access_to_resource_paths_allowlist.bzl", "ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST")
 load("//rules/acls:android_binary_resource_name_obfuscation_opt_out_allowlist.bzl", "ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST")
-load("//rules/acls:android_binary_starlark_dex_desugar_proguard.bzl", "ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK", "ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT")
 load("//rules/acls:android_binary_starlark_javac.bzl", "ANDROID_BINARY_STARLARK_JAVAC_FALLBACK", "ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT")
 load("//rules/acls:android_binary_starlark_rollout.bzl", "ANDROID_BINARY_STARLARK_FALLBACK", "ANDROID_BINARY_STARLARK_ROLLOUT")
 load("//rules/acls:android_binary_with_sandboxed_sdks_allowlist.bzl", "ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST")
@@ -185,9 +184,6 @@ def _get_android_archive_duplicate_class_allowlist(fqn):
 def _in_shared_library_resource_linking_allowlist(fqn):
     return matches(fqn, SHARED_LIBRARY_RESOURCE_LINKING_DICT)
 
-def _in_android_binary_starlark_dex_desugar_proguard(fqn):
-    return not matches(fqn, ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK_DICT) and matches(fqn, ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT_DICT)
-
 def _in_android_binary_min_sdk_version_attribute_allowlist(fqn):
     return matches(fqn, ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_DICT)
 
@@ -270,8 +266,6 @@ ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST_DICT = make_dict(ANDROID_LIBRAR
 DATABINDING_ALLOWED_DICT = make_dict(DATABINDING_ALLOWED)
 DATABINDING_DISALLOWED_DICT = make_dict(DATABINDING_DISALLOWED)
 SHARED_LIBRARY_RESOURCE_LINKING_DICT = make_dict(SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST)
-ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_ROLLOUT)
-ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_DEX_DESUGAR_PROGUARD_FALLBACK)
 ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_DICT = make_dict(ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST)
 ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST)
 ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST)
@@ -363,7 +357,6 @@ acls = struct(
     in_baseline_profiles_optimizer_integration = _in_baseline_profiles_optimizer_integration,
     in_android_apk_to_bundle_features = _in_android_apk_to_bundle_features,
     in_shared_library_resource_linking_allowlist = _in_shared_library_resource_linking_allowlist,
-    in_android_binary_starlark_dex_desugar_proguard = _in_android_binary_starlark_dex_desugar_proguard,
     in_android_binary_min_sdk_version_attribute_allowlist = _in_android_binary_min_sdk_version_attribute_allowlist,
     in_android_binary_raw_access_to_resource_paths_allowlist = _in_android_binary_raw_access_to_resource_paths_allowlist,
     in_android_binary_resource_name_obfuscation_opt_out_allowlist = _in_android_binary_resource_name_obfuscation_opt_out_allowlist,
