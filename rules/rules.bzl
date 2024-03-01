@@ -18,7 +18,7 @@
 
 load(
     "//rules:android_binary.bzl",
-    _android_binary = "android_binary",
+    _android_binary = "android_binary_macro",
 )
 load(
     "//rules:android_ndk_repository.bzl",

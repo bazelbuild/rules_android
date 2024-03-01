@@ -17,7 +17,7 @@
 This file exists to inject the correct version of android_binary.
 """
 
-load("//rules:android_binary.bzl", _android_binary = "android_binary")
+load("//rules:android_binary.bzl", _android_binary_macro = "android_binary_macro")
 load(":android_sandboxed_sdk_macro.bzl", _android_sandboxed_sdk_macro = "android_sandboxed_sdk_macro")
 
 def android_sandboxed_sdk(
@@ -59,5 +59,5 @@ def android_sandboxed_sdk(
         testonly = testonly,
         tags = tags,
         custom_package = custom_package,
-        android_binary = _android_binary,
+        android_binary = _android_binary_macro,
     )
