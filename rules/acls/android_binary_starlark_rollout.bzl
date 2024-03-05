@@ -15,11 +15,7 @@
 """Allow list for rollout of Starlark android_binary rule."""
 
 ANDROID_BINARY_STARLARK_ROLLOUT = [
-    "//test/rules/android_binary_internal:__subpackages__",
+    "//:__subpackages__",
 ]
 
-ANDROID_BINARY_STARLARK_FALLBACK = [
-    # TODO(zhaoqxu): Allow R8 and manifest_merge_order tests after starlark dex/desugar/proguard flow is enabled externally.
-    "//test/rules/android_binary_internal/r8_integration:__subpackages__",
-    "//test/rules/android_binary_internal/manifest_merge_order:__subpackages__",
-]
+ANDROID_BINARY_STARLARK_FALLBACK = []
