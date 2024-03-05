@@ -27,5 +27,6 @@ def configurations(name = "configurations"):
             # Visibility so that release mi can depend on the released version of this file
             # We do not expect released mi to depend on this head target, though
             "//tools/android/mi/bin/release:__subpackages__",
+            "//tools/android/mi/testing:__subpackages__",
         ],
     )
