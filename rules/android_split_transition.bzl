@@ -55,9 +55,7 @@ def _android_split_transition_impl(settings, __):
     if utils.get_cls(settings, "fat_apk_cpu"):
         return _handle_fat_apk_cpus(settings)
 
-    if (utils.get_cls(settings, "android_cpu") and
-        utils.get_cls(settings, "android_crosstool_top") and
-        utils.get_cls(settings, "android_crosstool_top") != utils.get_cls(settings, "crosstool_top")):
+    if (utils.get_cls(settings, "android_cpu")):
         return _handle_android_cpu(settings)
 
     return _handle_default_split(settings, utils.get_cls(settings, "cpu"))
@@ -161,10 +159,6 @@ def _cc_flags_from_android(settings, new_settings):
     new_settings[utils.add_cls_prefix("grte_top")] = utils.get_cls(settings, "android_grte_top")
     new_settings[utils.add_cls_prefix("dynamic_mode")] = utils.get_cls(settings, "android_dynamic_mode")
 
-    android_crosstool_top = utils.get_cls(settings, "android_crosstool_top")
-    if android_crosstool_top:
-        new_settings[utils.add_cls_prefix("crosstool_top")] = android_crosstool_top
-
     new_settings[utils.add_cls_prefix("Android configuration distinguisher")] = "android"
 
 android_split_transition = transition(
@@ -175,13 +169,11 @@ android_split_transition = transition(
         "//command_line_option:cc_output_directory_tag",
         "//command_line_option:android_compiler",
         "//command_line_option:android_cpu",
-        "//command_line_option:android_crosstool_top",
         "//command_line_option:android_dynamic_mode",
         "//command_line_option:android_grte_top",
         "//command_line_option:android_platforms",
         "//command_line_option:compiler",
         "//command_line_option:cpu",
-        "//command_line_option:crosstool_top",
         "//command_line_option:dynamic_mode",
         "//command_line_option:grte_top",
         "//command_line_option:fat_apk_cpu",
@@ -195,13 +187,11 @@ android_split_transition = transition(
         "//command_line_option:cc_output_directory_tag",
         "//command_line_option:android_compiler",
         "//command_line_option:android_cpu",
-        "//command_line_option:android_crosstool_top",
         "//command_line_option:android_dynamic_mode",
         "//command_line_option:android_grte_top",
         "//command_line_option:android_platforms",
         "//command_line_option:compiler",
         "//command_line_option:cpu",
-        "//command_line_option:crosstool_top",
         "//command_line_option:dynamic_mode",
         "//command_line_option:grte_top",
         "//command_line_option:fat_apk_cpu",
