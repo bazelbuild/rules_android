@@ -51,6 +51,15 @@ def _base_validations_processor(ctx, **_unused_ctxs):
     if ctx.attr.min_sdk_version != 0 and not acls.in_android_binary_min_sdk_version_attribute_allowlist(str(ctx.label)):
         fail("Target %s is not allowed to set a min_sdk_version value." % str(ctx.label))
 
+    use_r8 = acls.use_r8(str(ctx.label)) and bool(ctx.files.proguard_specs)
+    return ProviderInfo(
+        name = "validation_ctx",
+        value = struct(
+            use_r8 = use_r8,
+            providers = [],
+        ),
+    )
+
 def _process_manifest(ctx, **unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
@@ -236,11 +245,14 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
         ),
     )
 
-def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, deploy_ctx, bp_ctx, optimize_ctx, **_unused_ctxs):
+def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx, optimize_ctx, **_unused_ctxs):
+    if validation_ctx.use_r8:
+        return ProviderInfo(
+            name = "dex_ctx",
+            value = struct(providers = []),
+        )
+
     providers = []
-    classes_dex_zip = None
-    dex_info = None
-    final_classes_dex_zip = None
     final_proguard_output_map = None
     postprocessing_output_map = None
     deploy_jar = deploy_ctx.deploy_jar
@@ -249,184 +261,178 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
     multidex = ctx.attr.multidex
     optimizing_dexer = ctx.attr._optimizing_dexer
     java8_legacy_dex_map = None
+    proguarded_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None
+    proguard_output_map = optimize_ctx.proguard_output.mapping if is_binary_optimized else None
+    binary_jar = proguarded_jar if proguarded_jar else deploy_jar
+    binary_runtime_jars = deploy_ctx.binary_runtime_jars
+    forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
 
-    # For performance, the discrete dex/desugar pipeline should be run when not optimizing with R8.
-    using_r8 = acls.use_r8(str(ctx.label)) and is_binary_optimized
+    if (main_dex_list and multidex != "manual_main_dex") or \
+       (not main_dex_list and multidex == "manual_main_dex"):
+        fail("Both \"main_dex_list\" and \"multidex='manual_main_dex'\" must be specified.")
 
-    if not using_r8:
-        proguarded_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None
-        proguard_output_map = optimize_ctx.proguard_output.mapping if is_binary_optimized else None
-        binary_jar = proguarded_jar if proguarded_jar else deploy_jar
-        binary_runtime_jars = deploy_ctx.binary_runtime_jars
-
-        forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
-
-        if (main_dex_list and multidex != "manual_main_dex") or \
-           (not main_dex_list and multidex == "manual_main_dex"):
-            fail("Both \"main_dex_list\" and \"multidex='manual_main_dex'\" must be specified.")
-
-        #  Multidex mode: generate classes.dex.zip, where the zip contains
-        #  [classes.dex, classes2.dex, ... classesN.dex]
-        if ctx.attr.multidex == "legacy":
-            main_dex_list = _dex.generate_main_dex_list(
-                ctx,
-                jar = binary_jar,
-                android_jar = get_android_sdk(ctx).android_jar,
-                desugar_java8_libs = ctx.fragments.android.desugar_java8_libs,
-                legacy_apis = ctx.files._desugared_java8_legacy_apis,
-                main_dex_classes = get_android_sdk(ctx).main_dex_classes,
-                main_dex_list_opts = ctx.attr.main_dex_list_opts,
-                main_dex_proguard_spec = packaged_resources_ctx.main_dex_proguard_config,
-                proguard_specs = list(ctx.files.main_dex_proguard_specs),
-                shrinked_android_jar = get_android_sdk(ctx).shrinked_android_jar,
-                main_dex_list_creator = get_android_sdk(ctx).main_dex_list_creator,
-                legacy_main_dex_list_generator =
-                    ctx.attr._legacy_main_dex_list_generator.files_to_run if ctx.attr._legacy_main_dex_list_generator else get_android_sdk(ctx).legacy_main_dex_list_generator,
-                proguard_tool = get_android_sdk(ctx).proguard,
-            )
-        elif ctx.attr.multidex == "manual_main_dex":
-            main_dex_list = _dex.transform_dex_list_through_proguard_map(
-                ctx,
-                proguard_output_map = proguard_output_map,
-                main_dex_list = main_dex_list,
-                dex_list_obfuscator = get_android_toolchain(ctx).dex_list_obfuscator.files_to_run,
-            )
-
-        should_optimize_dex = optimizing_dexer and proguarded_jar
-        if proguard_output_map:
-            enable_postprocess_dexing = _dex.enable_postprocess_dexing(ctx)
-
-            # Proguard map from preprocessing will be merged with Proguard map for desugared
-            # library.
-            if (should_optimize_dex or enable_postprocess_dexing) and ctx.fragments.android.desugar_java8_libs:
-                postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
-                final_proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
-            elif (should_optimize_dex or enable_postprocess_dexing):
-                # No desugared library, Proguard map from postprocessing is the final Proguard map.
-                postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
-                final_proguard_output_map = postprocessing_output_map
-            elif ctx.fragments.android.desugar_java8_libs:
-                # No postprocessing, Proguard map from merging with the desugared library map is the
-                # final Proguard map.
-                postprocessing_output_map = proguard_output_map
-                final_proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
-
-            else:
-                # No postprocessing, no desugared library, the final Proguard map is the Proguard map
-                # from shrinking
-                postprocessing_output_map = proguard_output_map
-                final_proguard_output_map = proguard_output_map
-
-        incremental_dexing = _dex.get_effective_incremental_dexing(
-            force_incremental_dexing = ctx.attr.incremental_dexing,
-            has_forbidden_dexopts = len([d for d in ctx.attr.dexopts if d in forbidden_dexopts]) > 0,
-            is_binary_optimized = is_binary_optimized,
-            incremental_dexing_after_proguard_by_default = ctx.fragments.android.incremental_dexing_after_proguard_by_default,
-            incremental_dexing_shards_after_proguard = ctx.fragments.android.incremental_dexing_shards_after_proguard,
-            use_incremental_dexing = ctx.fragments.android.use_incremental_dexing,
+    #  Multidex mode: generate classes.dex.zip, where the zip contains
+    #  [classes.dex, classes2.dex, ... classesN.dex]
+    if ctx.attr.multidex == "legacy":
+        main_dex_list = _dex.generate_main_dex_list(
+            ctx,
+            jar = binary_jar,
+            android_jar = get_android_sdk(ctx).android_jar,
+            desugar_java8_libs = ctx.fragments.android.desugar_java8_libs,
+            legacy_apis = ctx.files._desugared_java8_legacy_apis,
+            main_dex_classes = get_android_sdk(ctx).main_dex_classes,
+            main_dex_list_opts = ctx.attr.main_dex_list_opts,
+            main_dex_proguard_spec = packaged_resources_ctx.main_dex_proguard_config,
+            proguard_specs = list(ctx.files.main_dex_proguard_specs),
+            shrinked_android_jar = get_android_sdk(ctx).shrinked_android_jar,
+            main_dex_list_creator = get_android_sdk(ctx).main_dex_list_creator,
+            legacy_main_dex_list_generator =
+                ctx.attr._legacy_main_dex_list_generator.files_to_run if ctx.attr._legacy_main_dex_list_generator else get_android_sdk(ctx).legacy_main_dex_list_generator,
+            proguard_tool = get_android_sdk(ctx).proguard,
+        )
+    elif ctx.attr.multidex == "manual_main_dex":
+        main_dex_list = _dex.transform_dex_list_through_proguard_map(
+            ctx,
+            proguard_output_map = proguard_output_map,
+            main_dex_list = main_dex_list,
+            dex_list_obfuscator = get_android_toolchain(ctx).dex_list_obfuscator.files_to_run,
         )
 
-        classes_dex_zip = _dex.get_dx_artifact(ctx, "classes.dex.zip")
-        if incremental_dexing or should_optimize_dex:
-            _dex.process_incremental_dexing(
-                ctx,
-                output = classes_dex_zip,
-                deps = _get_dex_desugar_aspect_deps(ctx),
-                dexopts = ctx.attr.dexopts,
-                native_multidex = multidex == "native",
-                runtime_jars = binary_runtime_jars,
-                main_dex_list = main_dex_list,
-                min_sdk_version = ctx.attr.min_sdk_version,
-                proguarded_jar = proguarded_jar,
-                library_jar = optimize_ctx.proguard_output.library_jar,
-                proguard_output_map = proguard_output_map,
-                postprocessing_output_map = postprocessing_output_map,
-                startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None,
-                inclusion_filter_jar = binary_jar if _is_instrumentation(ctx) and not is_binary_optimized else None,
-                transitive_runtime_jars_for_archive = deploy_ctx.transitive_runtime_jars_for_archive,
-                desugar_dict = deploy_ctx.desugar_dict,
-                shuffle_jars = get_android_toolchain(ctx).shuffle_jars.files_to_run,
-                dexbuilder = get_android_toolchain(ctx).dexbuilder.files_to_run,
-                dexbuilder_after_proguard = get_android_toolchain(ctx).dexbuilder_after_proguard.files_to_run,
-                dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
-                dexsharder = get_android_toolchain(ctx).dexsharder.files_to_run,
-                optimizing_dexer = optimizing_dexer.files_to_run if optimizing_dexer else None,
-                min_sdk_config = packaged_resources_ctx.resource_minsdk_proguard_config,
-                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-            )
+    should_optimize_dex = optimizing_dexer and proguarded_jar
+    if proguard_output_map:
+        enable_postprocess_dexing = _dex.enable_postprocess_dexing(ctx)
+
+        # Proguard map from preprocessing will be merged with Proguard map for desugared
+        # library.
+        if (should_optimize_dex or enable_postprocess_dexing) and ctx.fragments.android.desugar_java8_libs:
+            postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
+            final_proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
+        elif (should_optimize_dex or enable_postprocess_dexing):
+            # No desugared library, Proguard map from postprocessing is the final Proguard map.
+            postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
+            final_proguard_output_map = postprocessing_output_map
+        elif ctx.fragments.android.desugar_java8_libs:
+            # No postprocessing, Proguard map from merging with the desugared library map is the
+            # final Proguard map.
+            postprocessing_output_map = proguard_output_map
+            final_proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
+
         else:
-            _dex.process_monolithic_dexing(
-                ctx,
-                output = classes_dex_zip,
-                input = proguarded_jar,
-                dexopts = ctx.attr.dexopts,
-                min_sdk_version = ctx.attr.min_sdk_version,
-                main_dex_list = main_dex_list,
-                dexbuilder = get_android_sdk(ctx).dx,
-                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-            )
+            # No postprocessing, no desugared library, the final Proguard map is the Proguard map
+            # from shrinking
+            postprocessing_output_map = proguard_output_map
+            final_proguard_output_map = proguard_output_map
 
-        # TODO(b/261110876): Remove dex postprocessing once Optimizing dexing is enabled by default
-        if _dex.enable_postprocess_dexing(ctx):
-            rexed_dex_zip = ctx.actions.declare_file(ctx.label.name + "/_rex/rexed_dexes.zip")
+    incremental_dexing = _dex.get_effective_incremental_dexing(
+        force_incremental_dexing = ctx.attr.incremental_dexing,
+        has_forbidden_dexopts = len([d for d in ctx.attr.dexopts if d in forbidden_dexopts]) > 0,
+        is_binary_optimized = is_binary_optimized,
+        incremental_dexing_after_proguard_by_default = ctx.fragments.android.incremental_dexing_after_proguard_by_default,
+        incremental_dexing_shards_after_proguard = ctx.fragments.android.incremental_dexing_shards_after_proguard,
+        use_incremental_dexing = ctx.fragments.android.use_incremental_dexing,
+    )
 
-            # TODO(zhaoqxu): Populate final_rex_package_map to the Native rule if needed.
-            _final_rex_package_map = _dex.postprocess_dexing(
-                ctx,
-                rexed_dex_zip = rexed_dex_zip,
-                classes_dex_zip = classes_dex_zip,
-                proguard_map = proguard_output_map,
-                postprocessing_output_map = postprocessing_output_map,
-                main_dex_list = main_dex_list,
-                multidex = ctx.attr.multidex,
-                rexopts = getattr(ctx.attr, "rexopts", []),
-                rex_wrapper = get_android_toolchain(ctx).rex_wrapper.files_to_run,
-                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-            )
-            classes_dex_zip = rexed_dex_zip
-
-        if ctx.fragments.android.desugar_java8_libs and classes_dex_zip.extension == "zip":
-            final_classes_dex_zip = _dex.get_dx_artifact(ctx, "final_classes_dex.zip")
-
-            java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(
-                ctx,
-                android_jar = get_android_sdk(ctx).android_jar,
-                binary_jar = binary_jar,
-                build_customized_files = is_binary_optimized,
-            )
-
-            if final_proguard_output_map:
-                proguard.merge_proguard_maps(
-                    ctx,
-                    output = final_proguard_output_map,
-                    inputs = [java8_legacy_dex_map, postprocessing_output_map],
-                    proguard_maps_merger = get_android_toolchain(ctx).proguard_maps_merger.files_to_run,
-                    toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-                )
-
-            _dex.append_java8_legacy_dex(
-                ctx,
-                output = final_classes_dex_zip,
-                input = classes_dex_zip,
-                java8_legacy_dex = java8_legacy_dex,
-                dex_zips_merger = get_android_toolchain(ctx).dex_zips_merger.files_to_run,
-            )
-        else:
-            final_classes_dex_zip = classes_dex_zip
-            final_proguard_output_map = postprocessing_output_map if postprocessing_output_map else proguard_output_map
-
-        dex_info = AndroidDexInfo(
-            deploy_jar = deploy_jar,
-            filtered_deploy_jar = deploy_ctx.filtered_deploy_jar,
-            final_classes_dex_zip = final_classes_dex_zip,
-            final_proguard_output_map = final_proguard_output_map,
-            java_resource_jar = binary_jar if ctx.fragments.android.get_java_resources_from_optimized_jar else deploy_jar,
+    classes_dex_zip = _dex.get_dx_artifact(ctx, "classes.dex.zip")
+    if incremental_dexing or should_optimize_dex:
+        _dex.process_incremental_dexing(
+            ctx,
+            output = classes_dex_zip,
+            deps = _get_dex_desugar_aspect_deps(ctx),
+            dexopts = ctx.attr.dexopts,
+            native_multidex = multidex == "native",
+            runtime_jars = binary_runtime_jars,
+            main_dex_list = main_dex_list,
+            min_sdk_version = ctx.attr.min_sdk_version,
+            proguarded_jar = proguarded_jar,
+            library_jar = optimize_ctx.proguard_output.library_jar,
+            proguard_output_map = proguard_output_map,
+            postprocessing_output_map = postprocessing_output_map,
+            startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None,
+            inclusion_filter_jar = binary_jar if _is_instrumentation(ctx) and not is_binary_optimized else None,
+            transitive_runtime_jars_for_archive = deploy_ctx.transitive_runtime_jars_for_archive,
+            desugar_dict = deploy_ctx.desugar_dict,
+            shuffle_jars = get_android_toolchain(ctx).shuffle_jars.files_to_run,
+            dexbuilder = get_android_toolchain(ctx).dexbuilder.files_to_run,
+            dexbuilder_after_proguard = get_android_toolchain(ctx).dexbuilder_after_proguard.files_to_run,
+            dexmerger = get_android_toolchain(ctx).dexmerger.files_to_run,
+            dexsharder = get_android_toolchain(ctx).dexsharder.files_to_run,
+            optimizing_dexer = optimizing_dexer.files_to_run if optimizing_dexer else None,
+            min_sdk_config = packaged_resources_ctx.resource_minsdk_proguard_config,
+            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
         )
-        providers.append(dex_info)
-        providers.append(AndroidPreDexJarInfo(binary_jar))
+    else:
+        _dex.process_monolithic_dexing(
+            ctx,
+            output = classes_dex_zip,
+            input = proguarded_jar,
+            dexopts = ctx.attr.dexopts,
+            min_sdk_version = ctx.attr.min_sdk_version,
+            main_dex_list = main_dex_list,
+            dexbuilder = get_android_sdk(ctx).dx,
+            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+        )
 
-        if postprocessing_output_map:
-            providers.append(ProguardMappingInfo(postprocessing_output_map))
+    # TODO(b/261110876): Remove dex postprocessing once Optimizing dexing is enabled by default
+    if _dex.enable_postprocess_dexing(ctx):
+        rexed_dex_zip = ctx.actions.declare_file(ctx.label.name + "/_rex/rexed_dexes.zip")
+
+        # TODO(zhaoqxu): Populate final_rex_package_map to the Native rule if needed.
+        _final_rex_package_map = _dex.postprocess_dexing(
+            ctx,
+            rexed_dex_zip = rexed_dex_zip,
+            classes_dex_zip = classes_dex_zip,
+            proguard_map = proguard_output_map,
+            postprocessing_output_map = postprocessing_output_map,
+            main_dex_list = main_dex_list,
+            multidex = ctx.attr.multidex,
+            rexopts = getattr(ctx.attr, "rexopts", []),
+            rex_wrapper = get_android_toolchain(ctx).rex_wrapper.files_to_run,
+            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+        )
+        classes_dex_zip = rexed_dex_zip
+
+    if ctx.fragments.android.desugar_java8_libs and classes_dex_zip.extension == "zip":
+        final_classes_dex_zip = _dex.get_dx_artifact(ctx, "final_classes_dex.zip")
+
+        java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(
+            ctx,
+            android_jar = get_android_sdk(ctx).android_jar,
+            binary_jar = binary_jar,
+            build_customized_files = is_binary_optimized,
+        )
+
+        if final_proguard_output_map:
+            proguard.merge_proguard_maps(
+                ctx,
+                output = final_proguard_output_map,
+                inputs = [java8_legacy_dex_map, postprocessing_output_map],
+                proguard_maps_merger = get_android_toolchain(ctx).proguard_maps_merger.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+            )
+
+        _dex.append_java8_legacy_dex(
+            ctx,
+            output = final_classes_dex_zip,
+            input = classes_dex_zip,
+            java8_legacy_dex = java8_legacy_dex,
+            dex_zips_merger = get_android_toolchain(ctx).dex_zips_merger.files_to_run,
+        )
+    else:
+        final_classes_dex_zip = classes_dex_zip
+        final_proguard_output_map = postprocessing_output_map if postprocessing_output_map else proguard_output_map
+
+    dex_info = AndroidDexInfo(
+        deploy_jar = deploy_jar,
+        filtered_deploy_jar = deploy_ctx.filtered_deploy_jar,
+        final_classes_dex_zip = final_classes_dex_zip,
+        final_proguard_output_map = final_proguard_output_map,
+        java_resource_jar = binary_jar if ctx.fragments.android.get_java_resources_from_optimized_jar else deploy_jar,
+    )
+    providers.append(dex_info)
+    providers.append(AndroidPreDexJarInfo(binary_jar))
+
+    if postprocessing_output_map:
+        providers.append(ProguardMappingInfo(postprocessing_output_map))
 
     return ProviderInfo(
         name = "dex_ctx",
@@ -437,7 +443,13 @@ def _process_dex(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, proto_ctx, dep
         ),
     )
 
-def _process_deploy_jar(ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, proto_ctx, **_unused_ctxs):
+def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, proto_ctx, **_unused_ctxs):
+    if validation_ctx.use_r8:
+        return ProviderInfo(
+            name = "deploy_ctx",
+            value = struct(providers = []),
+        )
+
     filtered_deploy_jar, desugar_dict = None, {}
     transitive_runtime_jars_for_archive = []
     binary_runtime_jars = []
@@ -658,9 +670,9 @@ def _is_instrumentation(ctx):
     """
     return bool(ctx.attr.instruments)
 
-def _process_baseline_profiles(ctx, deploy_ctx, **_unused_ctxs):
+def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
     baseline_profile_output = None
-    if ctx.attr.generate_art_profile:
+    if ctx.attr.generate_art_profile and not validation_ctx.use_r8:
         enable_optimizer_integration = acls.in_baseline_profiles_optimizer_integration(str(ctx.label))
         has_proguard_specs = bool(ctx.files.proguard_specs)
 
@@ -697,10 +709,10 @@ def _process_baseline_profiles(ctx, deploy_ctx, **_unused_ctxs):
         ),
     )
 
-def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
+def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
     providers = []
     art_profile_zip = None
-    if ctx.attr.generate_art_profile:
+    if ctx.attr.generate_art_profile and not validation_ctx.use_r8:
         merged_baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
         merged_baseline_profile_rewritten = \
             optimize_ctx.proguard_output.baseline_profile_rewritten if optimize_ctx.proguard_output else None
@@ -741,8 +753,8 @@ def _process_art_profile(ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
         ),
     )
 
-def _process_optimize(ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused_ctxs):
-    if acls.use_r8(str(ctx.label)):
+def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused_ctxs):
+    if validation_ctx.use_r8:
         proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.jar")
         return ProviderInfo(
             name = "optimize_ctx",

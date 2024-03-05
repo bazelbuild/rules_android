@@ -32,11 +32,12 @@ load(
     "utils",
 )
 
-def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_ctxs):
+def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_ctxs):
     """Runs R8 for desugaring, optimization, and dexing.
 
     Args:
       ctx: Rule contxt.
+      validation_ctx: Context from the base valdations processor.
       jvm_ctx: Context from the java processor.
       packaged_resources_ctx: Context from resource processing.
       build_info_ctx: Context from build info processor.
@@ -45,8 +46,7 @@ def process_r8(ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_c
     Returns:
       The r8_ctx ProviderInfo.
     """
-    local_proguard_specs = ctx.files.proguard_specs
-    if not acls.use_r8(str(ctx.label)) or not local_proguard_specs:
+    if not validation_ctx.use_r8:
         return ProviderInfo(
             name = "r8_ctx",
             value = struct(
