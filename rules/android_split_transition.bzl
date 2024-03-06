@@ -156,7 +156,6 @@ def _handle_fat_apk_cpus(settings):
 
 def _cc_flags_from_android(settings, new_settings):
     new_settings[utils.add_cls_prefix("compiler")] = utils.get_cls(settings, "android_compiler")
-    new_settings[utils.add_cls_prefix("grte_top")] = utils.get_cls(settings, "android_grte_top")
     new_settings[utils.add_cls_prefix("dynamic_mode")] = utils.get_cls(settings, "android_dynamic_mode")
 
     new_settings[utils.add_cls_prefix("Android configuration distinguisher")] = "android"
@@ -170,12 +169,10 @@ android_split_transition = transition(
         "//command_line_option:android_compiler",
         "//command_line_option:android_cpu",
         "//command_line_option:android_dynamic_mode",
-        "//command_line_option:android_grte_top",
         "//command_line_option:android_platforms",
         "//command_line_option:compiler",
         "//command_line_option:cpu",
         "//command_line_option:dynamic_mode",
-        "//command_line_option:grte_top",
         "//command_line_option:fat_apk_cpu",
         "//command_line_option:fat_apk_hwasan",
         "//command_line_option:incompatible_enable_android_toolchain_resolution",
@@ -188,12 +185,10 @@ android_split_transition = transition(
         "//command_line_option:android_compiler",
         "//command_line_option:android_cpu",
         "//command_line_option:android_dynamic_mode",
-        "//command_line_option:android_grte_top",
         "//command_line_option:android_platforms",
         "//command_line_option:compiler",
         "//command_line_option:cpu",
         "//command_line_option:dynamic_mode",
-        "//command_line_option:grte_top",
         "//command_line_option:fat_apk_cpu",
         "//command_line_option:fat_apk_hwasan",
         "//command_line_option:incompatible_enable_android_toolchain_resolution",
