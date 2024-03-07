@@ -348,7 +348,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             proguard_output_map = proguard_output_map,
             postprocessing_output_map = postprocessing_output_map,
             startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None,
-            inclusion_filter_jar = binary_jar if _is_instrumentation(ctx) and not is_binary_optimized else None,
+            inclusion_filter_jar = binary_jar if is_instrumentation(ctx) and not is_binary_optimized else None,
             transitive_runtime_jars_for_archive = deploy_ctx.transitive_runtime_jars_for_archive,
             desugar_dict = deploy_ctx.desugar_dict,
             shuffle_jars = get_android_toolchain(ctx).shuffle_jars.files_to_run,
@@ -516,7 +516,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
         deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
     )
 
-    if _is_instrumentation(ctx):
+    if is_instrumentation(ctx):
         filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_filtered.jar")
         filter_jar = ctx.attr.instruments[AndroidPreDexJarInfo].pre_dex_jar
         common.filter_zip_exclude(
@@ -621,6 +621,12 @@ def finalize(
                 ),
             ],
         )
+
+        if is_instrumentation(ctx):
+            providers.append(
+                AndroidInstrumentationInfo(target = ctx.attr.instruments[ApkInfo]),
+            )
+
     else:
         providers.append(
             OutputGroupInfo(
@@ -656,9 +662,9 @@ def _is_test_binary(ctx):
     Returns:
       Boolean indicating whether the target is a test target.
     """
-    return ctx.attr.testonly or _is_instrumentation(ctx) or str(ctx.label).find("/javatests/") >= 0
+    return ctx.attr.testonly or is_instrumentation(ctx) or str(ctx.label).find("/javatests/") >= 0
 
-def _is_instrumentation(ctx):
+def is_instrumentation(ctx):
     """Whether this android_binary target is an instrumentation binary.
 
     Args:
