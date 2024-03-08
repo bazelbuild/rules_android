@@ -209,3 +209,35 @@ def android_sdk_repository(
 
     native.register_toolchains("@%s//:sdk-toolchain" % name)
     native.register_toolchains("@%s//:all" % name)
+
+def _android_sdk_repository_extension_impl(module_ctx):
+    root_modules = [m for m in module_ctx.modules if m.is_root and m.tags.configure]
+    if len(root_modules) > 1:
+        fail("Expected at most one root module, found {}".format(", ".join([x.name for x in root_modules])))
+
+    if root_modules:
+        module = root_modules[0]
+    else:
+        module = module_ctx.modules[0]
+
+    kwargs = {}
+    if module.tags.configure:
+        kwargs["api_level"] = module.tags.configure[0].api_level
+        kwargs["build_tools_version"] = module.tags.configure[0].build_tools_version
+        kwargs["path"] = module.tags.configure[0].path
+
+    _android_sdk_repository(
+        name = "androidsdk",
+        **kwargs
+    )
+
+android_sdk_repository_extension = module_extension(
+    implementation = _android_sdk_repository_extension_impl,
+    tag_classes = {
+        "configure": tag_class(attrs = {
+            "path": attr.string(),
+            "api_level": attr.int(),
+            "build_tools_version": attr.string(),
+        }),
+    },
+)
