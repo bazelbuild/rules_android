@@ -22,6 +22,14 @@ load("defs_dev.bzl", "rules_android_workspace")
 
 rules_android_workspace()
 
+load("@bazel_tools//tools/android:android_extensions.bzl", "android_external_repository")
+android_external_repository(
+    name = "android_external",
+    has_androidsdk = "@androidsdk//:has_androidsdk",
+    dx_jar_import = "@androidsdk//:dx_jar_import",
+    android_sdk_for_testing = "@androidsdk//:files",
+)
+
 register_toolchains("//toolchains/android:all")
 
 register_toolchains("//toolchains/android_sdk:all")
