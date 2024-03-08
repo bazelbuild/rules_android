@@ -364,7 +364,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
         _dex.process_monolithic_dexing(
             ctx,
             output = classes_dex_zip,
-            input = proguarded_jar,
+            input = binary_jar,
             dexopts = ctx.attr.dexopts,
             min_sdk_version = ctx.attr.min_sdk_version,
             main_dex_list = main_dex_list,
