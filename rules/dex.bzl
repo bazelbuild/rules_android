@@ -27,7 +27,7 @@ _DEXOPTS_SUPPORTED_IN_DEXBUILDER = ["--no-locals", "--no-optimize", "--no-warnin
 
 _tristate = _attrs.tristate
 
-def _resource_set_for_monolithic_dexing():
+def _resource_set_for_monolithic_dexing(_os, _inputs_size):
     return {"cpu": _DEX_THREADS, "memory": _DEX_MEMORY}
 
 def _process_incremental_dexing(
