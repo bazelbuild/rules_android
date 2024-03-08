@@ -159,6 +159,13 @@ function main() {
     -- \
     //java/com/basicapp:basic_app
 
+  "$bazel" build \
+    "${COMMON_ARGS[@]}" \
+    "${RULE_ARGS[@]}" \
+    --enable_bzlmod \
+    -- \
+    //java/com/basicapp:basic_app
+
   # Mobile-install test with no deployment
   "$bazel" mobile-install \
     "${COMMON_ARGS[@]}" \
