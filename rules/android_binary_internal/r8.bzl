@@ -72,6 +72,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         java_toolchain = common.get_java_toolchain(ctx),
         build_target = ctx.label.name,
         deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
+        check_desugar_deps = ctx.fragments.android.check_desugar_deps,
     )
 
     dexes_zip = ctx.actions.declare_file(ctx.label.name + "_dexes.zip")

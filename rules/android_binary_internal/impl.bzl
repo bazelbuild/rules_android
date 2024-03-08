@@ -514,6 +514,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
         java_toolchain = java_toolchain,
         build_target = ctx.label.name,
         deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
+        check_desugar_deps = ctx.fragments.android.check_desugar_deps,
     )
 
     if is_instrumentation(ctx):

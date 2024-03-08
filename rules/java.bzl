@@ -494,7 +494,8 @@ def _create_deploy_jar(
         runtime_jars = depset(),
         java_toolchain = None,
         build_target = "",
-        deploy_manifest_lines = []):
+        deploy_manifest_lines = [],
+        check_desugar_deps = True):
     _singlejar(
         ctx,
         inputs = runtime_jars,
@@ -503,7 +504,7 @@ def _create_deploy_jar(
         progress_message = "Building deploy jar %s" % output.short_path,
         java_toolchain = java_toolchain,
         build_target = build_target,
-        check_desugar_deps = True,
+        check_desugar_deps = check_desugar_deps,
         compression = False,
         deploy_manifest_lines = deploy_manifest_lines,
         resource_set = _resource_set_for_deploy_jar,
