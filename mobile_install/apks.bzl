@@ -23,7 +23,7 @@ def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
     args.add("-aapt2", ctx.executable._aapt2)
     args.add("-manifest", manifest)
     args.add("-out", out_manifest)
-    args.add("-sdk_jar", utils.first(ctx.attr._android_sdk.files.to_list()))
+    args.add("-sdk_jar", utils.first(ctx.attr._android_sdk[DefaultInfo].files.to_list()))
     args.add("-res", resources_zip)
     args.add("-force_debuggable=true")
 
@@ -31,7 +31,7 @@ def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
         executable = ctx.executable._android_kit,
         arguments = ["manifest", args],
         tools = [ctx.executable._aapt2],
-        inputs = [manifest, resources_zip] + ctx.attr._android_sdk.files.to_list(),
+        inputs = [manifest, resources_zip] + ctx.attr._android_sdk[DefaultInfo].files.to_list(),
         outputs = [out_manifest],
         mnemonic = "CompileAndroidManifest",
         progress_message = "MI Compiling AndroidManifest.xml from " + manifest.path,
@@ -221,7 +221,7 @@ ${jvm} -jar ${apk_signer} sign ${signing_params} --out ${signed_apk} ${tmp_apk}
             ctx.executable._zipalign.path,
             unsigned_apk.path,
             utils.host_jvm_path(ctx),
-            utils.first(ctx.attr._apk_signer.files.to_list()).path,
+            utils.first(ctx.attr._apk_signer[DefaultInfo].files.to_list()).path,
             signing_params,
             signed_apk.path,
         ],
@@ -229,8 +229,8 @@ ${jvm} -jar ${apk_signer} sign ${signing_params} --out ${signed_apk} ${tmp_apk}
         inputs = (debug_signing_keys +
                   ([debug_signing_lineage_file] if debug_signing_lineage_file else []) +
                   [unsigned_apk] +
-                  ctx.attr._apk_signer.files.to_list() +
-                  ctx.attr._java_jdk.files.to_list()),
+                  ctx.attr._apk_signer[DefaultInfo].files.to_list() +
+                  ctx.attr._java_jdk[DefaultInfo].files.to_list()),
         outputs = [signed_apk],
         mnemonic = "SignShellApp",
         progress_message = "MI Signing shell app %s" % unsigned_apk.path,

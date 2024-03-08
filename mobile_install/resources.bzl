@@ -191,11 +191,11 @@ def _compile_bucketized_resources(ctx, data):
                 executable = ctx.executable._android_kit,
                 arguments = [
                     "compile",
-                    "--aapt2=" + utils.first(ctx.attr._aapt2.files).path,
+                    "--aapt2=" + utils.first(ctx.attr._aapt2[DefaultInfo].files).path,
                     "--in=" + res_bucket.path,
                     "--out=" + out.path,
                 ],
-                inputs = [res_bucket] + ctx.attr._aapt2.files.to_list(),
+                inputs = [res_bucket] + ctx.attr._aapt2[DefaultInfo].files.to_list(),
                 outputs = [out],
                 mnemonic = "CompileRes",
                 progress_message = "MI Compiling resources for %s" % res_dir,
@@ -240,7 +240,7 @@ def _compile_library_resouces(ctx, data):
             ctx.actions.run(
                 executable = ctx.executable._android_kit,
                 arguments = ["compile", args],
-                inputs = data[res_type][res_dir] + ctx.attr._aapt2.files.to_list(),
+                inputs = data[res_type][res_dir] + ctx.attr._aapt2[DefaultInfo].files.to_list(),
                 outputs = [out],
                 mnemonic = "CompileRes",
                 progress_message = "MI Compiling resources for %s" % res_dir,
