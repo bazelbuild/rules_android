@@ -277,8 +277,18 @@ def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_s
         srcs = ctx.files.srcs + idl_ctx.idl_java_srcs + db_ctx.java_srcs,
         javac_opts = ctx.attr.javacopts + db_ctx.javac_opts,
         r_java = resources_ctx.r_java,
-        deps =
-            utils.collect_providers(JavaInfo, ctx.attr.deps, idl_ctx.idl_deps),
+        deps = (
+            utils.collect_providers(JavaInfo, ctx.attr.deps, idl_ctx.idl_deps) +
+            [
+                JavaInfo(
+                    output_jar = get_android_sdk(ctx).android_jar,
+                    compile_jar = get_android_sdk(ctx).android_jar,
+                    # The android_jar must not be compiled into the test, it
+                    # will bloat the Jar with no benefit.
+                    neverlink = True,
+                ),
+            ]
+        ),
         exports = utils.collect_providers(JavaInfo, ctx.attr.exports),
         plugins = utils.collect_providers(JavaPluginInfo, ctx.attr.plugins, db_ctx.java_plugins),
         exported_plugins = utils.collect_providers(

@@ -217,7 +217,18 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
         javac_opts = ctx.attr.javacopts + db_ctx.javac_opts,
         r_java = packaged_resources_ctx.r_java,
         enable_deps_without_srcs = True,
-        deps = utils.collect_providers(JavaInfo, utils.dedupe_split_attr(ctx.split_attr.deps) + stamp_ctx.deps),
+        deps = (
+            utils.collect_providers(JavaInfo, utils.dedupe_split_attr(ctx.split_attr.deps) + stamp_ctx.deps) +
+            [
+                JavaInfo(
+                    output_jar = get_android_sdk(ctx).android_jar,
+                    compile_jar = get_android_sdk(ctx).android_jar,
+                    # The android_jar must not be compiled into the test, it
+                    # will bloat the Jar with no benefit.
+                    neverlink = True,
+                ),
+            ]
+        ),
         plugins =
             utils.collect_providers(JavaPluginInfo, ctx.attr.plugins) +
             db_ctx.java_plugins,
