@@ -1942,7 +1942,7 @@ def _process(
         # default and the native version is no longer used, remove the depset
         # creation and directly pass through ctx.files.assets to this method.
         assets =
-            depset(transitive = [target.files for target in assets]).to_list(),
+            depset(transitive = [target[DefaultInfo].files for target in assets]).to_list(),
         defined_assets_dir = defined_assets_dir,
         assets_dir = assets_dir,
         exports_manifest = exports_manifest,
@@ -1950,7 +1950,7 @@ def _process(
         deps = deps,
         resource_apks = resource_apks,
         exports = exports,
-        resource_files = depset(transitive = [target.files for target in resource_files]).to_list(),
+        resource_files = depset(transitive = [target[DefaultInfo].files for target in resource_files]).to_list(),
         enable_data_binding = enable_data_binding,
         fix_resource_transitivity = fix_resource_transitivity,
         neverlink = neverlink,

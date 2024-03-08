@@ -70,7 +70,7 @@ def _make_r_jar(ctx, r_java, packages, out_r_jar):
     rjar_args = ctx.actions.args()
     rjar_args.add("rjar")
     rjar_args.add("--jdk", utils.host_jvm_path(ctx))
-    rjar_args.add("--jartool", utils.first(ctx.attr._jar_tool.files.to_list()).path)
+    rjar_args.add("--jartool", utils.first(ctx.attr._jar_tool[DefaultInfo].files.to_list()).path)
     rjar_args.add("--rjava", r_java.path)
     rjar_args.add("--pkgs", r_packages.path)
     rjar_args.add("--rjar", out_r_jar.path)
@@ -81,8 +81,8 @@ def _make_r_jar(ctx, r_java, packages, out_r_jar):
     ctx.actions.run(
         executable = ctx.executable._android_kit,
         arguments = [rjar_args],
-        tools = ctx.attr._jar_tool.files,
-        inputs = depset([r_packages, r_java], transitive = [ctx.attr._java_jdk.files]),
+        tools = ctx.attr._jar_tool[DefaultInfo].files,
+        inputs = depset([r_packages, r_java], transitive = [ctx.attr._java_jdk[DefaultInfo].files]),
         outputs = [out_r_jar],
         mnemonic = "RJar",
         progress_message = "MI RJar " + out_r_jar.path,

@@ -74,7 +74,7 @@ def _make_app_runner(
         is_test = False):
     path_type = "path" if ctx.attr._mi_is_cmd else "short_path"
 
-    deploy = utils.first(ctx.attr._deploy.files.to_list())
+    deploy = utils.first(ctx.attr._deploy[DefaultInfo].files.to_list())
 
     args = {
         "is_cmd": str(ctx.attr._mi_is_cmd).lower(),

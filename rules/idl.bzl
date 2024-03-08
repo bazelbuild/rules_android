@@ -67,7 +67,7 @@ def _gen_java_from_idl(
     args.add(idl_src)
     args.add(out_idl_java_src)
 
-    aidl_lib_files = [aidl_lib.files] if aidl_lib else []
+    aidl_lib_files = [aidl_lib[DefaultInfo].files] if aidl_lib else []
 
     ctx.actions.run(
         executable = aidl,
