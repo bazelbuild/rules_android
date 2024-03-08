@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This file is primarily used as a library file containing the main
+# rules_android presubmit entrypoint. However, it can also be relatively easily
+# used as a standalone script to test presubmit changes locally.
+# To do so, clone a copy of rules_android in <ANY_DIR>/git/rules_android and run
+# `export KOKORO_ARTIFACTS_DIR=<ANY_DIR>`. Then cd into rules_android and run
+# `bash kokoro/presubmit/presubmit_main.sh`.
+
 function DownloadBazelisk()  {
   # Utility function to download a specified version of bazelisk to a given
   # installation directory. Adds the directory to PATH.
@@ -69,7 +76,12 @@ function main() {
   }
 
   # ANDROID_HOME is already in the environment.
-  export ANDROID_NDK_HOME="/opt/android-ndk-r16b"
+  set +u
+  if [[ -z "$ANDROID_NDK_HOME" ]]; then
+    # Set the NDK location if not already set by the environment.
+    export ANDROID_NDK_HOME="/opt/android-ndk-r16b"
+  fi
+  set -u
 
   # Create a tmpfs in the sandbox at "/tmp/hsperfdata_$USERNAME" to avoid the
   # problems described in https://github.com/bazelbuild/bazel/issues/3236
@@ -86,6 +98,8 @@ function main() {
     "--verbose_failures"
     "--experimental_google_legacy_api"
     "--experimental_enable_android_migration_apis"
+    "--java_language_version=11"
+    "--java_runtime_version=17"
   )
 
   TEST_ARGS=(
@@ -93,29 +107,15 @@ function main() {
     "--test_output=errors"
   )
 
-  TOOL_ARGS=(
-    # Java tests use language version at least 11, but they might depend on
-    # libraries that were built for Java 17.
-    "--java_language_version=11"
-    "--java_runtime_version=17"
-    "--noenable_bzlmod"
-    "--noincompatible_enable_android_toolchain_resolution"
-  )
-  RULE_ARGS=(
-    "--noenable_bzlmod"
-    "--noincompatible_enable_android_toolchain_resolution"
-  )
-
   # Go to rules_android workspace and run relevant tests.
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
 
-  # Fetch all external deps; should reveal any bugs related to external dep
-  # references. First run with bzlmod enabled to catch missing bzlmod deps.
-  "$bazel" sync --enable_bzlmod > /dev/null
-  # Perform the same sync with bzlmod disabled to sniff out WORKSPACE issues
+  # Sync with bzlmod disabled to sniff out WORKSPACE issues
   "$bazel" sync --noenable_bzlmod > /dev/null
+  # Run with bzlmod enabled to catch missing bzlmod deps.
+  "$bazel" sync --enable_bzlmod > /dev/null
 
-  TOOL_TEST_TARGETS=(
+  TEST_TARGETS=(
     "//src/common/golang/..."
     "//src/tools/ak/..."
     "//src/tools/javatests/..."
@@ -123,8 +123,8 @@ function main() {
     "//src/tools/java/..."
     "//src/tools/mi/..."
     "//src/validations/..."
+    "//rules/..."
     "//test/..."
-    "-//test/rules/..." # Tested below.
     # TODO(https://github.com/bazelbuild/rules_android/issues/170):
     # Re-enable when tests use proper way to find data files.
     "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:ExtractApiDescriptorsCommandTest"
@@ -134,22 +134,9 @@ function main() {
 
   "$bazel" test \
     "${COMMON_ARGS[@]}" \
-    "${TOOL_ARGS[@]}" \
     "${TEST_ARGS[@]}" \
     -- \
-    "${TOOL_TEST_TARGETS[@]}"
-
-  RULE_TEST_TARGETS=(
-    "//rules/..."
-    "//test/rules/..."
-  )
-
-  "$bazel" test \
-    "${COMMON_ARGS[@]}" \
-    "${RULE_ARGS[@]}" \
-    "${TEST_ARGS[@]}" \
-    -- \
-    "${RULE_TEST_TARGETS[@]}"
+    "${TEST_TARGETS[@]}"
 
   # Go to basic app workspace in the source tree
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
