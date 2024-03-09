@@ -135,12 +135,11 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
     Returns:
       The r8_ctx ProviderInfo.
     """
-    local_proguard_specs = ctx.files.proguard_specs
     if (not acls.use_r8(str(ctx.label)) or
-        not local_proguard_specs or
         not _resources.is_resource_shrinking_enabled(
             ctx.attr.shrink_resources,
             ctx.fragments.android.use_android_resource_shrinking,
+            bool(ctx.files.proguard_specs),
         )):
         return ProviderInfo(
             name = "resource_shrinking_r8_ctx",
