@@ -4,7 +4,8 @@ bazel: last_green
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
-  ? "--incompatible_enable_android_toolchain_resolution=false"
+  ? "--incompatible_enable_android_toolchain_resolution=true"
+  ? "--android_platforms=//:armeabi-v7a"
   # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
   ? "--java_runtime_version=17"
 rules_flags: &rules_flags
@@ -104,6 +105,10 @@ tasks:
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
+      ? "--enable_bzlmod"
+      ? "--android_platforms=@rules_android//:armeabi-v7a"
+      ? "--incompatible_enable_android_toolchain_resolution=true"
+      ? "--java_runtime_version=17"
     build_targets:
       - "//java/com/basicapp:basic_app"
   ubuntu2004_basicapp_bzlmod:
