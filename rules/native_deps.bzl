@@ -34,7 +34,6 @@ def _split_config_aspect_impl(__, ctx):
     return SplitConfigInfo(
         build_config = ctx.configuration,
         android_config = struct(
-            incompatible_use_toolchain_resolution = android_cfg.incompatible_use_toolchain_resolution,
             android_cpu = android_cfg.android_cpu,
             hwasan = android_cfg.hwasan,
         ),
@@ -47,11 +46,7 @@ split_config_aspect = aspect(
 )
 
 def _get_libs_dir_name(android_config, target_platform):
-    if android_config.incompatible_use_toolchain_resolution:
-        name = target_platform.name
-    else:
-        # Legacy builds use the CPU as the name.
-        name = android_config.android_cpu
+    name = target_platform.name
     if android_config.hwasan:
         name = name + "-hwasan"
     return name

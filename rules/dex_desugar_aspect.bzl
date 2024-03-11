@@ -172,9 +172,6 @@ def _get_produced_runtime_jars(target, ctx, extra_toolchain_jars):
         return jars
 
 def _get_platform_based_toolchain_jars(ctx):
-    if not ctx.fragments.android.incompatible_use_toolchain_resolution:
-        return []
-
     if not getattr(ctx.rule.attr, "_android_sdk", None):
         return []
 
