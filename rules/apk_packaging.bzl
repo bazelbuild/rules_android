@@ -236,6 +236,8 @@ def _build_apk(
         resource_paths = resource_paths,
         nocompress_suffixes = nocompress_extensions,
         output_jar_creator = output_jar_creator,
+        compression = False,
+        preserve_compression = True,
         java_toolchain = java_toolchain,
     )
 
