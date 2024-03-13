@@ -365,6 +365,7 @@ def _singlejar(
         build_target = "",
         check_desugar_deps = False,
         compression = True,
+        preserve_compression = False,
         deploy_manifest_lines = [],
         include_build_data = False,
         include_prefixes = [],
@@ -376,12 +377,16 @@ def _singlejar(
         resource_set = None):
     if type(inputs) == "list":
         inputs = depset(inputs)
+    if compression and preserve_compression:
+        fail("Cannot set both compression and preserve_compression to True")
 
     args = ctx.actions.args()
     args.add("--output")
     args.add(output)
     if compression:
         args.add("--compression")
+    if preserve_compression:
+        args.add("--dont_change_compression")
     args.add("--normalize")
     if not include_build_data:
         args.add("--exclude_build_data")
