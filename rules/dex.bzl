@@ -501,6 +501,7 @@ def _optimizing_dex(
         incremental_dexopts: List of strings. Additional command-line flags for the dexing tool when building dexes.
         min_sdk_version: Integer. The minimum targeted sdk version.
         dex_exec: File. The executable dex builder file.
+        min_sdk_config: File. Contains a ProGuard config to define the min-sdk generated from the manifest.
         toolchain_type: The Android toolchain.
     """
     args = ctx.actions.args()
