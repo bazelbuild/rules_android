@@ -172,6 +172,7 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
     )
 
     resource_shrinking_usage_log = ctx.actions.declare_file(ctx.label.name + "_resource_shrinking_usage.log")
+    resource_shrinking_res_config = ctx.actions.declare_file(ctx.label.name + "_resources.cfg")
     args = ctx.actions.args()
     args.add("--input", proto_resource_apk)
     args.add("--dex_input", final_classes_dex_zip)
@@ -180,6 +181,7 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
     args.add("--output", proto_resource_apk_shrunk)
     args.add("--precise_shrinking", "true")
     args.add("--print_usage_log", resource_shrinking_usage_log)
+    args.add("--print_config", resource_shrinking_res_config)
 
     java.run(
         ctx = ctx,
@@ -187,7 +189,7 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
         executable = android_toolchain.resource_shrinker.files_to_run,
         arguments = [args],
         inputs = [proto_resource_apk, final_classes_dex_zip, final_proguard_output_map],
-        outputs = [proto_resource_apk_shrunk, resource_shrinking_usage_log],
+        outputs = [proto_resource_apk_shrunk, resource_shrinking_usage_log, resource_shrinking_res_config],
         mnemonic = "ResourceShrinkerForR8",
         progress_message = "Shrinking resources %{label}",
     )
@@ -207,12 +209,33 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
-    aari = packaged_resources_ctx.android_application_resource
+    # 4. Optimize resources (shorten resource path names, remove resource names, collapse resource values)
+    resource_apk_optimized = ctx.actions.declare_file(ctx.label.name + "_resource_apk_optimized.ap_")
+    resource_obfuscation_map = ctx.actions.declare_file(ctx.label.name + "_resource_obfuscation.map")
+    ctx.actions.run(
+        arguments = [ctx.actions.args()
+            .add("optimize")
+            .add(resource_apk_shrunk)
+            .add("-o", resource_apk_optimized)
+            .add("--resources-config-path", resource_shrinking_res_config)
+            .add("--collapse-resource-names")
+            .add("--shorten-resource-paths")
+            .add("--deduplicate-entry-values")
+            .add("--save-obfuscation-map", resource_obfuscation_map)
+            ],
+        executable = android_toolchain.aapt2.files_to_run,
+        inputs = [resource_apk_shrunk, resource_shrinking_res_config],
+        mnemonic = "Aapt2OptimizeForResourceShrinkerR8",
+        outputs = [resource_apk_optimized, resource_obfuscation_map],
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
+    )
+
+    aari = android_application_resource
 
     # Replace the resource apk in the AndroidApplicationResourceInfo provider from resource
     # processing.
     new_aari = AndroidApplicationResourceInfo(
-        resource_apk = resource_apk_shrunk,
+        resource_apk = resource_apk_optimized,
         resource_java_src_jar = aari.resource_java_src_jar,
         resource_java_class_jar = aari.resource_java_class_jar,
         manifest = aari.manifest,

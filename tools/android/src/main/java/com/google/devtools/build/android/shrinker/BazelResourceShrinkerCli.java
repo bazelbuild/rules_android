@@ -17,6 +17,7 @@
 package com.google.devtools.build.android.shrinker;
 
 import com.android.build.shrinker.ResourceShrinkerImpl;
+import com.android.build.shrinker.ResourceShrinkerModel;
 import com.android.build.shrinker.FileReporter;
 import com.android.build.shrinker.NoDebugReporter;
 import com.android.build.shrinker.LinkedResourcesFormat;
@@ -30,9 +31,13 @@ import com.android.build.shrinker.usages.ResourceUsageRecorder;
 import com.android.build.shrinker.usages.ToolsAttributeUsageRecorder;
 import com.android.utils.FileUtils;
 import java.io.IOException;
+import java.lang.IllegalAccessException;
+import java.lang.NoSuchFieldException;
 import java.io.PrintStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
+import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +55,7 @@ public class BazelResourceShrinkerCli {
     private static final String PROGUARD_MAPPING_ARG = "--proguard_mapping";
     private static final String HELP_ARG = "--help";
     private static final String PRINT_USAGE_LOG = "--print_usage_log";
+    private static final String PRINT_CONFIG = "--print_config";
 
     private static final String ANDROID_MANIFEST_XML = "AndroidManifest.xml";
     private static final String RESOURCES_PB = "resources.pb";
@@ -60,6 +66,7 @@ public class BazelResourceShrinkerCli {
         private final List<String> dex_inputs = new ArrayList<>();
         private String output;
         private String usageLog;
+        private String printConfig;
         private Boolean preciseShrinking = Boolean.FALSE;
         private final List<String> rawResources = new ArrayList<>();
         private String proguardMapping;
@@ -127,6 +134,17 @@ public class BazelResourceShrinkerCli {
                                 "More than usage log not supported");
                     }
                     options.usageLog = args[i];
+                } else if (arg.startsWith(PRINT_CONFIG)) {
+                    i++;
+                    if (i == args.length) {
+                        throw new ResourceShrinkingFailedException(
+                                "No argument given for print config");
+                    }
+                    if (options.printConfig != null) {
+                        throw new ResourceShrinkingFailedException(
+                                "More than print config not supported");
+                    }
+                    options.printConfig = args[i];
                 } else if (arg.startsWith(RES_ARG)) {
                     i++;
                     if (i == args.length) {
@@ -186,14 +204,14 @@ public class BazelResourceShrinkerCli {
             validateOptions(options);
             ResourceShrinkerImpl resourceShrinker = runResourceShrinking(options);
             return resourceShrinker;
-        } catch (IOException | ParserConfigurationException | SAXException e) {
+        } catch (IOException | ParserConfigurationException | SAXException | IllegalAccessException | NoSuchFieldException e) {
             throw new ResourceShrinkingFailedException(
                     "Failed running resource shrinking: " + e.getMessage(), e);
         }
     }
 
     private static ResourceShrinkerImpl runResourceShrinking(Options options)
-            throws IOException, ParserConfigurationException, SAXException {
+            throws IOException, ParserConfigurationException, SAXException, IllegalAccessException, NoSuchFieldException {
         validateInput(options.getInput());
         List<ResourceUsageRecorder> resourceUsageRecorders = new ArrayList<>();
         for (String dexInput : options.dex_inputs) {
@@ -244,6 +262,16 @@ public class BazelResourceShrinkerCli {
                         false, // TODO(b/245721267): Add support for bundles
                         options.getPreciseShrinking());
         resourceShrinker.analyze();
+
+        // Dump resource config for use in `aapt2 optimize` command.
+        if (options.printConfig != null) {
+            try (PrintWriter out = new PrintWriter(Paths.get(options.printConfig).toFile())) {
+                Field modelField = resourceShrinker.getClass().getDeclaredField("model");
+                modelField.setAccessible(true);
+                ResourceShrinkerModel model = (ResourceShrinkerModel) modelField.get(resourceShrinker);
+                out.println(model.getResourceStore().dumpConfig());
+            }
+        }
 
         resourceShrinker.rewriteResourcesInApkFormat(
                 protoApk.toFile(), protoApkOut.toFile(), LinkedResourcesFormat.PROTO);
