@@ -767,6 +767,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             name = "optimize_ctx",
             value = struct(
                 proguard_output = proguard.create_empty_proguard_output(ctx, proguard_output_jar),
+                shrunk_resource_output = None,
                 providers = [],
             ),
         )
@@ -892,11 +893,12 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         name = "optimize_ctx",
         value = struct(
             proguard_output = proguard_output,
+            shrunk_resource_output = shrunk_resource_output,
             providers = providers,
         ),
     )
 
-def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx, ap_ctx, r8_ctx, **_unused_ctxs):
+def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx, ap_ctx, optimize_ctx, r8_ctx, resource_shrinking_r8_ctx, **_unused_ctxs):
     apk_packaging_ctx = struct()
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
         signing_keys = []
@@ -910,18 +912,34 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
             fail("Either R8 or Dex should be used, but not both!")
         dex_info = r8_ctx.dex_info if use_r8 else dex_ctx.dex_info
 
+        r8_shrunk_resources_output = None
+        if use_r8:
+            r8_shrunk_resources_output = resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk
+        if optimize_ctx.shrunk_resource_output and r8_shrunk_resources_output:
+            fail("Either R8 Resource Shrinking or Proguard Resource Shrinking should be used, but not both!")
+
+        if optimize_ctx.shrunk_resource_output:
+            resources_apk = optimize_ctx.shrunk_resource_output.resources_apk
+            merged_manifest = packaged_resources_ctx.processed_manifest
+        elif r8_shrunk_resources_output:
+            resources_apk = r8_shrunk_resources_output.resource_apk
+            merged_manifest = r8_shrunk_resources_output.manifest
+        else:
+            resources_apk = packaged_resources_ctx.resources_apk
+            merged_manifest = packaged_resources_ctx.processed_manifest
+
         apk_packaging_ctx = _apk_packaging.process(
             ctx,
             unsigned_apk = ctx.outputs.unsigned_apk,
             signed_apk = ctx.outputs.signed_apk,
-            resources_apk = packaged_resources_ctx.resources_apk,
+            resources_apk = resources_apk,
             final_classes_dex_zip = dex_info.final_classes_dex_zip,
             deploy_jar = dex_info.deploy_jar,
             native_libs = native_libs_ctx.native_libs_info.native_libs,
             native_libs_aars = native_libs_ctx.native_libs_info.transitive_native_libs,
             native_libs_name = native_libs_ctx.native_libs_info.native_libs_name,
             coverage_metadata = dex_info.deploy_jar if ctx.configuration.coverage_enabled else None,
-            merged_manifest = packaged_resources_ctx.processed_manifest,
+            merged_manifest = merged_manifest,
             art_profile_zip = ap_ctx.art_profile_zip,
             java_resources_zip = dex_info.java_resource_jar,
             compress_java_resources = ctx.fragments.android.compress_java_resources,
