@@ -89,7 +89,7 @@ def extract(target, ctx):
                 ctx.rule.attr.deps,
             ),
         ),
-        apk = target.android.apk,
+        apk = target[AndroidIdeInfo].signed_apk,
     )
 
 def adapt(target, ctx):
