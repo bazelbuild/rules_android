@@ -234,7 +234,6 @@ function check_android_sdk_provider() {
     write_platforms
     write_android_sdk_provider_platforms
     extra_args+=(
-      "--incompatible_enable_android_toolchain_resolution"
       "--platforms=//platforms:arm64-v8a"
     )
   else
