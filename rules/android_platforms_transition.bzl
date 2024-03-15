@@ -21,10 +21,6 @@ load(":min_sdk_version.bzl", "min_sdk_version")
 load(":utils.bzl", "utils")
 
 def _android_platforms_transition_impl(settings, attrs):
-    if not bool(utils.get_cls(settings, "incompatible_enable_android_toolchain_resolution")):
-        # Leave the configuration unchanged
-        return {}
-
     new_settings = dict(settings)
 
     android_platforms = utils.get_cls(settings, "android_platforms")
@@ -56,13 +52,11 @@ android_platforms_transition = transition(
     inputs = [
         "//command_line_option:android_platforms",
         "//command_line_option:platforms",
-        "//command_line_option:incompatible_enable_android_toolchain_resolution",
         min_sdk_version.SETTING,
     ],
     outputs = [
         "//command_line_option:android_platforms",
         "//command_line_option:platforms",
-        "//command_line_option:incompatible_enable_android_toolchain_resolution",
         min_sdk_version.SETTING,
     ],
 )
