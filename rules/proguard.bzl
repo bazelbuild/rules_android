@@ -340,6 +340,7 @@ def _get_proguard_output_resources(ctx):
 def _create_empty_proguard_output(
         ctx,
         proguard_output_jar,
+        proguard_output_config = None,
         proguard_output_map = None,
         proguard_seeds = None,
         proguard_usage = None):
@@ -352,6 +353,7 @@ def _create_empty_proguard_output(
     Args:
       ctx: The context.
       proguard_output_jar: File. The output optimized jar.
+      proguard_output_config: File. The output proguard config.
       proguard_output_map: File. The output proguard map.
       proguard_seeds: File. The output proguard seeds.
       proguard_usage: File. The output proguard usage.
@@ -363,6 +365,7 @@ def _create_empty_proguard_output(
     outputs = _get_proguard_output(
         ctx,
         proguard_output_jar = proguard_output_jar,
+        proguard_output_config = proguard_output_config,
         proguard_seeds = proguard_seeds,
         proguard_usage = proguard_usage,
         proguard_output_map = proguard_output_map,
@@ -392,6 +395,7 @@ def _apply_proguard(
         proguard_optimization_passes = None,
         proguard_mapping = None,
         proguard_output_jar = None,
+        proguard_output_config = None,
         proguard_output_map = None,
         proguard_seeds = None,
         proguard_usage = None,
@@ -408,6 +412,7 @@ def _apply_proguard(
       proguard_optimization_passes: Integer. The number of proguard passes to apply.
       proguard_mapping: File. The proguard mapping to apply.
       proguard_output_jar: File. The output optimized jar.
+      proguard_output_config: File. The output proguard config.
       proguard_output_map: File. The output proguard map.
       proguard_seeds: File. The output proguard seeds.
       proguard_usage: File. The output proguard usage.
@@ -423,6 +428,7 @@ def _apply_proguard(
         return _create_empty_proguard_output(
             ctx,
             proguard_output_jar,
+            proguard_output_config,
             proguard_output_map,
             proguard_seeds,
             proguard_usage,
@@ -441,6 +447,7 @@ def _apply_proguard(
         proguard_usage,
         proguard_mapping,
         proguard_output_jar,
+        proguard_output_config,
         proguard_optimization_passes,
         proguard_output_map,
         input_jar,
@@ -454,6 +461,7 @@ def _apply_proguard(
 def _get_proguard_output(
         ctx,
         proguard_output_jar,
+        proguard_output_config,
         proguard_seeds,
         proguard_usage,
         proguard_output_map,
@@ -469,8 +477,6 @@ def _get_proguard_output(
         proguard_output_proto_map = _get_proguard_temp_artifact(ctx, "_proguard.pbmap")
         ctx.actions.write(proguard_output_proto_map, content = "")
 
-    config_output = _get_proguard_temp_artifact(ctx, "_proguard.config")
-
     return struct(
         output_jar = proguard_output_jar,
         mapping = proguard_output_map,
@@ -478,7 +484,7 @@ def _get_proguard_output(
         seeds = proguard_seeds,
         usage = proguard_usage,
         library_jar = combined_library_jar,
-        config = config_output,
+        config = proguard_output_config,
         startup_profile_rewritten = startup_profile_rewritten,
         baseline_profile_rewritten = baseline_profile_rewritten,
         resource_files_rewritten = resource_files_rewritten,
@@ -491,6 +497,7 @@ def _create_optimization_actions(
         proguard_usage = None,
         proguard_mapping = None,
         proguard_output_jar = None,
+        proguard_output_config = None,
         num_passes = None,
         proguard_output_map = None,
         input_jar = None,
@@ -534,6 +541,7 @@ def _create_optimization_actions(
     outputs = _get_proguard_output(
         ctx,
         proguard_output_jar,
+        proguard_output_config,
         proguard_seeds,
         proguard_usage,
         proguard_output_map,
