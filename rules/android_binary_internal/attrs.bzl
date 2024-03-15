@@ -124,6 +124,10 @@ ATTRS = _attrs.replace(
             proguard_generate_mapping = attr.bool(default = False),
             proguard_optimization_passes = attr.int(),
             proguard_apply_mapping = attr.label(allow_single_file = True),
+            feature_flags = attr.label_keyed_string_dict(
+                allow_rules = ["config_feature_flag"],
+                providers = [config_common.FeatureFlagInfo],
+            ),
             multidex = attr.string(
                 default = "native",
                 values = ["native", "legacy", "manual_main_dex"],

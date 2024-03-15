@@ -817,6 +817,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             proguard_output_map = proguard.get_proguard_output_map(ctx)
 
     proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.jar")
+    proguard_output_config = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.config")
     proguard_seeds = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.seeds")
     proguard_usage = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.usage")
 
@@ -834,6 +835,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         proguard_specs = proguard_specs,
         proguard_optimization_passes = getattr(ctx.attr, "proguard_optimization_passes", None),
         proguard_output_jar = proguard_output_jar,
+        proguard_output_config = proguard_output_config,
         proguard_mapping = ctx.file.proguard_apply_mapping,
         proguard_output_map = proguard_output_map,
         proguard_seeds = proguard_seeds,

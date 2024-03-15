@@ -15,7 +15,6 @@
 """Starlark Android Binary for Android Rules."""
 
 load("//rules:acls.bzl", "acls")
-load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -71,7 +70,7 @@ def make_rule(
             "java",
             "cpp",
         ],
-        cfg = android_platforms_transition,
+        cfg = config_common.config_feature_flag_transition("feature_flags"),
         outputs = outputs,
     )
 
@@ -94,13 +93,12 @@ def sanitize_attrs(attrs, allowed_attrs = ATTRS.keys()):
     for attr_name in list(attrs.keys()):
         if attr_name not in allowed_attrs and attr_name not in _DEFAULT_ALLOWED_ATTRS:
             attrs.pop(attr_name, None)
-
-        # Some teams set this to a boolean/None which works for the native attribute but breaks
-        # the Starlark attribute.
-        if attr_name == "shrink_resources":
+        elif attr_name == "shrink_resources":
             if attrs[attr_name] == None:
                 attrs.pop(attr_name, None)
             else:
+                # Some teams set this to a boolean/None which works for the native attribute but breaks
+                # the Starlark attribute.
                 attrs[attr_name] = _attrs.tristate.normalize(attrs[attr_name])
 
     return attrs
