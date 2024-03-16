@@ -347,7 +347,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             library_jar = optimize_ctx.proguard_output.library_jar,
             proguard_output_map = proguard_output_map,
             postprocessing_output_map = postprocessing_output_map,
-            startup_profile = bp_ctx.baseline_profile_output.startup_profile if bp_ctx.baseline_profile_output else None,
+            startup_profile = optimize_ctx.proguard_output.startup_profile_rewritten,
             inclusion_filter_jar = binary_jar if is_instrumentation(ctx) and not is_binary_optimized else None,
             transitive_runtime_jars_for_archive = deploy_ctx.transitive_runtime_jars_for_archive,
             desugar_dict = deploy_ctx.desugar_dict,

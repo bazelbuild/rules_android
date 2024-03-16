@@ -658,7 +658,9 @@ def _optimized_dex_merge(
         param_file_args.add("--main-dex-list", main_dex_list)
 
     if startup_profile and native_multidex:
-        param_file_args.add("--startup-profile", startup_profile)
+        # Added to args instead of param_file_args since the addition of this flag should not
+        # push bash over the 4096 character line limit, and this simplifies testing.
+        args.add("--startup-profile", startup_profile)
         inputs.append(startup_profile)
 
     if min_sdk_config:
