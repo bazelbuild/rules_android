@@ -91,23 +91,23 @@ def _make_android_ide_info(
     # TODO(djwhang): JavaInfo.outputs.jar.manifest_proto is not created by
     # Kotlin compile. Determine if this is the same manifest_proto produced
     # by turbine, this could be pulled during annotation processing.
-    jar = _utils.only(java_info.outputs.jars)
-    if idl_java_srcs and jar.manifest_proto:
-        idl_jar = ctx.actions.declare_file("lib%s-idl.jar" % ctx.label.name)
-        idl_srcjar = \
-            ctx.actions.declare_file("lib%s-idl.srcjar" % ctx.label.name)
-
+    if idl_java_srcs:
         jar = _utils.only(java_info.outputs.jars)
-        _extract_idl_jars(
-            ctx,
-            idl_java_srcs = idl_java_srcs,
-            jar = jar.class_jar,
-            manifest_proto = jar.manifest_proto,
-            out_jar = idl_jar,
-            out_srcjar = idl_srcjar,
-            idlclass = idlclass,
-            host_javabase = host_javabase,
-        )
+        if jar.manifest_proto:
+            idl_jar = ctx.actions.declare_file("lib%s-idl.jar" % ctx.label.name)
+            idl_srcjar = \
+                ctx.actions.declare_file("lib%s-idl.srcjar" % ctx.label.name)
+
+            _extract_idl_jars(
+                ctx,
+                idl_java_srcs = idl_java_srcs,
+                jar = jar.class_jar,
+                manifest_proto = jar.manifest_proto,
+                out_jar = idl_jar,
+                out_srcjar = idl_srcjar,
+                idlclass = idlclass,
+                host_javabase = host_javabase,
+            )
 
     return AndroidIdeInfo(
         java_package,

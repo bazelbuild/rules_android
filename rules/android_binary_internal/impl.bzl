@@ -172,6 +172,7 @@ def _process_proto(_unused_ctx, **_unused_ctxs):
         value = struct(
             providers = [],
             class_jar = None,
+            java_info = None,
         ),
     )
 
@@ -196,7 +197,7 @@ def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_c
         ),
     )
 
-def _process_jvm(ctx, db_ctx, packaged_resources_ctx, stamp_ctx, **_unused_ctxs):
+def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_unused_ctxs):
     native_name = ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
     java_info = java.compile_android(
         ctx,
@@ -224,15 +225,19 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, stamp_ctx, **_unused_ctxs)
         constraints = ["android"],
     )
 
-    providers = []
-    if acls.in_android_binary_starlark_javac(str(ctx.label)):
-        providers.append(java_info)
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        java_infos = [java_info, packaged_resources_ctx.r_java]
+        if stamp_ctx.java_info:
+            java_infos.append(stamp_ctx.java_info)
+        if proto_ctx.java_info:
+            java_infos.append(proto_ctx.java_info)
+        java_info = java_common.merge(java_infos)
 
     return ProviderInfo(
         name = "jvm_ctx",
         value = struct(
             java_info = java_info,
-            providers = providers,
+            providers = [java_info],
         ),
     )
 
@@ -455,18 +460,22 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     binary_runtime_jars = []
     java_toolchain = common.get_java_toolchain(ctx)
 
-    java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
-    info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
-    incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
-    dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        java_info = jvm_ctx.java_info
+    else:
+        java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
+        binary_runtime_jars.append(packaged_resources_ctx.class_jar)
+        if proto_ctx.class_jar:
+            binary_runtime_jars.append(proto_ctx.class_jar)
     binary_runtime_jars += java_info.runtime_output_jars
-    binary_runtime_jars.append(packaged_resources_ctx.class_jar)
-    if proto_ctx.class_jar:
-        binary_runtime_jars.append(proto_ctx.class_jar)
+
     if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
         # In offline instrumentation mode, we add the Jacoco runtime to the classpath.
         binary_runtime_jars.extend(ctx.attr._jacoco_runtime[DefaultInfo].files.to_list())
 
+    info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
+    incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
     if ctx.fragments.android.desugar_java8:
         desugared_jars = []
         desugar_dict = {d.jar: d.desugared_jar for d in dex_archives if d.desugared_jar}
@@ -1030,9 +1039,9 @@ PROCESSORS = dict(
     ValidateManifestProcessor = _validate_manifest,
     NativeLibsProcessor = _process_native_libs,
     DataBindingProcessor = _process_data_binding,
+    ProtoProcessor = _process_proto,
     JvmProcessor = _process_jvm,
     BuildInfoProcessor = _process_build_info,
-    ProtoProcessor = _process_proto,
     DeployJarProcessor = _process_deploy_jar,
     BaselineProfilesProcessor = _process_baseline_profiles,
     OptimizeProcessor = _process_optimize,
