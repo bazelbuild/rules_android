@@ -41,10 +41,11 @@ def _patch_split_manifests(ctx, orig_manifest, split_manifests, out_manifest_pac
     args = ctx.actions.args()
     args.add("-in", orig_manifest)
     args.add("-split", ",".join(["%s:%s" % (k, v.path) for k, v in split_manifests.items()]))
+
+    # prefer setting hasCode to always false. Otherwise dex2oat runs on installation
     args.add("-attr", "application:hasCode:false")
     args.add("-pkg", out_manifest_package_name)
 
-    # prefer setting hasCode to always false. Otherwise dex2oat runs on installation
     ctx.actions.run(
         executable = ctx.executable._android_kit,
         arguments = ["patch", args],
@@ -54,7 +55,7 @@ def _patch_split_manifests(ctx, orig_manifest, split_manifests, out_manifest_pac
         progress_message = "MI Patch split manifests",
     )
 
-def _make_split_apk(ctx, dirs, dummy_dex, artifacts, debug_signing_keys, debug_signing_lineage_file, key_rotation_min_sdk, out):
+def _make_split_apk(ctx, dirs, artifacts, debug_signing_keys, debug_signing_lineage_file, key_rotation_min_sdk, out):
     unsigned = utils.isolated_declare_file(ctx, out.basename + "_unsigned", sibling = out)
 
     args = ctx.actions.args()
@@ -69,10 +70,6 @@ def _make_split_apk(ctx, dirs, dummy_dex, artifacts, debug_signing_keys, debug_s
     for d in dirs:
         inputs.append(d)
         dir_paths[d.dirname] = True
-
-    if dummy_dex:
-        inputs.append(dummy_dex)
-        dir_paths[dummy_dex.dirname] = True
 
     args.add_joined("-dir", dir_paths.keys(), join_with = ",")
 
@@ -153,7 +150,6 @@ def make_split_apks(
         _make_split_apk(
             ctx,
             [compiled] + dirs.get(k, []),
-            None,
             artifacts.get(k, []),
             debug_signing_keys,
             debug_signing_lineage_file,
@@ -167,21 +163,24 @@ def make_split_apks(
     _compile_android_manifest(ctx, manifest, resource_apk, compiled)
 
     # base needs to have code and declare it. Otherwise classpath will be empty :(
-    dummy_dex = utils.isolated_declare_file(ctx, "dex/classes.dex", sibling = sibling)
-    args = ctx.actions.args()
-    args.add("-out", dummy_dex)
-    ctx.actions.run(
-        executable = ctx.executable._android_kit,
-        arguments = ["mindex", args],
-        outputs = [dummy_dex],
-        mnemonic = "MakeMinimalDex",
-        progress_message = "MI Making minimal dex %s" % dummy_dex.path,
+    # Use legacy dex here
+    java8_legacy = utils.isolated_declare_file(ctx, ctx.label.name + "_mi/dex_java8_legacy/java8_legacy.zip")
+    ctx.actions.run_shell(
+        command = "cp $1 $2",
+        arguments = [
+            ctx.file._mi_java8_legacy_dex.path,
+            java8_legacy.path,
+        ],
+        inputs = [ctx.file._mi_java8_legacy_dex],
+        outputs = [java8_legacy],
+        mnemonic = "CopyJava8Legacy",
+        progress_message = "MI Copy %s to %s" % (ctx.file._mi_java8_legacy_dex.path, java8_legacy.path),
     )
 
     # Resources are now in the base apk to support RRO. Previously they were a separate split, but
     # base reinstalls no longer require a full reinstall.
     base = utils.isolated_declare_file(ctx, "splits/base.apk", sibling = sibling)
-    _make_split_apk(ctx, [compiled], dummy_dex, [resource_apk], debug_signing_keys, debug_signing_lineage_file, key_rotation_min_sdk, base)
+    _make_split_apk(ctx, [compiled], [resource_apk, java8_legacy], debug_signing_keys, debug_signing_lineage_file, key_rotation_min_sdk, base)
     splits.append(base)
 
     return manifest_package_name, splits

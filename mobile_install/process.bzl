@@ -18,7 +18,6 @@ load(":native_libs.bzl", "make_native_zip", "make_swigdeps_file")
 load(":providers.bzl", "MIAppInfo")
 load(":r_java.bzl", "make_r")
 load(":transform.bzl", "merge_dex_shards")
-load(":utils.bzl", "utils")
 
 def process(
         ctx,
@@ -78,20 +77,6 @@ def process(
         android_dex_info.transitive_dex_shards,
         sibling,
     )
-
-    java8_legacy = utils.isolated_declare_file(ctx, ctx.label.name + "_mi/dex_java8_legacy/java8_legacy.zip")
-    ctx.actions.run_shell(
-        command = "cp $1 $2",
-        arguments = [
-            ctx.file._mi_java8_legacy_dex.path,
-            java8_legacy.path,
-        ],
-        inputs = [ctx.file._mi_java8_legacy_dex],
-        outputs = [java8_legacy],
-        mnemonic = "CopyJava8Legacy",
-        progress_message = "MI Copy %s to %s" % (ctx.file._mi_java8_legacy_dex.path, java8_legacy.path),
-    )
-    merged_dex_shards.append(java8_legacy)
 
     # Creates the custom R.
     r_dex = make_r(

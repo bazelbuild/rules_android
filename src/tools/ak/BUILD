@@ -58,7 +58,6 @@ go_library(
         "//src/tools/ak/link",
         "//src/tools/ak/liteparse",
         "//src/tools/ak/manifest",
-        "//src/tools/ak/mindex",
         "//src/tools/ak/minsdkfloor",
         "//src/tools/ak/nativelib",
         "//src/tools/ak/patch",
