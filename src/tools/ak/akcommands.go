@@ -25,7 +25,6 @@ import (
 	"src/tools/ak/link/link"
 	"src/tools/ak/liteparse/liteparse"
 	"src/tools/ak/manifest/manifest"
-	"src/tools/ak/mindex/mindex"
 	"src/tools/ak/minsdkfloor/minsdkfloor"
 	"src/tools/ak/nativelib/nativelib"
 	"src/tools/ak/patch/patch"
@@ -45,7 +44,6 @@ var (
 		"liteparse":        liteparse.Cmd,
 		"generatemanifest": generatemanifest.Cmd,
 		"manifest":         manifest.Cmd,
-		"mindex":           mindex.Cmd,
 		"nativelib":        nativelib.Cmd,
 		"patch":            patch.Cmd,
 		"repack":           repack.Cmd,
