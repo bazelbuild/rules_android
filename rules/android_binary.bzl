@@ -162,7 +162,7 @@ def _symlink_outputs(
         _symlink(
             ctx,
             files,
-            output = ctx.actions.declare_file(ctx.label.name + "_files/shrinker.log"),
+            output = ctx.actions.declare_file(ctx.label.name + "_files/resource_shrinker.log"),
             target_file = target[AndroidOptimizationInfo].resource_shrinker_log,
         )
 
@@ -170,7 +170,7 @@ def _symlink_outputs(
         _symlink(
             ctx,
             files,
-            output = ctx.actions.declare_file(ctx.label.name + "_files/optimization.config"),
+            output = ctx.actions.declare_file(ctx.label.name + "_files/resource_optimization.cfg"),
             target_file = target[AndroidOptimizationInfo].resource_optimization_config,
         )
 
