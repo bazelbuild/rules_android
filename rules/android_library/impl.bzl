@@ -477,21 +477,6 @@ PROCESSORS = dict(
     BaselineProfilesProcessor = _process_baseline_profiles,
 )
 
-# TODO(b/119560471): Deprecate the usage of legacy providers.
-def _make_legacy_provider(intellij_ctx, jvm_ctx, providers):
-    return struct(
-        android = _intellij.make_legacy_android_provider(intellij_ctx.android_ide_info),
-        java = struct(
-            annotation_processing = jvm_ctx.java_info.annotation_processing,
-            outputs = jvm_ctx.java_info.outputs,
-            source_jars = depset(jvm_ctx.java_info.source_jars),
-            transitive_deps = jvm_ctx.java_info.transitive_compile_time_jars,
-            transitive_runtime_deps = jvm_ctx.java_info.transitive_runtime_jars,
-            transitive_source_jars = jvm_ctx.java_info.transitive_source_jars,
-        ),
-        providers = providers,
-    )
-
 def finalize(
         ctx,
         resources_ctx,
@@ -565,7 +550,7 @@ def finalize(
             _validation = depset(validation_outputs),
         ),
     ])
-    return _make_legacy_provider(intellij_ctx, jvm_ctx, providers)
+    return providers
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
     processors = PROCESSORS,
