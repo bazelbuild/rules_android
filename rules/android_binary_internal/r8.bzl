@@ -58,10 +58,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     # The deploy jar from the deploy_jar processor is not used because as of now, whether it
     # actually produces a deploy jar is determinted by a separate set of ACLs, and also does
     # desugaring differently than with R8.
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        deploy_jar = ctx.outputs.deploy_jar
-    else:
-        deploy_jar = ctx.actions.declare_file(ctx.label.name + "_deploy.jar")
+    deploy_jar = ctx.actions.declare_file(ctx.label.name + "_deploy.jar")
     java.create_deploy_jar(
         ctx,
         output = deploy_jar,
