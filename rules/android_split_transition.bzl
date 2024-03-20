@@ -40,23 +40,6 @@ def _android_split_transition_impl(settings, __):
         platforms_to_split = [target_platform]
     return _handle_android_platforms(settings, platforms_to_split)
 
-def _non_split_cpus(new_split_options, name, settings):
-    if not utils.get_cls(settings, "fat_apk_hwasan") or not name.contains("arm64-v8a"):
-        return
-
-    # A HWASAN build is different from a regular one in these ways:
-    # - The native library install directory gets a "-hwasan" suffix
-    # - Some compiler/linker command line options are different (defined in
-    #   the Android C++ toolchain)
-    # - The name of the output directory is changed so that HWASAN and
-    #   non-HWASAN artifacts do not conflict
-    new_settings = dict(settings)
-    new_settings.update({
-        utils.add_cls_prefix("cc_output_directory_tag"): "hwasan",
-        utils.add_cls_prefix("android hwasan"): True,
-    })
-    new_split_options[name + "-hwasan"] = new_settings
-
 def _handle_android_platforms(settings, platforms_to_split):
     """
     Splits the configuration based on the values of --android_platforms.
@@ -78,7 +61,6 @@ def _handle_android_platforms(settings, platforms_to_split):
         _cc_flags_from_android(settings, split_options)
 
         result[name] = split_options
-        _non_split_cpus(result, name, settings)
     return result
 
 def _cc_flags_from_android(settings, new_settings):
@@ -91,7 +73,6 @@ android_split_transition = transition(
     implementation = _android_split_transition_impl,
     inputs = [
         "//command_line_option:Android configuration distinguisher",
-        "//command_line_option:android hwasan",
         "//command_line_option:cc_output_directory_tag",
         "//command_line_option:android_compiler",
         "//command_line_option:android_dynamic_mode",
@@ -99,12 +80,10 @@ android_split_transition = transition(
         "//command_line_option:compiler",
         "//command_line_option:cpu",
         "//command_line_option:dynamic_mode",
-        "//command_line_option:fat_apk_hwasan",
         "//command_line_option:platforms",
     ],
     outputs = [
         "//command_line_option:Android configuration distinguisher",
-        "//command_line_option:android hwasan",
         "//command_line_option:cc_output_directory_tag",
         "//command_line_option:android_compiler",
         "//command_line_option:android_dynamic_mode",
@@ -112,7 +91,6 @@ android_split_transition = transition(
         "//command_line_option:compiler",
         "//command_line_option:cpu",
         "//command_line_option:dynamic_mode",
-        "//command_line_option:fat_apk_hwasan",
         "//command_line_option:platforms",
     ],
 )
