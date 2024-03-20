@@ -1027,6 +1027,22 @@ def _process_intellij(ctx, java_package, manifest_ctx, packaged_resources_ctx, j
         ),
     )
 
+def _process_coverage(ctx, **_unused_ctxs):
+    providers = []
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        providers.append(coverage_common.instrumented_files_info(
+            ctx,
+            source_attributes = ["srcs"],
+            dependency_attributes = ["assets", "deps", "instruments"],
+        ))
+
+    return ProviderInfo(
+        name = "coverage_ctx",
+        value = struct(
+            providers = providers,
+        ),
+    )
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
@@ -1052,6 +1068,7 @@ PROCESSORS = dict(
     IdlProcessor = _process_idl,
     ApkPackagingProcessor = _process_apk_packaging,
     IntellijProcessor = _process_intellij,
+    CoverageProcessor = _process_coverage,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
