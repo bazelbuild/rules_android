@@ -14,7 +14,6 @@
 
 """Starlark Android Binary for Android Rules."""
 
-load("//rules:acls.bzl", "acls")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -26,22 +25,10 @@ _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_
 
 _DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
 
-def _outputs(name, _package_name):
-    outputs = {}
-    label = "//%s:%s" % (_package_name, name)
-    if acls.in_android_binary_starlark_rollout(label):
-        outputs = dict(
-            deploy_jar = "%{name}_migrated_deploy.jar",
-            unsigned_apk = "%{name}_unsigned.apk",
-            signed_apk = "%{name}.apk",
-        )
-    return outputs
-
 def make_rule(
         attrs = ATTRS,
         implementation = impl,
         provides = _DEFAULT_PROVIDES,
-        outputs = _outputs,
         additional_toolchains = []):
     """Makes the rule.
 
@@ -71,7 +58,6 @@ def make_rule(
             "cpp",
         ],
         cfg = config_common.config_feature_flag_transition("feature_flags"),
-        outputs = outputs,
     )
 
 android_binary_internal = make_rule()

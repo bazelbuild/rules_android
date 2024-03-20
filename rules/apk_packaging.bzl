@@ -18,6 +18,7 @@ load(":java.bzl", "java")
 _PROVIDERS = "providers"
 _V4_SIGNATURE_FILE = "v4_signature_file"
 _DEPLOY_INFO = "deploy_info"
+_SIGNED_APK = "signed_apk"
 
 _ApkContextInfo = provider(
     "Apk Context Info",
@@ -25,6 +26,7 @@ _ApkContextInfo = provider(
         _PROVIDERS: "The list of all providers to propagate.",
         _V4_SIGNATURE_FILE: "The v4 signature file.",
         _DEPLOY_INFO: "A proto providing information about how to deploy and launch the APK",
+        _SIGNED_APK: "The signed APK.",
     },
 )
 
@@ -132,6 +134,8 @@ def _process(
         apk_signer = apk_signer,
         toolchain_type = toolchain_type,
     )
+
+    apk_packaging_ctx[_SIGNED_APK] = signed_apk
 
     deploy_info = ctx.actions.declare_file(ctx.label.name + "_files/deploy_info.deployinfo.pb")
     _create_deploy_info(

@@ -512,10 +512,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     else:
         runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jars])
 
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        output = ctx.outputs.deploy_jar
-    else:
-        output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
+    output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
     deploy_jar = java.create_deploy_jar(
         ctx,
         output = output,
@@ -607,11 +604,7 @@ def finalize(
       The list of providers the android_binary_internal rule should return.
     """
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        files = [
-            ctx.outputs.deploy_jar,
-            ctx.outputs.unsigned_apk,
-            ctx.outputs.signed_apk,
-        ]
+        files = []
 
         # TODO(zhaoqxu): Add other default outputs from proguard, resource shrinking, dex, etc.
         if apk_packaging_ctx.v4_signature_file:
@@ -939,10 +932,13 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
             resources_apk = packaged_resources_ctx.resources_apk
             merged_manifest = packaged_resources_ctx.processed_manifest
 
+        unsigned_apk = ctx.actions.declare_file(ctx.label.name + "_unsigned.apk")
+        signed_apk = ctx.actions.declare_file(ctx.label.name + ".apk")
+
         apk_packaging_ctx = _apk_packaging.process(
             ctx,
-            unsigned_apk = ctx.outputs.unsigned_apk,
-            signed_apk = ctx.outputs.signed_apk,
+            unsigned_apk = unsigned_apk,
+            signed_apk = signed_apk,
             resources_apk = resources_apk,
             final_classes_dex_zip = dex_info.final_classes_dex_zip,
             deploy_jar = dex_info.deploy_jar,
@@ -1003,7 +999,15 @@ def _process_idl(ctx, **_unused_ctxs):
         ),
     )
 
-def _process_intellij(ctx, java_package, manifest_ctx, packaged_resources_ctx, jvm_ctx, native_libs_ctx, **_unused_ctxs):
+def _process_intellij(
+        ctx,
+        java_package,
+        manifest_ctx,
+        packaged_resources_ctx,
+        jvm_ctx,
+        native_libs_ctx,
+        apk_packaging_ctx,
+        **_unused_ctxs):
     if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
         return ProviderInfo(name = "intellij_ctx", value = struct())
 
@@ -1016,7 +1020,7 @@ def _process_intellij(ctx, java_package, manifest_ctx, packaged_resources_ctx, j
         resources_apk = packaged_resources_ctx.resources_apk,
         r_jar = utils.only(packaged_resources_ctx.r_java.outputs.jars) if packaged_resources_ctx.r_java else None,
         java_info = jvm_ctx.java_info,
-        signed_apk = ctx.outputs.signed_apk,
+        signed_apk = apk_packaging_ctx.signed_apk,
         native_libs = native_libs_ctx.native_libs_info.native_libs,
     )
     return ProviderInfo(
