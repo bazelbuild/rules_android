@@ -48,6 +48,12 @@ java_plugin(
     ],
 )
 
+alias(
+    name = "zip",
+    actual = "//toolchains/android:zip",
+    visibility = ["//visibility:public"],
+)
+
 genrule(
     name = "full_desugar_jdk_libs_config_json",
     outs = ["full_desugar_jdk_libs_config.json"],
@@ -69,9 +75,41 @@ genrule(
     cmd = "$(location //src/tools/extract_desugar_pgcfg_flags) --input_json $(location :full_desugar_jdk_libs_config_json) --output_file $@"
 )
 
-alias(
+genrule(
+    name = "build_java8_legacy_dex_params",
+    outs = ["build_java8_legacy_dex_params.txt"],
+    cmd = "echo -n --min-api 24 > $@",
+    visibility = ["//visibility:private"],
+)
+
+genrule(
+    name = "desugared_jdk_libs_jar",
+    outs = ["desugared_jdk_libs.jar"],
+    srcs = ["@rules_android_maven//:com_android_tools_desugar_jdk_libs_nio"],
+    cmd = "cp $< $@",
+)
+
+sh_binary(
+    name = "build_java8_legacy_dex",
+    srcs = ["build_java8_legacy_dex.sh"],
+    data = [
+        "build_java8_legacy_dex_params",
+        ":minify_desugar_jdk_libs.pgcfg",
+        ":desugared_jdk_libs_jar",
+        ":d8",
+        ":r8",
+        ":tracereferences",
+        ":zip",
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
     name = "java8_legacy_dex",
-    actual = ":gen_fail",
+    outs = ["java8_legacy.dex.zip"],
+    cmd = "$(location :build_java8_legacy_dex) --output $@",
+    tools = [":build_java8_legacy_dex"],
     visibility = ["//visibility:public"],
 )
 
@@ -97,6 +135,13 @@ java_binary(
 java_binary(
     name = "r8",
     main_class = "com.android.tools.r8.R8",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@android_gmaven_r8//jar"],
+)
+
+java_binary(
+    name = "tracereferences",
+    main_class = "com.android.tools.r8.tracereferences.TraceReferences",
     visibility = ["//visibility:public"],
     runtime_deps = ["@android_gmaven_r8//jar"],
 )
