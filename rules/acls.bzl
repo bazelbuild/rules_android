@@ -60,6 +60,7 @@ load("//rules/acls:b122039567.bzl", "B122039567")
 load("//rules/acls:baseline_profiles_optimizer_integration.bzl", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION_FALLBACK")
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
+load("//rules/acls:disable_optimizing_dexer.bzl", "DISABLE_OPTIMIZING_DEXER")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
@@ -205,6 +206,9 @@ def _in_android_binary_starlark_rollout(fqn):
 def _in_android_binary_multidex_native_min_sdk_allowlist(fqn):
     return matches(fqn, ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST_DICT)
 
+def _in_disable_optimizing_dexer(fqn):
+    return matches(fqn, DISABLE_OPTIMIZING_DEXER_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -274,6 +278,7 @@ USE_R8_DICT = make_dict(USE_R8)
 ANDROID_BINARY_STARLARK_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_ROLLOUT)
 ANDROID_BINARY_STARLARK_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_FALLBACK)
 ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST_DICT = make_dict(ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST)
+DISABLE_OPTIMIZING_DEXER_DICT = make_dict(DISABLE_OPTIMIZING_DEXER)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -368,6 +373,7 @@ acls = struct(
     in_android_binary_starlark_rollout = _in_android_binary_starlark_rollout,
     in_android_binary_multidex_native_min_sdk_allowlist = _in_android_binary_multidex_native_min_sdk_allowlist,
     use_r8 = _use_r8,
+    in_disable_optimizing_dexer = _in_disable_optimizing_dexer,
 )
 
 # Visible for testing

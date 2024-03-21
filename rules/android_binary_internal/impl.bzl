@@ -303,7 +303,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             dex_list_obfuscator = get_android_toolchain(ctx).dex_list_obfuscator.files_to_run,
         )
 
-    should_optimize_dex = optimizing_dexer and proguarded_jar
+    should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
     if proguard_output_map:
         enable_postprocess_dexing = _dex.enable_postprocess_dexing(ctx)
 
@@ -797,7 +797,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         ctx.attr.proguard_generate_mapping or enable_resource_shrinking
     )
     desugar_java8_libs_generates_map = ctx.fragments.android.desugar_java8
-    optimizing_dexing = bool(ctx.attr._optimizing_dexer)
+    optimizing_dexing = bool(ctx.attr._optimizing_dexer) and not acls.in_disable_optimizing_dexer(str(ctx.label))
     enable_postprocess_dexing = _dex.enable_postprocess_dexing(ctx)
 
     if generate_proguard_map:
