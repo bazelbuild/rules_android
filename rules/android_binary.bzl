@@ -196,7 +196,10 @@ def _impl(ctx):
     )
 
     providers = [
-        DefaultInfo(files = depset(files)),
+        DefaultInfo(
+            files = depset(files),
+            runfiles = ctx.runfiles(transitive_files = depset(files)),
+        ),
     ] + [target[p] for p in _PROVIDERS if p in target]
 
     return providers
