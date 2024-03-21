@@ -523,7 +523,7 @@ def impl(ctx):
         ctx,
         native_libs,
         aar = aar,
-        android_cpu = ctx.fragments.android.android_cpu,
+        android_cpu = ctx.fragments.platform.platform.name,
         aar_native_libs_zip_creator_tool =
             _get_android_toolchain(ctx).aar_native_libs_zip_creator.files_to_run,
     )

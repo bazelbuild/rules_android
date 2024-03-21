@@ -24,7 +24,6 @@ SplitConfigInfo = provider(
     doc = "Provides information about configuration for a split config dep",
     fields = dict(
         build_config = "The build configuration of the dep.",
-        android_config = "Select fields from the android configuration of the dep.",
         target_platform = "The target platform label of the dep.",
     ),
 )
@@ -33,10 +32,6 @@ def _split_config_aspect_impl(__, ctx):
     android_cfg = ctx.fragments.android
     return SplitConfigInfo(
         build_config = ctx.configuration,
-        android_config = struct(
-            android_cpu = android_cfg.android_cpu,
-            hwasan = android_cfg.hwasan,
-        ),
         target_platform = ctx.fragments.platform.platform,
     )
 
@@ -45,10 +40,8 @@ split_config_aspect = aspect(
     fragments = ["android"],
 )
 
-def _get_libs_dir_name(android_config, target_platform):
+def _get_libs_dir_name(target_platform):
     name = target_platform.name
-    if android_config.hwasan:
-        name = name + "-hwasan"
     return name
 
 def process(ctx, filename, merged_native_libs = {}):
@@ -75,7 +68,6 @@ def process(ctx, filename, merged_native_libs = {}):
         cc_toolchain = cc_toolchain_dep[cc_common.CcToolchainInfo]
         build_config = cc_toolchain_dep[SplitConfigInfo].build_config
         libs_dir_name = _get_libs_dir_name(
-            cc_toolchain_dep[SplitConfigInfo].android_config,
             cc_toolchain_dep[SplitConfigInfo].target_platform,
         )
         linker_input = cc_common.create_linker_input(
