@@ -14,6 +14,7 @@
 
 """Bazel Dex Commands."""
 
+load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
@@ -56,7 +57,7 @@ def _process_incremental_dexing(
         min_sdk_config = None,
         toolchain_type = None):
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
-    should_optimize_dex = optimizing_dexer and proguarded_jar
+    should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
     incremental_dexopts = _filter_dexopts(
         tokenized_dexopts = dexopts,
         includes = ctx.fragments.android.get_dexopts_supported_in_incremental_dexing,
@@ -288,7 +289,7 @@ def _postprocess_dexing(
     return final_rex_package_map
 
 def _enable_postprocess_dexing(ctx):
-    return not getattr(ctx.attr, "_optimizing_dexer", None) and (
+    return (not getattr(ctx.attr, "_optimizing_dexer", None) and not acls.in_disable_optimizing_dexer(str(ctx.label))) and (
         ctx.fragments.android.use_rex_to_compress_dex_files or
         getattr(ctx.attr, "rewrite_dexes_with_rex", False)
     )
@@ -309,7 +310,7 @@ def _shard_proguarded_jar_and_dex(
     if num_shards <= 1:
         fail("num_shards expects to be larger than 1.")
 
-    should_optimize_dex = optimizing_dexer and proguarded_jar
+    should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
     shard_suffix = ".zip" if should_optimize_dex else ".jar.dex.zip"
     shards = _make_shard_artifacts(ctx, num_shards, shard_suffix)
     shuffle_outputs = _make_shard_artifacts(ctx, num_shards, ".jar")
