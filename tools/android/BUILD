@@ -166,7 +166,7 @@ genrule(
 genrule(
     name = "d8_desugar_params",
     outs = ["d8_desugar_params.txt"],
-    cmd = "echo -n --min-api 19 > $@",
+    cmd = "echo -n --min_sdk_version 19 > $@",
     visibility = ["//visibility:private"],
 )
 
