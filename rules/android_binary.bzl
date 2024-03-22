@@ -37,7 +37,6 @@ _PROVIDERS = [
     AndroidIdlInfo,
     AndroidInstrumentationInfo,
     AndroidPreDexJarInfo,
-    ApkInfo,
     DataBindingV2Info,
     JavaInfo,
     OutputGroupInfo,
@@ -199,6 +198,20 @@ def _impl(ctx):
         DefaultInfo(
             files = depset(files),
             runfiles = ctx.runfiles(transitive_files = depset(files)),
+        ),
+        # Reconstructing ApkInfo to use the "right" symlinked outputs. This is necessary because
+        # android_instrumentation_test rule gets the signed apk from ApkInfo and put it in in the
+        # runfiles, which can then be accessed by other tests or rules.
+        ApkInfo(
+            signed_apk = ctx.outputs.signed_apk,
+            unsigned_apk = ctx.outputs.unsigned_apk,
+            deploy_jar = ctx.outputs.deploy_jar,
+            coverage_metadata = target[ApkInfo].coverage_metadata,
+            # merged_manifest getter is not exposed in ApkInfo, so we have to get it from AndroidIdeInfo.
+            merged_manifest = target[AndroidIdeInfo].generated_manifest,
+            signing_keys = target[ApkInfo].signing_keys,
+            signing_lineage = target[ApkInfo].signing_lineage,
+            signing_min_v3_rotation_api_version = target[ApkInfo].signing_min_v3_rotation_api_version,
         ),
     ] + [target[p] for p in _PROVIDERS if p in target]
 
