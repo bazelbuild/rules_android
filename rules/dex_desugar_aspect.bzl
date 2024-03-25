@@ -69,8 +69,7 @@ def _aspect_impl(target, ctx):
 
     incremental_dexing = getattr(ctx.rule.attr, "incremental_dexing", _tristate.auto)
 
-    # TODO b/319113178: Take this from configured _min_sdk_version attribute
-    min_sdk_version = getattr(ctx.rule.attr, "min_sdk_version", 0)
+    min_sdk_version = _min_sdk_version.get(ctx)
 
     if incremental_dexing == _tristate.no or \
        (not ctx.fragments.android.use_incremental_dexing and
@@ -92,12 +91,10 @@ def _aspect_impl(target, ctx):
     if runtime_jars:
         basename_clash = _check_basename_clash(runtime_jars)
         aspect_dexopts = _get_aspect_dexopts(ctx)
-        min_sdk_filename_part = "--min_sdk_version=" + min_sdk_version if min_sdk_version > 0 else ""
         for jar in runtime_jars:
             if not ignore_desugar:
-                unique_desugar_filename = (jar.path if basename_clash else jar.basename) + \
-                                          min_sdk_filename_part + "_desugared.jar"
-                desugared_jar = _dex.get_dx_artifact(ctx, unique_desugar_filename)
+                unique_desugar_filename = (jar.path if basename_clash else jar.basename) + "_desugared.jar"
+                desugared_jar = _dex.get_dx_artifact(ctx, unique_desugar_filename, min_sdk_version)
                 _desugar.desugar(
                     ctx,
                     input = jar,
@@ -114,8 +111,8 @@ def _aspect_impl(target, ctx):
                 incremental_dexopts = "".join(incremental_dexopts_list)
 
                 unique_dx_filename = (jar.short_path if basename_clash else jar.basename) + \
-                                     incremental_dexopts + min_sdk_filename_part + ".dex.zip"
-                dex = _dex.get_dx_artifact(ctx, unique_dx_filename)
+                                     incremental_dexopts + ".dex.zip"
+                dex = _dex.get_dx_artifact(ctx, unique_dx_filename, min_sdk_version)
                 _dex.dex(
                     ctx,
                     input = desugared_jar if desugared_jar else jar,
