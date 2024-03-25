@@ -40,6 +40,11 @@ def _clamp(min_sdk_version):
     return clamped
 
 def _get(ctx):
+    # This is the case when an android_binary target does not set a value explicitly.
+    # The configuration value defaults to 0
+    # So in this case we use the depot floor.
+    if not ctx.attr._min_sdk_version[BuildSettingInfo].value:
+        return _DEPOT_FLOOR
     return ctx.attr._min_sdk_version[BuildSettingInfo].value
 
 min_sdk_version = struct(

@@ -24,6 +24,8 @@ def configurations(name = "configurations"):
         visibility = [
             "//mobile_install:__subpackages__",
             "//rules:__subpackages__",
+            "//test:__subpackages__",
+            "//third_party/java_src/desugar_jdk_libs:__subpackages__",
             # Visibility so that release mi can depend on the released version of this file
             # We do not expect released mi to depend on this head target, though
             "//tools/android/mi/bin/release:__subpackages__",

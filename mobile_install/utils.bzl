@@ -13,6 +13,7 @@
 # limitations under the License.
 """Utilities for by the Mobile-Install aspect."""
 
+load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules/flags:flags.bzl", "flags")
 load(":constants.bzl", "constants")
 
@@ -152,6 +153,7 @@ def dex(ctx, jar, out_dex_shards, deps = None, desugar = True):
       deps: The list of dependencies for the Jar being desugared.
       desugar: A boolean that determines whether to apply desugaring.
     """
+    min_sdk = _min_sdk_version.get(ctx)
     args = ctx.actions.args()
     args.use_param_file(param_file_arg = "-flagfile=%s", use_always = True)
     if desugar:
@@ -161,6 +163,7 @@ def dex(ctx, jar, out_dex_shards, deps = None, desugar = True):
             args.add_joined("-classpath", deps, join_with = ",")
         args.add("-desugar_core_libs", "True")
     args.add("-dexbuilder", ctx.executable._dexbuilder)
+    args.add("-min_sdk_version", min_sdk)
     args.add("-in", jar)
     args.add_joined("-out", out_dex_shards, join_with = ",")
 

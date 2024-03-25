@@ -31,7 +31,7 @@ def _android_platforms_transition_impl(settings, attrs):
     # 2. Otherwise, leave --platforms alone (this will probably lead to build errors).
     if android_platforms:
         # If the current value of --platforms is not one of the values of --android_platforms, change
-        # it to be the first one. If the curent --platforms is part of --android_platforms, leave it
+        # it to be the first one. If the current --platforms is part of --android_platforms, leave it
         # as-is.
         # NOTE: This does not handle aliases at all, so if someone is using aliases with platform
         # definitions this check will break.
@@ -39,10 +39,12 @@ def _android_platforms_transition_impl(settings, attrs):
             new_platforms = [android_platforms[0]]
 
     # We only attempt this transition for rules that have the min_sdk_version attribute and set it explicitly
-    if getattr(attrs, "min_sdk_version", 0):
+    # We do not transition the value if it was set previously. This can happen if an android_binary
+    # transitively depends on another android_binary. The value must be consistent throughout
+    # the entire android_binary configured target graph otherwise actions like Dex Mergining can
+    # fail.
+    if getattr(attrs, "min_sdk_version", 0) and not settings.get(min_sdk_version.SETTING, None):
         new_settings[min_sdk_version.SETTING] = min_sdk_version.clamp(getattr(attrs, "min_sdk_version", 0))
-        # TODO(asinclair): How does the instruments case work? The two binaries need to use the same value.
-        # If the setting is already set then we don't transition?
 
     new_settings[utils.add_cls_prefix("platforms")] = new_platforms
     return new_settings

@@ -24,6 +24,7 @@ load("//rules:dex.bzl", _dex = "dex")
 load("//rules:dex_desugar_aspect.bzl", _get_dex_desugar_aspect_deps = "get_aspect_deps")
 load("//rules:intellij.bzl", _intellij = "intellij")
 load("//rules:java.bzl", "java")
+load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load(
     "//rules:native_deps.bzl",
     _process_native_deps = "process",
@@ -347,7 +348,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             native_multidex = multidex == "native",
             runtime_jars = binary_runtime_jars,
             main_dex_list = main_dex_list,
-            min_sdk_version = ctx.attr.min_sdk_version,
+            min_sdk_version = _min_sdk_version.clamp(ctx.attr.min_sdk_version),
             proguarded_jar = proguarded_jar,
             library_jar = optimize_ctx.proguard_output.library_jar,
             proguard_output_map = proguard_output_map,
@@ -404,6 +405,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             android_jar = get_android_sdk(ctx).android_jar,
             binary_jar = binary_jar,
             build_customized_files = is_binary_optimized,
+            min_sdk_version = _min_sdk_version.clamp(ctx.attr.min_sdk_version),
         )
 
         if final_proguard_output_map:
@@ -488,7 +490,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
                 output = desugared_jar,
                 classpath = java_info.transitive_compile_time_jars,
                 bootclasspath = java_toolchain[java_common.JavaToolchainInfo].bootclasspath.to_list(),
-                min_sdk_version = ctx.attr.min_sdk_version,
+                min_sdk_version = _min_sdk_version.clamp(ctx.attr.min_sdk_version),
                 desugar_exec = get_android_toolchain(ctx).desugar.files_to_run,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )

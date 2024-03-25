@@ -86,6 +86,7 @@ bzl_library(
     srcs = ["utils.bzl"],
     deps = [
         ":constants",
+        "//rules:min_sdk_version_bzl",
         "//rules/flags:bzl",
     ],
 )
