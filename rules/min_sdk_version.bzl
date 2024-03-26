@@ -43,9 +43,12 @@ def _get(ctx):
     # This is the case when an android_binary target does not set a value explicitly.
     # The configuration value defaults to 0
     # So in this case we use the depot floor.
-    if not ctx.attr._min_sdk_version[BuildSettingInfo].value:
-        return _DEPOT_FLOOR
-    return ctx.attr._min_sdk_version[BuildSettingInfo].value
+    # TODO(asinclair): Uncomment this once android_binary is Starlarkified and the order of the
+    # Android Platforms Transition and Feature Flags transition is swapped.
+    # if not ctx.attr._min_sdk_version[BuildSettingInfo].value:
+    #     return _DEPOT_FLOOR
+    # return ctx.attr._min_sdk_version[BuildSettingInfo].value
+    return 0
 
 min_sdk_version = struct(
     attrs = _ATTRS,
