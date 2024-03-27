@@ -32,12 +32,15 @@ _ATTRS = dict(
 )
 
 def _clamp(min_sdk_version):
-    clamped = _MIN_SDK_LEVELS[0]
-    for m in _MIN_SDK_LEVELS:
-        if m > min_sdk_version:
-            return clamped
-        clamped = m
-    return clamped
+    # TODO(asinclair): Uncomment this once android_binary is Starlarkified and the order of the
+    # Android Platforms Transition and Feature Flags transition is swapped.
+    # clamped = _MIN_SDK_LEVELS[0]
+    # for m in _MIN_SDK_LEVELS:
+    #     if m > min_sdk_version:
+    #         return clamped
+    #     clamped = m
+    # return clamped
+    return 0
 
 def _get(ctx):
     # This is the case when an android_binary target does not set a value explicitly.
