@@ -3,3 +3,4 @@ bazel-*
 .ijwb
 # Android Studio Bazel Plugin
 .aswb
+*.swp

@@ -280,11 +280,11 @@ _ATTRS = dict(
     java8_legacy_dex = attr.label(
         allow_single_file = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:java8_legacy_dex",
+        default = Label("//tools/android:java8_legacy_dex"),
     ),
     build_java8_legacy_dex = attr.label(
         cfg = "exec",
-        default = "@bazel_tools//tools/android:build_java8_legacy_dex",
+        default = Label("//tools/android:build_java8_legacy_dex"),
         executable = True,
     ),
     dex_list_obfuscator = attr.label(

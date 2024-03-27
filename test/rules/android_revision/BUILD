@@ -1,8 +1,8 @@
 # Description:
 #   Tests for the AndroidRevisionInfo provider.
 
-load(":test.bzl", "android_revision_comparision_test", "android_revision_test")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(":test.bzl", "android_revision_comparision_test", "android_revision_test")
 
 licenses(["notice"])
 

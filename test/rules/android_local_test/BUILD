@@ -1,5 +1,5 @@
-load("//rules:rules.bzl", "android_local_test")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//rules:rules.bzl", "android_local_test")
 load(":java_launcher_integration_test.bzl", "android_local_test_launcher_integration_test_suite")
 load(":java_launcher_test.bzl", "android_local_test_launcher_test_suite")
 
