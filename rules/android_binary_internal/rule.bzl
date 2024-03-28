@@ -18,6 +18,7 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
 
@@ -51,6 +52,8 @@ def make_rule(
             "@bazel_tools//tools/jdk:toolchain_type",
         ] + additional_toolchains,
         _skylark_testable = True,
+        outputs = { 
+          "proguard_mapping" : "%{name}"  + "_proguard.map"},
         fragments = [
             "android",
             "bazel_android",  # NOTE: Only exists for Bazel
