@@ -16,6 +16,10 @@
 
 load(":attrs.bzl", _ATTRS = "ATTRS")
 load(":impl.bzl", _impl = "impl")
+load(
+    "//rules:providers.bzl",
+    "StarlarkAndroidResourcesInfo",
+)
 
 RULE_DOC = """
 #### Examples
@@ -52,6 +56,7 @@ aar_import = rule(
         AndroidLibraryResourceClassJarProvider,
         AndroidNativeLibsInfo,
         JavaInfo,
+        StarlarkAndroidResourcesInfo,
     ],
     toolchains = [
         "//toolchains/android:toolchain_type",
