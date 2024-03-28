@@ -228,17 +228,19 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
 
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
         java_infos = [java_info, packaged_resources_ctx.r_java]
-        if stamp_ctx.java_info:
-            java_infos.append(stamp_ctx.java_info)
         if proto_ctx.java_info:
             java_infos.append(proto_ctx.java_info)
         java_info = java_common.merge(java_infos)
+
+    providers = []
+    if acls.in_android_binary_starlark_javac(str(ctx.label)):
+        providers.append(java_info)
 
     return ProviderInfo(
         name = "jvm_ctx",
         value = struct(
             java_info = java_info,
-            providers = [java_info],
+            providers = providers,
         ),
     )
 
@@ -462,10 +464,8 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     binary_runtime_jars = []
     java_toolchain = common.get_java_toolchain(ctx)
 
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        java_info = jvm_ctx.java_info
-    else:
-        java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
+    java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
+    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
         binary_runtime_jars.append(packaged_resources_ctx.class_jar)
         if proto_ctx.class_jar:
             binary_runtime_jars.append(proto_ctx.class_jar)
