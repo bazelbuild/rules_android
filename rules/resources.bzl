@@ -23,18 +23,12 @@ load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
 load(":proguard.bzl", _proguard = "proguard")
-load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain")
 load(
     ":providers.bzl",
     "ResourcesNodeInfo",
     "StarlarkAndroidResourcesInfo",
 )
-load(
-    ":utils.bzl",
-    "utils",
-    _compilation_mode = "compilation_mode",
-    _log = "log",
-)
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils", _compilation_mode = "compilation_mode", _log = "log")
 
 _RESOURCE_FOLDER_TYPES = [
     "anim",
