@@ -110,11 +110,11 @@ def _extract_native_libs(
         ctx,
         output_zip,
         aar,
-        android_cpu,
+        cpu,
         aar_native_libs_zip_creator_tool):
     args = ctx.actions.args()
     args.add("--input_aar", aar)
-    args.add("--cpu", android_cpu)
+    args.add("--cpu", cpu)
     args.add("--output_zip", output_zip)
     ctx.actions.run(
         executable = aar_native_libs_zip_creator_tool,
@@ -519,12 +519,25 @@ def impl(ctx):
     providers.extend(jvm_ctx.providers)
     validation_outputs.extend(jvm_ctx.validation_results)
 
+    native_libs_cpu = None
+    for target, cpu in ctx.attr._cpu_constraints.items():
+        constraint = target[platform_common.ConstraintValueInfo]
+        if ctx.target_platform_has_constraint(constraint):
+            native_libs_cpu = cpu
+            break
+    if native_libs_cpu == None:
+        fail(("Target platform %s does not match one of the " +
+              "applicable CPU constraints for aar_import %s. " +
+              "Applicable CPU constraints are listed in " +
+              "https://blog.bazel.build/2023/11/15/android-platforms.html") %
+             (ctx.fragments.platform.platform, ctx.label))
+
     native_libs = create_aar_artifact(ctx, "native_libs.zip")
     _extract_native_libs(
         ctx,
         native_libs,
         aar = aar,
-        android_cpu = ctx.fragments.platform.platform.name,
+        cpu = native_libs_cpu,
         aar_native_libs_zip_creator_tool =
             _get_android_toolchain(ctx).aar_native_libs_zip_creator.files_to_run,
     )
