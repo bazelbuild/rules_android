@@ -35,6 +35,7 @@ load(
 load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
+    _get_android_sdk = "get_android_sdk",
     _get_android_toolchain = "get_android_toolchain",
     _utils = "utils",
 )
@@ -158,7 +159,7 @@ def _process_resources(
 
         # Tool and Processing related inputs
         aapt = _get_android_toolchain(ctx).aapt2.files_to_run,
-        android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,
+        android_jar = _get_android_sdk(ctx).android_jar,
         android_kit = _get_android_toolchain(ctx).android_kit.files_to_run,
         busybox = _get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         java_toolchain = _common.get_java_toolchain(ctx),

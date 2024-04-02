@@ -17,6 +17,7 @@
 load(":providers.bzl", "FailureInfo")
 
 ANDROID_TOOLCHAIN_TYPE = Label("//toolchains/android:toolchain_type")
+ANDROID_SDK_TOOLCHAIN_TYPE = Label("//toolchains/android_sdk:toolchain_type")
 
 _CUU = "\033[A"
 _EL = "\033[K"
@@ -419,7 +420,7 @@ def get_android_toolchain(ctx):
     return ctx.toolchains[ANDROID_TOOLCHAIN_TYPE]
 
 def get_android_sdk(ctx):
-    return ctx.toolchains["//toolchains/android_sdk:toolchain_type"].android_sdk_info
+    return ctx.toolchains[ANDROID_SDK_TOOLCHAIN_TYPE].android_sdk_info
 
 # Add command line setting prefix
 def _add_cls_prefix(name):

@@ -48,6 +48,8 @@ load(
 )
 load(
     "//rules:utils.bzl",
+    "ANDROID_SDK_TOOLCHAIN_TYPE",
+    "get_android_sdk",
     "get_android_toolchain",
     _log = "log",
 )
@@ -84,7 +86,7 @@ def _process_feature_module(
         base_apk,
         java_package,
         feature_target,
-        ctx.attr._android_sdk[AndroidSdkInfo].aapt2,
+        get_android_sdk(ctx).aapt2,
         ctx.executable._feature_manifest_script,
         ctx.executable._priority_feature_manifest_script,
         get_android_toolchain(ctx).android_resources_busybox,
@@ -124,7 +126,7 @@ def _process_feature_module(
         transitive_r_txts = [res.transitive_r_txts],
         additional_apks_to_link_against = [base_apk],
         proto_format = True,  # required for aab.
-        android_jar = ctx.attr._android_sdk[AndroidSdkInfo].android_jar,
+        android_jar = get_android_sdk(ctx).android_jar,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = _common.get_host_javabase(ctx),
@@ -403,6 +405,7 @@ android_application = rule(
     toolchains = [
         "//toolchains/android:toolchain_type",
         "@bazel_tools//tools/jdk:toolchain_type",
+        ANDROID_SDK_TOOLCHAIN_TYPE,
     ],
     _skylark_testable = True,
 )

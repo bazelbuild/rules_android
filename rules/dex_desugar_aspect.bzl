@@ -19,7 +19,7 @@ load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
 load(":min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load(":providers.bzl", "StarlarkAndroidDexInfo")
-load(":utils.bzl", _get_android_sdk = "get_android_sdk", _utils = "utils")
+load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", _get_android_sdk = "get_android_sdk", _utils = "utils")
 
 _tristate = _attrs.tristate
 
@@ -87,7 +87,7 @@ def _aspect_impl(target, ctx):
     dex_archives_dict = {}
     runtime_jars = _get_produced_runtime_jars(target, ctx, extra_toolchain_jars)
     bootclasspath = _get_boot_classpath(target, ctx)
-    compiletime_classpath = target[JavaInfo].transitive_compile_time_jars if JavaInfo in target else None
+    compiletime_classpath = target[JavaInfo].transitive_compile_time_jars if JavaInfo in target else depset([])
     if runtime_jars:
         basename_clash = _check_basename_clash(runtime_jars)
         aspect_dexopts = _get_aspect_dexopts(ctx)
@@ -169,13 +169,10 @@ def _get_produced_runtime_jars(target, ctx, extra_toolchain_jars):
         return jars
 
 def _get_platform_based_toolchain_jars(ctx):
-    if not getattr(ctx.rule.attr, "_android_sdk", None):
-        return []
+    android_sdk = _get_android_sdk(ctx)
 
-    android_sdk = ctx.rule.attr._android_sdk
-
-    if AndroidSdkInfo in android_sdk and android_sdk[AndroidSdkInfo].aidl_lib:
-        return android_sdk[AndroidSdkInfo].aidl_lib[JavaInfo].runtime_output_jars
+    if android_sdk.aidl_lib:
+        return android_sdk.aidl_lib[JavaInfo].runtime_output_jars
 
     return []
 
@@ -246,6 +243,8 @@ dex_desugar_aspect = aspect(
         _min_sdk_version.attrs,
     ),
     fragments = ["android"],
-    toolchains = ["//toolchains/android_sdk:toolchain_type"],
+    toolchains = [
+        ANDROID_SDK_TOOLCHAIN_TYPE,
+    ],
     required_aspect_providers = [[JavaInfo]],
 )
