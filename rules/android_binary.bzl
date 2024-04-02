@@ -141,6 +141,8 @@ def _symlink_outputs(
         # This happens when proguard_specs is empty or the rule is using R8 for optimization.
         return files
 
+    # TODO(zhaoqxu): Consider removing these symlinks and passing the files directly to the underlying
+    # android_binary_internal rule.
     if target[AndroidOptimizationInfo].optimized_resource_apk:
         _symlink(
             ctx,
@@ -186,18 +188,21 @@ def _symlink_outputs(
 def _impl(ctx):
     target = ctx.attr.application_resources
 
-    files = _symlink_outputs(
-        ctx,
-        target,
-        bool(ctx.attr.proguard_specs),
-        ctx.attr._generate_proguard_outputs,
-        ctx.attr.proguard_generate_mapping,
+    files = depset(
+        _symlink_outputs(
+            ctx,
+            target,
+            bool(ctx.attr.proguard_specs),
+            ctx.attr._generate_proguard_outputs,
+            ctx.attr.proguard_generate_mapping,
+        ),
+        transitive = [target[DefaultInfo].files],
     )
 
     providers = [
         DefaultInfo(
-            files = depset(files),
-            runfiles = ctx.runfiles(transitive_files = depset(files)),
+            files = files,
+            runfiles = ctx.runfiles(transitive_files = files),
         ),
         # Reconstructing ApkInfo to use the "right" symlinked outputs. This is necessary because
         # android_instrumentation_test rule gets the signed apk from ApkInfo and put it in in the
