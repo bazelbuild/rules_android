@@ -771,7 +771,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             name = "optimize_ctx",
             value = struct(
                 proguard_output = proguard.create_empty_proguard_output(ctx, proguard_output_jar),
-                shrunk_resource_output = None,
+                resources_apk = None,
                 providers = [],
             ),
         )
@@ -895,11 +895,15 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         ),
     )
 
+    optimized_resources_apk = optimized_resource_output.resources_apk
+    if not optimized_resources_apk and enable_resource_shrinking:
+        optimized_resources_apk = shrunk_resource_output.resources_apk
+
     return ProviderInfo(
         name = "optimize_ctx",
         value = struct(
             proguard_output = proguard_output,
-            shrunk_resource_output = shrunk_resource_output,
+            resources_apk = optimized_resources_apk,
             providers = providers,
         ),
     )
@@ -921,11 +925,11 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
         r8_shrunk_resources_output = None
         if use_r8:
             r8_shrunk_resources_output = resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk
-        if optimize_ctx.shrunk_resource_output and r8_shrunk_resources_output:
-            fail("Either R8 Resource Shrinking or Proguard Resource Shrinking should be used, but not both!")
+        if optimize_ctx.resources_apk and r8_shrunk_resources_output:
+            fail("Either R8 Resource Shrinking or Proguard Resource Shrinking/Optimization should be used, but not both!")
 
-        if optimize_ctx.shrunk_resource_output:
-            resources_apk = optimize_ctx.shrunk_resource_output.resources_apk
+        if optimize_ctx.resources_apk:
+            resources_apk = optimize_ctx.resources_apk
             merged_manifest = packaged_resources_ctx.processed_manifest
         elif r8_shrunk_resources_output:
             resources_apk = r8_shrunk_resources_output.resource_apk
