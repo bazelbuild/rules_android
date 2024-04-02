@@ -48,6 +48,7 @@ aar_import = rule(
     fragments = [
         "android",
         "bazel_android",  # NOTE: Only exists for Bazel
+        "platform",
     ],
     implementation = _impl_proxy,
     doc = RULE_DOC,

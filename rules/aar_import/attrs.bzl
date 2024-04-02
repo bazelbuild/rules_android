@@ -70,6 +70,20 @@ ATTRS = _attrs.add(
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
         ),
+        _cpu_constraints = attr.label_keyed_string_dict(
+            default = {
+                # The keys are labels to constraint_value targets representing the CPU for Android
+                # devices, and the key is the corresponding directory name for that CPU in the
+                # jni/ directory of an AAR. This is used to find the correct directory under jni/
+                # from the platform(s) specified with --android_platforms. See
+                # https://developer.android.com/studio/projects/android-library#aar-contents
+                "@platforms//cpu:arm64": "arm64-v8a",
+                "@platforms//cpu:armv7": "armeabi-v7a",
+                "@platforms//cpu:x86_32": "x86",
+                "@platforms//cpu:x86_64": "x86_64",
+                "@platforms//cpu:riscv64": "riscv64",
+            },
+        ),
     ),
     _attrs.DATA_CONTEXT,
     _attrs.ANDROID_TOOLCHAIN_ATTRS,

@@ -2,8 +2,8 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
-    default_visibility = ["//visibility:public"],
     default_applicable_licenses = [":license"],
+    default_visibility = ["//visibility:public"],
 )
 
 license(
@@ -50,6 +50,15 @@ platform(
     constraint_values =
         [
             "@platforms//cpu:arm64",
+            "@platforms//os:android",
+        ],
+)
+
+platform(
+    name = "riscv64",
+    constraint_values =
+        [
+            "@platforms//cpu:riscv64",
             "@platforms//os:android",
         ],
 )
