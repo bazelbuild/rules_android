@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
+load("@stardoc//stardoc:stardoc.bzl", "stardoc")
 
 exports_files([
     "data_binding_annotation_template.txt",
@@ -34,6 +36,7 @@ bzl_library(
         "bundletool.bzl",
         "busybox.bzl",
         "common.bzl",
+        "desugar.bzl",
         "data_binding.bzl",
         "idl.bzl",
         "instrumented_app_info_aspect.bzl",
@@ -55,6 +58,7 @@ bzl_library(
         "//rules/acls:bzl",
         "//rules/android_common:bzl",
         "//rules/flags:bzl",
+        "@bazel_skylib//lib:paths",
     ],
 )
 
@@ -88,6 +92,7 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":common_bzl",
+        "@bazel_skylib//lib:sets",
     ],
 )
 
@@ -106,11 +111,15 @@ bzl_library(
     deps = [
         ":android_binary_bzl",
         ":common_bzl",
+        ":min_sdk_version_bzl",
         "//rules/aar_import:bzl",
         "//rules/android_library:bzl",
         "//rules/android_sandboxed_sdk:bzl",
         "//rules/android_sdk_repository:bzl",
         "//rules/flags:bzl",
+        "//rules/android_application:bzl",
+        "//rules/android_local_test:bzl",
+        "@bazel_skylib//lib:collections",
     ],
 )
 
@@ -126,4 +135,21 @@ int_setting(
     visibility = [
         "//:__subpackages__",
     ],
+)
+
+bzl_library(
+    name = "doc_rules",
+    deps = [":bzl"],
+)
+
+stardoc(
+    name = "stardoc",
+    input = "doc_rules.bzl",
+    out = "stardoc.md",
+    deps = [":doc_rules"],
+)
+
+build_test(
+    name = "stardoc_build_test",
+    targets = [":stardoc"],
 )

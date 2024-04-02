@@ -27,6 +27,7 @@ bzl_library(
         "//rules/android_sandboxed_sdk:bzl",
         "//rules/flags:bzl",
     ],
+    visibility = ["//rules:__pkg__"],
 )
 
 py_binary(
