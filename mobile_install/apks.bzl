@@ -13,17 +13,19 @@
 # limitations under the License.
 """Creates the apk(s)."""
 
+load("//rules:utils.bzl", "get_android_sdk")
 load(":utils.bzl", "utils")
 
 def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
     """Compile AndroidManifest.xml."""
+    android_jar = get_android_sdk(ctx).android_jar
     args = ctx.actions.args()
     args.use_param_file(param_file_arg = "-flagfile=%s", use_always = True)
     args.set_param_file_format("multiline")
     args.add("-aapt2", ctx.executable._aapt2)
     args.add("-manifest", manifest)
     args.add("-out", out_manifest)
-    args.add("-sdk_jar", utils.first(ctx.attr._android_sdk[DefaultInfo].files.to_list()))
+    args.add("-sdk_jar", android_jar)
     args.add("-res", resources_zip)
     args.add("-force_debuggable=true")
 
@@ -31,7 +33,7 @@ def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
         executable = ctx.executable._android_kit,
         arguments = ["manifest", args],
         tools = [ctx.executable._aapt2],
-        inputs = [manifest, resources_zip] + ctx.attr._android_sdk[DefaultInfo].files.to_list(),
+        inputs = [manifest, resources_zip, android_jar],
         outputs = [out_manifest],
         mnemonic = "CompileAndroidManifest",
         progress_message = "MI Compiling AndroidManifest.xml from " + manifest.path,

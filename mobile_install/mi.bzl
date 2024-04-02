@@ -14,6 +14,7 @@
 """Aspect for mobile-install."""
 
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
+load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules/flags:flags.bzl", "flags")
 load(":adapters.bzl", "adapters")
 load(":debug.bzl", "debug")
@@ -72,6 +73,9 @@ def make_aspect(
         ],
         fragments = ["cpp", "java"],
         implementation = aspect_impl,
+        toolchains = [
+            ANDROID_SDK_TOOLCHAIN_TYPE,
+        ],
     )
 
 # MIASPECT allows you to run the aspect directly on a Blaze/Bazel command.
