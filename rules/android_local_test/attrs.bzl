@@ -51,7 +51,7 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
             jvm_flags = attr.string_list(
                 doc = """
                 A list of flags to embed in the wrapper script generated for running this binary.
-                Subject to [$(location / execpath / rootpath)](https://docs.bazel.build/versions/main/be/make-variables.html#predefined_label_variables) and
+                Subject to [`$(location / execpath / rootpath)`](https://docs.bazel.build/versions/main/be/make-variables.html#predefined_label_variables) and
                 ["Make variable"](https://docs.bazel.build/versions/main/be/make-variables.html) substitution, and
                 [Bourne shell tokenization](https://docs.bazel.build/versions/main/be/common-definitions.html#sh-tokenization).
 
@@ -173,7 +173,7 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
                       "superset listing.",
             ),
             env = attr.string_dict(
-                doc = "A dictionary of environment variables set for the execution of the test. Will be subject to make variable and $(location) expansion.",
+                doc = "A dictionary of environment variables set for the execution of the test. Will be subject to make variable and `$(location)` expansion.",
             ),
             # TODO(jiayanl): Change this back to a string once Bazel is fully moved to bzlmod
             robolectric_properties_file = attr.label(
