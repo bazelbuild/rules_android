@@ -296,7 +296,7 @@ def android_binary_macro(**attrs):
             application_resources = android_binary_internal_name,
             **add_migration_tag(sanitize_attrs(
                 attrs,
-                allowed_attrs = _ATTRS.keys() + ["$generate_proguard_outputs"],
+                allowed_attrs = list(_ATTRS.keys()) + ["$generate_proguard_outputs"],
             ))
         )
     else:
