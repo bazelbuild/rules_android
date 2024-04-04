@@ -27,4 +27,7 @@ bzl_library(
         "//test:__subpackages__",
         "//tools/build_defs/android:__subpackages__",
     ],
+    deps = [
+        "@rules_java//java:core_rules",
+    ],
 )
