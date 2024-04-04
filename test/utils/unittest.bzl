@@ -11,15 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel lib that provides test helpers for testing."""
 
-load(":file.bzl", _file = "file")
+load("@rules_java//java:java_library.bzl", "java_library")
 load(
     "@bazel_skylib//lib:unittest.bzl",
     _analysistest = "analysistest",
     _unittest = "unittest",
 )
+load(":file.bzl", _file = "file")
 
 TestInfo = provider(
     doc = "Provides a test a suggested set of attributes.",
@@ -66,7 +66,7 @@ def _fake_java_library(name):
     class_name = "".join(
         [part.title() for part in name.replace("-", "_").split("_")],
     )
-    native.java_library(
+    java_library(
         name = name,
         srcs = [_file.create(
             class_name + ".java",
