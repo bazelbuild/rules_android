@@ -61,6 +61,7 @@ var (
 	desugar, androidJar, dexbuilder, in string
 	classpaths, outs, outputDir         flags.StringList
 	desugarCoreLibs                     bool
+	desugaredLibConfig                  string
 	minSdkVersion                       int
 
 	initOnce sync.Once
@@ -73,6 +74,7 @@ func Init() {
 		flag.StringVar(&androidJar, "android_jar", "", "Required for desugar, path to android.jar")
 		flag.Var(&classpaths, "classpath", "(Optional) Path to library resource(s) for desugar")
 		flag.BoolVar(&desugarCoreLibs, "desugar_core_libs", false, "Desugar Java 8 core libs, default false")
+		flag.StringVar(&desugaredLibConfig, "desugared_lib_config", "", "Path to desugared lib config")
 		flag.StringVar(&dexbuilder, "dexbuilder", "", "Path to dexbuilder")
 		flag.StringVar(&in, "in", "", "Path to input")
 		flag.Var(&outs, "out", "Path to output, if more than one specified, output is sharded across files.")
@@ -185,6 +187,10 @@ func desugarJar(in, out string) error {
 	}
 	if desugarCoreLibs {
 		args = append(args, "--desugar_supported_core_libs")
+
+		if desugaredLibConfig != "" {
+			args = append(args, "--desugared_lib_config", desugaredLibConfig)
+		}
 	}
 	for _, cp := range classpaths {
 		args = append(args, "--classpath_entry", cp)
