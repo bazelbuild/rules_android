@@ -123,12 +123,16 @@ def _symlink_outputs(
             target_file = target[AndroidOptimizationInfo].usage,
         )
 
-        if proguard_generate_mapping:
+        final_proguard_output_map = target[AndroidDexInfo].final_proguard_output_map
+        if final_proguard_output_map:
             _symlink(
                 ctx,
                 files,
-                output = ctx.outputs.proguard_map,
-                target_file = target[AndroidDexInfo].final_proguard_output_map,
+                # proguard_output_map can be generated when flag proguard_generate_mapping is False
+                # but resource shrinking is enabled. Under that case, we should still symlink the
+                # proguard map and put it in the implicit output files list.
+                output = ctx.outputs.proguard_map if proguard_generate_mapping else ctx.actions.declare_file(ctx.label.name + "_proguard.map"),
+                target_file = final_proguard_output_map,
             )
     elif generate_proguard_outputs:
         proguard.create_empty_proguard_output(
