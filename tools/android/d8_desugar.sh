@@ -49,9 +49,16 @@ if [[ "$#" -gt 0 ]]; then
     @*)
       params="${TMPDIR}/desugar.params"
       cat "${arg:1}" > "${params}"  # cp would create file readonly
-      for o in "${DESUGAR_CONFIG[@]}"; do
-        echo "${o}" >> "${params}"
-      done
+
+      # If --desugared_lib_config already in params file, don't add it again.
+      set +e
+      has_desugared_lib_config=$(grep -c "\-\-desugared_lib_config" "$params")
+      set -e
+      if [[ "$has_desugared_lib_config" == 0 ]]; then
+        for o in "${DESUGAR_CONFIG[@]}"; do
+          echo "${o}" >> "${params}"
+        done
+      fi
       "$DESUGAR_BINARY" \
           "@${params}"
       # temp dir deleted by TRAP installed above
