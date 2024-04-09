@@ -15,7 +15,7 @@
 """Attributes."""
 
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
-load("//rules:android_split_transition.bzl", "android_split_transition")
+load("//rules:android_split_transition.bzl", "android_split_transition", "android_transition")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -97,7 +97,7 @@ ATTRS = _attrs.replace(
                 optimizations that are enabled by `startup_profiles`.
                 """,
             ),
-            proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
+            proguard_specs = attr.label_list(allow_empty = True, allow_files = True, cfg = android_transition),
             resource_apks = attr.label_list(
                 allow_rules = ["apk_import"],
                 providers = [
@@ -114,9 +114,9 @@ ATTRS = _attrs.replace(
                 default = _attrs.tristate.auto,
             ),
             dexopts = attr.string_list(),
-            main_dex_list = attr.label(allow_single_file = True),
+            main_dex_list = attr.label(allow_single_file = True, cfg = android_transition),
             main_dex_list_opts = attr.string_list(),
-            main_dex_proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
+            main_dex_proguard_specs = attr.label_list(allow_empty = True, allow_files = True, cfg = android_transition),
             min_sdk_version = attr.int(),
             incremental_dexing = _attrs.tristate.create(
                 default = _attrs.tristate.auto,
@@ -224,7 +224,7 @@ ATTRS = _attrs.replace(
                 """,
             ),
         ),
-        _attrs.COMPILATION,
+        _attrs.compilation_attributes(apply_android_transition = True),
         _attrs.DATA_CONTEXT,
         _attrs.ANDROID_TOOLCHAIN_ATTRS,
         _attrs.AUTOMATIC_EXEC_GROUPS_ENABLED,
@@ -232,5 +232,7 @@ ATTRS = _attrs.replace(
     # TODO(b/167599192): don't override manifest attr to remove .xml file restriction.
     manifest = attr.label(
         allow_single_file = True,
+        # TODO(b/328051443): Apply the android_transition
+        cfg = "target",
     ),
 )

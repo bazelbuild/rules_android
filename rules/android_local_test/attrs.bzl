@@ -223,7 +223,7 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
                 default = "//rules/flags:manifest_merge_order",
             ),
         ),
-        _attrs.COMPILATION,
+        _attrs.compilation_attributes(),
         _attrs.DATA_CONTEXT,
         _attrs.AUTOMATIC_EXEC_GROUPS_ENABLED,
     )

@@ -14,6 +14,7 @@
 
 """Common attributes for Android rules."""
 
+load("//rules:android_split_transition.bzl", "android_transition")
 load(":native_toolchain_attrs.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE_DEFAULT")
 load(":utils.bzl", "log")
 
@@ -101,91 +102,95 @@ _ANDROID_SDK = dict(
 
 
 # Compilation attributes for Android rules.
-_COMPILATION = _add(
-    dict(
-        assets = attr.label_list(
-            allow_files = True,
-            cfg = "target",
-            doc = ("The list of assets to be packaged. This is typically a glob of " +
-                   "all files under the assets directory. You can also reference " +
-                   "other rules (any rule that produces files) or exported files in " +
-                   "the other packages, as long as all those files are under the " +
-                   "assets_dir directory in the corresponding package."),
-        ),
-        assets_dir = attr.string(
-            doc = ("The string giving the path to the files in assets. " +
-                   "The pair assets and assets_dir describe packaged assets and either both " +
-                   "attributes should be provided or none of them."),
-        ),
-        custom_package = attr.string(
-            doc = ("Java package for which java sources will be generated. " +
-                   "By default the package is inferred from the directory where the BUILD file " +
-                   "containing the rule is. You can specify a different package but this is " +
-                   "highly discouraged since it can introduce classpath conflicts with other " +
-                   "libraries that will only be detected at runtime."),
-        ),
-        manifest = attr.label(
-            allow_single_file = [".xml"],
-            doc = ("The name of the Android manifest file, normally " +
-                   "AndroidManifest.xml. Must be defined if resource_files or assets are defined."),
-        ),
-        resource_files = attr.label_list(
-            allow_files = True,
-            doc = ("The list of resources to be packaged. This " +
-                   "is typically a glob of all files under the res directory. Generated files " +
-                   "(from genrules) can be referenced by Label here as well. The only " +
-                   "restriction is that the generated outputs must be under the same \"res\" " +
-                   "directory as any other resource files that are included."),
-        ),
-        data = attr.label_list(
-            allow_files = True,
-            doc = (
-                "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.\n\n" +
-                "The default outputs and runfiles of targets in the `data` attribute should appear in the `*.runfiles` area of" +
-                "any executable which is output by or has a runtime dependency on this target. " +
-                "This may include data files or binaries used when this target's " +
-                "[srcs](https://docs.bazel.build/versions/main/be/common-definitions.html#typical.srcs) are executed. " +
-                "See the [data dependencies](https://docs.bazel.build/versions/main/build-ref.html#data) section " +
-                "for more information about how to depend on and use data files.\n\n" +
-                "New rules should define a `data` attribute if they process inputs which might use other inputs at runtime. " +
-                "Rules' implementation functions must also " +
-                "[populate the target's runfiles](https://docs.bazel.build/versions/main/skylark/rules.html#runfiles) " +
-                "from the outputs and runfiles of any `data` attribute, as well as runfiles from any dependency attribute " +
-                "which provides either source code or runtime dependencies."
+def _compilation_attributes(apply_android_transition = False):
+    return _add(
+        dict(
+            assets = attr.label_list(
+                allow_files = True,
+                cfg = "target",
+                doc = ("The list of assets to be packaged. This is typically a glob of " +
+                       "all files under the assets directory. You can also reference " +
+                       "other rules (any rule that produces files) or exported files in " +
+                       "the other packages, as long as all those files are under the " +
+                       "assets_dir directory in the corresponding package."),
             ),
-        ),
-        plugins = attr.label_list(
-            providers = [JavaPluginInfo],
-            cfg = "exec",
-            doc = (
-                "Java compiler plugins to run at compile-time. " +
-                "Every `java_plugin` specified in the plugins attribute will be run whenever this rule is built. " +
-                "A library may also inherit plugins from dependencies that use [exported_plugins](https://docs.bazel.build/versions/main/be/java.html#java_library.exported_plugins). " +
-                "Resources generated by the plugin will be included in the resulting jar of this rule."
+            assets_dir = attr.string(
+                doc = ("The string giving the path to the files in assets. " +
+                       "The pair assets and assets_dir describe packaged assets and either both " +
+                       "attributes should be provided or none of them."),
             ),
-        ),
-        javacopts = attr.string_list(
-            doc = (
-                "Extra compiler options for this library. " +
-                "Subject to \"[Make variable](https://docs.bazel.build/versions/main/be/make-variables.html)\" substitution and " +
-                "[Bourne shell tokenization](https://docs.bazel.build/versions/main/be/common-definitions.html#sh-tokenization).\n" +
-                "These compiler options are passed to javac after the global compiler options."
+            custom_package = attr.string(
+                doc = ("Java package for which java sources will be generated. " +
+                       "By default the package is inferred from the directory where the BUILD file " +
+                       "containing the rule is. You can specify a different package but this is " +
+                       "highly discouraged since it can introduce classpath conflicts with other " +
+                       "libraries that will only be detected at runtime."),
             ),
+            manifest = attr.label(
+                allow_single_file = [".xml"],
+                cfg = android_transition if apply_android_transition else "target",
+                doc = ("The name of the Android manifest file, normally " +
+                       "AndroidManifest.xml. Must be defined if resource_files or assets are defined."),
+            ),
+            resource_files = attr.label_list(
+                allow_files = True,
+                cfg = android_transition if apply_android_transition else "target",
+                doc = ("The list of resources to be packaged. This " +
+                       "is typically a glob of all files under the res directory. Generated files " +
+                       "(from genrules) can be referenced by Label here as well. The only " +
+                       "restriction is that the generated outputs must be under the same \"res\" " +
+                       "directory as any other resource files that are included."),
+            ),
+            data = attr.label_list(
+                allow_files = True,
+                cfg = android_transition if apply_android_transition else "target",
+                doc = (
+                    "Files needed by this rule at runtime. May list file or rule targets. Generally allows any target.\n\n" +
+                    "The default outputs and runfiles of targets in the `data` attribute should appear in the `*.runfiles` area of" +
+                    "any executable which is output by or has a runtime dependency on this target. " +
+                    "This may include data files or binaries used when this target's " +
+                    "[srcs](https://docs.bazel.build/versions/main/be/common-definitions.html#typical.srcs) are executed. " +
+                    "See the [data dependencies](https://docs.bazel.build/versions/main/build-ref.html#data) section " +
+                    "for more information about how to depend on and use data files.\n\n" +
+                    "New rules should define a `data` attribute if they process inputs which might use other inputs at runtime. " +
+                    "Rules' implementation functions must also " +
+                    "[populate the target's runfiles](https://docs.bazel.build/versions/main/skylark/rules.html#runfiles) " +
+                    "from the outputs and runfiles of any `data` attribute, as well as runfiles from any dependency attribute " +
+                    "which provides either source code or runtime dependencies."
+                ),
+            ),
+            plugins = attr.label_list(
+                providers = [JavaPluginInfo],
+                cfg = "exec",
+                doc = (
+                    "Java compiler plugins to run at compile-time. " +
+                    "Every `java_plugin` specified in the plugins attribute will be run whenever this rule is built. " +
+                    "A library may also inherit plugins from dependencies that use [exported_plugins](https://docs.bazel.build/versions/main/be/java.html#java_library.exported_plugins). " +
+                    "Resources generated by the plugin will be included in the resulting jar of this rule."
+                ),
+            ),
+            javacopts = attr.string_list(
+                doc = (
+                    "Extra compiler options for this library. " +
+                    "Subject to \"[Make variable](https://docs.bazel.build/versions/main/be/make-variables.html)\" substitution and " +
+                    "[Bourne shell tokenization](https://docs.bazel.build/versions/main/be/common-definitions.html#sh-tokenization).\n" +
+                    "These compiler options are passed to javac after the global compiler options."
+                ),
+            ),
+            # TODO: Expose getPlugins() in JavaConfiguration.java
+            #       com/google/devtools/build/lib/rules/java/JavaConfiguration.java
+            #       com/google/devtools/build/lib/rules/java/JavaOptions.java
+            #
+            # _java_plugins = attr.label(
+            #     allow_rules = ["java_plugin"],
+            #     default = configuration_field(
+            #         fragment = "java",
+            #         name = "plugin",
+            #     ),
+            # ),
         ),
-        # TODO: Expose getPlugins() in JavaConfiguration.java
-        #       com/google/devtools/build/lib/rules/java/JavaConfiguration.java
-        #       com/google/devtools/build/lib/rules/java/JavaOptions.java
-        #
-        # _java_plugins = attr.label(
-        #     allow_rules = ["java_plugin"],
-        #     default = configuration_field(
-        #         fragment = "java",
-        #         name = "plugin",
-        #     ),
-        # ),
-    ),
-    _JAVA_RUNTIME,
-)
+        _JAVA_RUNTIME,
+    )
 
 # Attributes for rules that use the AndroidDataContext android_data.make_context
 _DATA_CONTEXT = _add(
@@ -352,7 +357,7 @@ _AUTOMATIC_EXEC_GROUPS_ENABLED = dict(
 
 attrs = struct(
     ANDROID_SDK = _ANDROID_SDK,
-    COMPILATION = _COMPILATION,
+    compilation_attributes = _compilation_attributes,
     DATA_CONTEXT = _DATA_CONTEXT,
     JAVA_RUNTIME = _JAVA_RUNTIME,
     ANDROID_TOOLCHAIN_ATTRS = _ANDROID_TOOLCHAIN_ATTRS,
