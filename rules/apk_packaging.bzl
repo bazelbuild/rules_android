@@ -218,11 +218,16 @@ def _build_apk(
         java_toolchain = java_toolchain,
     )
 
-    inputs = [compressed_apk, resources_apk]
+    inputs = [compressed_apk]
     if art_profile_zip:
         inputs.append(art_profile_zip)
     if not compress_java_resources and extracted_java_resources_zip:
         inputs.append(extracted_java_resources_zip)
+
+    # Resources apk must appear after extracted Java resources due to some teams hacking the build
+    # and supplying their own resources.arsc via a java_import. In the case of duplicates, the
+    # singlejar action will take the first version of a file it sees.
+    inputs.append(resources_apk)
 
     resources = []
     resource_paths = []
