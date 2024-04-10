@@ -249,7 +249,7 @@ def make_rule(attrs = _ATTRS):
     return rule(
         attrs = attrs,
         implementation = _impl,
-        provides = [ApkInfo],
+        provides = [ApkInfo, JavaInfo],
         cfg = android_platforms_transition,
         outputs = _outputs,
     )
