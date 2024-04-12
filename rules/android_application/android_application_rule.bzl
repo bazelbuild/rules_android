@@ -58,6 +58,7 @@ load(
     "AndroidArchivedSandboxedSdkInfo",
     "AndroidSandboxedSdkBundleInfo",
 )
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
 load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
 

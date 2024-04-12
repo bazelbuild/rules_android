@@ -16,6 +16,7 @@
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules/flags:flags.bzl", "flags")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":adapters.bzl", "adapters")
 load(":debug.bzl", "debug")
 load(":tools.bzl", "TOOL_ATTRS")

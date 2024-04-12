@@ -26,6 +26,7 @@ load(
     "split_config_aspect",
 )
 load("//rules:providers.bzl", "StarlarkApkInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 def make_deps(allow_rules, providers, aspects):
     return attr.label_list(

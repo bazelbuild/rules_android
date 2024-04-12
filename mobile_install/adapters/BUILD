@@ -17,6 +17,7 @@ bzl_library(
         "//mobile_install:resources",
         "//mobile_install:transform",
         "//mobile_install:utils",
+        "@rules_java//java/common",
     ],
 )
 

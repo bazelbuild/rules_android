@@ -19,6 +19,8 @@ load(
     _attrs = "attrs",
 )
 load("//rules:providers.bzl", "StarlarkApkInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 
 ATTRS = _attrs.add(
     dict(

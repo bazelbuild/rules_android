@@ -14,6 +14,7 @@
 
 """Aspect that transitively build .dex archives and desugar jars."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")

@@ -15,6 +15,7 @@
 """Common attributes for Android rules."""
 
 load("//rules:android_split_transition.bzl", "android_transition")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(":native_toolchain_attrs.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE_DEFAULT")
 load(":utils.bzl", "log")
 

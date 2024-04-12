@@ -18,6 +18,7 @@ of split deps
 """
 
 load("//rules:common.bzl", "common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 SplitConfigInfo = provider(

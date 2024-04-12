@@ -18,6 +18,7 @@ load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
 )
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")

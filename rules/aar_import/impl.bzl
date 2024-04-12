@@ -39,6 +39,8 @@ load(
     _get_android_toolchain = "get_android_toolchain",
     _utils = "utils",
 )
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 RULE_PREFIX = "_aar"
 ANDROID_MANIFEST = "AndroidManifest.xml"

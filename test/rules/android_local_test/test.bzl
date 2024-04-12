@@ -19,6 +19,7 @@ rule_test: Inspect and assert on rule providers.
 
 load("//rules:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//test/utils:asserts.bzl", "asserts")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 VALIDATION = "_validation"
 

@@ -29,5 +29,6 @@ bzl_library(
     ],
     deps = [
         "@rules_java//java:core_rules",
+        "@bazel_skylib//lib:unittest",
     ],
 )
