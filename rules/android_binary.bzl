@@ -26,6 +26,7 @@ load(
     "android_binary_internal_macro",
     "sanitize_attrs",
 )
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":common.bzl", "common")
 load(":migration_tag_DONOTUSE.bzl", "add_migration_tag")
 load(":proguard.bzl", "proguard")

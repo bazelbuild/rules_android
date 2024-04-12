@@ -19,6 +19,9 @@ bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:private"],
+    deps = [
+        "@rules_java//java/common",
+    ],
 )
 
 android_local_test(

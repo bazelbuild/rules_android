@@ -14,6 +14,7 @@
 
 """Bazel rule for Android sdk."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":attrs.bzl", "ANDROID_SDK_ATTRS")
 
 def _impl(ctx):

@@ -18,6 +18,7 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 ATTRS = _attrs.add(
     dict(

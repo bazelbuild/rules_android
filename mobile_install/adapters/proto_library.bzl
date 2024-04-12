@@ -15,6 +15,7 @@
 
 load("//mobile_install:providers.bzl", "MIAndroidDexInfo", "providers")
 load("//mobile_install:transform.bzl", "dex")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():

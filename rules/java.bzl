@@ -14,6 +14,7 @@
 
 """Bazel Java APIs for the Android rules."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":path.bzl", _path = "path")
 load(":utils.bzl", "log")
 

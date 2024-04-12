@@ -18,6 +18,8 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 def make_attrs(additional_aspects = [], native_libs_transition = None):
     return _attrs.add(

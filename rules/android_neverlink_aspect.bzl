@@ -22,6 +22,7 @@ load(
     "//rules:utils.bzl",
     "utils",
 )
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 StarlarkAndroidNeverlinkInfo = provider(
     doc = "Contains all neverlink libraries in the transitive closure.",

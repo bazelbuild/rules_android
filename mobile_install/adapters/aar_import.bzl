@@ -24,6 +24,7 @@ load(
 load("//mobile_install:resources.bzl", "liteparse")
 load("//mobile_install:transform.bzl", "dex")
 load("//rules:java.bzl", _java = "java")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
 
 def _aspect_attrs():

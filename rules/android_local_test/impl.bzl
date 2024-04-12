@@ -33,6 +33,9 @@ load(
     "log",
     "utils",
 )
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 JACOCOCO_CLASS = "com.google.testing.coverage.JacocoCoverageRunner"
