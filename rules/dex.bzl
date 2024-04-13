@@ -238,64 +238,6 @@ def _process_monolithic_dexing(
         progress_message = "Trimming %s." % classes_dex_intermediate.short_path,
     )
 
-def _postprocess_dexing(
-        ctx,
-        rexed_dex_zip = None,
-        classes_dex_zip = None,
-        proguard_map = None,
-        postprocessing_output_map = None,
-        main_dex_list = None,
-        multidex = "native",
-        rexopts = [],
-        rex_wrapper = None,
-        toolchain_type = None):
-    outputs = [rexed_dex_zip]
-    inputs = [classes_dex_zip]
-    args = ctx.actions.args()
-    args.add("--dex_input", classes_dex_zip)
-    args.add("--dex_output", rexed_dex_zip)
-
-    final_rex_package_map = None
-    if proguard_map:
-        final_rex_package_map = ctx.actions.declare_file(ctx.label.name + "_rex/rex_output_package.map")
-        args.add("--proguard_input_map", proguard_map)
-        args.add("--proguard_output_map", postprocessing_output_map)
-        args.add("--rex_output_package_map", final_rex_package_map)
-        outputs.append(postprocessing_output_map)
-        outputs.append(final_rex_package_map)
-        inputs.append(proguard_map)
-
-    # the Rex flag --keep-main-dex is used to support builds with API level below 21 that do not
-    # support native multi-dex. This flag indicates to Rex to use the main_dex_list file which can
-    # be provided by the user via the main_dex_list attribute or created automatically when multidex
-    # mode is set to legacy.
-    if main_dex_list or multidex == "legacy":
-        args.add("--keep-main-dex")
-        if main_dex_list:
-            inputs.append(main_dex_list)
-            args.add("--main_dex_list", main_dex_list)
-
-    if rexopts:
-        args.add_all(rexopts)
-
-    ctx.actions.run(
-        outputs = outputs,
-        executable = rex_wrapper,
-        inputs = inputs,
-        arguments = [args],
-        mnemonic = "Rex",
-        progress_message = "Rexing dex files.",
-        toolchain = toolchain_type,
-    )
-
-    return final_rex_package_map
-
-def _enable_postprocess_dexing(ctx):
-    return (not getattr(ctx.attr, "_optimizing_dexer", None) and not acls.in_disable_optimizing_dexer(str(ctx.label))) and (
-        ctx.fragments.android.use_rex_to_compress_dex_files or
-        getattr(ctx.attr, "rewrite_dexes_with_rex", False)
-    )
-
 def _shard_proguarded_jar_and_dex(
         ctx,
         java_resource_jar,
@@ -854,7 +796,6 @@ dex = struct(
     append_java8_legacy_dex = _append_java8_legacy_dex,
     dex = _dex,
     dex_merge = _dex_merge,
-    enable_postprocess_dexing = _enable_postprocess_dexing,
     generate_main_dex_list = _generate_main_dex_list,
     get_dx_artifact = _get_dx_artifact,
     get_effective_incremental_dexing = _get_effective_incremental_dexing,
@@ -864,6 +805,5 @@ dex = struct(
     normalize_dexopts = _normalize_dexopts,
     process_monolithic_dexing = _process_monolithic_dexing,
     process_incremental_dexing = _process_incremental_dexing,
-    postprocess_dexing = _postprocess_dexing,
     transform_dex_list_through_proguard_map = _transform_dex_list_through_proguard_map,
 )
