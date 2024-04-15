@@ -26,6 +26,7 @@ bzl_library(
         "//rules:common_bzl",
         "//rules/android_sandboxed_sdk:bzl",
         "//rules/flags:bzl",
+        "@rules_java//java/common",
     ],
     visibility = ["//rules:__pkg__"],
 )
