@@ -17,5 +17,6 @@ bzl_library(
         "//rules:android_platforms_transition_bzl",
         "//rules:android_split_transition_bzl",
         "//rules:common_bzl",
+        "@rules_java//java/common",
     ],
 )

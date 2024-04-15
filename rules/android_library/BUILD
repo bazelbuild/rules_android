@@ -18,5 +18,6 @@ bzl_library(
     deps = [
         "//rules:common_bzl",
         "//rules/flags:bzl",
+        "@rules_java//java/common",
     ],
 )
