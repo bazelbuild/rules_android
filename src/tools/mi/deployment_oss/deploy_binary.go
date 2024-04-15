@@ -187,7 +187,7 @@ func main() {
 	// Wait for the debugger if debug mode selected
 	if *start == "DEBUG" {
 		waitCmd := exec.Command(*adbPath, "shell", "am", "set-debug-app", "-w", appPackage)
-		if err := waitCmd.Wait(); err != nil {
+		if err := waitCmd.Run(); err != nil {
 			pprint.Error("Unable to wait for debugger: %s", err.Error())
 		}
 	}
