@@ -1,7 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
-load("@stardoc//stardoc:stardoc.bzl", "stardoc")
 
 exports_files([
     "data_binding_annotation_template.txt",
@@ -108,7 +106,10 @@ bzl_library(
         "dex_desugar_aspect.bzl",
         "rules.bzl",
     ],
-    visibility = ["//mobile_install:__pkg__"],
+    visibility = [
+        "//mobile_install:__pkg__",
+        "//rules/stardoc:__pkg__",
+    ],
     deps = [
         ":android_binary_bzl",
         ":common_bzl",
@@ -137,21 +138,4 @@ int_setting(
     visibility = [
         "//:__subpackages__",
     ],
-)
-
-bzl_library(
-    name = "doc_rules",
-    deps = [":bzl"],
-)
-
-stardoc(
-    name = "stardoc",
-    out = "stardoc.md",
-    input = "doc_rules.bzl",
-    deps = [":doc_rules"],
-)
-
-build_test(
-    name = "stardoc_build_test",
-    targets = [":stardoc"],
 )
