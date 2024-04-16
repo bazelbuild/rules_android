@@ -18,6 +18,7 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
 
@@ -47,7 +48,7 @@ def make_rule(
         provides = provides,
         toolchains = [
             "//toolchains/android:toolchain_type",
-            "//toolchains/android_sdk:toolchain_type",
+            ANDROID_SDK_TOOLCHAIN_TYPE,
             "@bazel_tools//tools/jdk:toolchain_type",
         ] + additional_toolchains,
         _skylark_testable = True,
