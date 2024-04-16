@@ -16,8 +16,7 @@
 
 load("//rules:android_split_transition.bzl", "android_transition")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
-load(":native_toolchain_attrs.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE_DEFAULT")
-load(":utils.bzl", "log")
+load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "log")
 
 def _add(attrs, *others):
     new = {}
@@ -346,7 +345,7 @@ ANDROID_SDK_ATTRS = dict(
 _ANDROID_TOOLCHAIN_ATTRS = dict(
     _android_sdk_toolchain_type = attr.label(
         allow_rules = ["toolchain_type"],
-        default = ANDROID_SDK_TOOLCHAIN_TYPE_DEFAULT,
+        default = ANDROID_SDK_TOOLCHAIN_TYPE,
     ),
 )
 
