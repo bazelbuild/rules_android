@@ -14,6 +14,7 @@
 
 """Bazel rule for Android local test."""
 
+load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
 
@@ -46,7 +47,7 @@ def make_rule(
         ),
         toolchains = [
             "//toolchains/android:toolchain_type",
-            "//toolchains/android_sdk:toolchain_type",
+            ANDROID_SDK_TOOLCHAIN_TYPE,
             "@bazel_tools//tools/jdk:toolchain_type",
         ] + additional_toolchains,
     )

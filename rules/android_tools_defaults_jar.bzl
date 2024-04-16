@@ -14,6 +14,7 @@
 
 """Bazel rule for Android tools defaults jar."""
 
+load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load(":attrs.bzl", "ANDROID_TOOLS_DEFAULTS_JAR_ATTRS")
 load(":utils.bzl", "get_android_sdk")
 
@@ -28,5 +29,7 @@ android_tools_defaults_jar = rule(
     attrs = ANDROID_TOOLS_DEFAULTS_JAR_ATTRS,
     implementation = _impl,
     fragments = ["android"],
-    toolchains = ["//toolchains/android_sdk:toolchain_type"],
+    toolchains = [
+        ANDROID_SDK_TOOLCHAIN_TYPE,
+    ],
 )
