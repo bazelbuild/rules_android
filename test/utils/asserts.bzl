@@ -216,7 +216,7 @@ def _assert_files(expected_file_names, actual_files, error_msg_field_name):
     fail("""Error for %s, expected and actual file names are not the same:
 expected file names: %s
 actual files: %s
-""" % (error_msg_field_name, expected_file_names, actual_files))
+""" % (error_msg_field_name, expected_file_names, actual_file_names))
 
 def _assert_file_objects(expected_files, actual_files, error_msg_field_name):
     if sorted([f.basename for f in expected_files]) == sorted([f.basename for f in actual_files]):
