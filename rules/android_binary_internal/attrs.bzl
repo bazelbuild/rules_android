@@ -15,6 +15,7 @@
 """Attributes."""
 
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
+load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
 load("//rules:android_split_transition.bzl", "android_split_transition", "android_transition")
 load(
     "//rules:attrs.bzl",
@@ -75,6 +76,7 @@ ATTRS = _attrs.replace(
             native_target = attr.label(
                 allow_files = False,
                 allow_rules = ["android_binary", "android_test"],
+                cfg = android_platforms_transition,
             ),
             generate_art_profile = attr.bool(
                 default = True,
@@ -97,6 +99,7 @@ ATTRS = _attrs.replace(
                 android_library with `baseline_profiles` to avoid the runtime-focused code
                 optimizations that are enabled by `startup_profiles`.
                 """,
+                cfg = android_platforms_transition,
             ),
             proguard_specs = attr.label_list(allow_empty = True, allow_files = True, cfg = android_transition),
             resource_apks = attr.label_list(
@@ -107,6 +110,7 @@ ATTRS = _attrs.replace(
                 doc = (
                     "List of resource only apks to link against."
                 ),
+                cfg = android_platforms_transition,
             ),
             resource_configuration_filters = attr.string_list(),
             densities = attr.string_list(),
@@ -124,7 +128,7 @@ ATTRS = _attrs.replace(
             ),
             proguard_generate_mapping = attr.bool(default = False),
             proguard_optimization_passes = attr.int(),
-            proguard_apply_mapping = attr.label(allow_single_file = True),
+            proguard_apply_mapping = attr.label(allow_single_file = True, cfg = android_platforms_transition),
             feature_flags = attr.label_keyed_string_dict(
                 allow_rules = ["config_feature_flag"],
                 providers = [config_common.FeatureFlagInfo],
@@ -156,6 +160,7 @@ ATTRS = _attrs.replace(
                       WARNING: Do not use your production keys, they should be strictly safeguarded
                       and not kept in your source tree.
                       """,
+                cfg = android_platforms_transition,
             ),
             debug_signing_lineage_file = attr.label(
                 allow_single_file = True,
@@ -167,6 +172,7 @@ ATTRS = _attrs.replace(
                       WARNING: Do not use your production keys, they should be strictly safeguarded
                       and not kept in your source tree.
                       """,
+                cfg = android_platforms_transition,
             ),
             key_rotation_min_sdk = attr.string(
                 doc = """
@@ -198,6 +204,7 @@ ATTRS = _attrs.replace(
             _desugared_java8_legacy_apis = attr.label(
                 default = Label("//tools/android:desugared_java8_legacy_apis"),
                 allow_single_file = True,
+                cfg = android_platforms_transition,
             ),
             _bytecode_optimizer = attr.label(
                 default = configuration_field(
