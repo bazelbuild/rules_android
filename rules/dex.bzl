@@ -478,7 +478,7 @@ def _get_dx_artifact(ctx, basename, min_sdk_version = 0):
     min_sdk_version_part = ""
     if min_sdk_version:
         min_sdk_version_part = "sdk-" + str(min_sdk_version)
-    return ctx.actions.declare_file("_dx_migrated/" + ctx.label.name + "/" + min_sdk_version_part + basename)
+    return ctx.actions.declare_file("_dx/" + ctx.label.name + "/" + min_sdk_version_part + basename)
 
 def _get_effective_incremental_dexing(
         force_incremental_dexing = _tristate.auto,
