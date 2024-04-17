@@ -231,7 +231,10 @@ def _flags_macro():
     )
 
 def _get_flags(ctx):
-    return ctx.attr._flags[FlagsInfo]
+    flags = ctx.attr._flags
+    if type(flags) != "list":
+        return flags[FlagsInfo]
+    return flags[0][FlagsInfo]
 
 flags = struct(
     DEFINE_bool = bool_flag,
