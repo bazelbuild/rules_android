@@ -315,16 +315,16 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
         # library.
         if should_optimize_dex and ctx.fragments.android.desugar_java8_libs:
             postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
-            final_proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
+            final_proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
         elif should_optimize_dex:
             # No desugared library, Proguard map from postprocessing is the final Proguard map.
-            postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
+            final_proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
             final_proguard_output_map = postprocessing_output_map
         elif ctx.fragments.android.desugar_java8_libs:
             # No postprocessing, Proguard map from merging with the desugared library map is the
             # final Proguard map.
             postprocessing_output_map = proguard_output_map
-            final_proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard.map")
+            final_proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
 
         else:
             # No postprocessing, no desugared library, the final Proguard map is the Proguard map
@@ -465,7 +465,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
         desugar_dict = {d.jar: d.desugared_jar for d in dex_archives if d.desugared_jar}
 
         for jar in binary_runtime_jars:
-            desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_migrated_desugared.jar")
+            desugared_jar = ctx.actions.declare_file(ctx.label.name + "/" + jar.basename + "_desugared.jar")
             _desugar.desugar(
                 ctx,
                 input = jar,
@@ -496,7 +496,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     else:
         runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jars])
 
-    output = ctx.actions.declare_file(ctx.label.name + "_migrated_deploy.jar")
+    output = ctx.actions.declare_file(ctx.label.name + "_deploy.jar")
     deploy_jar = java.create_deploy_jar(
         ctx,
         output = output,
@@ -508,7 +508,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     )
 
     if is_instrumentation(ctx):
-        filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_filtered.jar")
+        filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_filtered.jar")
         filter_jar = ctx.attr.instruments[AndroidPreDexJarInfo].pre_dex_jar
         common.filter_zip_exclude(
             ctx,
@@ -748,7 +748,7 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
 
 def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, bp_ctx, **_unused_ctxs):
     if validation_ctx.use_r8:
-        proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.jar")
+        proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_proguard.jar")
         return ProviderInfo(
             name = "optimize_ctx",
             value = struct(
@@ -789,7 +789,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         # generated.
         if not has_proguard_specs:
             # When no shrinking happens a generating rule for the output map artifact is still needed.
-            proguard_output_map = proguard.get_proguard_output_map(ctx)
+            proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
         elif optimizing_dexing:
             proguard_output_map = proguard.get_proguard_temp_artifact(ctx, "pre_dexing.map")
         elif desugar_java8_libs_generates_map:
@@ -797,12 +797,12 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             proguard_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
         else:
             # Proguard map from shrinking is the final output.
-            proguard_output_map = proguard.get_proguard_output_map(ctx)
+            proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
 
-    proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.jar")
-    proguard_output_config = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.config")
-    proguard_seeds = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.seeds")
-    proguard_usage = ctx.actions.declare_file(ctx.label.name + "_migrated_proguard.usage")
+    proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_proguard.jar")
+    proguard_output_config = ctx.actions.declare_file(ctx.label.name + "_proguard.config")
+    proguard_seeds = ctx.actions.declare_file(ctx.label.name + "_proguard.seeds")
+    proguard_usage = ctx.actions.declare_file(ctx.label.name + "_proguard.usage")
 
     startup_profile = None
     baseline_profile = None

@@ -324,15 +324,9 @@ def _optimization_action(
         toolchain = None,  # TODO(timpeut): correctly set this based off which optimizer is selected
     )
 
-def _get_proguard_temp_artifact_with_prefix(ctx, label, prefix, name):
-    native_label_name = label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
-    return ctx.actions.declare_file("proguard/" + native_label_name + "/" + prefix + "_" + native_label_name + "_" + name)
-
 def _get_proguard_temp_artifact(ctx, name):
-    return _get_proguard_temp_artifact_with_prefix(ctx, ctx.label, "MIGRATED", name)
-
-def _get_proguard_output_map(ctx):
-    return ctx.actions.declare_file(ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX) + "_proguard_MIGRATED_.map")
+    native_label_name = ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
+    return ctx.actions.declare_file("proguard/" + native_label_name + "/" + native_label_name + "_" + name)
 
 def _get_proguard_output_resources(ctx):
     return _get_proguard_temp_artifact(ctx, "_resource_files.zip")
@@ -511,7 +505,7 @@ def _create_optimization_actions(
         fail("Missing proguard_specs in create_optimization_actions")
 
     # Merge all library jars into a single jar
-    combined_library_jar = _get_proguard_temp_artifact(ctx, "_migrated_combined_library_jars.jar")
+    combined_library_jar = _get_proguard_temp_artifact(ctx, "_combined_library_jars.jar")
     java.singlejar(
         ctx,
         library_jars,
@@ -520,7 +514,7 @@ def _create_optimization_actions(
     )
 
     # Filter library jar with program jar
-    filtered_library_jar = _get_proguard_temp_artifact(ctx, "_migrated_combined_library_jars_filtered.jar")
+    filtered_library_jar = _get_proguard_temp_artifact(ctx, "_combined_library_jars_filtered.jar")
     common.filter_zip_exclude(
         ctx,
         filtered_library_jar,
@@ -741,10 +735,8 @@ proguard = struct(
     create_empty_proguard_output = _create_empty_proguard_output,
     process_specs = _process_specs,
     generate_min_sdk_version_assumevalues = _generate_min_sdk_version_assumevalues,
-    get_proguard_output_map = _get_proguard_output_map,
     get_proguard_specs = _get_proguard_specs,
     get_proguard_temp_artifact = _get_proguard_temp_artifact,
-    get_proguard_temp_artifact_with_prefix = _get_proguard_temp_artifact_with_prefix,
     merge_proguard_maps = _merge_proguard_maps,
 )
 

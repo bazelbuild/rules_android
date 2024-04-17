@@ -470,10 +470,8 @@ def _filter_multi_cpu_configuration_targets(
     return filtered_targets
 
 def _get_proguard_specs_for_manifest(ctx, merged_manifest):
-    assumes_value_spec = _proguard.get_proguard_temp_artifact_with_prefix(
+    assumes_value_spec = _proguard.get_proguard_temp_artifact(
         ctx,
-        ctx.label,
-        "migrated",
         "proguard_minsdkversion.cfg",
     )
     _proguard.generate_min_sdk_version_assumevalues(
