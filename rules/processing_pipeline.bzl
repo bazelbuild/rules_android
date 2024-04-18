@@ -16,6 +16,7 @@
 
 PROVIDERS = "providers"
 VALIDATION_OUTPUTS = "validation_outputs"
+IMPLICIT_OUTPUTS = "implicit_outputs"
 
 # TODO(djwhang): When a provider type can be retrieved from a Starlark provider
 # ProviderInfo is necessary. Once this is possible, processor methods can have a
@@ -72,6 +73,7 @@ def _run(ctx, java_package, processing_pipeline):
         java_package = java_package,
         providers = [],
         validation_outputs = [],
+        implicit_outputs = [],
         runfiles = ctx.runfiles(),
     )
 
@@ -83,6 +85,7 @@ def _run(ctx, java_package, processing_pipeline):
             target_ctx[info.name] = info.value
             target_ctx[PROVIDERS].extend(getattr(info.value, PROVIDERS, []))
             target_ctx[VALIDATION_OUTPUTS].extend(getattr(info.value, VALIDATION_OUTPUTS, []))
+            target_ctx[IMPLICIT_OUTPUTS].extend(getattr(info.value, IMPLICIT_OUTPUTS, []))
             if hasattr(info, "runfiles") and info.runfiles:
                 target_ctx["runfiles"] = target_ctx["runfiles"].merge(info.runfiles)
 
