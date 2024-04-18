@@ -16,6 +16,7 @@
 
 # keep sorted
 USE_CLDR_ROLLOUT = [
+    "//:__subpackages__",
 ]
 
 # keep sorted
