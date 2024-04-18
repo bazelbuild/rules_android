@@ -21,7 +21,7 @@ it holds utilities for handling minSdkVersion propagation.
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 _SETTING = "//rules/flags:min_sdk_version"
-_DEPOT_FLOOR = 19
+_DEPOT_FLOOR = 21
 _MIN_SDK_LEVELS = sorted([_DEPOT_FLOOR, 24])
 
 _ATTRS = dict(
