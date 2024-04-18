@@ -16,7 +16,7 @@
 load(":java.bzl", "java")
 
 _PROVIDERS = "providers"
-_V4_SIGNATURE_FILE = "v4_signature_file"
+_IMPLICIT_OUTPUTS = "implicit_outputs"
 _DEPLOY_INFO = "deploy_info"
 _SIGNED_APK = "signed_apk"
 
@@ -24,7 +24,7 @@ _ApkContextInfo = provider(
     "Apk Context Info",
     fields = {
         _PROVIDERS: "The list of all providers to propagate.",
-        _V4_SIGNATURE_FILE: "The v4 signature file.",
+        _IMPLICIT_OUTPUTS: "List of implicit outputs to be built as part of the top-level target.",
         _DEPLOY_INFO: "A proto providing information about how to deploy and launch the APK",
         _SIGNED_APK: "The signed APK.",
     },
@@ -90,7 +90,7 @@ def _process(
     Return:
         A struct containing all of the requested outputs and providers.
     """
-    apk_packaging_ctx = {_PROVIDERS: []}
+    apk_packaging_ctx = {_PROVIDERS: [], _IMPLICIT_OUTPUTS: []}
     _build_apk(
         ctx,
         unsigned_apk,
@@ -107,6 +107,7 @@ def _process(
         java_toolchain = java_toolchain,
         resource_extractor = resource_extractor,
     )
+    apk_packaging_ctx[_IMPLICIT_OUTPUTS].append(unsigned_apk)
 
     # TODO(b/309949683): Consider removing the zipalign action.
     zipaligned_apk = ctx.actions.declare_file("zipaligned_" + signed_apk.basename)
@@ -121,6 +122,7 @@ def _process(
     v4_signature_file = None
     if ctx.fragments.android.apk_signing_method_v4:
         v4_signature_file = ctx.actions.declare_file(signed_apk.basename + ".idsig")
+        apk_packaging_ctx[_IMPLICIT_OUTPUTS].append(v4_signature_file)
 
     _sign_apk(
         ctx,
@@ -136,6 +138,7 @@ def _process(
     )
 
     apk_packaging_ctx[_SIGNED_APK] = signed_apk
+    apk_packaging_ctx[_IMPLICIT_OUTPUTS].append(signed_apk)
 
     deploy_info = ctx.actions.declare_file(ctx.label.name + "_files/deploy_info.deployinfo.pb")
     _create_deploy_info(
@@ -159,7 +162,6 @@ def _process(
             signing_min_v3_rotation_api_version = signing_key_rotation_min_sdk,
         ),
     )
-    apk_packaging_ctx[_V4_SIGNATURE_FILE] = v4_signature_file
     apk_packaging_ctx[_DEPLOY_INFO] = deploy_info
 
     return _ApkContextInfo(**apk_packaging_ctx)

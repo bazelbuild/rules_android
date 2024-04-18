@@ -431,6 +431,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             dex_info = dex_info,
             java8_legacy_dex_map = java8_legacy_dex_map,
             providers = providers,
+            implicit_outputs = [final_proguard_output_map] if final_proguard_output_map else [],
         ),
     )
 
@@ -543,6 +544,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
             filtered_deploy_jar = filtered_deploy_jar,
             one_version_enforcement_output = one_version_enforcement_output,
             providers = [],
+            implicit_outputs = [deploy_jar],
         ),
     )
 
@@ -569,6 +571,7 @@ def finalize(
         ctx,
         providers,
         validation_outputs,
+        implicit_outputs,
         packaged_resources_ctx,
         apk_packaging_ctx,
         resource_shrinking_r8_ctx,
@@ -588,16 +591,11 @@ def finalize(
       The list of providers the android_binary_internal rule should return.
     """
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        files = []
-
-        # TODO(zhaoqxu): Add other default outputs from proguard, resource shrinking, dex, etc.
-        if apk_packaging_ctx.v4_signature_file:
-            files.append(apk_packaging_ctx.v4_signature_file)
-
         providers.extend(
             [
                 DefaultInfo(
-                    files = depset(files),
+                    files = depset(implicit_outputs),
+                    runfiles = ctx.runfiles(files = implicit_outputs),
                 ),
                 OutputGroupInfo(
                     android_deploy_info = [
@@ -764,6 +762,8 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     if ctx.file.proguard_apply_mapping and not ctx.files.proguard_specs:
         fail("proguard_apply_mapping can only be used when proguard_specs is set")
 
+    implicit_outputs = []
+
     proguard_specs = proguard.get_proguard_specs(
         ctx,
         packaged_resources_ctx.resource_proguard_config,
@@ -829,6 +829,16 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         proguard_tool = get_android_sdk(ctx).proguard,
     )
 
+    if has_proguard_specs:
+        implicit_outputs.extend(
+            [
+                proguard_output.output_jar,
+                proguard_output.config,
+                proguard_output.seeds,
+                proguard_output.usage,
+            ],
+        )
+
     shrunk_resource_output = None
     if enable_resource_shrinking:
         shrunk_resource_output = _resources.shrink(
@@ -842,6 +852,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
             host_javabase = common.get_host_javabase(ctx),
         )
+        implicit_outputs.append(shrunk_resource_output.shrinker_log)
 
     optimized_resource_output = _resources.optimize(
         ctx,
@@ -852,8 +863,13 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = common.get_host_javabase(ctx),
     )
+    if optimized_resource_output.path_shortening_map:
+        implicit_outputs.append(optimized_resource_output.path_shortening_map)
 
     providers = []
+
+    # TODO(zhaoqxu): Stop populating AndroidOptimizationInfo once the starlark android_binary rule
+    # is fully rolled out.
     providers.append(
         AndroidOptimizationInfo(
             optimized_jar = proguard_output.output_jar,
@@ -884,6 +900,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             proguard_output = proguard_output,
             resources_apk = optimized_resources_apk,
             providers = providers,
+            implicit_outputs = implicit_outputs,
         ),
     )
 
