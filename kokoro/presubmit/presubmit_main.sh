@@ -125,6 +125,7 @@ function main() {
     "//src/validations/..."
     "//rules/..."
     "//test/..."
+    "//stardoc/..."
     # TODO(https://github.com/bazelbuild/rules_android/issues/170):
     # Re-enable when tests use proper way to find data files.
     "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:ExtractApiDescriptorsCommandTest"

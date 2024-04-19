@@ -29,7 +29,6 @@ tools: &tools
     <<: *tools_flags
   test_flags:
     <<: *tools_flags
-
 tools_bzlmod: &tools_bzlmod
   name: "Tools Bzlmod"
   build_flags:
@@ -39,31 +38,25 @@ tools_bzlmod: &tools_bzlmod
     <<: *tools_flags
     ? "--enable_bzlmod"
   <<: *tools
-
 rules: &rules
   name: "Rules"
   build_targets:
     - "//rules/..."
-    - "-//rules/stardoc/..." # Only works with bzlmod
   test_targets:
     - "//test/rules/..."
   build_flags:
     <<: *rules_flags
   test_flags:
     <<: *rules_flags
-
 rules_bzlmod: &rules_bzlmod
   name: "Rules Bzlmod"
-  build_targets:
-    - "//rules/..."
-  test_targets:
-    - "//test/rules/..."
   build_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
   test_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
+  <<: *rules
 
 tasks:
   ubuntu2004_tools:
@@ -140,4 +133,3 @@ tasks:
       ? "--enable_bzlmod"
     build_targets:
       - "//java/com/basicapp:basic_app"
-

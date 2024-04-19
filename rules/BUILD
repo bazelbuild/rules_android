@@ -108,7 +108,7 @@ bzl_library(
     ],
     visibility = [
         "//mobile_install:__pkg__",
-        "//rules/stardoc:__pkg__",
+        "//stardoc:__pkg__",
     ],
     deps = [
         ":android_binary_bzl",
