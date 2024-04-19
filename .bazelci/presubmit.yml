@@ -116,11 +116,16 @@ tasks:
       - "//java/com/basicapp:basic_app"
   ubuntu2004_basicapp_bzlmod_mobile_install:
     name: "Basic app ubuntu mobile-install with bzlmod"
+    platform: ubuntu2004
+    name: basicapp
+    working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
       ? "--aspects=@rules_android//mobile_install:mi.bzl%MIASPECT"
       ? "--output_groups=mobile_install_INTERNAL_,mobile_install_launcher_INTERNAL_,-_,-defaults"
       ? "--tool_java_runtime_version=17"
+    build_targets:
+      - "//java/com/basicapp:basic_app"
     run_targets:
       - "java/com/basicapp:basic_app"
   macos_arm64_basicapp:
