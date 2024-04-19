@@ -126,7 +126,7 @@ def _get_proguard_specs(
         proguard_specs_for_manifest = []):
     proguard_deps = utils.collect_providers(ProguardSpecProvider, utils.dedupe_split_attr(ctx.split_attr.deps))
     if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
-        proguard_deps.append(ctx.attr._jacoco_runtime[ProguardSpecProvider])
+        proguard_deps.append(utils.only(ctx.attr._jacoco_runtime)[ProguardSpecProvider])
 
     local_proguard_specs = []
     if ctx.files.proguard_specs:
