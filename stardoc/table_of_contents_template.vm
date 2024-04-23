@@ -1,0 +1,8 @@
+#[[###]]# Rules
+
+#foreach ($rule in $ruleInfos)
+- [$rule.ruleName](#$rule.ruleName)
+#end
+#foreach ($functionInfo in $functionInfos)
+- [$functionInfo.functionName](#$functionInfo.functionName)
+#end
