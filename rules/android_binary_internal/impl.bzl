@@ -439,7 +439,10 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     if validation_ctx.use_r8:
         return ProviderInfo(
             name = "deploy_ctx",
-            value = struct(providers = []),
+            value = struct(
+                providers = [],
+                one_version_enforcement_output = None,
+            ),
         )
 
     filtered_deploy_jar, desugar_dict = None, {}
@@ -573,6 +576,7 @@ def finalize(
         validation_outputs,
         implicit_outputs,
         packaged_resources_ctx,
+        deploy_ctx,
         apk_packaging_ctx,
         resource_shrinking_r8_ctx,
         **_unused_ctxs):
@@ -602,6 +606,9 @@ def finalize(
                         apk_packaging_ctx.deploy_info,
                         packaged_resources_ctx.processed_manifest,
                     ],
+                    _hidden_top_level_INTERNAL_ = [
+                        deploy_ctx.one_version_enforcement_output,
+                    ] if deploy_ctx.one_version_enforcement_output else [],
                     _validation = depset(validation_outputs),
                 ),
             ],
