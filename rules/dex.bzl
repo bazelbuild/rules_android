@@ -106,6 +106,8 @@ def _process_incremental_dexing(
                 proguarded_jar = proguarded_jar,
                 main_dex_list = main_dex_list,
                 min_sdk_version = min_sdk_version,
+                native_multidex = native_multidex,
+                library_jar = library_jar,
                 shuffle_jars = shuffle_jars,
                 dexbuilder_after_proguard = dexbuilder_after_proguard,
                 optimizing_dexer = optimizing_dexer,
@@ -246,6 +248,8 @@ def _shard_proguarded_jar_and_dex(
         proguarded_jar = None,
         main_dex_list = None,
         min_sdk_version = 0,
+        native_multidex = True,
+        library_jar = None,
         shuffle_jars = None,
         dexbuilder_after_proguard = None,
         optimizing_dexer = None,
@@ -291,6 +295,8 @@ def _shard_proguarded_jar_and_dex(
                 output = shards[i],
                 incremental_dexopts = dexopts,
                 min_sdk_version = min_sdk_version,
+                native_multidex = native_multidex,
+                library_jar = library_jar,
                 dex_exec = optimizing_dexer,
                 min_sdk_config = min_sdk_config,
                 toolchain_type = toolchain_type,
@@ -434,6 +440,8 @@ def _optimizing_dex(
         output = None,
         incremental_dexopts = [],
         min_sdk_version = 0,
+        native_multidex = True,
+        library_jar = None,
         dex_exec = None,
         min_sdk_config = None,
         toolchain_type = None):
@@ -461,8 +469,14 @@ def _optimizing_dex(
     if min_sdk_config:
         inputs.append(min_sdk_config)
         args.add("--min_api_pgcfg_file", min_sdk_config)
-    elif min_sdk_version > 0:
-        args.add("--min_sdk_version", min_sdk_version)
+    else:
+        sdk = max(min_sdk_version, 21) if native_multidex else min_sdk_version
+        if sdk > 0:
+            args.add("--min-api", sdk)
+
+    if library_jar:
+        inputs.append(library_jar)
+        args.add("--lib", library_jar)
 
     ctx.actions.run(
         executable = dex_exec,
