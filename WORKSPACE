@@ -13,11 +13,6 @@ maybe(
     name = "androidsdk",
 )
 
-maybe(
-    android_ndk_repository,
-    name = "androidndk",
-)
-
 load("defs_dev.bzl", "rules_android_workspace")
 
 rules_android_workspace()
