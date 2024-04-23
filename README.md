@@ -22,7 +22,8 @@ The rules are being incrementally converted from their native implementations
 in the [Bazel source
 tree](https://source.bazel.build/bazel/+/master:src/main/java/com/google/devtools/build/lib/rules/android/).
 
-For the list of Android rules, see the Bazel [documentation](https://docs.bazel.build/versions/master/be/android.html).
+Stardoc for the Android rules can be found at
+[https://bazelbuild.github.io/rules_android](https://bazelbuild.github.io/rules_android/).
 
 ## Getting Started
 To use the Starlark Bazel Android rules, add the following to your WORKSPACE file:
