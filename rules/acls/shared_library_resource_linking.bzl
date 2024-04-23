@@ -15,7 +15,7 @@
 """Allowlist for directly or transitively linking against shared resource apks."""
 
 SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST = [
-    "//tools/build_defs/android/test/dev/resources/shared_lib:app1_RESOURCES_DO_NOT_USE",
-    "//tools/build_defs/android/test/dev/resources/shared_lib:app2_RESOURCES_DO_NOT_USE",
-    "//tools/build_defs/android/test/dev/resources/shared_lib:app3_RESOURCES_DO_NOT_USE",
+    "//tools/build_defs/android/test/dev/resources/shared_lib:app1",
+    "//tools/build_defs/android/test/dev/resources/shared_lib:app2",
+    "//tools/build_defs/android/test/dev/resources/shared_lib:app3",
 ]

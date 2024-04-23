@@ -187,6 +187,8 @@ ATTRS = _attrs.replace(
             ),
             _defined_resource_files = attr.bool(default = False),
             _package_name = attr.string(),  # for sending the package name to the outputs callback
+            # This is for only generating proguard outputs when proguard_specs is not empty or of type select.
+            _generate_proguard_outputs = attr.bool(),
             _enable_manifest_merging = attr.bool(default = True),
             _cc_toolchain_split = attr.label(
                 cfg = android_split_transition,

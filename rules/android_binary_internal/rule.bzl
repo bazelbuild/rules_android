@@ -14,6 +14,7 @@
 
 """Starlark Android Binary for Android Rules."""
 
+load("//rules:acls.bzl", "acls")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -26,10 +27,34 @@ _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_
 
 _DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
 
+def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs):
+    label = "//" + _package_name + ":" + name
+    if not acls.in_android_binary_starlark_rollout(label):
+        return {}
+
+    outputs = dict(
+        deploy_jar = "%{name}_deploy.jar",
+        unsigned_apk = "%{name}_unsigned.apk",
+        signed_apk = "%{name}.apk",
+    )
+
+    # proguard_specs is too valuable an attribute to make it nonconfigurable, so if its value is
+    # configurable (i.e. of type 'select'), _generate_proguard_outputs will be set to True and the
+    # predeclared proguard outputs will be generated. If the proguard_specs attribute resolves to an
+    # empty list eventually, we do not use it in the dexing. If user explicitly tries to request it,
+    # it will fail.
+    if not acls.use_r8(label) and _generate_proguard_outputs:
+        outputs["proguard_jar"] = "%{name}_proguard.jar"
+        outputs["proguard_config"] = "%{name}_proguard.config"
+        if proguard_generate_mapping:
+            outputs["proguard_map"] = "%{name}_proguard.map"
+    return outputs
+
 def make_rule(
         attrs = ATTRS,
         implementation = impl,
         provides = _DEFAULT_PROVIDES,
+        outputs = _outputs,
         additional_toolchains = []):
     """Makes the rule.
 
@@ -37,8 +62,8 @@ def make_rule(
       attrs: A dict. The attributes for the rule.
       implementation: A function. The rule's implementation method.
       provides: A list. The providers that the rule must provide.
+      outputs: A function. The rule's outputs method for declaring predeclared outputs.
       additional_toolchains: A list. Additional toolchains passed to pass to rule(toolchains).
-
     Returns:
       A rule.
     """
@@ -58,6 +83,7 @@ def make_rule(
             "java",
             "cpp",
         ],
+        outputs = outputs,
         cfg = config_common.config_feature_flag_transition("feature_flags"),
     )
 
@@ -90,21 +116,33 @@ def sanitize_attrs(attrs, allowed_attrs = ATTRS.keys()):
 
     return attrs
 
-def android_binary_internal_macro(**attrs):
+def android_binary_internal_macro(internal_rule = android_binary_internal, **attrs):
     """android_binary_internal rule.
 
     Args:
+      internal_rule: For migration only, do not use. The rule to run under the hood.
+                     This is used as a workaround to rename the android_binary_internal rule to
+                     android_binary.
       **attrs: Rule attributes
     """
 
     # Required for ACLs check in _outputs(), since the callback can't access the native module.
     attrs["$package_name"] = native.package_name()
 
-    # _package_name is an allowed attribute but is also private. We need to allow
-    # the $ form of the attribute to stop the sanitize function from removing it.
-    android_binary_internal(
+    if type(attrs.get("proguard_specs", None)) == "select" or attrs.get("proguard_specs", None):
+        attrs["$generate_proguard_outputs"] = True
+
+    internal_rule(
         **sanitize_attrs(
             attrs,
-            allowed_attrs = list(ATTRS.keys()) + ["$package_name", "$rewrite_resources_through_optimizer"],
+            # _package_name and other attributes are allowed attributes but are also private.
+            # We need to allow the $ form of the attribute to stop the sanitize function from
+            # removing it.
+            allowed_attrs = list(ATTRS.keys()) +
+                            [
+                                "$package_name",
+                                "$rewrite_resources_through_optimizer",
+                                "$generate_proguard_outputs",
+                            ],
         )
     )
