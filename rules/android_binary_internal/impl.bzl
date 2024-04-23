@@ -500,7 +500,11 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     else:
         runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jars])
 
-    output = ctx.actions.declare_file(ctx.label.name + "_deploy.jar")
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        output = ctx.outputs.deploy_jar
+    else:
+        output = ctx.actions.declare_file(ctx.label.name + "_deploy.jar")
+
     deploy_jar = java.create_deploy_jar(
         ctx,
         output = output,
@@ -806,8 +810,12 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             # Proguard map from shrinking is the final output.
             proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
 
-    proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_proguard.jar")
-    proguard_output_config = ctx.actions.declare_file(ctx.label.name + "_proguard.config")
+    if acls.in_android_binary_starlark_rollout(str(ctx.label)) and ctx.attr._generate_proguard_outputs:
+        proguard_output_jar = ctx.outputs.proguard_jar
+        proguard_output_config = ctx.outputs.proguard_config
+    else:
+        proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_proguard.jar")
+        proguard_output_config = ctx.actions.declare_file(ctx.label.name + "_proguard.config")
     proguard_seeds = ctx.actions.declare_file(ctx.label.name + "_proguard.seeds")
     proguard_usage = ctx.actions.declare_file(ctx.label.name + "_proguard.usage")
 
@@ -941,8 +949,12 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
             resources_apk = packaged_resources_ctx.resources_apk
             merged_manifest = packaged_resources_ctx.processed_manifest
 
-        unsigned_apk = ctx.actions.declare_file(ctx.label.name + "_unsigned.apk")
-        signed_apk = ctx.actions.declare_file(ctx.label.name + ".apk")
+        if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+            unsigned_apk = ctx.outputs.unsigned_apk
+            signed_apk = ctx.outputs.signed_apk
+        else:
+            unsigned_apk = ctx.actions.declare_file(ctx.label.name + "_unsigned.apk")
+            signed_apk = ctx.actions.declare_file(ctx.label.name + ".apk")
 
         apk_packaging_ctx = _apk_packaging.process(
             ctx,

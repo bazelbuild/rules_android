@@ -25,6 +25,7 @@ load(
 )
 load("//mobile_install:transform.bzl", "dex", "filter_jars")
 load("//mobile_install:utils.bzl", "utils")
+load("//rules:acls.bzl", "acls")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
@@ -45,6 +46,12 @@ def extract(target, ctx):
       Input for process method
     """
     extension_registry_class_jar = utils.get_extension_registry_class_jar(target)
+
+    if acls.in_android_binary_starlark_rollout(str(target.label)):
+        transitive_native_libs = target[AndroidBinaryNativeLibsInfo].transitive_native_libs
+    else:
+        transitive_native_libs = ctx.rule.attr.application_resources[AndroidBinaryNativeLibsInfo].transitive_native_libs
+
     return dict(
         debug_key = utils.only(ctx.rule.files.debug_key, allow_empty = True),
         debug_signing_keys = ctx.rule.files.debug_signing_keys,
@@ -56,7 +63,7 @@ def extract(target, ctx):
         resource_apk = target[AndroidIdeInfo].resource_apk,
         resource_src_jar = target[AndroidIdeInfo].resource_jar.source_jar,  # This is the R with real ids.
         aar_native_libs_info = MIAndroidAarNativeLibsInfo(
-            transitive_native_libs = ctx.rule.attr.application_resources[AndroidBinaryNativeLibsInfo].transitive_native_libs,
+            transitive_native_libs = transitive_native_libs,
         ),
         android_dex_info = providers.make_mi_android_dex_info(
             dex_shards = dex(
