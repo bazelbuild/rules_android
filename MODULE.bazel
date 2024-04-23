@@ -6,7 +6,15 @@ module(
 bazel_dep(name = "platforms", version = "0.0.5")
 bazel_dep(name = "rules_license", version = "0.0.4")
 bazel_dep(name = "rules_java", version = "7.5.0")
+
 bazel_dep(name = "stardoc", version = "0.6.2", dev_dependency = True)
+# Use a later commit until a version with table of contents, stamping, and
+# footer template is released.
+git_override(
+    module_name = "stardoc",
+    remote = "https://github.com/bazelbuild/stardoc.git",
+    commit = "91428abe5bce5517310dbbfe08b68a2d6ca529f8",
+)
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")

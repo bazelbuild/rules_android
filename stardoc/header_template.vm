@@ -1,0 +1,35 @@
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- See https://cdnjs.com/libraries/github-markdown-css
+  and https://github.com/sindresorhus/github-markdown-css?tab=readme-ov-file -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.5.1/github-markdown.min.css"
+    integrity="sha512-h/laqMqQKUXxFuu6aLAaSrXYwGYQ7qk4aYCQ+KJwHZMzAGaEoxMM6h8C+haeJTU1V6E9jrSUnjpEzX23OmV/Aw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer" />
+  <!-- See https://github.com/sindresorhus/github-markdown-css?tab=readme-ov-file#usage -->
+  <style>
+    .markdown-body {
+      box-sizing: border-box;
+      min-width: 200px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 45px;
+    }
+
+    @media (max-width: 767px) {
+      .markdown-body {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body class="markdown-body">
+
+# [rules_android](https://github.com/bazelbuild/rules_android) Stardoc
+
+This Stardoc was built from rules_android commit
+`$!stamping.stable.STABLE_GIT_COMMIT` on
+`$util.formatBuildTimestamp($stamping.volatile.BUILD_TIMESTAMP, "UTC", "yyyy MMM dd, HH:mm") UTC`.
