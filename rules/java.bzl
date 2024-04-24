@@ -522,7 +522,7 @@ def _check_one_version(
         inputs = depset(),
         java_toolchain = None,
         one_version_enforcement_level = "OFF",
-        is_test_binary = False):
+        use_allowlist_for_tests = False):
     """Runs a Java one version enforcement check.
 
     Args:
@@ -531,8 +531,8 @@ def _check_one_version(
       java_toolchain: Target. The java_toolchain Target.
       one_version_enforcement_level: String. The enforcement level of one version check. Can only be
         'OFF', 'WARNING' or 'ERROR'.
-      is_test_binary: Boolean. Whether this binary is used for testing.
-
+      use_allowlist_for_tests: Whether to use the allowlist for tests. This should only be True when
+      a test rule (rule name ending with "_test") calls it.
     Returns:
       A file containing the results of one version check.
     """
@@ -543,7 +543,7 @@ def _check_one_version(
 
     tool = java_toolchain._one_version_tool
 
-    if is_test_binary:
+    if use_allowlist_for_tests:
         allowlist = java_toolchain._one_version_allowlist_for_tests
     else:
         allowlist = java_toolchain._one_version_allowlist
