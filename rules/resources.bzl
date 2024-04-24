@@ -1282,7 +1282,6 @@ def _process_starlark(
         resource_files = None,
         neverlink = False,
         enable_data_binding = False,
-        propagate_resources = True,
         fix_resource_transitivity = False,
         aapt = None,
         android_jar = None,
@@ -1330,9 +1329,6 @@ def _process_starlark(
         expressions in layout resources included through the resource_files
         parameter is enabled. Without this setting, data binding expressions
         produce build failures.
-      propagate_resources: boolean. If false, the target will no longer propagate
-        providers required for Android Resource processing/packaging. But will
-        continue to propagate others (AndroidLibraryResourceClassJarProvider).
       fix_resource_transitivity: Whether to ensure that transitive resources are
         correctly marked as transitive.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
@@ -1870,10 +1866,6 @@ def _process_starlark(
             ),
         ))
 
-    if not propagate_resources:
-        resources_ctx[_R_JAVA] = None
-        resources_ctx[_PROVIDERS] = []
-
     # TODO(b/69552500): In the Starlark Android Rules, the R compile time
     # JavaInfo is added as a runtime dependency to the JavaInfo. Stop
     # adding the R.jar as a runtime dependency.
@@ -1925,7 +1917,6 @@ def _process(
         res_v3_dummy_manifest = None,
         res_v3_dummy_r_txt = None,
         fix_resource_transitivity = False,
-        propagate_resources = True,
         zip_tool = None):
     out_ctx = _process_starlark(
         ctx,
@@ -1948,7 +1939,6 @@ def _process(
         enable_data_binding = enable_data_binding,
         fix_resource_transitivity = fix_resource_transitivity,
         neverlink = neverlink,
-        propagate_resources = propagate_resources,
         android_jar = android_jar,
         aapt = aapt,
         android_kit = android_kit,

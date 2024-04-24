@@ -30,7 +30,6 @@ To update a list:
 load("//rules/acls:aar_import_deps_checker.bzl", "AAR_IMPORT_DEPS_CHECKER_FALLBACK", "AAR_IMPORT_DEPS_CHECKER_ROLLOUT")
 load("//rules/acls:aar_import_explicit_exports_manifest.bzl", "AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST")
 load("//rules/acls:aar_import_exports_r_java.bzl", "AAR_IMPORT_EXPORTS_R_JAVA")
-load("//rules/acls:aar_propagate_resources.bzl", "AAR_PROPAGATE_RESOURCES_FALLBACK", "AAR_PROPAGATE_RESOURCES_ROLLOUT")
 load("//rules/acls:allow_resource_conflicts.bzl", "ALLOW_RESOURCE_CONFLICTS")
 load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
 load("//rules/acls:android_application_with_sandboxed_sdks_allowlist.bzl", "ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST")
@@ -84,9 +83,6 @@ def _in_aar_import_explicit_exports_manifest(fqn):
 
 def _in_aar_import_exports_r_java(fqn):
     return matches(fqn, AAR_IMPORT_EXPORTS_R_JAVA_DICT)
-
-def _in_aar_propagate_resources(fqn):
-    return not matches(fqn, AAR_PROPAGATE_RESOURCES_FALLBACK_DICT) and matches(fqn, AAR_PROPAGATE_RESOURCES_ROLLOUT_DICT)
 
 def _in_android_application_with_sandboxed_sdks_allowlist_dict(fqn):
     return matches(fqn, ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT)
@@ -227,8 +223,6 @@ AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT = make_dict(AAR_IMPORT_DEPS_CHECKER_FALLBA
 AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT = make_dict(AAR_IMPORT_DEPS_CHECKER_ROLLOUT)
 AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT = make_dict(AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST)
 AAR_IMPORT_EXPORTS_R_JAVA_DICT = make_dict(AAR_IMPORT_EXPORTS_R_JAVA)
-AAR_PROPAGATE_RESOURCES_FALLBACK_DICT = make_dict(AAR_PROPAGATE_RESOURCES_FALLBACK)
-AAR_PROPAGATE_RESOURCES_ROLLOUT_DICT = make_dict(AAR_PROPAGATE_RESOURCES_ROLLOUT)
 ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT = make_dict(ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST)
 ANDROID_ARCHIVE_DOGFOOD_DICT = make_dict(ANDROID_ARCHIVE_DOGFOOD)
 ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST_DICT = make_dict(ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST)
@@ -341,7 +335,6 @@ acls = struct(
     in_aar_import_deps_checker = _in_aar_import_deps_checker,
     in_aar_import_explicit_exports_manifest = _in_aar_import_explicit_exports_manifest,
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
-    in_aar_propagate_resources = _in_aar_propagate_resources,
     in_b122039567 = _in_b122039567,
     in_android_application_with_sandboxed_sdks_allowlist_dict = _in_android_application_with_sandboxed_sdks_allowlist_dict,
     in_android_archive_dogfood = _in_android_archive_dogfood,
