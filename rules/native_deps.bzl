@@ -85,19 +85,19 @@ def process(ctx, filename, merged_library_map = {}):
                 [dep[CcInfo] for dep in deps if CcInfo in dep],
             ),
         )
-        libraries = []
+        oneoff_shared_libs = []
         if merged_library_map and merged_library_map[key]:
-            libraries.append(merged_library_map[key])
+            oneoff_shared_libs.append(merged_library_map[key])
 
         native_deps_lib = _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actual_target_name)
         if native_deps_lib:
-            libraries.append(native_deps_lib)
+            oneoff_shared_libs.append(native_deps_lib)
             native_libs_basename = native_deps_lib.basename
 
-        libraries.extend(_filter_unique_shared_libs(libraries, cc_info))
+        shared_libs = _collect_unique_shared_libs(oneoff_shared_libs, cc_info)
 
-        if libraries:
-            libs[libs_dir_name] = depset(libraries)
+        if shared_libs:
+            libs[libs_dir_name] = depset(shared_libs)
 
     if libs and native_libs_basename:
         libs_name = ctx.actions.declare_file("nativedeps_filename/" + actual_target_name + "/" + filename)
@@ -126,7 +126,7 @@ def _all_inputs(cc_info):
         for lib in input.libraries
     ]
 
-def _filter_unique_shared_libs(linked_libs, cc_info):
+def _collect_unique_shared_libs(linked_libs, cc_info):
     basenames = {}
     artifacts = {}
     if linked_libs:
