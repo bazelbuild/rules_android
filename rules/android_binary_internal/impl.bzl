@@ -538,7 +538,6 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
             inputs = runtime_jars,
             java_toolchain = java_toolchain,
             one_version_enforcement_level = ctx.fragments.java.one_version_enforcement_level,
-            is_test_binary = _is_test_binary(ctx),
         )
 
     return ProviderInfo(
