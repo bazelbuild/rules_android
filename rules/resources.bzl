@@ -1709,6 +1709,7 @@ def _process_starlark(
             output_jar = out_class_jar,
             compile_jar = out_class_jar,
             source_jar = r_java,
+            neverlink = True,
         )
 
         packages_to_r_txts_depset.setdefault(java_package, []).append(depset([out_aapt2_r_txt]))
@@ -1874,13 +1875,13 @@ def _process_starlark(
         resources_ctx[_R_JAVA] = None
         resources_ctx[_PROVIDERS] = []
 
-    # TODO(b/69552500): In the Starlark Android Rules, the R compile time
-    # JavaInfo is added as a runtime dependency to the JavaInfo. Stop
-    # adding the R.jar as a runtime dependency.
+    r_java = None
+    if resource_files:
+        r_java = resources_ctx[_R_JAVA]
     resources_ctx[_PROVIDERS].append(
         AndroidLibraryResourceClassJarProvider(
             depset(
-                (resources_ctx[_R_JAVA].runtime_output_jars if resources_ctx[_R_JAVA] else []),
+                (utils.list_or_depset_to_list(r_java.compile_jars) if r_java else []),
                 transitive = [
                     p.jars
                     for p in utils.collect_providers(
