@@ -17,6 +17,7 @@
 load("//rules:acls.bzl", "acls")
 load(
     "//rules/android_binary_internal:rule.bzl",
+    "android_binary_internal",
     "android_binary_internal_macro",
     "make_rule",
 )
@@ -50,6 +51,7 @@ def android_binary_macro(**attrs):
     else:
         android_binary_internal_name = ":" + attrs["name"] + common.PACKAGED_RESOURCES_SUFFIX
         android_binary_internal_macro(
+            internal_rule = android_binary_internal,
             **dict(
                 attrs,
                 name = android_binary_internal_name[1:],
