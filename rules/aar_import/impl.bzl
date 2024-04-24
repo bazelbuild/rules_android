@@ -157,7 +157,6 @@ def _process_resources(
         deps = ctx.attr.deps,
         exports = ctx.attr.exports,
         exports_manifest = getattr(ctx.attr, "exports_manifest", True),
-        propagate_resources = _acls.in_aar_propagate_resources(str(ctx.label)),
 
         # Tool and Processing related inputs
         aapt = _get_android_toolchain(ctx).aapt2.files_to_run,
