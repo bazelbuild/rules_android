@@ -25,7 +25,6 @@ load(
 )
 load("//mobile_install:transform.bzl", "dex", "filter_jars")
 load("//mobile_install:utils.bzl", "utils")
-load("//rules:acls.bzl", "acls")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
@@ -47,10 +46,11 @@ def extract(target, ctx):
     """
     extension_registry_class_jar = utils.get_extension_registry_class_jar(target)
 
-    if acls.in_android_binary_starlark_rollout(str(target.label)):
-        transitive_native_libs = target[AndroidBinaryNativeLibsInfo].transitive_native_libs
-    else:
+    # TODO(b/308978693): Remove this check once the android_binary starlark migration is complete.
+    if getattr(ctx.rule.attr, "application_resources", None):
         transitive_native_libs = ctx.rule.attr.application_resources[AndroidBinaryNativeLibsInfo].transitive_native_libs
+    else:
+        transitive_native_libs = target[AndroidBinaryNativeLibsInfo].transitive_native_libs
 
     return dict(
         debug_key = utils.only(ctx.rule.files.debug_key, allow_empty = True),
