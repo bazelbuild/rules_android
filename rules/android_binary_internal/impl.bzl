@@ -230,9 +230,10 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
     )
 
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        java_infos = [java_info, packaged_resources_ctx.r_java]
+        java_infos = [packaged_resources_ctx.r_java]
         if proto_ctx.java_info:
             java_infos.append(proto_ctx.java_info)
+        java_infos.append(java_info)
         java_info = java_common.merge(java_infos)
 
     providers = []
