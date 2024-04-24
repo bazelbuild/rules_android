@@ -243,6 +243,6 @@ ATTRS = _attrs.replace(
     manifest = attr.label(
         allow_single_file = True,
         # TODO(b/328051443): Apply the android_transition
-        cfg = "target",
+        cfg = android_platforms_transition,
     ),
 )
