@@ -221,8 +221,6 @@ def _build_apk(
     )
 
     inputs = [compressed_apk]
-    if art_profile_zip:
-        inputs.append(art_profile_zip)
     if not compress_java_resources and extracted_java_resources_zip:
         inputs.append(extracted_java_resources_zip)
 
@@ -230,6 +228,9 @@ def _build_apk(
     # and supplying their own resources.arsc via a java_import. In the case of duplicates, the
     # singlejar action will take the first version of a file it sees.
     inputs.append(resources_apk)
+
+    if art_profile_zip:
+        inputs.append(art_profile_zip)
 
     resources = []
     resource_paths = []
