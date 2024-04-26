@@ -28,8 +28,6 @@ AndroidAppsInfo = provider(
 
 
 
-
-
 AndroidJavaInfo = provider(
     doc = "Provides outputs for the Android Java Compilation",
     fields = dict(
@@ -45,7 +43,6 @@ AndroidFilteredJdepsInfo = provider(
         jdeps = "Filtered jdeps",
     ),
 )
-
 
 StarlarkApkInfo = provider(
     doc = "Provides APK outputs of a rule.",
