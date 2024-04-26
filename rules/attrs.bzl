@@ -226,7 +226,6 @@ _DATA_CONTEXT = _add(
 
 
 
-
 ANDROID_SDK_ATTRS = dict(
     aapt = attr.label(
         allow_single_file = True,
