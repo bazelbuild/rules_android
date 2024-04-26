@@ -17,6 +17,7 @@
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
+load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(
     "//rules:processing_pipeline.bzl",
     "ProviderInfo",
@@ -71,7 +72,7 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
             ctx,
             out_manifest = manifest,
             java_package = java_package,
-            min_sdk_version = int(manifest_values.get("minSdkVersion", 19)),  # minsdk supported by robolectric framework
+            min_sdk_version = int(manifest_values.get("minSdkVersion", min_sdk_version.DEPOT_FLOOR)),
         )
         manifest_ctx = struct(processed_manifest = manifest, processed_manifest_values = manifest_values)
     else:
