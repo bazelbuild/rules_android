@@ -17,6 +17,7 @@
 PROVIDERS = "providers"
 VALIDATION_OUTPUTS = "validation_outputs"
 IMPLICIT_OUTPUTS = "implicit_outputs"
+OUTPUT_GROUPS = "output_groups"
 
 # TODO(djwhang): When a provider type can be retrieved from a Starlark provider
 # ProviderInfo is necessary. Once this is possible, processor methods can have a
@@ -74,6 +75,7 @@ def _run(ctx, java_package, processing_pipeline):
         providers = [],
         validation_outputs = [],
         implicit_outputs = [],
+        output_groups = {},
         runfiles = ctx.runfiles(),
     )
 
@@ -86,6 +88,17 @@ def _run(ctx, java_package, processing_pipeline):
             target_ctx[PROVIDERS].extend(getattr(info.value, PROVIDERS, []))
             target_ctx[VALIDATION_OUTPUTS].extend(getattr(info.value, VALIDATION_OUTPUTS, []))
             target_ctx[IMPLICIT_OUTPUTS].extend(getattr(info.value, IMPLICIT_OUTPUTS, []))
+
+            output_groups = getattr(info.value, OUTPUT_GROUPS, {})
+            for key, value in output_groups.items():
+                if key == "_validation":
+                    fail("Do not explicitly set '_validation' as an output group. Use 'validation_outputs' instead.")
+                if key == "_hidden_top_level_INTERNAL_":
+                    fail("Do not set '_hidden_top_level_INTERNAL_' in processors as an output group. Set it instead in the finalize method.")
+                if key in target_ctx[OUTPUT_GROUPS]:
+                    fail("%s output group already registered in target context" % key)
+                target_ctx[OUTPUT_GROUPS][key] = value
+
             if hasattr(info, "runfiles") and info.runfiles:
                 target_ctx["runfiles"] = target_ctx["runfiles"].merge(info.runfiles)
 

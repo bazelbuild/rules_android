@@ -17,7 +17,7 @@ load(":java.bzl", "java")
 
 _PROVIDERS = "providers"
 _IMPLICIT_OUTPUTS = "implicit_outputs"
-_DEPLOY_INFO = "deploy_info"
+_OUTPUT_GROUPS = "output_groups"
 _SIGNED_APK = "signed_apk"
 
 _ApkContextInfo = provider(
@@ -25,7 +25,7 @@ _ApkContextInfo = provider(
     fields = {
         _PROVIDERS: "The list of all providers to propagate.",
         _IMPLICIT_OUTPUTS: "List of implicit outputs to be built as part of the top-level target.",
-        _DEPLOY_INFO: "A proto providing information about how to deploy and launch the APK",
+        _OUTPUT_GROUPS: "A dictionary of output groups to propagate",
         _SIGNED_APK: "The signed APK.",
     },
 )
@@ -162,7 +162,12 @@ def _process(
             signing_min_v3_rotation_api_version = signing_key_rotation_min_sdk,
         ),
     )
-    apk_packaging_ctx[_DEPLOY_INFO] = deploy_info
+    apk_packaging_ctx[_OUTPUT_GROUPS] = dict(
+        android_deploy_info = [
+            deploy_info,
+            merged_manifest,
+        ],
+    )
 
     return _ApkContextInfo(**apk_packaging_ctx)
 
