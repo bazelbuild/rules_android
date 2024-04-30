@@ -111,8 +111,8 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         instrument_xslt = ctx.file._add_g3itr_xslt,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = ctx.attr._host_javabase,
-        # The AndroidApplicationResourceInfo will be added to the list of providers in finalize()
-        # if R8-based resource shrinking is not performed.
+        # The AndroidApplicationResourceInfo will be added to the list of providers in
+        # ResourceShrinkerR8Processor if R8-based resource shrinking is not performed.
         add_application_resource_info_to_providers = False,
     )
     return ProviderInfo(
@@ -229,12 +229,17 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
         constraints = ["android"],
     )
 
+    output_groups = dict()
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
         java_infos = [packaged_resources_ctx.r_java]
         if proto_ctx.java_info:
             java_infos.append(proto_ctx.java_info)
         java_infos.append(java_info)
         java_info = java_common.merge(java_infos)
+        output_groups = dict(
+            _direct_source_jars = java_info.source_jars,
+            _source_jars = java_info.transitive_source_jars,
+        )
 
     providers = []
     if acls.in_android_binary_starlark_javac(str(ctx.label)):
@@ -245,6 +250,7 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
         value = struct(
             java_info = java_info,
             providers = providers,
+            output_groups = output_groups,
         ),
     )
 
@@ -579,10 +585,8 @@ def finalize(
         providers,
         validation_outputs,
         implicit_outputs,
-        packaged_resources_ctx,
+        output_groups,
         deploy_ctx,
-        apk_packaging_ctx,
-        resource_shrinking_r8_ctx,
         **_unused_ctxs):
     """Final step of the android_binary_internal processor pipeline.
 
@@ -590,31 +594,33 @@ def finalize(
       ctx: The context.
       providers: The list of providers for the android_binary_internal rule.
       validation_outputs: Validation outputs for the rule.
-      packaged_resources_ctx: The packaged resources from the resource processing step.
-      apk_packaging_ctx: The context from the APK packaging step.
-      resource_shrinking_r8_ctx: The context from the R8 resource shrinking step.
+      implicit_outputs: Implicit outputs for the rule.
+      output_groups: Output groups for the rule.
+      deploy_ctx: The context from the deploy creation step.
       **_unused_ctxs: Other contexts.
 
     Returns:
       The list of providers the android_binary_internal rule should return.
     """
+    output_groups["_validation"] = depset(validation_outputs)
+
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        output_groups["_hidden_top_level_INTERNAL_"] = depset(
+            direct = [
+                deploy_ctx.one_version_enforcement_output,
+            ] if deploy_ctx.one_version_enforcement_output else [],
+            transitive = [info["_hidden_top_level_INTERNAL_"] for info in utils.collect_providers(
+                OutputGroupInfo,
+                utils.dedupe_split_attr(ctx.split_attr.deps),
+            )],
+        )
         providers.extend(
             [
                 DefaultInfo(
                     files = depset(implicit_outputs),
                     runfiles = ctx.runfiles(files = implicit_outputs),
                 ),
-                OutputGroupInfo(
-                    android_deploy_info = [
-                        apk_packaging_ctx.deploy_info,
-                        packaged_resources_ctx.processed_manifest,
-                    ],
-                    _hidden_top_level_INTERNAL_ = [
-                        deploy_ctx.one_version_enforcement_output,
-                    ] if deploy_ctx.one_version_enforcement_output else [],
-                    _validation = depset(validation_outputs),
-                ),
+                OutputGroupInfo(**output_groups),
             ],
         )
 
@@ -626,20 +632,9 @@ def finalize(
     else:
         providers.append(
             OutputGroupInfo(
-                _validation = depset(validation_outputs),
+                **output_groups
             ),
         )
-
-    # Add the AndroidApplicationResourceInfo provider from resource shrinking if it was performed.
-    # TODO(ahumesky): This can be cleaned up after the rules are fully migrated to Starlark.
-    # Packaging will be the final step in the pipeline, and that step can be responsible for picking
-    # between the two different contexts. Then this finalize can return back to its "simple" form.
-    if resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk:
-        providers.append(
-            resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk,
-        )
-    else:
-        providers.append(packaged_resources_ctx.android_application_resource)
 
     return providers
 
@@ -1017,6 +1012,10 @@ def _process_idl(ctx, **_unused_ctxs):
         value = struct(
             android_idl_info = android_idl_info,
             providers = [android_idl_info],
+            output_groups = {
+                # TODO(zhaoqxu): Consider removing it since it's always empty.
+                "_idl_jars": depset(),
+            },
         ),
     )
 

@@ -132,6 +132,9 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
     Returns:
       The r8_ctx ProviderInfo.
     """
+
+    aari = packaged_resources_ctx.android_application_resource
+
     if (not acls.use_r8(str(ctx.label)) or
         not _resources.is_resource_shrinking_enabled(
             ctx.attr.shrink_resources,
@@ -142,7 +145,7 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
             name = "resource_shrinking_r8_ctx",
             value = struct(
                 android_application_resource_info_with_shrunk_resource_apk = None,
-                providers = [],
+                providers = [aari],
             ),
         )
 
@@ -196,10 +199,9 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
-    aari = packaged_resources_ctx.android_application_resource
-
     # Replace the resource apk in the AndroidApplicationResourceInfo provider from resource
     # processing.
+    # TODO(b/308978693): Stop propagating the provider after the starlark migration is complete.
     new_aari = AndroidApplicationResourceInfo(
         resource_apk = resource_apk_shrunk,
         resource_java_src_jar = aari.resource_java_src_jar,
@@ -217,6 +219,6 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
         name = "resource_shrinking_r8_ctx",
         value = struct(
             android_application_resource_info_with_shrunk_resource_apk = new_aari,
-            providers = [],
+            providers = [new_aari],
         ),
     )
