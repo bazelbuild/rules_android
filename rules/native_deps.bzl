@@ -293,6 +293,7 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
         feature_configuration = cc_common.configure_features(
             ctx = ctx,
             cc_toolchain = cc_toolchain,
+            unsupported_features = ctx.disabled_features,
         ),
     ):
         return None
