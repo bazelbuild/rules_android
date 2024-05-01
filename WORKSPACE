@@ -20,5 +20,3 @@ rules_android_workspace()
 register_toolchains("//toolchains/android:all")
 
 register_toolchains("//toolchains/android_sdk:all")
-
-register_toolchains("//toolchains/emulator:all")
