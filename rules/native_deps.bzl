@@ -45,15 +45,16 @@ def _get_libs_dir_name(target_platform):
     name = target_platform.name
     return name
 
-def process(ctx, filename, merged_library_map = {}):
+def process(ctx, filename, merged_libraries_map = {}):
     """Links native deps into a shared library
 
     Args:
       ctx: The context.
       filename: String. The name of the artifact containing the name of the
             linked shared library
-      merged_library_map: A dict that maps cpu to the merged native library.
-            This maps to None if native library merging is not enabled.
+      merged_libraries_map: A dict that maps cpu to libraries produced by
+            merging. This maps to None if native library merging is not
+            enabled.
 
     Returns:
         Tuple of (libs, libs_name) where libs is a depset of all native deps
@@ -86,8 +87,8 @@ def process(ctx, filename, merged_library_map = {}):
             ),
         )
         oneoff_shared_libs = []
-        if merged_library_map and merged_library_map[key]:
-            oneoff_shared_libs.append(merged_library_map[key])
+        if merged_libraries_map:
+            oneoff_shared_libs.extend(merged_libraries_map[key])
 
         native_deps_lib = _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actual_target_name)
         if native_deps_lib:
