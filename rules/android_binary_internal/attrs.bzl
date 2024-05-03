@@ -119,7 +119,7 @@ ATTRS = _attrs.replace(
                 default = _attrs.tristate.auto,
             ),
             dexopts = attr.string_list(),
-            main_dex_list = attr.label(allow_single_file = True, cfg = android_transition),
+            main_dex_list = attr.label(allow_single_file = True, cfg = android_platforms_transition),
             main_dex_list_opts = attr.string_list(),
             main_dex_proguard_specs = attr.label_list(allow_empty = True, allow_files = True, cfg = android_transition),
             min_sdk_version = attr.int(),
