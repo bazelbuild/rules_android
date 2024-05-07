@@ -101,7 +101,7 @@ ATTRS = _attrs.replace(
                 """,
                 cfg = android_platforms_transition,
             ),
-            proguard_specs = attr.label_list(allow_empty = True, allow_files = True, cfg = android_transition),
+            proguard_specs = attr.label_list(allow_empty = True, allow_files = True, cfg = android_platforms_transition),
             resource_apks = attr.label_list(
                 allow_rules = ["apk_import"],
                 providers = [
