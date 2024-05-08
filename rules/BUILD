@@ -11,7 +11,7 @@ exports_files([
 
 alias(
     name = "ResourceProcessorBusyBox",
-    actual = "@bazel_tools//tools/android:busybox",
+    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ResourceProcessorBusyBox",
     visibility = ["//visibility:public"],
 )
 
