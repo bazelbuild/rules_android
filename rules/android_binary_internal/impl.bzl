@@ -325,7 +325,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             final_proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
         elif should_optimize_dex:
             # No desugared library, Proguard map from postprocessing is the final Proguard map.
-            final_proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
+            postprocessing_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
             final_proguard_output_map = postprocessing_output_map
         elif ctx.fragments.android.desugar_java8_libs:
             # No postprocessing, Proguard map from merging with the desugared library map is the
