@@ -29,12 +29,15 @@ def rules_android_prereqs(dev_mode = False):
         sha256 = "4da3761f6855ad916568e2bfe86213ba6d2637f56b8360538a7fb6125abf6518",
     )
 
+    RULES_JVM_EXTERNAL_TAG = "6.1"
+    RULES_JVM_EXTERNAL_SHA = "08ea921df02ffe9924123b0686dc04fd0ff875710bfadb7ad42badb931b0fd50"
+
     maybe(
         http_archive,
         name = "rules_jvm_external",
-        strip_prefix = "rules_jvm_external-fa73b1a8e4846cee88240d0019b8f80d39feb1c3",
-        sha256 = "7e13e48b50f9505e8a99cc5a16c557cbe826e9b68d733050cd1e318d69f94bb5",
-        url = "https://github.com/bazelbuild/rules_jvm_external/archive/fa73b1a8e4846cee88240d0019b8f80d39feb1c3.zip",
+        strip_prefix = "rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+        sha256 = RULES_JVM_EXTERNAL_SHA,
+        url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_TAG)
     )
 
     maybe(

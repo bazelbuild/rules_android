@@ -20,7 +20,7 @@ rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolc
 use_repo(rules_java_toolchains, "remote_java_tools")
 
 bazel_dep(name = "protobuf", version = "3.19.0", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_jvm_external", version = "4.5")
+bazel_dep(name = "rules_jvm_external", version = "6.1")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
 bazel_dep(name = "rules_robolectric", version = "4.11.1", repo_name = "robolectric")
 
@@ -60,13 +60,35 @@ bazel_dep(name = "rules_proto", version = "5.3.0-21.7", repo_name = "rules_proto
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
 maven.install(
     name = "rules_android_maven",
-    # To generate the maven lockfile, run this command:
-    # bazel run --noenable_bzlmod @rules_android_maven//:pin
-    lock_file = "//:rules_android_maven_install.json",
+    artifacts = [
+        "androidx.privacysandbox.tools:tools:1.0.0-alpha06",
+        "androidx.privacysandbox.tools:tools-apigenerator:1.0.0-alpha06",
+        "androidx.privacysandbox.tools:tools-apipackager:1.0.0-alpha06",
+        "androidx.test:core:1.6.0-alpha01",
+        "androidx.test.ext:junit:1.2.0-alpha01",
+        "com.android.tools.build:apksig:8.3.0-alpha18",
+        "com.android.tools.build:bundletool:1.15.5",
+        "com.android.tools:desugar_jdk_libs_minimal:2.0.4",
+        "com.android.tools:desugar_jdk_libs_configuration_minimal:2.0.4",
+        "com.android.tools:desugar_jdk_libs_nio:2.0.4",
+        "com.android.tools:desugar_jdk_libs_configuration_nio:2.0.4",
+        "com.android.tools.build:gradle:8.2.0-alpha15",
+        "org.bouncycastle:bcprov-jdk18on:1.77",
+        "org.hamcrest:hamcrest-core:2.2",
+        "org.robolectric:robolectric:4.10.3",
+        "com.google.guava:guava:32.1.2-jre",
+        "com.google.protobuf:protobuf-java-util:3.9.2",
+        "com.google.truth:truth:1.1.5",
+        "info.picocli:picocli:4.7.4",
+        "junit:junit:4.13.2",
+    ],
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
+    # To generate, run:
+    # REPIN=1 bazelisk run --enable_bzlmod @rules_android_maven//:pin
+    lock_file = "@//:rules_android_maven_install.json"
 )
 use_repo(
     maven,
