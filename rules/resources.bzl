@@ -580,6 +580,7 @@ def _package(
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
       host_javabase: A Target. The host javabase.
+      # TODO(b/308978693): Delete this after Starlark android_binary starlark migration is complete.
       add_application_resource_info_to_providers: boolean. Whether to add the
           AndroidApplicationResourceInfo provider to the list of providers for this processor.
 
@@ -834,20 +835,21 @@ def _package(
 
     # Adding empty depsets to unused fields of StarlarkAndroidResourcesInfo.
     # Some root targets may depends on other root targets and try to access those fields.
-    packaged_resources_ctx[_PROVIDERS].append(StarlarkAndroidResourcesInfo(
-        direct_resources_nodes = depset(),
-        transitive_resources_nodes = depset(),
-        transitive_assets = depset(),
-        transitive_assets_symbols = depset(),
-        transitive_compiled_assets = depset(),
-        transitive_resource_files = depset(),
-        direct_compiled_resources = depset(),
-        transitive_compiled_resources = depset(),
-        transitive_manifests = depset(),
-        transitive_r_txts = depset(),
-        packages_to_r_txts = packages_to_r_txts,
-        transitive_resource_apks = depset(),
-    ))
+    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
+        packaged_resources_ctx[_PROVIDERS].append(StarlarkAndroidResourcesInfo(
+            direct_resources_nodes = depset(),
+            transitive_resources_nodes = depset(),
+            transitive_assets = depset(),
+            transitive_assets_symbols = depset(),
+            transitive_compiled_assets = depset(),
+            transitive_resource_files = depset(),
+            direct_compiled_resources = depset(),
+            transitive_compiled_resources = depset(),
+            transitive_manifests = depset(),
+            transitive_r_txts = depset(),
+            packages_to_r_txts = packages_to_r_txts,
+            transitive_resource_apks = depset(),
+        ))
 
     android_application_resource_info = AndroidApplicationResourceInfo(
         resource_apk = resource_apk,
