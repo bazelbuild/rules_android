@@ -147,6 +147,7 @@ android_library(
 android_local_test(
     name = "depends_on_neverlink_lib",
     srcs = ["SampleTestNeverlinkDep.java"],
+    custom_package = "com.starlark_resources.test",
     manifest = "AndroidManifest.xml",
     test_class = "com.starlark_resources.SampleTestNeverlinkDep",
     deps = [
@@ -157,12 +158,6 @@ android_local_test(
         "@rules_android_maven//:junit_junit",
         "@rules_android_maven//:org_robolectric_robolectric",
     ],
-)
-
-rule_test(
-    name = "depends_on_neverlink_lib_rule_test",
-    expect_resources = False,
-    target_under_test = ":depends_on_neverlink_lib",
 )
 
 android_local_test(

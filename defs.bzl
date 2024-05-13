@@ -58,6 +58,8 @@ def rules_android_workspace():
             "https://repo1.maven.org/maven2",
             "https://maven.google.com",
         ],
+        use_starlark_android_rules = True,
+        aar_import_bzl_label = "@rules_android//rules:rules.bzl",
         # To generate:
         # REPIN=1 bazelisk run --noenable_bzlmod @unpinned_rules_android_maven//:pin
         # maven_install_json = "//:rules_android_maven_install.json",
