@@ -626,6 +626,13 @@ def finalize(
             ],
         )
 
+        providers.append(
+            AndroidFeatureFlagSet({
+                flag.label: value
+                for flag, value in ctx.attr.feature_flags.items()
+            }),
+        )
+
         if is_instrumentation(ctx):
             providers.append(
                 AndroidInstrumentationInfo(target = ctx.attr.instruments[ApkInfo]),
