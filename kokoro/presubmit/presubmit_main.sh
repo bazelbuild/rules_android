@@ -110,6 +110,11 @@ function main() {
   # Go to rules_android workspace and run relevant tests.
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android"
 
+  # Maven artifact consistency test
+  # The sed commands in the `<()` blocks extract the artifacts list from maven_install.
+  # `diff -w` compares the two files without whitespaces.
+  diff -w <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' defs.bzl) <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' MODULE.bazel)
+
   # Sync with bzlmod disabled to sniff out WORKSPACE issues
   "$bazel" sync --noenable_bzlmod > /dev/null
   # Run with bzlmod enabled to catch missing bzlmod deps.
