@@ -1,10 +1,5 @@
 load(":defs.bzl", "android_jar")
 
-package(default_visibility = ["//visibility:public"])
-
-# The toolchain type used to distinguish Android SDK toolchains.
-toolchain_type(name = "sdk_toolchain_type")
-
 config_setting(
     name = "minimal_desugaring",
     values = {
@@ -17,20 +12,6 @@ config_setting(
     values = {
         "define": "java8_library_desugaring=full",
     }
-)
-
-config_setting(
-    name = "always_true",
-    flag_values = {
-        ":true": "true",
-    },
-)
-
-config_setting(
-    name = "always_false",
-    flag_values = {
-        ":true": "false",
-    },
 )
 
 android_jar(
@@ -246,3 +227,22 @@ alias(
     actual = "@bazel_tools//tools/android:dexmerger",
     visibility = ["//visibility:public"],
 )
+
+alias(
+    name = "merge_dexzips",
+    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/ziputils:reducer",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "shuffle_jars",
+    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/ziputils:mapper",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "zip_filter",
+    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ZipFilterAction",
+    visibility = ["//visibility:public"],
+)
+
