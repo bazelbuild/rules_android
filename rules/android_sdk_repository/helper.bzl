@@ -238,7 +238,7 @@ def create_android_sdk_rules(
             name = "sdk-%d-toolchain" % api_level,
             exec_compatible_with = HOST_CONSTRAINTS,
             toolchain = ":sdk-%d" % api_level,
-            toolchain_type = "@bazel_tools//tools/android:sdk_toolchain_type",
+            toolchain_type = ":sdk_toolchain_type",
             target_settings = [
                 ":api_%d_enabled" % api_level,
             ],
@@ -531,7 +531,7 @@ def create_dummy_sdk_toolchain():
     native.toolchain(
         name = "sdk-dummy-toolchain",
         toolchain = ":sdk-dummy",
-        toolchain_type = "@bazel_tools//tools/android:sdk_toolchain_type",
+        toolchain_type = ":sdk_toolchain_type",
     )
 
     native.filegroup(name = "jar-filegroup", srcs = ["dummy.jar"])

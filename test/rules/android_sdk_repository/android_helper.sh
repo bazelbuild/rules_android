@@ -203,7 +203,7 @@ def _find_api_level(android_jar):
     return level
 def _show_sdk_info_impl(ctx):
     print("SDK check results:")
-    toolchain = ctx.toolchains["@bazel_tools//tools/android:sdk_toolchain_type"]
+    toolchain = ctx.toolchains["@androidsdk//:sdk_toolchain_type"]
     if not toolchain:
         print("No SDK found via toolchain")
         return
@@ -214,7 +214,7 @@ show_sdk_info = rule(
     implementation = _show_sdk_info_impl,
     toolchains = [
         config_common.toolchain_type(
-            "@bazel_tools//tools/android:sdk_toolchain_type",
+            "@androidsdk//:sdk_toolchain_type",
             mandatory = False,
         ),
     ],
