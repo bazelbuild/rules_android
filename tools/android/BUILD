@@ -1,5 +1,10 @@
 load(":defs.bzl", "android_jar")
 
+package(default_visibility = ["//visibility:public"])
+
+# The toolchain type used to distinguish Android SDK toolchains.
+toolchain_type(name = "sdk_toolchain_type")
+
 config_setting(
     name = "minimal_desugaring",
     values = {
@@ -12,6 +17,20 @@ config_setting(
     values = {
         "define": "java8_library_desugaring=full",
     }
+)
+
+config_setting(
+    name = "always_true",
+    flag_values = {
+        ":true": "true",
+    },
+)
+
+config_setting(
+    name = "always_false",
+    flag_values = {
+        ":true": "false",
+    },
 )
 
 android_jar(

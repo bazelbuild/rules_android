@@ -22,9 +22,35 @@ package(default_visibility = ["//visibility:public"])
 # environment variable must be set.
 # This is a minimal BUILD file to allow non-Android builds to continue.
 
+# The toolchain type used to distinguish Android SDK toolchains.
+toolchain_type(name = "sdk_toolchain_type")
+
+config_feature_flag(
+    name = "true",
+    allowed_values = [
+        "true",
+        "false",
+    ],
+    default_value = "true",
+)
+
+config_setting(
+    name = "always_true",
+    flag_values = {
+        ":true": "true",
+    },
+)
+
+config_setting(
+    name = "always_false",
+    flag_values = {
+        ":true": "false",
+    },
+)
+
 alias(
     name = "has_androidsdk",
-    actual = "@bazel_tools//tools/android:always_false",
+    actual = ":always_false",
 )
 
 filegroup(
@@ -39,7 +65,7 @@ filegroup(
 
 toolchain(
     name = "sdk-toolchain",
-    toolchain_type = "@bazel_tools//tools/android:sdk_toolchain_type",
+    toolchain_type = ":sdk_toolchain_type",
     toolchain = ":error_message",
 )
 
