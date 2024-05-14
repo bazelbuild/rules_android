@@ -239,7 +239,7 @@ _ATTRS = dict(
     ),
     shuffle_jars = attr.label(
         cfg = "exec",
-        default = Label("@bazel_tools//tools/android:shuffle_jars"),
+        default = Label("//tools/android:shuffle_jars"),
         executable = True,
     ),
     testsupport = attr.label(
@@ -263,7 +263,7 @@ _ATTRS = dict(
     ),
     zip_filter = attr.label(
         cfg = "exec",
-        default = "@bazel_tools//tools/android:zip_filter",
+        default = "//tools/android:zip_filter",
         executable = True,
     ),
     zipper = attr.label(
@@ -274,7 +274,7 @@ _ATTRS = dict(
     ),
     dex_zips_merger = attr.label(
         cfg = "exec",
-        default = "@bazel_tools//tools/android:merge_dexzips",
+        default = "//tools/android:merge_dexzips",
         executable = True,
     ),
     java8_legacy_dex = attr.label(
