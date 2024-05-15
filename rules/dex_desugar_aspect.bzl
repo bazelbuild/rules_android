@@ -234,7 +234,7 @@ dex_desugar_aspect = aspect(
                 executable = True,
             ),
             "_dexbuilder": attr.label(
-                default = Label("@bazel_tools//tools/android:dexbuilder"),
+                default = Label("//tools/android:dexbuilder"),
                 allow_files = True,
                 cfg = "exec",
                 executable = True,

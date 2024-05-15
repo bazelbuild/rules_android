@@ -119,7 +119,7 @@ _ATTRS = dict(
     ),
     data_binding_exec = attr.label(
         cfg = "exec",
-        default = "@bazel_tools//tools/android:databinding_exec",
+        default = "//tools/android:databinding_exec",
         executable = True,
     ),
     desugar = attr.label(
@@ -135,12 +135,12 @@ _ATTRS = dict(
     ),
     dexbuilder = attr.label(
         cfg = "exec",
-        default = Label("@bazel_tools//tools/android:dexbuilder"),
+        default = Label("//tools/android:dexbuilder"),
         executable = True,
     ),
     dexbuilder_after_proguard = attr.label(
         cfg = "exec",
-        default = Label("@bazel_tools//tools/android:dexbuilder_after_proguard"),
+        default = Label("//tools/android:dexbuilder_after_proguard"),
         executable = True,
     ),
     dexmerger = attr.label(
