@@ -150,7 +150,7 @@ _ATTRS = dict(
     ),
     dexsharder = attr.label(
         cfg = "exec",
-        default = Label("@bazel_tools//tools/android:dexsharder"),
+        default = Label("//tools/android:dexsharder"),
         executable = True,
     ),
     idlclass = attr.label(

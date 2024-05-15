@@ -271,3 +271,8 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "dexsharder",
+    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/dexer:DexFileSplitter",
+    visibility = ["//visibility:public"],
+)
