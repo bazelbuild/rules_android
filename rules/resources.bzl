@@ -2053,7 +2053,7 @@ def _optimize(
     if not (use_resource_path_shortening_map or use_resource_optimization_config):
         return _ResourcesOptimizeContextInfo(**optimize_ctx)
 
-    optimized_resource_apk = ctx.actions.declare_file(ctx.label.name + "optimized.ap_")
+    optimized_resource_apk = ctx.actions.declare_file(ctx.label.name + "_optimized.ap_")
     optimize_ctx[_OPTIMIZED_RESOURCE_APK] = optimized_resource_apk
 
     resource_path_shortening_map = None
