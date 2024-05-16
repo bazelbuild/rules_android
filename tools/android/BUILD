@@ -1,5 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary")
-load(":defs.bzl", "android_jar")
+load(":defs.bzl", "android_jar", "run_singlejar")
 
 config_setting(
     name = "minimal_desugaring",
@@ -285,4 +285,27 @@ alias(
     name = "dexmerger",
     actual = ":d8_dexmerger",
     visibility = ["//visibility:public"],
+)
+
+# Bazel puts this on the bootclasspath of android_* targets to support Java 8
+# if requested.
+filegroup(
+    name = "desugar_java8_extra_bootclasspath",
+    srcs = ["java_base_extras.jar"],
+    visibility = ["//visibility:public"],
+)
+
+# javac needs this Jar to compile lambdas, method references, and type annotations.
+# These classes are not part of the android.jar.
+run_singlejar(
+    name = "gen_java_base_extras_jar",
+    srcs = [
+        "@bazel_tools//tools/jdk:platformclasspath",
+    ],
+    out = "java_base_extras.jar",
+    include_prefixes = [
+        "java/lang/invoke/",
+        "java/lang/annotation/",
+    ],
+    visibility = ["//visibility:private"],
 )

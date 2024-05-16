@@ -14,6 +14,8 @@
 
 """A rule that returns android.jar from the current android sdk."""
 
+load("//rules:common.bzl", _common = "common")
+load("//rules:java.bzl", _java = "java")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "get_android_sdk")
 
 def _android_jar_impl(ctx):
@@ -36,4 +38,24 @@ android_jar = rule(
     toolchains = [
         ANDROID_SDK_TOOLCHAIN_TYPE,
     ],
+)
+
+def _run_singlejar_impl(ctx):
+    _java.singlejar(
+        ctx,
+        inputs = ctx.files.srcs,
+        output = ctx.outputs.out,
+        include_prefixes = ctx.attr.include_prefixes,
+        java_toolchain = _common.get_java_toolchain(ctx),
+    )
+
+run_singlejar = rule(
+    implementation = _run_singlejar_impl,
+    doc = "Runs singlejar over the given files.",
+    attrs = {
+        "srcs": attr.label_list(mandatory = True),
+        "out": attr.output(mandatory = True),
+        "include_prefixes": attr.string_list(),
+        "_java_toolchain": attr.label(default = Label("//tools/jdk:toolchain")),
+    },
 )

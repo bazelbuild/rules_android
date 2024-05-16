@@ -130,7 +130,7 @@ _ATTRS = dict(
     desugar_java8_extra_bootclasspath = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:desugar_java8_extra_bootclasspath",
+        default = "//tools/android:desugar_java8_extra_bootclasspath",
         executable = True,
     ),
     dexbuilder = attr.label(
