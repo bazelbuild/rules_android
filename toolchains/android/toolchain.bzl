@@ -145,7 +145,7 @@ _ATTRS = dict(
     ),
     dexmerger = attr.label(
         cfg = "exec",
-        default = Label("@bazel_tools//tools/android:dexmerger"),
+        default = Label("//tools/android:dexmerger"),
         executable = True,
     ),
     dexsharder = attr.label(
