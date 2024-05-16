@@ -923,6 +923,38 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         ),
     )
 
+def get_final_resources(
+        packaged_resources_ctx,
+        optimize_ctx,
+        resource_shrinking_r8_ctx = None):
+    """
+    Get the optimized or original resource apk and merged manifest.
+
+    Args:
+        packaged_resources_ctx: The context of resources processing.
+        optimize_ctx: The context of optimization.
+        resource_shrinking_r8_ctx: Optional. The context of R8 shrinking.
+    Returns:
+        resources_apk: The resource apk.
+        merged_manifest: The merged manifest.
+    """
+    r8_shrunk_resources_output = None
+    if resource_shrinking_r8_ctx:
+        r8_shrunk_resources_output = resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk
+    if optimize_ctx.resources_apk and r8_shrunk_resources_output:
+        fail("Either R8 Resource Shrinking or Proguard Resource Shrinking/Optimization should be used, but not both!")
+
+    if optimize_ctx.resources_apk:
+        resources_apk = optimize_ctx.resources_apk
+        merged_manifest = packaged_resources_ctx.processed_manifest
+    elif r8_shrunk_resources_output:
+        resources_apk = r8_shrunk_resources_output.resource_apk
+        merged_manifest = r8_shrunk_resources_output.manifest
+    else:
+        resources_apk = packaged_resources_ctx.resources_apk
+        merged_manifest = packaged_resources_ctx.processed_manifest
+    return resources_apk, merged_manifest
+
 def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx, ap_ctx, optimize_ctx, r8_ctx, resource_shrinking_r8_ctx, **_unused_ctxs):
     apk_packaging_ctx = struct()
     if acls.in_android_binary_starlark_rollout(str(ctx.label)):
@@ -937,21 +969,11 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
             fail("Either R8 or Dex should be used, but not both!")
         dex_info = r8_ctx.dex_info if use_r8 else dex_ctx.dex_info
 
-        r8_shrunk_resources_output = None
-        if use_r8:
-            r8_shrunk_resources_output = resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk
-        if optimize_ctx.resources_apk and r8_shrunk_resources_output:
-            fail("Either R8 Resource Shrinking or Proguard Resource Shrinking/Optimization should be used, but not both!")
-
-        if optimize_ctx.resources_apk:
-            resources_apk = optimize_ctx.resources_apk
-            merged_manifest = packaged_resources_ctx.processed_manifest
-        elif r8_shrunk_resources_output:
-            resources_apk = r8_shrunk_resources_output.resource_apk
-            merged_manifest = r8_shrunk_resources_output.manifest
-        else:
-            resources_apk = packaged_resources_ctx.resources_apk
-            merged_manifest = packaged_resources_ctx.processed_manifest
+        resources_apk, merged_manifest = get_final_resources(
+            packaged_resources_ctx,
+            optimize_ctx,
+            resource_shrinking_r8_ctx,
+        )
 
         if acls.in_android_binary_starlark_rollout(str(ctx.label)):
             unsigned_apk = ctx.outputs.unsigned_apk
@@ -1035,18 +1057,26 @@ def _process_intellij(
         packaged_resources_ctx,
         jvm_ctx,
         native_libs_ctx,
+        optimize_ctx,
         apk_packaging_ctx,
+        resource_shrinking_r8_ctx = None,
         **_unused_ctxs):
     if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
         return ProviderInfo(name = "intellij_ctx", value = struct())
+
+    resources_apk, merged_manifest = get_final_resources(
+        packaged_resources_ctx,
+        optimize_ctx,
+        resource_shrinking_r8_ctx,
+    )
 
     android_ide_info = _intellij.make_android_ide_info(
         ctx,
         java_package = java_package,
         manifest = manifest_ctx.processed_manifest,
         defines_resources = True,
-        merged_manifest = packaged_resources_ctx.processed_manifest,
-        resources_apk = packaged_resources_ctx.resources_apk,
+        merged_manifest = merged_manifest,
+        resources_apk = resources_apk,
         r_jar = utils.only(packaged_resources_ctx.r_java.outputs.jars) if packaged_resources_ctx.r_java else None,
         java_info = jvm_ctx.java_info,
         signed_apk = apk_packaging_ctx.signed_apk,
