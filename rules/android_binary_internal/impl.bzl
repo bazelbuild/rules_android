@@ -55,6 +55,9 @@ def _base_validations_processor(ctx, **_unused_ctxs):
     if ctx.attr.min_sdk_version != 0 and not acls.in_android_binary_min_sdk_version_attribute_allowlist(str(ctx.label)):
         fail("Target %s is not allowed to set a min_sdk_version value." % str(ctx.label))
 
+    if ctx.attr.multidex != "legacy" and ctx.attr.main_dex_proguard_specs:
+        fail("The 'main_dex_proguard_specs' attribute is only allowed if 'multidex' is set to 'legacy'")
+
     use_r8 = acls.use_r8(str(ctx.label)) and bool(ctx.files.proguard_specs)
     return ProviderInfo(
         name = "validation_ctx",
