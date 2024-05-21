@@ -58,6 +58,11 @@ def _base_validations_processor(ctx, **_unused_ctxs):
     if ctx.attr.multidex != "legacy" and ctx.attr.main_dex_proguard_specs:
         fail("The 'main_dex_proguard_specs' attribute is only allowed if 'multidex' is set to 'legacy'")
 
+    # Validates that there are no targets with resources in the srcs
+    for src in ctx.attr.srcs:
+        if AndroidResourcesInfo in src:
+            fail("srcs should not contain label with resources %s" % str(src[AndroidResourcesInfo].label))
+
     use_r8 = acls.use_r8(str(ctx.label)) and bool(ctx.files.proguard_specs)
     return ProviderInfo(
         name = "validation_ctx",
