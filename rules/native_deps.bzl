@@ -241,6 +241,9 @@ def _get_build_info(ctx, cc_toolchain):
         # For native CcToolchainInfo.
         build_info_collection = cc_toolchain.build_info_files()
     if _is_stamping_enabled(ctx):
+        # Makes the target depend on BUILD_INFO_KEY, which helps to discover stamped targets
+        # See b/326620485 for more details.
+        ctx.version_file  # buildifier: disable=no-effect
         return build_info_collection.non_redacted_build_info_files.to_list()
     else:
         return build_info_collection.redacted_build_info_files.to_list()
