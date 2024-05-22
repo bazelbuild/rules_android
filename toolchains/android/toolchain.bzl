@@ -289,7 +289,7 @@ _ATTRS = dict(
     ),
     dex_list_obfuscator = attr.label(
         cfg = "exec",
-        default = "@bazel_tools//tools/android:dex_list_obfuscator",
+        default = "//tools/android:dex_list_obfuscator",
         executable = True,
     ),
     manifest_validation_tool = attr.label(
