@@ -28,6 +28,8 @@ import (
 	"strings"
 	"sync"
 
+  "encoding/xml"
+  "src/tools/ak/manifestutils"
 	"src/common/golang/ziputils"
 	"src/tools/ak/types"
 )
@@ -285,7 +287,11 @@ func getPkgs(pkgs string) ([]string, error) {
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		pkg := strings.TrimSpace(scanner.Text())
+		pkg, err := getPkgFromManifest(scanner.Text())
+    if err != nil {
+      return nil, err
+    }
+
 		if strings.ContainsAny(pkg, "-$/") || pkg == "" {
 			continue
 		}
@@ -299,6 +305,22 @@ func getPkgs(pkgs string) ([]string, error) {
 		return nil, err
 	}
 	return filteredPkgs, nil
+}
+
+func getPkgFromManifest(fp string) (string, error) {
+	file, err := os.Open(fp)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+  decoder := xml.NewDecoder(file)
+  var manifest manifestutils.Manifest
+  if err := decoder.Decode(&manifest); err != nil {
+    return "", err
+  }
+
+  return manifest.Package, nil
 }
 
 func hasInvalid(parts []string) bool {

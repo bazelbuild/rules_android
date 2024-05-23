@@ -85,7 +85,7 @@ def extract(target, ctx):
         # android_resources_info, rather we should be looking to pull them
         # from the resources_v3_info.
         android_resources_info = providers.make_mi_android_resources_info(
-            package = target[AndroidIdeInfo].java_package,
+            package = target[AndroidIdeInfo].manifest,
             deps = providers.collect(
                 MIAndroidResourcesInfo,
                 ctx.rule.attr.deps,

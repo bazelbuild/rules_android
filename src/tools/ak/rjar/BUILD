@@ -16,6 +16,7 @@ go_library(
     importpath = "src/tools/ak/rjar/rjar",
     deps = [
         "//src/common/golang:ziputils",
+        "//src/tools/ak:manifestutils",
         "//src/tools/ak:types",
     ],
 )
