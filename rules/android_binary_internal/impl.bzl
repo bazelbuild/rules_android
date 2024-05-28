@@ -211,11 +211,16 @@ def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_c
 
 def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_unused_ctxs):
     native_name = ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
+
+    if acls.in_android_binary_starlark_javac(str(ctx.label)):
+        output_jar = ctx.actions.declare_file("lib%s.jar" % native_name)
+    else:
+        # stamping tests still need the output jar to be named this way.
+        output_jar = ctx.actions.declare_file("%s/lib%s.jar" % (ctx.label.name, native_name))
+
     java_info = java.compile_android(
         ctx,
-        # Use the same format as the class jar from native android_binary.
-        # Some macros expect the class jar to be named like this.
-        ctx.actions.declare_file("%s/lib%s.jar" % (ctx.label.name, native_name)),
+        output_jar,
         ctx.actions.declare_file(ctx.label.name + "-src.jar"),
         srcs = ctx.files.srcs + db_ctx.java_srcs,
         javac_opts = ctx.attr.javacopts + db_ctx.javac_opts,
