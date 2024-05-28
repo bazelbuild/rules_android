@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load(":defs.bzl", "android_jar", "run_singlejar")
 
 config_setting(
@@ -322,3 +323,35 @@ filegroup(
     srcs = ["bazel_debug.keystore"],
     visibility = ["//visibility:public"],
 )
+
+py_library(
+    name = "junction_lib",
+    srcs = ["junction.py"],
+    visibility = ["//visibility:private"],
+)
+
+py_library(
+    name = "json_worker_wrapper",
+    srcs = ["json_worker_wrapper.py"],
+    visibility = ["//visibility:private"],
+    srcs_version = "PY3",
+)
+
+[
+    py_binary(
+        name = tool,
+        srcs = [tool + ".py"],
+        deps = [
+            ":junction_lib",
+            "@py_absl//absl:app",
+            ":json_worker_wrapper",
+        ],
+        visibility = ["//visibility:public"],
+    )
+    for tool in [
+        "aar_native_libs_zip_creator",
+        "aar_embedded_jars_extractor",
+        "aar_embedded_proguard_extractor",
+        "aar_resources_extractor",
+    ]
+]

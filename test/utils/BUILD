@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_python//python:defs.bzl", "py_test")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -32,3 +33,18 @@ bzl_library(
         "@bazel_skylib//lib:unittest",
     ],
 )
+
+[
+    py_test(
+        name = tool + "_test",
+        srcs = [tool + "_test.py"],
+        deps = ["//tools/android:" + tool],
+    )
+    for tool in [
+        "aar_native_libs_zip_creator",
+        "aar_embedded_jars_extractor",
+        "aar_embedded_proguard_extractor",
+        "aar_resources_extractor",
+    ]
+]
+
