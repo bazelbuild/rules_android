@@ -15,8 +15,11 @@
 """Bazel rule for Android local test."""
 
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
+
+visibility(PROJECT_VISIBILITY)
 
 def make_rule(
         attrs = ATTRS,

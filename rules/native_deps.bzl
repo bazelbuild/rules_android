@@ -18,8 +18,11 @@ of split deps
 """
 
 load("//rules:common.bzl", "common")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+
+visibility(PROJECT_VISIBILITY)
 
 SplitConfigInfo = provider(
     doc = "Provides information about configuration for a split config dep",

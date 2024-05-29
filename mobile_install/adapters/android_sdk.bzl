@@ -14,7 +14,10 @@
 """Rule adapter for android_sdk."""
 
 load("//mobile_install:providers.bzl", "MIAndroidSdkInfo")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":base.bzl", "make_adapter")
+
+visibility(PROJECT_VISIBILITY)
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""

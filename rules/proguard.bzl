@@ -14,11 +14,14 @@
 
 """Bazel Android Proguard library for the Android rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load(":baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load(":common.bzl", "common")
 load(":java.bzl", "java")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_sdk", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 _ProguardSpecContextInfo = provider(
     doc = "Contains data from processing Proguard specs.",

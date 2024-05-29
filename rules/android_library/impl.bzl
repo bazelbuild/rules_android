@@ -30,9 +30,12 @@ load("//rules:proguard.bzl", _proguard = "proguard")
 load("//rules:providers.bzl", "AndroidLintRulesInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
+
+visibility(PROJECT_VISIBILITY)
 
 _USES_DEPRECATED_IMPLICIT_EXPORT_ERROR = (
     "Setting `deps` without `srcs` or `resource_files` is not supported. Consider using " +

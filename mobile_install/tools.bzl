@@ -13,7 +13,10 @@
 # limitations under the License.
 """Tools needed by the mobile-install aspect defined as aspect attributes."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":dependency_map.bzl", "versioned_deps")
+
+visibility(PROJECT_VISIBILITY)
 
 TOOL_ATTRS = dict(
     # Target Attrs

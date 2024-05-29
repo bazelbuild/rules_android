@@ -14,7 +14,10 @@
 
 """Bazel SandboxedSdkToolbox commands."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
+
+visibility(PROJECT_VISIBILITY)
 
 def _extract_api_descriptors(
         ctx,

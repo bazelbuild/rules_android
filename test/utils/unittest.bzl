@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel lib that provides test helpers for testing."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java:java_library.bzl", "java_library")
 load(
     "@bazel_skylib//lib:unittest.bzl",
@@ -20,6 +21,8 @@ load(
     _unittest = "unittest",
 )
 load(":file.bzl", _file = "file")
+
+visibility(PROJECT_VISIBILITY)
 
 TestInfo = provider(
     doc = "Provides a test a suggested set of attributes.",

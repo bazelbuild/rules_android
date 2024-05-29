@@ -15,6 +15,9 @@
 """This aspect is used to collect providers from an instrumented android_binary."""
 
 load("//rules:providers.bzl", "InstrumentedAppInfo")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 def _impl(unused_target, ctx):
     if hasattr(ctx.rule.attr, "instruments") and ctx.rule.attr.instruments and AndroidIdeInfo in ctx.rule.attr.instruments:

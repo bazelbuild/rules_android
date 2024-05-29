@@ -14,11 +14,14 @@
 
 """Tests for R8 integration."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//test/utils:lib.bzl",
     "analysistest",
     "asserts",
 )
+
+visibility(PROJECT_VISIBILITY)
 
 def r8_neverlink_deps_test_impl(ctx):
     """Tests that the correct neverlink libs are added to the R8 invocation.

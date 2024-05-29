@@ -28,7 +28,10 @@ The intended order of checks is:
 
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 def _android_split_transition_impl(settings, _):
     # Always use `--android_platforms` when toolchain resolution is enabled.

@@ -13,8 +13,11 @@
 # limitations under the License.
 """Methods to process Android resources."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":constants.bzl", "constants")
 load(":utils.bzl", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 # Android resource types, see https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/tools/aapt2/Resource.h
 res_types = [

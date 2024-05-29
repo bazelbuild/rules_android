@@ -14,7 +14,10 @@
 
 """Flag definitions."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
+
+visibility(PROJECT_VISIBILITY)
 
 def define_flags():
     flags.DEFINE_bool(

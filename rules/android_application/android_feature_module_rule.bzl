@@ -25,7 +25,10 @@ load(
     "get_android_toolchain",
     "utils",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
+
+visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
     validation = ctx.actions.declare_file(ctx.label.name + "_validation")

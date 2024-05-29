@@ -15,6 +15,7 @@
 """Bazel rule for building an APK."""
 
 load("//rules:acls.bzl", "acls")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//rules/android_binary_internal:rule.bzl",
     "android_binary_internal",
@@ -23,6 +24,8 @@ load(
 )
 load(":common.bzl", "common")
 load(":migration_tag_DONOTUSE.bzl", "add_migration_tag")
+
+visibility(PROJECT_VISIBILITY)
 
 _DEFAULT_PROVIDES = [ApkInfo, JavaInfo]
 

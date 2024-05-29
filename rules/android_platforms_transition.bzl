@@ -16,9 +16,12 @@
 This transition ensures that the platforms are set to valid Android Platforms.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load(":min_sdk_version.bzl", "min_sdk_version")
 load(":utils.bzl", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 def _android_platforms_transition_impl(settings, attrs):
     new_settings = dict(settings)

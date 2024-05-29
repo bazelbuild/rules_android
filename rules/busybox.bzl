@@ -14,7 +14,10 @@
 
 """Bazel ResourcesBusyBox Commands."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
+
+visibility(PROJECT_VISIBILITY)
 
 _ANDROID_RESOURCES_STRICT_DEPS = "android_resources_strict_deps"
 

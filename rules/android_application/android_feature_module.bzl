@@ -21,6 +21,7 @@ load(
     "//rules:android_binary.bzl",
     _android_binary_macro = "android_binary_macro",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//rules/android_library:rule.bzl",
     _android_library_macro = "android_library_macro",
@@ -29,6 +30,8 @@ load(
     ":android_feature_module_rule.bzl",
     _android_feature_module_macro = "android_feature_module_macro",
 )
+
+visibility(PROJECT_VISIBILITY)
 
 def android_feature_module(**attrs):
     """Macro to declare a Dynamic Feature Module.

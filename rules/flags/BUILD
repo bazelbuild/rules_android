@@ -18,7 +18,10 @@ bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
-    deps = ["@bazel_skylib//rules:common_settings"],
+    deps = [
+        "//rules:visibility_bzl",
+        "@bazel_skylib//rules:common_settings",
+    ],
 )
 
 string_flag(

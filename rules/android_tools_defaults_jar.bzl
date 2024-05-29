@@ -15,8 +15,11 @@
 """Bazel rule for Android tools defaults jar."""
 
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ANDROID_TOOLS_DEFAULTS_JAR_ATTRS")
 load(":utils.bzl", "get_android_sdk")
+
+visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
     return [

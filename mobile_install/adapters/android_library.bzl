@@ -25,8 +25,11 @@ load(
 )
 load("//mobile_install:resources.bzl", "get_assets_dir")
 load("//mobile_install:transform.bzl", "dex", "filter_jars")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
+
+visibility(PROJECT_VISIBILITY)
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""

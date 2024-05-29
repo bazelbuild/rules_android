@@ -18,6 +18,9 @@ load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 def _compile(
         ctx,

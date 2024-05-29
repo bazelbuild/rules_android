@@ -14,6 +14,7 @@
 
 """Tests for the extensibility functionality of android_library."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//test/utils:lib.bzl",
     "asserts",
@@ -23,6 +24,8 @@ load(
     ":custom_android_library.bzl",
     "CustomProviderInfo",
 )
+
+visibility(PROJECT_VISIBILITY)
 
 def custom_android_library_test_impl(ctx):
     env = unittest.begin(ctx)

@@ -14,7 +14,6 @@
 
 """Rule for creating an Android Sandboxed SDK Bundle (ASB)."""
 
-load(":providers.bzl", "AndroidSandboxedSdkBundleInfo", "AndroidSandboxedSdkInfo")
 load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
@@ -31,6 +30,10 @@ load(
     "//rules:utils.bzl",
     _get_android_toolchain = "get_android_toolchain",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load(":providers.bzl", "AndroidSandboxedSdkBundleInfo", "AndroidSandboxedSdkInfo")
+
+visibility(PROJECT_VISIBILITY)
 
 _ATTRS = dict(
     sdk = attr.label(

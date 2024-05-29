@@ -27,7 +27,10 @@ load(
     "//rules:utils.bzl",
     _get_android_toolchain = "get_android_toolchain",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":providers.bzl", "AndroidSandboxedSdkInfo")
+
+visibility(PROJECT_VISIBILITY)
 
 _ATTRS = dict(
     sdk_modules_config = attr.label(

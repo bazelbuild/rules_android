@@ -14,6 +14,11 @@
 
 """Bazel Android testing libs."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load(
+    "@bazel_skylib//lib:unittest.bzl",
+    _asserts = "asserts",
+)
 load(
     ":file.bzl",
     _file = "file",
@@ -23,10 +28,8 @@ load(
     _analysistest = "analysistest",
     _unittest = "unittest",
 )
-load(
-    "@bazel_skylib//lib:unittest.bzl",
-    _asserts = "asserts",
-)
+
+visibility(PROJECT_VISIBILITY)
 
 file = _file
 

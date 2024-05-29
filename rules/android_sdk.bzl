@@ -14,8 +14,11 @@
 
 """Bazel rule for Android sdk."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":attrs.bzl", "ANDROID_SDK_ATTRS")
+
+visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
     proguard = ctx.attr._proguard if ctx.attr._proguard else ctx.attr.proguard

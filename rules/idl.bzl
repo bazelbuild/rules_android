@@ -14,9 +14,12 @@
 
 """Bazel Android IDL library for the Android rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", _log = "log")
+
+visibility(PROJECT_VISIBILITY)
 
 _AIDL_TOOLCHAIN_MISSING_ERROR = (
     "IDL sources provided without the Android IDL toolchain."

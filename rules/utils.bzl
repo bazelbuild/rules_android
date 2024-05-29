@@ -14,7 +14,10 @@
 
 """Utilities for the Android rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":providers.bzl", "FailureInfo")
+
+visibility(PROJECT_VISIBILITY)
 
 ANDROID_TOOLCHAIN_TYPE = Label("//toolchains/android:toolchain_type")
 ANDROID_SDK_TOOLCHAIN_TYPE = Label("//toolchains/android_sdk:toolchain_type")

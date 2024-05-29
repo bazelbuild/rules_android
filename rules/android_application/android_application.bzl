@@ -18,7 +18,10 @@ This file exists to inject the correct version of android_binary.
 """
 
 load("//rules:android_binary.bzl", _android_binary_macro = "android_binary_macro")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":android_application_rule.bzl", _android_application_macro = "android_application_macro")
+
+visibility(PROJECT_VISIBILITY)
 
 def android_application(**attrs):
     """Rule to build an Android Application (app bundle).

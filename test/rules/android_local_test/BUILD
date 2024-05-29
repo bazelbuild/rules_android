@@ -20,6 +20,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:private"],
     deps = [
+        "//rules:visibility_bzl",
         "@rules_java//java/common",
     ],
 )

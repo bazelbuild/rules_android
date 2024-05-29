@@ -14,7 +14,10 @@
 """Creates the apk(s)."""
 
 load("//rules:utils.bzl", "get_android_sdk")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
     """Compile AndroidManifest.xml."""

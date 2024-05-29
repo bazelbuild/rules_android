@@ -14,9 +14,12 @@
 
 """Bazel Java APIs for the Android rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":path.bzl", _path = "path")
 load(":utils.bzl", "log")
+
+visibility(PROJECT_VISIBILITY)
 
 _ANDROID_CONSTRAINT_MISSING_ERROR = (
     "A list of constraints provided without the 'android' constraint."

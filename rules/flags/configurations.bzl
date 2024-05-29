@@ -13,7 +13,10 @@
 # limitations under the License.
 """Configuration definitions."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
+
+visibility(PROJECT_VISIBILITY)
 
 def configurations(name = "configurations"):
     # Configuration setting for propagating an android_binary's min_sdk_version to its transitive
