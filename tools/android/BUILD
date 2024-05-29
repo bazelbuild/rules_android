@@ -1,5 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary")
-load(":defs.bzl", "android_jar", "run_singlejar")
+load(":defs.bzl", "android_jar", "run_ijar", "run_singlejar")
 
 config_setting(
     name = "minimal_desugaring",
@@ -180,9 +180,17 @@ sh_binary(
     visibility = ["//visibility:public"],
 )
 
-alias(
+run_ijar(
+    name = "ijar_desugared_java8_legacy_libs",
+    jar = ":desugared_jdk_libs.jar",
+    visibility = ["//visibility:public"],
+)
+
+java_import(
     name = "desugared_java8_legacy_apis",
-    actual = ":gen_fail",  # TODO(#122): Fix library desugaring
+    constraints = ["android"],
+    jars = [":ijar_desugared_java8_legacy_libs"],
+    neverlink = 1,
     visibility = ["//visibility:public"],
 )
 

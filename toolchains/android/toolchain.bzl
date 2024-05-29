@@ -124,7 +124,7 @@ _ATTRS = dict(
     ),
     desugar = attr.label(
         cfg = "exec",
-        default = Label("@bazel_tools//tools/android:desugar_java8"),
+        default = Label("//tools/android:desugar_java8"),
         executable = True,
     ),
     desugar_java8_extra_bootclasspath = attr.label(
