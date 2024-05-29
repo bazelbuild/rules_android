@@ -329,7 +329,7 @@ def create_android_sdk_rules(
         name = "aapt2",
         actual = select({
             ":windows": "build-tools/%s/aapt2.exe" % build_tools_directory,
-            "//conditions:default": ":aapt2_runner",
+            "//conditions:default": ":aapt2_binary",
         }),
     )
 
