@@ -26,6 +26,8 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
   { echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
 # --- end runfiles.bash initialization v3 ---
 
+export JAVA_RUNFILES="$0.runfiles"
+
 # exit on errors and uninitialized variables
 set -eu
 
@@ -70,13 +72,19 @@ fi
 # Some unit tests pass an explicit --desugared_lib_config, in that case don't
 # add the default one.
 has_desugared_lib_config=false
+has_persistent_worker=false
 for arg in "$@"; do
   if [[ "$arg" == "--desugared_lib_config" ]]; then
     has_desugared_lib_config=true
   fi
+  if [[ "$arg" == "--persistent_worker" ]]; then
+    has_persistent_worker=true
+  fi
 done
 
-if [[ "$has_desugared_lib_config" == "true" ]]; then
+if [[ "$has_persistent_worker" == "true" ]]; then
+  "$DESUGAR_BINARY" --persistent_worker
+elif [[ "$has_desugared_lib_config" == "true" ]]; then
   "$DESUGAR_BINARY" \
       "$@"
 else
