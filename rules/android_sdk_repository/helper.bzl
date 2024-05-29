@@ -57,7 +57,7 @@ def _create_config_setting_rule():
     if not native.existing_rule(name):
         native.config_setting(
             name = name,
-            values = {"host_cpu": "x64_" + name},
+            constraint_values = ["@platforms//os:windows"],
         )
 
     native.config_setting(
@@ -324,12 +324,26 @@ def create_android_sdk_rules(
             ],
         )
 
-    native.sh_binary(
-        name = "fail",
-        srcs = select({
-            ":windows": [":generate_fail_cmd"],
-            "//conditions:default": [":generate_fail_sh"],
+    # For the default Android toolchain //toolchains/android:android_default
+    native.alias(
+        name = "aapt2",
+        actual = select({
+            ":windows": "build-tools/%s/aapt2.exe" % build_tools_directory,
+            "//conditions:default": ":aapt2_runner",
         }),
+    )
+
+    native.alias(
+        name = "fail",
+        actual = select({
+            ":windows": ":windows_fail.cmd",
+            "//conditions:default": ":bash_fail",
+        }),
+    )
+
+    native.sh_binary(
+        name = "bash_fail",
+        srcs = [":generate_fail_sh"],
     )
 
     native.genrule(
@@ -337,6 +351,11 @@ def create_android_sdk_rules(
         outs = ["fail.sh"],
         cmd = "echo -e '#!/bin/bash\\nexit 1' >> $@; chmod +x $@",
         executable = 1,
+    )
+
+    native.sh_binary(
+        name = "windows_fail.cmd",
+        srcs = [":generate_fail_cmd"],
     )
 
     native.genrule(
