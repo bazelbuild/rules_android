@@ -31,6 +31,9 @@ load(
     "get_android_toolchain",
     "utils",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_ctxs):
     """Runs R8 for desugaring, optimization, and dexing.

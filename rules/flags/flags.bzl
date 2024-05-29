@@ -15,6 +15,9 @@
 """Bazel Flags."""
 
 load("//rules:utils.bzl", "utils")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 _BoolFlagInfo = provider(
     doc = "Provides information about a boolean flag",

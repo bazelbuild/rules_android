@@ -14,9 +14,12 @@
 """Utilities for by the Mobile-Install aspect."""
 
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":constants.bzl", "constants")
+
+visibility(PROJECT_VISIBILITY)
 
 _PACKAGE_NAME_EXTRACTION_SCRIPT = """
     #!/bin/bash

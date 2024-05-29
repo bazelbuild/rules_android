@@ -16,6 +16,7 @@
 
 load("//rules:acls.bzl", "acls")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
@@ -31,6 +32,8 @@ load(
     "StarlarkAndroidResourcesInfo",
 )
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils", _compilation_mode = "compilation_mode", _log = "log")
+
+visibility(PROJECT_VISIBILITY)
 
 _RESOURCE_FOLDER_TYPES = [
     "anim",

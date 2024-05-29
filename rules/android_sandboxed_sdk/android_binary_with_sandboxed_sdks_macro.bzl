@@ -31,7 +31,10 @@ load(
     _get_android_toolchain = "get_android_toolchain",
     _utils = "utils",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkApkInfo", "AndroidSandboxedSdkBundleInfo")
+
+visibility(PROJECT_VISIBILITY)
 
 def _gen_sdk_dependencies_manifest_impl(ctx):
     manifest = ctx.actions.declare_file(ctx.label.name + "_sdk_dep_manifest.xml")

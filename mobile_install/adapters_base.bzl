@@ -23,6 +23,9 @@ load("//mobile_install/adapters:java_library.bzl", "java_library")
 load("//mobile_install/adapters:java_lite_proto_library.bzl", "java_lite_proto_library")
 load("//mobile_install/adapters:proto_lang_toolchain.bzl", "proto_lang_toolchain")
 load("//mobile_install/adapters:proto_library.bzl", "proto_library")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 # Visible for testing
 ADAPTERS = dict(

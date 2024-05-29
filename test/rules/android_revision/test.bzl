@@ -24,11 +24,14 @@ load(
     "compare_android_revisions",
     "parse_android_revision",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//test/utils:lib.bzl",
     "asserts",
     "unittest",
 )
+
+visibility(PROJECT_VISIBILITY)
 
 def _android_revision_test_impl(ctx):
     env = unittest.begin(ctx)

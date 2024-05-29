@@ -14,10 +14,13 @@
 
 """Bazel common library for the Android rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/android_common:reexport_android_common.bzl", _native_android_common = "native_android_common")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", _log = "log")
+
+visibility(PROJECT_VISIBILITY)
 
 # Suffix attached to the Starlark portion of android_binary target
 _PACKAGED_RESOURCES_SUFFIX = "_RESOURCES_DO_NOT_USE"

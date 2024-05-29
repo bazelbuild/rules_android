@@ -13,9 +13,12 @@
 # limitations under the License.
 """Transform contains data transformation methods."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", _flags = "flags")
 load(":constants.bzl", "constants")
 load(":utils.bzl", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 def _declare_file(ctx, filename, sibling = None):
     return utils.isolated_declare_file(ctx, filename, sibling = sibling)

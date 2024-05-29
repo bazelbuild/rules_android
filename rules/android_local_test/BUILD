@@ -23,6 +23,7 @@ bzl_library(
     deps = [
         "//rules:common_bzl",
         "//rules:min_sdk_version_bzl",
+        "//rules:visibility_bzl",
         "//rules/flags:bzl",
         "@rules_java//java/common",
         "@bazel_skylib//rules:common_settings",

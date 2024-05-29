@@ -30,7 +30,10 @@ load(
     "//rules:utils.bzl",
     _get_android_toolchain = "get_android_toolchain",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo")
+
+visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
     sdk_api_descriptors = ctx.actions.declare_file(ctx.label.name + "_sdk_api_descriptors.jar")

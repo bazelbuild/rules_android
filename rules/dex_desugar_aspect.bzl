@@ -14,6 +14,7 @@
 
 """Aspect that transitively build .dex archives and desugar jars."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
@@ -21,6 +22,8 @@ load(":dex.bzl", _dex = "dex")
 load(":min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load(":providers.bzl", "StarlarkAndroidDexInfo")
 load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", _get_android_sdk = "get_android_sdk", _utils = "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 _tristate = _attrs.tristate
 

@@ -18,7 +18,10 @@ This file exists to inject the correct version of android_binary.
 """
 
 load("//rules:android_binary.bzl", _android_binary_macro = "android_binary_macro")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":android_sandboxed_sdk_macro.bzl", _android_sandboxed_sdk_macro = "android_sandboxed_sdk_macro")
+
+visibility(PROJECT_VISIBILITY)
 
 def android_sandboxed_sdk(
         name,

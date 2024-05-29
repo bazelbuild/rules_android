@@ -13,10 +13,13 @@
 # limitations under the License.
 """Creates the app launcher scripts."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load(":deploy_info.bzl", "make_deploy_info_pb")
 load(":providers.bzl", "MIAppLaunchInfo")
 load(":utils.bzl", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 HOST_TEST_WORKSPACE = "host_test_runner_workspace"
 

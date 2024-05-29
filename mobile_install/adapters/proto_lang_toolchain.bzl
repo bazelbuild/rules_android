@@ -14,7 +14,10 @@
 """Rule adapter for proto_lang_toolchain."""
 
 load("//mobile_install:providers.bzl", "MIAndroidDexInfo", "MIJavaResourcesInfo", "providers")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":base.bzl", "make_adapter")
+
+visibility(PROJECT_VISIBILITY)
 
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""

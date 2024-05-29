@@ -14,7 +14,10 @@
 
 """Bazel Android Data Binding."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", _utils = "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 # Data Binding context attributes.
 _JAVA_ANNOTATION_PROCESSOR_ADDITIONAL_INPUTS = \

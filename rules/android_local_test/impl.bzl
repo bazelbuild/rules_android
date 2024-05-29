@@ -35,10 +35,13 @@ load(
     "log",
     "utils",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+
+visibility(PROJECT_VISIBILITY)
 
 JACOCOCO_CLASS = "com.google.testing.coverage.JacocoCoverageRunner"
 TEST_RUNNER_CLASS = "com.google.testing.junit.runner.BazelTestRunner"

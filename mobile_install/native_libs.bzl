@@ -13,7 +13,10 @@
 # limitations under the License.
 "Creates the zip with the app native libraries."
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 def make_native_zip(ctx, native_libs, aar_native_libs, sibling):
     """Creates a zip file containing all of the application native libraries."""

@@ -13,11 +13,14 @@
 # limitations under the License.
 """Processes the target or collected data."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":apks.bzl", "make_split_apks")
 load(":native_libs.bzl", "make_native_zip", "make_swigdeps_file")
 load(":providers.bzl", "MIAppInfo")
 load(":r_java.bzl", "make_r")
 load(":transform.bzl", "merge_dex_shards")
+
+visibility(PROJECT_VISIBILITY)
 
 def process(
         ctx,

@@ -27,6 +27,7 @@ load(
     _ProviderInfo = "ProviderInfo",
     _processing_pipeline = "processing_pipeline",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//rules/android_library:attrs.bzl",
     _BASE_ATTRS = "ATTRS",
@@ -40,6 +41,8 @@ load(
     "//rules/android_library:rule.bzl",
     _make_rule = "make_rule",
 )
+
+visibility(PROJECT_VISIBILITY)
 
 CustomProviderInfo = provider(
     doc = "Custom provider to provide",

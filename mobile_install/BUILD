@@ -40,6 +40,7 @@ bzl_library(
         "//mobile_install/adapters:bzl",
         "//rules:bzl",
         "//rules:min_sdk_version_bzl",
+        "//rules:visibility_bzl",
         "@rules_java//java/common",
     ],
 )
@@ -55,6 +56,7 @@ bzl_library(
     deps = [
         "utils",
         ":providers",
+        "//rules:visibility_bzl",
     ],
 )
 
@@ -69,6 +71,7 @@ bzl_library(
     deps = [
         ":constants",
         ":utils",
+        "//rules:visibility_bzl",
     ],
 )
 
@@ -78,6 +81,7 @@ bzl_library(
     deps = [
         ":constants",
         ":utils",
+        "//rules:visibility_bzl",
         "//rules/flags:bzl",
     ],
 )
@@ -88,6 +92,7 @@ bzl_library(
     deps = [
         ":constants",
         "//rules:min_sdk_version_bzl",
+        "//rules:visibility_bzl",
         "//rules/flags:bzl",
         "@rules_java//java/common",
     ],

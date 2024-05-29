@@ -81,4 +81,5 @@ bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:private"],
+    deps = ["//rules:visibility_bzl"],
 )

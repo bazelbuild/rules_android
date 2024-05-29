@@ -21,6 +21,9 @@ bzl_library(
         "android_revision.bzl",
     ],
     visibility = ["//:__subpackages__"],
+    deps = [
+        ":visibility_bzl",
+    ],
 )
 
 bzl_library(
@@ -52,6 +55,7 @@ bzl_library(
     ],
     visibility = ["//:__subpackages__"],
     deps = [
+        ":visibility_bzl",
         "//rules/acls:bzl",
         "//rules/android_common:bzl",
         "//rules/flags:bzl",
@@ -67,6 +71,7 @@ bzl_library(
     ],
     visibility = ["//:__subpackages__"],
     deps = [
+        ":visibility_bzl",
         "//rules/android_binary_internal:bzl",
         "@rules_java//java/common",
     ],
@@ -80,6 +85,7 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":common_bzl",
+        ":visibility_bzl",
     ],
 )
 
@@ -91,6 +97,7 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":common_bzl",
+        ":visibility_bzl",
         "@bazel_skylib//lib:sets",
     ],
 )
@@ -114,6 +121,7 @@ bzl_library(
         ":android_binary_bzl",
         ":common_bzl",
         ":min_sdk_version_bzl",
+        ":visibility_bzl",
         "//rules/aar_import:bzl",
         "//rules/android_application:bzl",
         "//rules/android_library:bzl",
@@ -129,6 +137,15 @@ bzl_library(
 bzl_library(
     name = "min_sdk_version_bzl",
     srcs = ["min_sdk_version.bzl"],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        ":visibility_bzl",
+    ],
+)
+
+bzl_library(
+    name = "visibility_bzl",
+    srcs = ["visibility.bzl"],
     visibility = ["//:__subpackages__"],
 )
 

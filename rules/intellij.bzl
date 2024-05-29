@@ -14,8 +14,11 @@
 
 """Common methods for use by the IntelliJ Aspect."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
 load(":utils.bzl", _utils = "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 def _extract_idl_jars(
         ctx,

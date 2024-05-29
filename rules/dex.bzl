@@ -18,9 +18,12 @@ load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load(":providers.bzl", "StarlarkAndroidDexInfo")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
+
+visibility(PROJECT_VISIBILITY)
 
 _DEX_MEMORY = 4096
 _DEX_THREADS = 5

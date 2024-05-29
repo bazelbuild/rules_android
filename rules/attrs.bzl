@@ -15,8 +15,11 @@
 """Common attributes for Android rules."""
 
 load("//rules:android_split_transition.bzl", "android_transition")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "log")
+
+visibility(PROJECT_VISIBILITY)
 
 def _add(attrs, *others):
     new = {}

@@ -19,8 +19,11 @@ load(
     _attrs = "attrs",
 )
 load("//rules:providers.bzl", "StarlarkApkInfo")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
+
+visibility(PROJECT_VISIBILITY)
 
 ATTRS = _attrs.add(
     dict(

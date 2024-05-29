@@ -20,6 +20,9 @@ load(
     "StarlarkAndroidIdeInfoForTesting",
     "StarlarkAndroidResourcesInfo",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 _ATTRS = dict(
     expected_default_info = attr.string_list_dict(),

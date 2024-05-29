@@ -20,8 +20,11 @@ load(
     _attrs = "attrs",
 )
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
+
+visibility(PROJECT_VISIBILITY)
 
 _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging", "features", "exec_properties"]
 

@@ -18,11 +18,14 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//rules/android_sandboxed_sdk:providers.bzl",
     "AndroidArchivedSandboxedSdkInfo",
     "AndroidSandboxedSdkBundleInfo",
 )
+
+visibility(PROJECT_VISIBILITY)
 
 ANDROID_APPLICATION_ATTRS = _attrs.add(
     dict(
