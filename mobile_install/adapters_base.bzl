@@ -19,6 +19,7 @@ load("//mobile_install/adapters:android_library.bzl", "android_library")
 load("//mobile_install/adapters:android_sdk.bzl", "android_sdk")
 load("//mobile_install/adapters:apk_import.bzl", "apk_import")
 load("//mobile_install/adapters:java_import.bzl", "java_import")
+load("//mobile_install/adapters:jvm_import.bzl", "jvm_import")
 load("//mobile_install/adapters:java_library.bzl", "java_library")
 load("//mobile_install/adapters:java_lite_proto_library.bzl", "java_lite_proto_library")
 load("//mobile_install/adapters:proto_lang_toolchain.bzl", "proto_lang_toolchain")
@@ -32,6 +33,7 @@ ADAPTERS = dict(
     android_sdk = android_sdk,
     apk_import = apk_import,
     java_import = java_import,
+    jvm_import = jvm_import,
     java_library = java_library,
     java_lite_proto_library = java_lite_proto_library,
     proto_lang_toolchain = proto_lang_toolchain,
