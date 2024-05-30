@@ -14,6 +14,10 @@
 
 """Bazel providers for Android rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 
 
 AndroidAppsInfo = provider(

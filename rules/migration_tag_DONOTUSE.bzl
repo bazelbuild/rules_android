@@ -14,6 +14,9 @@
 
 """Bazel component for the Android Skylark Migration."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 _MIGRATION_TAG = "__ANDROID_RULES_MIGRATION__"
 _TAG_ATTR = "tags"
 

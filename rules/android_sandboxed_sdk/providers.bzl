@@ -14,6 +14,9 @@
 
 """Providers for Android Sandboxed SDK rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 AndroidSandboxedSdkInfo = provider(
     doc = "Provides information about a sandboxed Android SDK.",
     fields = dict(

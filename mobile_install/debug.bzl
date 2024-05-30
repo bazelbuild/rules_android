@@ -13,6 +13,10 @@
 # limitations under the License.
 """Module that enables debugging for mobile-install."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 def _make_output_groups(infos):
     output_groups = dict()
     for info in infos:

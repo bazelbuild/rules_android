@@ -14,6 +14,9 @@
 
 """Common implementation for processing pipelines."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 PROVIDERS = "providers"
 VALIDATION_OUTPUTS = "validation_outputs"
 IMPLICIT_OUTPUTS = "implicit_outputs"

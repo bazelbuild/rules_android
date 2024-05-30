@@ -14,6 +14,10 @@
 
 """Defines a split transition for to set both merge orders for the merge order test."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 def _manifest_merge_split_transition_impl(_settings, _attr):
     return {
         "legacy": {"//rules/flags:manifest_merge_order": "legacy"},

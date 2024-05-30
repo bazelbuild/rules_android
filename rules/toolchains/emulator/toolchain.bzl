@@ -14,6 +14,9 @@
 
 """Defines the emulator_toolchain rule to allow configuring emulator binaries to use."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 EmulatorInfo = provider(
     doc = "Information used to launch a specific version of the emulator.",
     fields = {

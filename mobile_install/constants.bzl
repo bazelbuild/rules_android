@@ -13,6 +13,9 @@
 # limitations under the License.
 """Constants."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 constants = struct(
     # Immutable empty collections.
     EMPTY_LIST = [],

@@ -17,6 +17,10 @@
 launcher_test: Asserts that the executable is populated correctly in the target script.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 def _android_local_test_launcher_integration(ctx):
     substitutions = {
         "%executable%": ctx.attr.target[DefaultInfo].files_to_run.executable.short_path,

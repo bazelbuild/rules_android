@@ -16,6 +16,9 @@
 Defines baseline profiles processing methods in Android Rules.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 _BASELINE_PROFILE_DIR_SUFFIX = "-baseline-profile/"
 
 def _process(

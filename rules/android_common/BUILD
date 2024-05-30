@@ -16,4 +16,5 @@ filegroup(
 bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
+    deps = ["//rules:visibility_bzl"],
 )

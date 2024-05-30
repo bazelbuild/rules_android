@@ -48,6 +48,7 @@ bzl_library(
 bzl_library(
     name = "constants",
     srcs = ["constants.bzl"],
+    deps = ["//rules:visibility_bzl"],
 )
 
 bzl_library(
@@ -63,6 +64,7 @@ bzl_library(
 bzl_library(
     name = "providers",
     srcs = ["providers.bzl"],
+    deps = ["//rules:visibility_bzl"],
 )
 
 bzl_library(

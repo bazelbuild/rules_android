@@ -14,6 +14,10 @@
 
 """Bazel Desugar Commands."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 def _desugar(
         ctx,
         input,
