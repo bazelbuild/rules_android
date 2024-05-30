@@ -13,6 +13,10 @@
 # limitations under the License.
 """Provides the base adapter functions."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 def make_adapter(aspect_attrs, adapt):
     """Creates an Adapter.
 

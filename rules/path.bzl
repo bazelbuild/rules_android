@@ -14,6 +14,10 @@
 
 """Bazel Path APIs for the Android rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # TODO(djwhang): Get the path separator in a platform agnostic manner.
 _PATH_SEP = "/"
 _TEST_SRCDIR = "${TEST_SRCDIR}"

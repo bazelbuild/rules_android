@@ -14,6 +14,10 @@
 
 """Starlark rules to include sdk toolchain into dep graph without actually utilize it."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 def _dummy_toolchain_dep(_ctx):
     return [DefaultInfo()]
 

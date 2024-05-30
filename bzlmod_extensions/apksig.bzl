@@ -15,6 +15,9 @@
 """Module extension to enable building apksigner."""
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 APKSIG_COMMIT = "24e3075e68ebe17c0b529bb24bfda819db5e2f3b"
 

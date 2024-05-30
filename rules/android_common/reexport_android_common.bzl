@@ -18,4 +18,7 @@ Redefine native symbols with a new name as a workaround for
 exporting them in `rules:common.bzl` with their original name.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 native_android_common = android_common

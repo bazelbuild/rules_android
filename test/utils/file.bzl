@@ -14,6 +14,10 @@
 
 """Bazel lib that provides on-the-fly data generation helpers for testing."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 def _create(
         name = None,
         contents = "",

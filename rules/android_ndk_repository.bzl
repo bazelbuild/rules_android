@@ -14,6 +14,10 @@
 
 """Bazel rule for Android ndk repository."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 def android_ndk_repository(**attrs):
     """Bazel android_ndk_repository rule.
 

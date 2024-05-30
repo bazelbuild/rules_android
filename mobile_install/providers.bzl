@@ -27,6 +27,9 @@
 
 """Bazel mobile-install providers."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 MIAppInfo = provider(
     doc = "A provider with all relevant details about an app",
     fields = dict(
