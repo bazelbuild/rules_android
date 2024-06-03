@@ -501,6 +501,7 @@ def _package(
         nocompress_extensions = [],
         java_package = None,
         package_id = None,
+        use_r_package = False,
         compilation_mode = _compilation_mode.FASTBUILD,
         shrink_resources = None,
         use_android_resource_shrinking = None,
@@ -553,6 +554,8 @@ def _package(
         framework, and some builds are known to crash when given IDs > 127.
         Shared libraries are also assigned monotonically increasing IDs in
         [2,126], so care should be taken that there is room at the lower end.
+      use_r_package: A boolean to control whether resource fields should be generated with
+        an RPackage class, defaults to false. Used for privacy sandbox.
       compilation_mode: String. A string that represents compilation mode. The
         list of expected values are as follows: dbg, fastbuild, opt.
       shrink_resources: Tristate. Whether resource shrinking is enabled by the rule.
@@ -812,7 +815,8 @@ def _package(
         r_txt = r_txt,
         manifest = processed_manifest,
         package_for_r = java_package,
-        final_fields = not shrink_resource_cycles and not instruments,
+        final_fields = not shrink_resource_cycles and not instruments and not use_r_package,
+        use_r_package = use_r_package,
         resources_nodes = depset(transitive = direct_resources_nodes + transitive_resources_nodes),
         transitive_r_txts = transitive_r_txts,
         transitive_manifests = transitive_manifests,

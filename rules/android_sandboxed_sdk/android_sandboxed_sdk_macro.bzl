@@ -129,6 +129,7 @@ EOF
         deps = deps,
         testonly = testonly,
         tags = tags,
+        use_r_package = True,
     )
 
     sdk_deploy_jar = Label("%s_deploy.jar" % bin_fqn)

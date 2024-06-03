@@ -185,6 +185,15 @@ ATTRS = _attrs.replace(
                       versions.
                       """,
             ),
+            use_r_package = attr.bool(
+                default = False,
+                doc = """
+                      Whether resource fields should be generated with an RPackage class.
+                      Used ONLY for privacy sandbox.
+
+                      WARNING: Do not use outside of privacy sandbox build rules.
+                      """,
+            ),
             _java_toolchain = attr.label(
                 default = Label("//tools/jdk:toolchain_android_only"),
             ),

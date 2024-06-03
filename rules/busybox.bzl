@@ -1003,6 +1003,7 @@ def _generate_binary_r(
         manifest = None,
         package_for_r = None,
         final_fields = None,
+        use_r_package = False,
         resources_nodes = depset(),
         transitive_r_txts = [],
         transitive_manifests = [],
@@ -1017,6 +1018,8 @@ def _generate_binary_r(
       manifest: File. The primary AndroidManifest.xml.
       package_for_r: String. The Java package for the generated R class files.
       final_fields: Bool. Whether fields get declared as final.
+      use_r_package: Bool. Whether fields should be generated with an RPackage
+        class. Used for privacy sandbox.
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
       host_javabase: A Target. The host javabase.
@@ -1039,6 +1042,8 @@ def _generate_binary_r(
         args.add("--finalFields")
     else:
         args.add("--nofinalFields")
+    if use_r_package:
+        args.add("--useRPackage")
 
     # TODO(b/154003916): support transitive "--library transitive_r_txt_path,transitive_manifest_path" flags
     args.add("--classJarOutput", out_class_jar)
