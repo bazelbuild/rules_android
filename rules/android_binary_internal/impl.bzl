@@ -125,6 +125,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         # The AndroidApplicationResourceInfo will be added to the list of providers in
         # ResourceShrinkerR8Processor if R8-based resource shrinking is not performed.
         add_application_resource_info_to_providers = False,
+        use_r_package = ctx.attr.use_r_package,
     )
     return ProviderInfo(
         name = "packaged_resources_ctx",
