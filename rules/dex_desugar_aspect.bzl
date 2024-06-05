@@ -232,7 +232,7 @@ dex_desugar_aspect = aspect(
     attrs = _attrs.add(
         {
             "_desugar_java8": attr.label(
-                default = Label("@bazel_tools//tools/android:desugar_java8"),
+                default = Label("//tools/android:desugar_java8"),
                 allow_files = True,
                 cfg = "exec",
                 executable = True,
