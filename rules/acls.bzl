@@ -182,7 +182,7 @@ def _in_shared_library_resource_linking_allowlist(fqn):
     return matches(fqn, SHARED_LIBRARY_RESOURCE_LINKING_DICT)
 
 def _in_android_binary_min_sdk_version_attribute_allowlist(fqn):
-    return matches(fqn, ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_DICT)
+    return True
 
 def _in_android_binary_raw_access_to_resource_paths_allowlist(fqn):
     return matches(fqn, ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT)
