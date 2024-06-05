@@ -20,6 +20,7 @@ import (
 	"src/tools/ak/compile/compile"
 	"src/tools/ak/dex/dex"
 	"src/tools/ak/extractaar/extractaar"
+	"src/tools/ak/extractresources/extractresources"
 	"src/tools/ak/finalrjar/finalrjar"
 	"src/tools/ak/generatemanifest/generatemanifest"
 	"src/tools/ak/link/link"
@@ -40,6 +41,7 @@ var (
 		"compile":          compile.Cmd,
 		"dex":              dex.Cmd,
 		"extractaar":       extractaar.Cmd,
+		"extractresources": extractresources.Cmd,
 		"link":             link.Cmd,
 		"liteparse":        liteparse.Cmd,
 		"generatemanifest": generatemanifest.Cmd,

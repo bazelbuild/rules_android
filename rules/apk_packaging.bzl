@@ -55,10 +55,10 @@ def _process(
         signing_key_rotation_min_sdk = None,
         deterministic_signing = False,
         java_toolchain = None,
-        resource_extractor = None,
         deploy_info_writer = None,
         zip_aligner = None,
         apk_signer = None,
+        android_kit = None,
         toolchain_type = None):
     """Processes Android Apk Packaging.
 
@@ -84,10 +84,10 @@ def _process(
         signing_key_rotation_min_sdk: The minimum API version for signing the APK with key rotation.
         deterministic_signing: Boolean. Whether to enable deterministic DSA signing.
         java_toolchain: The JavaToolchain target.
-        resource_extractor: FilesToRunProvider. The executable to extract resources from java_resources_zip.
         deploy_info_writer: FilesToRunProvider. The executable to write the deploy info proto file.
         zip_aligner: FilesToRunProvider. The executable to zipalign the APK.
         apk_signer: FilesToRunProvider. The executable to sign the APK.
+        android_kit: FilesToRunProvider. The executable to run the Android Kit (AK) binary.
         toolchain_type: String. The Android toolchain type.
 
     Return:
@@ -97,6 +97,7 @@ def _process(
     _build_apk(
         ctx,
         unsigned_apk,
+        android_kit = android_kit,
         resources_apk = resources_apk,
         final_classes_dex_zip = final_classes_dex_zip,
         native_libs = native_libs,
@@ -108,7 +109,7 @@ def _process(
         nocompress_extensions = nocompress_extensions,
         output_jar_creator = output_jar_creator,
         java_toolchain = java_toolchain,
-        resource_extractor = resource_extractor,
+        toolchain_type = toolchain_type,
     )
     apk_packaging_ctx[_IMPLICIT_OUTPUTS].append(unsigned_apk)
 
@@ -187,8 +188,9 @@ def _build_apk(
         compress_java_resources = False,
         nocompress_extensions = [],
         output_jar_creator = None,
-        java_toolchain = None,
-        resource_extractor = None):
+        android_kit = None,
+        toolchain_type = None,
+        java_toolchain = None):
     """Builds an unsigned APK using SingleJar."""
 
     compressed_apk = ctx.actions.declare_file("compressed_" + out_apk.basename)
@@ -201,7 +203,8 @@ def _build_apk(
             ctx,
             output = extracted_java_resources_zip,
             java_resources_zip = java_resources_zip,
-            resource_extractor = resource_extractor,
+            android_kit = android_kit,
+            toolchain_type = toolchain_type,
         )
 
     if compress_java_resources and extracted_java_resources_zip:
@@ -265,15 +268,16 @@ def _extract_resources(
         ctx,
         output = None,
         java_resources_zip = None,
-        resource_extractor = None,
+        android_kit = None,
         toolchain_type = None):
     """Extracts Java resources to be packaged in the APK."""
     args = ctx.actions.args()
+    args.add("extractresources")
     args.add(java_resources_zip)
     args.add(output)
 
     ctx.actions.run(
-        executable = resource_extractor,
+        executable = android_kit,
         arguments = [args],
         mnemonic = "ResourceExtractor",
         progress_message = "Extracting Java resources from deploy jar for apk",

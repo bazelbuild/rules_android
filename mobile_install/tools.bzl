@@ -22,7 +22,7 @@ TOOL_ATTRS = dict(
     # Target Attrs
     # This library should not be versioned. It needs to be built with the same
     # config that is used to build the app. Android binds the application to a
-    # concrete achitecture during install time. If no libs are on the apk, it
+    # concrete architecture during install time. If no libs are on the apk, it
     # will select the most specific to the device is running. We want to use
     # whatever the user builds as long as it is compatible. And since we push
     # the native libs outside the apk to speed up transfer times, we need to
@@ -165,12 +165,6 @@ TOOL_ATTRS = dict(
     _res_v3_dummy_r_txt = attr.label(
         allow_single_file = True,
         default = versioned_deps.res_v3_dummy_r_txt.head,
-    ),
-    _resource_extractor = attr.label(
-        allow_single_file = True,
-        cfg = "exec",
-        default = versioned_deps.resource_extractor.head,
-        executable = True,
     ),
 
 )
