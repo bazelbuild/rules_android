@@ -70,7 +70,8 @@ def _gen_java_from_idl(
     args.add(idl_src)
     args.add(out_idl_java_src)
 
-    aidl_lib_files = [aidl_lib[DefaultInfo].files] if aidl_lib else []
+    # aidl_lib is not needed for AOSP compiler.
+    aidl_lib_files = [aidl_lib[DefaultInfo].files] if aidl_lib and not uses_aosp_compiler else []
 
     ctx.actions.run(
         executable = aidl,
@@ -193,8 +194,8 @@ def _process(
         Java code generation from *.idl source files. Optional, unless idl_srcs
         are supplied.
       aidl_lib: Target. A target pointing to the aidl_lib library required
-        during Java compilation when Java code is generated from idl sources.
-        Optional.
+        during Java compilation when Java code is generated from idl sources using the google aidl
+        compiler. Optional.
       aidl_framework: Target. A target pointing to the aidl framework. Optional,
         unless idl_srcs are supplied.
       uses_aosp_compiler: boolean. If True, the upstream AOSP AIDL compiler is
@@ -258,7 +259,7 @@ def _process(
         idl_srcs = idl_srcs,
         idl_import_root = idl_import_root,
         idl_java_srcs = idl_java_srcs,
-        idl_deps = [aidl_lib] if (idl_java_srcs and aidl_lib) else [],
+        idl_deps = [aidl_lib] if (idl_java_srcs and aidl_lib and not uses_aosp_compiler) else [],
         providers = [
             # TODO(b/146216105): Make this a Starlark provider.
             AndroidIdlInfo(
