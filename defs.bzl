@@ -14,14 +14,21 @@
 
 """Workspace setup macro for rules_android."""
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load(
+    "@io_bazel_rules_go//go:deps.bzl",
+    "go_download_sdk",
+    "go_register_toolchains",
+    "go_rules_dependencies",
+)
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
 
 def rules_android_workspace():
@@ -68,7 +75,9 @@ def rules_android_workspace():
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.20.5")
+    _GO_TOOLCHAIN_VERSION = "1.22.4"
+    go_download_sdk(name = "go_sdk", version = _GO_TOOLCHAIN_VERSION)
+    go_register_toolchains()
 
     gazelle_dependencies()
     # gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
@@ -76,8 +85,8 @@ def rules_android_workspace():
     go_repository(
         name = "org_golang_google_protobuf",
         importpath = "google.golang.org/protobuf",
-        sum = "h1:d0NfwRgPtno5B1Wa6L2DAG+KivqkdutMf1UhdNx175w=",
-        version = "v1.28.1",
+        sum = "h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs8=",
+        version = "v1.31.0",
     )
 
     go_repository(
@@ -105,6 +114,8 @@ def rules_android_workspace():
 
     rules_java_dependencies()
     rules_java_toolchains()
+
+    bazel_features_deps()
 
     rules_proto_dependencies()
     rules_proto_toolchains()
