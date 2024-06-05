@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load(":defs.bzl", "android_jar", "run_ijar", "run_singlejar")
 
 config_setting(
@@ -329,4 +330,62 @@ filegroup(
     name = "debug_keystore",
     srcs = ["bazel_debug.keystore"],
     visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "junction_lib",
+    srcs = ["junction.py"],
+    visibility = ["//visibility:private"],
+)
+
+py_library(
+    name = "json_worker_wrapper",
+    srcs = ["json_worker_wrapper.py"],
+    visibility = ["//visibility:private"],
+)
+
+py_binary(
+    name = "aar_embedded_jars_extractor",
+    srcs = ["aar_embedded_jars_extractor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_binary(
+    name = "aar_embedded_proguard_extractor",
+    srcs = ["aar_embedded_proguard_extractor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_binary(
+    name = "aar_native_libs_zip_creator",
+    srcs = [
+        "aar_native_libs_zip_creator.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_binary(
+    name = "aar_resources_extractor",
+    srcs = ["aar_resources_extractor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
 )

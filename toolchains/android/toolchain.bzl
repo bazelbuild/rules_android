@@ -29,25 +29,25 @@ _ATTRS = dict(
     aar_embedded_jars_extractor = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:aar_embedded_jars_extractor",
+        default = "//tools/android:aar_embedded_jars_extractor",
         executable = True,
     ),
     aar_embedded_proguard_extractor = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:aar_embedded_proguard_extractor",
+        default = "//tools/android:aar_embedded_proguard_extractor",
         executable = True,
     ),
     aar_native_libs_zip_creator = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:aar_native_libs_zip_creator",
+        default = "//tools/android:aar_native_libs_zip_creator",
         executable = True,
     ),
     aar_resources_extractor = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:aar_resources_extractor",
+        default = "//tools/android:aar_resources_extractor",
         executable = True,
     ),
     adb = attr.label(
