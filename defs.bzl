@@ -18,7 +18,12 @@ load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
-load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+load(
+    "@io_bazel_rules_go//go:deps.bzl",
+    "go_download_sdk",
+    "go_register_toolchains",
+    "go_rules_dependencies",
+)
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
@@ -70,7 +75,9 @@ def rules_android_workspace():
 
     go_rules_dependencies()
 
-    go_register_toolchains(version = "1.20.5")
+    _GO_TOOLCHAIN_VERSION = "1.22.4"
+    go_download_sdk(name = "go_sdk", version = _GO_TOOLCHAIN_VERSION)
+    go_register_toolchains()
 
     gazelle_dependencies()
     # gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
