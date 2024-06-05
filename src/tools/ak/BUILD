@@ -53,6 +53,7 @@ go_library(
         "//src/tools/ak/compile",
         "//src/tools/ak/dex",
         "//src/tools/ak/extractaar",
+        "//src/tools/ak/extractresources",
         "//src/tools/ak/finalrjar",
         "//src/tools/ak/generatemanifest",
         "//src/tools/ak/link",
