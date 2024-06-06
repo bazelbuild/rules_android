@@ -21,8 +21,6 @@ load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
 
-HOST_TEST_WORKSPACE = "host_test_runner_workspace"
-
 _DEPLOY_SCRIPT = '''#!/bin/bash
 set -e  # exit on failure
 umask 022  # set default file/dir creation mode to 755
@@ -82,22 +80,15 @@ def _make_app_runner(
     args = {
         "is_cmd": str(ctx.attr._mi_is_cmd).lower(),
         "manifest_package_name_path": getattr(manifest_package_name_path, path_type),
-        "target": ctx.label,
     }
     if splits:
         args["splits"] = [getattr(s, path_type) for s in splits]
-        args["enable_splits"] = True
-
-    if ctx.attr._mi_is_cmd:
-        args["host_test_runner_workspace"] = HOST_TEST_WORKSPACE
 
     args["java_home"] = utils.host_jvm_path(ctx)
 
     args["studio_deployer"] = getattr(ctx.file._studio_deployer, path_type)
     args["use_adb_root"] = str(use_adb_root).lower()
     args["use_studio_deployer"] = str(use_studio_deployer).lower()
-
-    args["use_direct_deploy"] = True
 
     if test_data:
         args["data_files"] = ",".join([f.short_path for f in test_data])
