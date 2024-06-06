@@ -17,6 +17,9 @@
 See b/120162253 for context.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 LOCAL_TEST_MULTI_PROTO = [
 ]
 

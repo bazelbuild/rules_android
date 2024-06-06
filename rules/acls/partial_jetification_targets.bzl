@@ -14,6 +14,9 @@
 
 """Allow list for targets or subsets of targets to partially jetify at build time"""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 PARTIAL_JETIFICATION_TARGETS_ROLLOUT = [
 ]
 

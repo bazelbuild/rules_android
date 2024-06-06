@@ -14,5 +14,8 @@
 
 """Allowlist for specifying `features` on the android_apk_to_bundle rule."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ANDROID_APK_TO_BUNDLE_FEATURES = [
 ]

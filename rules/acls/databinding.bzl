@@ -14,6 +14,10 @@
 
 """Allowlist for databinding"""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 DATABINDING_ALLOWED = [
     "//:__subpackages__",

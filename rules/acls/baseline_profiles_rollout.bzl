@@ -14,6 +14,10 @@
 
 """Allowlist for targets allowed to set baseline_profiles."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 BASELINE_PROFILES_ROLLOUT = [
 ]

@@ -14,6 +14,10 @@
 
 """Allow list for rollout of Starlark java compilation in android_binary_internal."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT = [
     "//:__subpackages__",

@@ -14,6 +14,10 @@
 
 """Packages able to use deprecated Android feature splits features."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ANDROID_FEATURE_SPLITS_DOGFOOD = [
 ]

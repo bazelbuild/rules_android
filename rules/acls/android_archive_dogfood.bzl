@@ -14,6 +14,10 @@
 
 """Allowlist for targets able to use the android_archive rule."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ANDROID_ARCHIVE_DOGFOOD = [
     "//:__subpackages__",

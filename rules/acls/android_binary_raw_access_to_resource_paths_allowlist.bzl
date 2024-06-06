@@ -13,5 +13,10 @@
 # limitations under the License.
 
 """Allow list for android_binary targets with raw access to resource paths in the APK ."""
+
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST = [
 ]

@@ -14,6 +14,9 @@
 
 """Allow list for android_test to android_instrumentation_test rollout"""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 TEST_TO_INSTRUMENT_TEST_ROLLOUT = [
 ]
 

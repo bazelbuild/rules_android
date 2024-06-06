@@ -14,6 +14,10 @@
 
 """Allowlist for targets allowed to use baseline_profiles in optimizer tools."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 BASELINE_PROFILES_OPTIMIZER_INTEGRATION = [
     "//test/rules/android_binary_internal:__subpackages__",

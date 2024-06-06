@@ -14,6 +14,10 @@
 
 """Allow list for the Android Lint Registry target."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 LINT_REGISTRY_ROLLOUT = [
 ]

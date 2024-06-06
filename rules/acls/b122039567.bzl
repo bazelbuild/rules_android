@@ -14,5 +14,8 @@
 
 """Allow list for b/122039567."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 B122039567 = [
 ]

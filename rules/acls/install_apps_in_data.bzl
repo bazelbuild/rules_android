@@ -14,5 +14,8 @@
 
 """Whitelist for using installing apps in data attr in android_instrumentation_test."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 INSTALL_APPS_IN_DATA = [
 ]

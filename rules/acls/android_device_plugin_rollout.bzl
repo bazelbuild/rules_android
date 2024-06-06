@@ -14,6 +14,10 @@
 
 """Allow and fallback lists for ATP Device Plugin rollout."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # Targets for ATP Device Plugin Rollout
 ANDROID_DEVICE_PLUGIN_ROLLOUT = [
     "//:__subpackages__",

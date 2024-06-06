@@ -14,6 +14,10 @@
 
 """Allow list of android_binary_with_sandboxed_sdks rule."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST = [
     "//:__subpackages__",

@@ -17,4 +17,7 @@
 See b/125484033.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ALLOW_RESOURCE_CONFLICTS = []

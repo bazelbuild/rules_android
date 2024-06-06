@@ -14,6 +14,10 @@
 
 """Allowlist for the CLDR Locale provider"""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 USE_CLDR_ROLLOUT = [
 ]

@@ -14,6 +14,9 @@
 
 """Allowlist for directly or transitively linking against shared resource apks."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST = [
     "//tools/build_defs/android/test/dev/resources/shared_lib:app1",
     "//tools/build_defs/android/test/dev/resources/shared_lib:app2",
