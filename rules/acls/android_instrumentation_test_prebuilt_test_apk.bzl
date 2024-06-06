@@ -14,6 +14,10 @@
 
 """Allow list of a_i_t targets allowed to use a prebuilt test apk."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT = [
 ]

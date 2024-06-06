@@ -14,5 +14,8 @@
 
 """Temporary allowlist to disable the optimizing dexer flow."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 DISABLE_OPTIMIZING_DEXER = [
 ]

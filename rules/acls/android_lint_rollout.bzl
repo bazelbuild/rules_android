@@ -14,6 +14,10 @@
 
 """Allow list for Android Lint in the Android Rules."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ANDROID_LINT_ROLLOUT = [
 ]

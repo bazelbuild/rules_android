@@ -15,4 +15,7 @@
 """Allow list for android_binary and android_test targets which configure multidex=native with a
 # pre-Lollipop minSdkVersion, until they're cleaned up. See b/36138693."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST = []

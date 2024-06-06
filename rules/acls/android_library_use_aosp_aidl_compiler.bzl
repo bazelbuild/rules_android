@@ -14,5 +14,8 @@
 
 """Allow list for the `idl_use_aosp_compiler` attribute in the `android_library` rule."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST = [
 ]

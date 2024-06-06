@@ -14,6 +14,9 @@
 
 """Allowlist of macro and targets that are allowed to use android_test."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS = [
 ]
 

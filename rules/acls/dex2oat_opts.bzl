@@ -14,6 +14,10 @@
 
 """Packages in this list are allowed to specify custom dex2oat options."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 CAN_USE_DEX2OAT_OPTIONS = [
 ]

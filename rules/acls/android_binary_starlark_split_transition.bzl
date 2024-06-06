@@ -14,6 +14,9 @@
 
 """Allow and fallback lists for using the Starlark implementation of the android split transition"""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ANDROID_BINARY_STARLARK_SPLIT_TRANSITION_ROLLOUT = [
     "//:__subpackages__",
 ]

@@ -14,6 +14,9 @@
 
 """Rollout list for enabling manifest validation in android_instrumentation_test."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ANDROID_INSTRUMENTATION_TEST_MANIFEST_CHECK_ROLLOUT = [
     "//:__subpackages__",
 ]

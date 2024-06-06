@@ -14,6 +14,10 @@
 
 """Allowlist for making exports actually be exported."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 FIX_EXPORT_EXPORTING_ROLLOUT = [
     "//:__subpackages__",

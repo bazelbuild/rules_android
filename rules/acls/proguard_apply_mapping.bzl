@@ -14,6 +14,10 @@
 
 """Allowlist for targets allowed to set proguard_apply_mapping."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ALLOW_PROGUARD_APPLY_MAPPING = [
 ]

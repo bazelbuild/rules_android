@@ -14,6 +14,10 @@
 
 """Allow list for aar_import rule to export the R.java."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 AAR_IMPORT_EXPORTS_R_JAVA = [
 ]

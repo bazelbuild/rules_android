@@ -14,6 +14,10 @@
 
 """Denylist for rules that are not allowed in android_archive excluded_deps."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST = [
     # Failure test support.

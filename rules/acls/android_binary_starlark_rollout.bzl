@@ -14,6 +14,9 @@
 
 """Allow list for rollout of Starlark android_binary rule."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ANDROID_BINARY_STARLARK_ROLLOUT = [
     "//:__subpackages__",
 ]

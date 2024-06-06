@@ -14,6 +14,10 @@
 
 """Allowlist for android_archive targets to skip duplicate class validation."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # Map of {"//some:target": ["list.class", "of.class", "classes.class"]} which will be excluded from
 # duplicate class validation.
 # keep sorted

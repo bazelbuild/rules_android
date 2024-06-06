@@ -15,6 +15,9 @@
 """Rollout list for enabling test class derivation in android_instrumentation_test,"""
 
 load("//rules:acls.bzl", "make_dict", "matches")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 _ANDROID_INSTRUMENTATION_TEST_DERIVED_TEST_CLASS_ROLLOUT = [
     "//:__subpackages__",

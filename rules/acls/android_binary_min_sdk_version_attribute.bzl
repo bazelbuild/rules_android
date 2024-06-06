@@ -14,6 +14,10 @@
 
 """Allowlist for setting new min_sdk_version on android_binary targets."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted.
 ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST = [
     "//test/rules/android_binary_internal:__subpackages__",

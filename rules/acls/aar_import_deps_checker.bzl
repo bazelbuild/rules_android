@@ -17,6 +17,10 @@
 See b/148478031 for context.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 AAR_IMPORT_DEPS_CHECKER_ROLLOUT = [
     "//:__subpackages__",

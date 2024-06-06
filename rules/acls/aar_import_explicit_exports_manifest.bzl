@@ -14,6 +14,10 @@
 
 """Allow list for aar_import rule to explcitly set exports_manifest."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST = [
 ]

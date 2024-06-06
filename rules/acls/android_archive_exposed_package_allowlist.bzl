@@ -14,6 +14,10 @@
 
 """Allowlist for android_archive targets to expose packages that would otherwise be restricted."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # Map of {"target": ["list", "of", "packages"]} which will be excluded from
 # exposed package checks.
 # keep sorted

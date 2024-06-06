@@ -14,6 +14,10 @@
 
 """Allow list for using the "fully enabled" lint check config."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
+
 # keep sorted
 ANDROID_LINT_CHECKS_ROLLOUT = [
 ]

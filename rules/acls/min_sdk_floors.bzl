@@ -18,6 +18,9 @@ Starlark dictionaries maintain insertion order. It is expected that the union of
 cover the entire depot.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 MIN_SDK_FLOORS = {
     19: [
         "//:__subpackages__",
