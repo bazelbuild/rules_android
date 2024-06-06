@@ -28,16 +28,6 @@ def _android_jar_impl(ctx):
 
 android_jar = rule(
     implementation = _android_jar_impl,
-    attrs = {
-        "_sdk": attr.label(
-            allow_rules = ["android_sdk"],
-            default = configuration_field(
-                fragment = "android",
-                name = "android_sdk_label",
-            ),
-            providers = [AndroidSdkInfo],
-        ),
-    },
     toolchains = [
         ANDROID_SDK_TOOLCHAIN_TYPE,
     ],
