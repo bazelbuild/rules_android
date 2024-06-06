@@ -1,5 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary")
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load(":defs.bzl", "android_jar", "run_ijar", "run_singlejar")
 
 config_setting(
@@ -388,4 +388,28 @@ py_binary(
         ":junction_lib",
         "@py_absl//absl:app",
     ],
+)
+
+py_test(
+    name = "aar_native_libs_zip_creator_test",
+    srcs = ["aar_native_libs_zip_creator_test.py"],
+    deps = [":aar_native_libs_zip_creator"],
+)
+
+py_test(
+    name = "aar_embedded_jars_extractor_test",
+    srcs = ["aar_embedded_jars_extractor_test.py"],
+    deps = [":aar_embedded_jars_extractor"],
+)
+
+py_test(
+    name = "aar_embedded_proguard_extractor_test",
+    srcs = ["aar_embedded_proguard_extractor_test.py"],
+    deps = [":aar_embedded_proguard_extractor"],
+)
+
+py_test(
+    name = "aar_resources_extractor_test",
+    srcs = ["aar_resources_extractor_test.py"],
+    deps = [":aar_resources_extractor"],
 )
