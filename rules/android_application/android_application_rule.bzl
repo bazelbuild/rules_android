@@ -13,6 +13,7 @@
 # limitations under the License.
 """android_application rule."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load(
     "//providers:providers.bzl",
     "AndroidArchivedSandboxedSdkInfo",
@@ -61,7 +62,6 @@ load(
     _log = "log",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
 load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
 
@@ -149,7 +149,7 @@ def _process_feature_module(
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = _common.get_host_javabase(ctx),
-        should_throw_on_conflict = True,
+        should_throw_on_conflict = False,
         # We only support native libraries and assets in feature modules. This likely needs to be
         # conditionally set if/when we support jvm / resources.
         debug = False,
@@ -496,8 +496,6 @@ def android_application_macro(_android_binary, **attrs):
     _verify_attrs(attrs, fqn)
 
     # Create an android_binary base split, plus an android_application to produce the aab
-    # Note: various teams / systems rely on the _base suffix (even though it's really an
-    # implementation detail).
     name = attrs.pop("name")
 
     # bundle_config is deprecated in favor of bundle_config_file

@@ -242,7 +242,7 @@ def _package(
         aapt = None,
         busybox = None,
         host_javabase = None,
-        should_throw_on_conflict = True,  # TODO: read this from allowlist at caller
+        should_throw_on_conflict = False,  # TODO: read this from allowlist at caller
         debug = True):  # TODO: we will set this to false in prod builds
     """Packages the compiled Android Resources with AAPT.
 

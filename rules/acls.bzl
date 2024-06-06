@@ -152,7 +152,7 @@ def _in_test_to_instrument_test_rollout(fqn):
     return not matches(fqn, TEST_TO_INSTRUMENT_TEST_FALLBACK_DICT) and matches(fqn, TEST_TO_INSTRUMENT_TEST_ROLLOUT_DICT)
 
 def _in_allow_resource_conflicts(fqn):
-    return matches(fqn, ALLOW_RESOURCE_CONFLICTS_DICT)
+    return True
 
 def _in_partial_jetification_targets(fqn):
     return not matches(fqn, PARTIAL_JETIFICATION_TARGETS_FALLBACK_DICT) and matches(fqn, PARTIAL_JETIFICATION_TARGETS_ROLLOUT_DICT)

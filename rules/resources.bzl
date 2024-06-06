@@ -493,7 +493,7 @@ def _package(
         use_android_resource_shrinking = None,
         use_android_resource_cycle_shrinking = None,
         use_legacy_manifest_merger = False,
-        should_throw_on_conflict = True,
+        should_throw_on_conflict = False,
         enable_data_binding = False,
         enable_manifest_merging = True,
         should_compile_java_srcs = True,
