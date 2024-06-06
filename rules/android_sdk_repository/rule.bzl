@@ -174,15 +174,12 @@ _android_sdk_repository = repository_rule(
     local = True,
 )
 
-def _bind(repo_name, bind_name, target):
-    native.bind(name = bind_name, actual = "@%s//%s" % (repo_name, target))
-
 def android_sdk_repository(
         name,
         path = "",
         api_level = 0,
         build_tools_version = ""):
-    """Create a repository with Android SDK bindings and toolchains.
+    """Create a repository with Android SDK toolchains.
 
     The SDK will be located at the given path, or via the ANDROID_HOME
     environment variable if the path attribute is unset.
@@ -200,12 +197,6 @@ def android_sdk_repository(
         api_level = api_level,
         build_tools_version = build_tools_version,
     )
-
-    _bind(name, "android/sdk", ":sdk")
-    _bind(name, "android/d8_jar_import", ":d8_jar_import")
-    _bind(name, "android/dx_jar_import", ":dx_jar_import")
-    _bind(name, "android_sdk_for_testing", ":files")
-    _bind(name, "has_android_sdk", ":has_android_sdk")
 
     native.register_toolchains("@%s//:sdk-toolchain" % name)
     native.register_toolchains("@%s//:all" % name)

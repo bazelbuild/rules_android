@@ -1,3 +1,4 @@
 common --experimental_google_legacy_api
 common --experimental_enable_android_migration_apis
 common --java_runtime_version=17
+common --android_sdk=@androidsdk//:sdk
