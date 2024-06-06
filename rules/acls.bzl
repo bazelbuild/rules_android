@@ -194,7 +194,7 @@ def _in_allow_proguard_apply_mapping(fqn):
     return matches(fqn, ALLOW_PROGUARD_APPLY_MAPPING_DICT)
 
 def _use_r8(fqn):
-    return matches(fqn, USE_R8_DICT)
+    return True
 
 def _in_disable_optimizing_dexer(fqn):
     return matches(fqn, DISABLE_OPTIMIZING_DEXER_DICT)
