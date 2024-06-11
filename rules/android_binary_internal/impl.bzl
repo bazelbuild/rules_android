@@ -1024,7 +1024,7 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
             deploy_info_writer = get_android_toolchain(ctx).deploy_info_writer.files_to_run,
             zip_aligner = get_android_sdk(ctx).zip_align,
             apk_signer = get_android_sdk(ctx).apk_signer,
-            android_kit = get_android_toolchain(ctx).android_kit.files_to_run,
+            resource_extractor = get_android_toolchain(ctx).resource_extractor.files_to_run,
             toolchain_type = ANDROID_TOOLCHAIN_TYPE,
         )
     return ProviderInfo(
