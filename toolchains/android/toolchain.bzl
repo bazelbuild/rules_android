@@ -302,6 +302,11 @@ _ATTRS = dict(
         default = "@androidsdk//:fail",
         executable = True,
     ),
+    resource_extractor = attr.label(
+        cfg = "exec",
+        default = "//src/tools/java_resource_extractor:resource_extractor",
+        executable = True,
+    ),
     deploy_info_writer = attr.label(
       allow_single_file = True,
       cfg = "exec",
