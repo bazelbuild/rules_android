@@ -53,11 +53,23 @@ def get_aspect_deps(ctx):
         deps_list: List of all deps of the dex_desugar_aspect that requires traversal.
     """
     deps_list = []
-    for deps in [getattr(ctx.attr, attr, []) for attr in _aspect_attrs()]:
+    for attr in _aspect_attrs():
+        # android_binary's deps attr has a split transition, so when
+        # this is called from android_binary, deps should be accessed
+        # via ctx.split_attr instead of ctx.attr to ensure that the same
+        # branch of the split is used throughout the build. An aspect's
+        # ctx doesn't have split_attr, so access that via ctx.attr when
+        # this is called from the aspect impl.
+        if attr == "deps" and hasattr(ctx, "split_attr"):
+            deps = _utils.dedupe_split_attr(ctx.split_attr.deps)
+        else:
+            deps = getattr(ctx.attr, attr, [])
+
         if str(type(deps)) == "list":
             deps_list += deps
         elif str(type(deps)) == "Target":
             deps_list.append(deps)
+
     return deps_list
 
 def _aspect_impl(target, ctx):
