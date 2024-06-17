@@ -18,6 +18,7 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig",
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest",
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/sdksplitproperties",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/validatemodulesconfig",
         "@rules_android_maven//:info_picocli_picocli",
     ],
 )

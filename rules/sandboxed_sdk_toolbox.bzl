@@ -302,6 +302,39 @@ def _generate_sdk_split_properties(
         progress_message = "Generate SDK split properties %s" % output.short_path,
     )
 
+def _validate_modules_config(
+        ctx,
+        output = None,
+        sdk_module_config = None,
+        java_package_name = None,
+        sandboxed_sdk_toolbox = None,
+        host_javabase = None):
+    """Validates an SDK modules config file and ensures it has a valid package name.
+
+    Args:
+      ctx: The context.
+      output: The output file. It will only be created if the validation succeeds.
+      sdk_module_config: SDK Module config JSON file form an SDK bundle.
+      java_package_name: The java package name to use for the SDK.
+      sandboxed_sdk_toolbox: Toolbox executable files.
+      host_javabase: Javabase used to run the toolbox.
+    """
+    args = ctx.actions.args()
+    args.add("validate-modules-config")
+    args.add("--sdk-modules-config", sdk_module_config)
+    args.add("--java-package-name", java_package_name)
+    args.add("--output", output)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = sandboxed_sdk_toolbox,
+        arguments = [args],
+        inputs = [sdk_module_config],
+        outputs = [output],
+        mnemonic = "ValidateModulesConfig",
+        progress_message = "Validating SDK modules config %s" % output.short_path,
+    )
+
 sandboxed_sdk_toolbox = struct(
     extract_api_descriptors = _extract_api_descriptors,
     extract_api_descriptors_from_asar = _extract_api_descriptors_from_asar,
@@ -310,4 +343,5 @@ sandboxed_sdk_toolbox = struct(
     generate_runtime_enabled_sdk_table = _generate_runtime_enabled_sdk_table,
     generate_sdk_dependencies_manifest = _generate_sdk_dependencies_manifest,
     generate_sdk_split_properties = _generate_sdk_split_properties,
+    validate_modules_config = _validate_modules_config,
 )
