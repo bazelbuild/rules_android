@@ -33,6 +33,7 @@ load(":providers.bzl", "AndroidSandboxedSdkInfo")
 visibility(PROJECT_VISIBILITY)
 
 _ATTRS = dict(
+    java_package_name = attr.string(),
     sdk_modules_config = attr.label(
         allow_single_file = [".pb.json"],
     ),
@@ -47,6 +48,15 @@ _ATTRS = dict(
 )
 
 def _impl(ctx):
+    validation = ctx.actions.declare_file(ctx.label.name + "_validation")
+    _sandboxed_sdk_toolbox.validate_modules_config(
+        ctx,
+        output = validation,
+        sdk_module_config = ctx.file.sdk_modules_config,
+        java_package_name = ctx.attr.java_package_name,
+        sandboxed_sdk_toolbox = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
+        host_javabase = _common.get_host_javabase(ctx),
+    )
     sdk_api_descriptors = ctx.actions.declare_file(ctx.label.name + "_sdk_api_descriptors.jar")
     _sandboxed_sdk_toolbox.extract_api_descriptors(
         ctx,
@@ -64,6 +74,7 @@ def _impl(ctx):
             sdk_module_config = ctx.file.sdk_modules_config,
             sdk_api_descriptors = sdk_api_descriptors,
         ),
+        OutputGroupInfo(_validation = depset([validation])),
     ]
 
 _android_sandboxed_sdk = rule(
@@ -99,7 +110,8 @@ def android_sandboxed_sdk_macro(
       visibility: A list of targets allowed to depend on this rule.
       testonly: Whether this library is only for testing.
       tags: A list of string tags passed to generated targets.
-      custom_package: Java package for resources,
+      custom_package: Java package for resources. This needs to be the same as the package set in
+        the sdk_modules_config.
       android_binary: android_binary rule used to create the intermediate SDK APK.
     """
     fully_qualified_name = "//%s:%s" % (native.package_name(), name)
@@ -130,11 +142,13 @@ EOF
         testonly = testonly,
         tags = tags,
         use_r_package = True,
+        custom_package = custom_package,
     )
 
     sdk_deploy_jar = Label("%s_deploy.jar" % bin_fqn)
     _android_sandboxed_sdk(
         name = name,
+        java_package_name = package,
         sdk_modules_config = sdk_modules_config,
         visibility = visibility,
         testonly = testonly,
