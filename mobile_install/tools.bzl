@@ -45,19 +45,6 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
-    _mi_shell_dummy_native_libs = attr.label(
-        default = Label(
-            "//tools/android:gen_fail", # FIXME: Unused internally
-        ),
-        allow_single_file = True,
-        cfg = "target",
-    ),
-    _mi_shell_app = attr.label(
-        default = versioned_deps.mi_shell_app.head,
-        allow_files = True,
-        cfg = "target",
-        executable = True,
-    ),
     _mi_java8_legacy_dex = attr.label(
         default = Label("//tools/android:java8_legacy_dex"),
         allow_single_file = True,
