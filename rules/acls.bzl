@@ -60,6 +60,7 @@ load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
 load("//rules/acls:disable_optimizing_dexer.bzl", "DISABLE_OPTIMIZING_DEXER")
+load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOURCES")
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
 load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
@@ -200,6 +201,9 @@ def _in_android_binary_starlark_rollout(fqn):
 def _in_disable_optimizing_dexer(fqn):
     return matches(fqn, DISABLE_OPTIMIZING_DEXER_DICT)
 
+def _in_force_final_android_binary_resources(fqn):
+    return matches(fqn, FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -265,6 +269,7 @@ USE_R8_DICT = make_dict(USE_R8)
 ANDROID_BINARY_STARLARK_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_ROLLOUT)
 ANDROID_BINARY_STARLARK_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_FALLBACK)
 DISABLE_OPTIMIZING_DEXER_DICT = make_dict(DISABLE_OPTIMIZING_DEXER)
+FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT = make_dict(FORCE_FINAL_ANDROID_BINARY_RESOURCES)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -357,6 +362,7 @@ acls = struct(
     in_android_binary_starlark_rollout = _in_android_binary_starlark_rollout,
     use_r8 = _use_r8,
     in_disable_optimizing_dexer = _in_disable_optimizing_dexer,
+    in_force_final_android_binary_resources = _in_force_final_android_binary_resources,
 )
 
 # Visible for testing
