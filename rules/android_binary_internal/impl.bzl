@@ -501,7 +501,6 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
                 bootclasspath = java_toolchain[java_common.JavaToolchainInfo].bootclasspath.to_list(),
                 min_sdk_version = _min_sdk_version.clamp(ctx.attr.min_sdk_version),
                 desugar_exec = get_android_toolchain(ctx).desugar.files_to_run,
-                desugared_lib_config = ctx.file._desugared_lib_config,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
             desugared_jars.append(desugared_jar)
