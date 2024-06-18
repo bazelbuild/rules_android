@@ -40,6 +40,7 @@ def _aspect_attrs():
         "_build_stamp_deps",  # for build stamp runtime class deps
         "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
         "_toolchain",  # to get Kotlin toolchain component in android_library
+        "_desugared_lib_config",  # For java8 desugaring config file
     ]
 
 # Also used by the android_binary_internal rule
@@ -119,6 +120,7 @@ def _aspect_impl(target, ctx):
                     classpath = compiletime_classpath,
                     min_sdk_version = min_sdk_version,
                     desugar_exec = ctx.executable._desugar_java8,
+                    desugared_lib_config = ctx.file._desugared_lib_config,
                 )
             else:
                 desugared_jar = None
@@ -248,6 +250,10 @@ dex_desugar_aspect = aspect(
                 allow_files = True,
                 cfg = "exec",
                 executable = True,
+            ),
+            "_desugared_lib_config": attr.label(
+                allow_single_file = True,
+                default = Label("//tools/android:full_desugar_jdk_libs_config_json"),
             ),
             "_dexbuilder": attr.label(
                 default = Label("//tools/android:dexbuilder"),
