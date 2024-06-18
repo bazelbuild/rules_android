@@ -27,7 +27,7 @@ visibility(PROJECT_VISIBILITY)
 
 _DEX_MEMORY = 4096
 _DEX_THREADS = 5
-_DEXOPTS_SUPPORTED_IN_DEXBUILDER = ["--no-locals", "--no-optimize", "--no-warnings", "--positions"]
+_DEXOPTS_SUPPORTED_IN_DEXBUILDER = ["--no-locals", "--no-optimize", "--no-warnings", "--positions", "--disable_outlining"]
 
 _tristate = _attrs.tristate
 
