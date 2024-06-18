@@ -36,15 +36,6 @@ MANIFEST_NO_MIN_SDK = """<?xml version='1.0' encoding='utf-8'?>
 </manifest>
 """
 
-MANIFEST_NO_USES_SDK = """<?xml version='1.0' encoding='utf-8'?>
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.android.apps.testapp"
-    android:versionCode="70"
-    android:versionName="1.0">
-</manifest>
-"""
-
 BAD_MANIFEST = """<?xml version='1.0' encoding='utf-8'?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -56,9 +47,18 @@ BAD_MANIFEST = """<?xml version='1.0' encoding='utf-8'?>
 """
 
 NO_MIN_SDK_ERROR = """
-Enabling multidex='native' is only supported on SDK version 21 and newer; minSdkVersion is not set and defaults to 1.
+Expected manifest minSdkVersion of 21 but no minSdkVersion was set
 
-Use multidex='legacy' instead if support for earlier SDK versions is required
+"""
+
+
+MIN_SDK_TOO_LOW_ERROR = """
+Expected manifest minSdkVersion of 21 but got 10
+
+"""
+
+MIN_SDK_BAD_ERROR = """
+Expected manifest minSdkVersion of 21 but got None
 
 """
 
@@ -67,27 +67,27 @@ class ValidateManifestTest(unittest.TestCase):
 
   def test_no_min_sdk(self):
     self.assertEqual(
-        validate_manifest.ValidateManifestMinSdkVersionForNativeMultidex(
-            MANIFEST_NO_MIN_SDK), NO_MIN_SDK_ERROR)
+        validate_manifest.ValidateManifestMinSdk(MANIFEST_NO_MIN_SDK, 21),
+        NO_MIN_SDK_ERROR,
+    )
+
+  def test_too_low_min_sdk(self):
     self.assertEqual(
-        validate_manifest.ValidateManifestMinSdkVersionForNativeMultidex(
-            MANIFEST_NO_USES_SDK), NO_MIN_SDK_ERROR)
+        validate_manifest.ValidateManifestMinSdk(MANIFEST, 21),
+        MIN_SDK_TOO_LOW_ERROR,
+    )
 
-  def test_give_me_a_name(self):
+  def test_bad_min_sdk(self):
     self.assertEqual(
-        validate_manifest.ValidateManifestMinSdkVersionForNativeMultidex(
-            MANIFEST), """
-Enabling multidex='native' is only supported on SDK version 21 and newer; minSdkVersion is set to 10.
-
-Use multidex='legacy' instead if support for earlier SDK versions is required
-
-""")
+        validate_manifest.ValidateManifestMinSdk(BAD_MANIFEST, 21),
+        MIN_SDK_BAD_ERROR,
+    )
 
   def test_negative(self):
     self.assertIsNone(
-        validate_manifest.ValidateManifestMinSdkVersionForNativeMultidex(
-            BAD_MANIFEST), None)
+        validate_manifest.ValidateManifestMinSdk(MANIFEST, 10), None
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   unittest.main()
