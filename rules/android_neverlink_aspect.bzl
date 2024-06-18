@@ -38,7 +38,9 @@ _ATTRS = ["deps", "exports", "runtime_deps", "binary_under_test", "$instrumentat
 
 def _android_neverlink_aspect_impl(target, ctx):
     # Only run on Android targets
-    if "android" not in getattr(ctx.rule.attr, "constraints", "") and not ctx.rule.kind.startswith("android_"):
+    if ("android" not in getattr(ctx.rule.attr, "constraints", "") and
+        not ctx.rule.kind.startswith("android_") and
+        not ctx.rule.kind == "aar_import"):
         return []
 
     deps = []
