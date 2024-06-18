@@ -803,31 +803,58 @@ def _package(
 
     # Fix class jar name because some tests depend on {label_name}_resources.jar being the suffix of
     # the path, with _common.PACKAGED_RESOURCES_SUFFIX removed from the label name.
-    class_jar_name = ctx.label.name + "_migrated/_resources.jar"
+    nonfinal_class_jar_name = ctx.label.name + "_migrated/_resources.jar"
+    final_class_jar_name = ctx.label.name + "_migrated/_final_resources.jar"
     if ctx.label.name.endswith(_common.PACKAGED_RESOURCES_SUFFIX) or acls.in_android_binary_starlark_rollout(str(ctx.label)):
         label_name = ctx.label.name.removesuffix(_common.PACKAGED_RESOURCES_SUFFIX)
-        class_jar_name = ctx.label.name + "_migrated/" + label_name + "_resources.jar"
+        nonfinal_class_jar_name = ctx.label.name + "_migrated/" + label_name + "_resources.jar"
+        final_class_jar_name = ctx.label.name + "_migrated/" + label_name + "_final_resources.jar"
 
-    class_jar = ctx.actions.declare_file(class_jar_name)
-    _busybox.generate_binary_r(
-        ctx,
-        out_class_jar = class_jar,
-        r_txt = r_txt,
-        manifest = processed_manifest,
-        package_for_r = java_package,
-        final_fields = not shrink_resource_cycles and not instruments and not use_r_package,
-        use_r_package = use_r_package,
-        resources_nodes = depset(transitive = direct_resources_nodes + transitive_resources_nodes),
-        transitive_r_txts = transitive_r_txts,
-        transitive_manifests = transitive_manifests,
-        busybox = busybox,
-        host_javabase = host_javabase,
-    )
-    packaged_resources_ctx[_PACKAGED_CLASS_JAR] = class_jar
+    compile_class_jar = ctx.actions.declare_file(nonfinal_class_jar_name)
+    use_final_fields = not shrink_resource_cycles and not instruments and not use_r_package
+    force_final_fields = acls.in_force_final_android_binary_resources(str(ctx.label))
+    if use_final_fields:
+        if force_final_fields:
+            output_class_jar = compile_class_jar
+        else:
+            output_class_jar = ctx.actions.declare_file(final_class_jar_name)
+        _busybox.generate_binary_r(
+            ctx,
+            out_class_jar = output_class_jar,
+            r_txt = r_txt,
+            manifest = processed_manifest,
+            package_for_r = java_package,
+            final_fields = True,
+            use_r_package = use_r_package,
+            resources_nodes = depset(transitive = direct_resources_nodes + transitive_resources_nodes),
+            transitive_r_txts = transitive_r_txts,
+            transitive_manifests = transitive_manifests,
+            busybox = busybox,
+            host_javabase = host_javabase,
+        )
+    else:
+        output_class_jar = compile_class_jar
+
+    if not use_final_fields or not force_final_fields:
+        _busybox.generate_binary_r(
+            ctx,
+            out_class_jar = compile_class_jar,
+            r_txt = r_txt,
+            manifest = processed_manifest,
+            package_for_r = java_package,
+            final_fields = False,
+            use_r_package = use_r_package,
+            resources_nodes = depset(transitive = direct_resources_nodes + transitive_resources_nodes),
+            transitive_r_txts = transitive_r_txts,
+            transitive_manifests = transitive_manifests,
+            busybox = busybox,
+            host_javabase = host_javabase,
+        )
+    packaged_resources_ctx[_PACKAGED_CLASS_JAR] = output_class_jar
 
     java_info = JavaInfo(
-        output_jar = class_jar,
-        compile_jar = class_jar,
+        output_jar = output_class_jar,
+        compile_jar = compile_class_jar,
         source_jar = r_java,
     )
 
@@ -861,7 +888,7 @@ def _package(
     android_application_resource_info = AndroidApplicationResourceInfo(
         resource_apk = resource_apk,
         resource_java_src_jar = r_java,
-        resource_java_class_jar = class_jar,
+        resource_java_class_jar = output_class_jar,
         manifest = processed_manifest,
         resource_proguard_config = proguard_cfg,
         main_dex_proguard_config = main_dex_proguard_cfg,
