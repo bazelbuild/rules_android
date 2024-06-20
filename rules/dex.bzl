@@ -27,7 +27,11 @@ visibility(PROJECT_VISIBILITY)
 
 _DEX_MEMORY = 4096
 _DEX_THREADS = 5
-_DEXOPTS_SUPPORTED_IN_DEXBUILDER = ["--no-locals", "--no-optimize", "--no-warnings", "--positions", "--disable_outlining"]
+_DEXOPTS_SUPPORTED_IN_DEXBUILDER = ["--no-locals", "--no-optimize", "--no-warnings", "--positions"]
+
+# These dexopts only make sense in optimized dexing. This list is added to the
+# allowlist only when optimized dexing is enabled.
+_EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX = ["--disable_outlining"]
 
 _tristate = _attrs.tristate
 
@@ -61,14 +65,20 @@ def _process_incremental_dexing(
         toolchain_type = None):
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
     should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
+    incremental_dexopt_filter = list(ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    if should_optimize_dex:
+        incremental_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
     incremental_dexopts = _filter_dexopts(
         tokenized_dexopts = dexopts,
-        includes = ctx.fragments.android.get_dexopts_supported_in_incremental_dexing,
+        includes = incremental_dexopt_filter,
         needs_normalization = not should_optimize_dex,
     )
+    merger_dexopt_filter = list(ctx.fragments.android.get_dexopts_supported_in_dex_merger)
+    if should_optimize_dex:
+        merger_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
     merger_dexopts = _filter_dexopts(
         tokenized_dexopts = dexopts,
-        includes = ctx.fragments.android.get_dexopts_supported_in_dex_merger,
+        includes = merger_dexopt_filter,
         needs_normalization = not should_optimize_dex,
     )
     dex_archives = []
@@ -95,9 +105,12 @@ def _process_incremental_dexing(
             runtime_jars_dict = runtime_jars_dict,
         )
     else:
+        toplevel_dexopt_filter = list(_DEXOPTS_SUPPORTED_IN_DEXBUILDER)
+        if should_optimize_dex:
+            toplevel_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
         toplevel_dexbuilder_dexopts = _filter_dexopts(
             tokenized_dexopts = dexopts,
-            includes = _DEXOPTS_SUPPORTED_IN_DEXBUILDER,
+            includes = toplevel_dexopt_filter,
             needs_normalization = not should_optimize_dex,
         )
         java_resource_jar = ctx.actions.declare_file(ctx.label.name + "_files/java_resources.jar")
