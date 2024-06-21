@@ -73,6 +73,7 @@ genrule(
     cmd = "unzip -q -c " +
           "$(location @rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio) " +
           "META-INF/desugar/d8/desugar.json > $@",
+    visibility = ["//visibility:public"],
 )
 
 genrule(
@@ -95,6 +96,7 @@ genrule(
     }),
     outs = ["desugar_jdk_libs.json"],
     cmd = "cp $< $@",
+    visibility = ["//visibility:public"],
 )
 
 genrule(
