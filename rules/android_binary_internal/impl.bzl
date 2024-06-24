@@ -115,6 +115,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         deps = utils.dedupe_split_attr(ctx.split_attr.deps),
         resource_apks = resource_apks,
         instruments = ctx.attr.instruments,
+        build_java_with_final_resources = acls.in_force_final_android_binary_resources(str(ctx.label)),
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         android_jar = get_android_sdk(ctx).android_jar,
         legacy_merger = ctx.attr._android_manifest_merge_tool.files_to_run,
