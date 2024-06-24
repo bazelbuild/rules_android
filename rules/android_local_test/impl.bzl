@@ -106,6 +106,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         compilation_mode = compilation_mode.get(ctx),
         java_package = java_package,
         shrink_resources = attrs.tristate.no,
+        build_java_with_final_resources = True,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         android_jar = get_android_sdk(ctx).android_jar,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,

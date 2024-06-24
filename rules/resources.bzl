@@ -512,6 +512,7 @@ def _package(
         enable_manifest_merging = True,
         should_compile_java_srcs = True,
         generate_minsdk_proguard_config = False,
+        build_java_with_final_resources = False,
         aapt = None,
         has_local_proguard_specs = False,
         android_jar = None,
@@ -575,6 +576,10 @@ def _package(
       should_compile_java_srcs: boolean. If native android_binary should perform java compilation.
       generate_minsdk_proguard_config: boolean. Whether to generate the Proguard specs for the
       minSdkVersion.
+      build_java_with_final_resources: boolean. If true, do not generate
+        non-final resources for linking against when building any srcs. This is
+        generally only desirable for test targets that aren't potentially
+        running compile-time optimizations.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       has_local_proguard_specs: If the target has proguard specs.
       android_jar: File. The Android jar.
@@ -812,9 +817,8 @@ def _package(
 
     compile_class_jar = ctx.actions.declare_file(nonfinal_class_jar_name)
     use_final_fields = not shrink_resource_cycles and not instruments and not use_r_package
-    force_final_fields = acls.in_force_final_android_binary_resources(str(ctx.label))
     if use_final_fields:
-        if force_final_fields:
+        if build_java_with_final_resources:
             output_class_jar = compile_class_jar
         else:
             output_class_jar = ctx.actions.declare_file(final_class_jar_name)
@@ -835,7 +839,7 @@ def _package(
     else:
         output_class_jar = compile_class_jar
 
-    if not use_final_fields or not force_final_fields:
+    if not use_final_fields or not build_java_with_final_resources:
         _busybox.generate_binary_r(
             ctx,
             out_class_jar = compile_class_jar,
