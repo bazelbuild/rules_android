@@ -806,14 +806,8 @@ def _package(
     packaged_resources_ctx[_MAIN_DEX_PROGUARD_CONFIG] = main_dex_proguard_cfg
     packaged_resources_ctx[_PACKAGED_R_TXT] = r_txt
 
-    # Fix class jar name because some tests depend on {label_name}_resources.jar being the suffix of
-    # the path, with _common.PACKAGED_RESOURCES_SUFFIX removed from the label name.
-    nonfinal_class_jar_name = ctx.label.name + "_migrated/_resources.jar"
-    final_class_jar_name = ctx.label.name + "_migrated/_final_resources.jar"
-    if ctx.label.name.endswith(_common.PACKAGED_RESOURCES_SUFFIX) or acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        label_name = ctx.label.name.removesuffix(_common.PACKAGED_RESOURCES_SUFFIX)
-        nonfinal_class_jar_name = ctx.label.name + "_migrated/" + label_name + "_resources.jar"
-        final_class_jar_name = ctx.label.name + "_migrated/" + label_name + "_final_resources.jar"
+    nonfinal_class_jar_name = ctx.label.name + "_migrated/" + ctx.label.name + "_resources.jar"
+    final_class_jar_name = ctx.label.name + "_migrated/" + ctx.label.name + "_final_resources.jar"
 
     compile_class_jar = ctx.actions.declare_file(nonfinal_class_jar_name)
     use_final_fields = not shrink_resource_cycles and not instruments and not use_r_package
@@ -870,24 +864,6 @@ def _package(
     packages_to_r_txts = dict()
     for pkg, depsets in packages_to_r_txts_depset.items():
         packages_to_r_txts[pkg] = depset(transitive = depsets)
-
-    # Adding empty depsets to unused fields of StarlarkAndroidResourcesInfo.
-    # Some root targets may depends on other root targets and try to access those fields.
-    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        packaged_resources_ctx[_PROVIDERS].append(StarlarkAndroidResourcesInfo(
-            direct_resources_nodes = depset(),
-            transitive_resources_nodes = depset(),
-            transitive_assets = depset(),
-            transitive_assets_symbols = depset(),
-            transitive_compiled_assets = depset(),
-            transitive_resource_files = depset(),
-            direct_compiled_resources = depset(),
-            transitive_compiled_resources = depset(),
-            transitive_manifests = depset(),
-            transitive_r_txts = depset(),
-            packages_to_r_txts = packages_to_r_txts,
-            transitive_resource_apks = depset(),
-        ))
 
     android_application_resource_info = AndroidApplicationResourceInfo(
         resource_apk = resource_apk,

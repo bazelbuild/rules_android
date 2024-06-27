@@ -328,8 +328,7 @@ def _optimization_action(
     )
 
 def _get_proguard_temp_artifact(ctx, name):
-    native_label_name = ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
-    return ctx.actions.declare_file("proguard/" + native_label_name + "/" + native_label_name + "_" + name)
+    return ctx.actions.declare_file("proguard/" + ctx.label.name + "/" + ctx.label.name + "_" + name)
 
 def _get_proguard_output_resources(ctx):
     return _get_proguard_temp_artifact(ctx, "_resource_files.zip")

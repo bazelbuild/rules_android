@@ -22,9 +22,6 @@ load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", _log = "lo
 
 visibility(PROJECT_VISIBILITY)
 
-# Suffix attached to the Starlark portion of android_binary target
-_PACKAGED_RESOURCES_SUFFIX = "_RESOURCES_DO_NOT_USE"
-
 # Validates that the packages listed under "deps" all have the given constraint. If a package
 # does not have this attribute, an error is generated.
 def _validate_constraints(targets, constraint):
@@ -130,7 +127,6 @@ def _create_signer_properties(ctx, oldest_key):
     return properties
 
 common = struct(
-    PACKAGED_RESOURCES_SUFFIX = _PACKAGED_RESOURCES_SUFFIX,
     check_rule = _check_rule,
     create_signer_properties = _create_signer_properties,
     get_host_javabase = _get_host_javabase,

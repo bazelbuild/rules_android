@@ -14,16 +14,12 @@
 
 """Bazel rule for building an APK."""
 
-load("//rules:acls.bzl", "acls")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//rules/android_binary_internal:rule.bzl",
-    "android_binary_internal",
     "android_binary_internal_macro",
     "make_rule",
 )
-load(":common.bzl", "common")
-load(":migration_tag_DONOTUSE.bzl", "add_migration_tag")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -43,43 +39,8 @@ def android_binary_macro(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    fqn = "//%s:%s" % (native.package_name(), attrs["name"])
 
-    if acls.in_android_binary_starlark_rollout(fqn):
-        android_binary_internal_macro(
-            internal_rule = android_binary,
-            **attrs
-        )
-
-    else:
-        android_binary_internal_name = ":" + attrs["name"] + common.PACKAGED_RESOURCES_SUFFIX
-        android_binary_internal_macro(
-            internal_rule = android_binary_internal,
-            **dict(
-                attrs,
-                name = android_binary_internal_name[1:],
-                visibility = ["//visibility:private"],
-            )
-        )
-
-        attrs.pop("$enable_manifest_merging", None)
-
-        # dex_shards is deprecated and unused. This only existed for mobile-install classic which has
-        # been replaced by mobile-install v2
-        attrs.pop("dex_shards", None)
-
-        # resource_apks is not used by the native android_binary
-        attrs.pop("resource_apks", None)
-
-        if acls.use_r8(fqn):
-            # Do not pass proguard specs to the native android_binary so that it does
-            # not try to use proguard and instead uses the dex files from the
-            # AndroidDexInfo provider from android_binary_internal.
-            # This also disables resource shrinking from native android_binary (reguardless of the
-            # shrink_resources attr).
-            attrs["proguard_specs"] = []
-
-        native.android_binary(
-            application_resources = android_binary_internal_name,
-            **add_migration_tag(attrs)
-        )
+    android_binary_internal_macro(
+        internal_rule = android_binary,
+        **attrs
+    )

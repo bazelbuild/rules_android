@@ -17,7 +17,6 @@ Defines the native libs processing and an aspect to collect build configuration
 of split deps
 """
 
-load("//rules:common.bzl", "common")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//lib:paths.bzl", "paths")
@@ -64,7 +63,7 @@ def process(ctx, filename, merged_libraries_map = {}):
         and libs_name is a File containing the basename of the linked shared
         library
     """
-    actual_target_name = ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
+    target_name = ctx.label.name
     native_libs_basename = None
     libs_name = None
     libs = dict()
@@ -77,7 +76,7 @@ def process(ctx, filename, merged_libraries_map = {}):
         )
         linker_input = cc_common.create_linker_input(
             owner = ctx.label,
-            user_link_flags = ["-Wl,-soname=lib" + actual_target_name],
+            user_link_flags = ["-Wl,-soname=lib" + target_name],
         )
         cc_info = cc_common.merge_cc_infos(
             cc_infos = _concat(
@@ -93,7 +92,7 @@ def process(ctx, filename, merged_libraries_map = {}):
         if merged_libraries_map:
             oneoff_shared_libs.extend(merged_libraries_map[key])
 
-        native_deps_lib = _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actual_target_name)
+        native_deps_lib = _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, target_name)
         if native_deps_lib:
             oneoff_shared_libs.append(native_deps_lib)
             native_libs_basename = native_deps_lib.basename
@@ -104,7 +103,7 @@ def process(ctx, filename, merged_libraries_map = {}):
             libs[libs_dir_name] = depset(shared_libs)
 
     if libs and native_libs_basename:
-        libs_name = ctx.actions.declare_file("nativedeps_filename/" + actual_target_name + "/" + filename)
+        libs_name = ctx.actions.declare_file("nativedeps_filename/" + target_name + "/" + filename)
         ctx.actions.write(output = libs_name, content = native_libs_basename)
 
     transitive_native_libs = _get_transitive_native_libs(ctx)
@@ -289,7 +288,7 @@ def _get_static_mode_params_for_dynamic_library_libraries(libs):
             linker_inputs.append(lib.dynamic_library)
     return linker_inputs
 
-def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actual_target_name, is_test_rule_class = False):
+def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, target_name, is_test_rule_class = False):
     needs_linking = False
     all_inputs = _all_inputs(cc_info)
     for input in all_inputs:
@@ -308,7 +307,7 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, actua
     # This does not need to be shareable, but we use this API to specify the
     # custom file root (matching the configuration)
     output_lib = ctx.actions.declare_shareable_artifact(
-        paths.join(ctx.label.package, "nativedeps", actual_target_name, "lib" + actual_target_name + ".so"),
+        paths.join(ctx.label.package, "nativedeps", target_name, "lib" + target_name + ".so"),
         build_config.bin_dir,
     )
 

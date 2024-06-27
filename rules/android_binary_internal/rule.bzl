@@ -32,8 +32,6 @@ _DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
 
 def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs):
     label = "//" + _package_name + ":" + name
-    if not acls.in_android_binary_starlark_rollout(label):
-        return {}
 
     outputs = dict(
         deploy_jar = "%{name}_deploy.jar",
