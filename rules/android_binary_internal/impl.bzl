@@ -136,16 +136,15 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
 def _validate_manifest(ctx, packaged_resources_ctx, **unused_ctxs):
     validation_outputs = []
 
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        manifest_validation_output = _resources.validate_manifest(
-            ctx,
-            manifest = packaged_resources_ctx.processed_manifest,
-            min_sdk_version = ctx.attr.min_sdk_version,
-            manifest_validation_tool = get_android_toolchain(ctx).manifest_validation_tool.files_to_run,
-            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-        )
-        if manifest_validation_output:
-            validation_outputs.append(manifest_validation_output)
+    manifest_validation_output = _resources.validate_manifest(
+        ctx,
+        manifest = packaged_resources_ctx.processed_manifest,
+        min_sdk_version = ctx.attr.min_sdk_version,
+        manifest_validation_tool = get_android_toolchain(ctx).manifest_validation_tool.files_to_run,
+        toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+    )
+    if manifest_validation_output:
+        validation_outputs.append(manifest_validation_output)
 
     return ProviderInfo(
         name = "manifest_validation_ctx",
@@ -212,13 +211,7 @@ def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_c
     )
 
 def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_unused_ctxs):
-    native_name = ctx.label.name.removesuffix(common.PACKAGED_RESOURCES_SUFFIX)
-
-    if acls.in_android_binary_starlark_javac(str(ctx.label)):
-        output_jar = ctx.actions.declare_file("lib%s.jar" % native_name)
-    else:
-        # stamping tests still need the output jar to be named this way.
-        output_jar = ctx.actions.declare_file("%s/lib%s.jar" % (ctx.label.name, native_name))
+    output_jar = ctx.actions.declare_file("lib%s.jar" % ctx.label.name)
 
     java_info = java.compile_android(
         ctx,
@@ -244,27 +237,21 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
         constraints = ["android"],
     )
 
-    output_groups = dict()
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        java_infos = [packaged_resources_ctx.r_java]
-        if proto_ctx.java_info:
-            java_infos.append(proto_ctx.java_info)
-        java_infos.append(java_info)
-        java_info = java_common.merge(java_infos)
-        output_groups = dict(
-            _direct_source_jars = java_info.source_jars,
-            _source_jars = java_info.transitive_source_jars,
-        )
-
-    providers = []
-    if acls.in_android_binary_starlark_javac(str(ctx.label)):
-        providers.append(java_info)
+    java_infos = [packaged_resources_ctx.r_java]
+    if proto_ctx.java_info:
+        java_infos.append(proto_ctx.java_info)
+    java_infos.append(java_info)
+    java_info = java_common.merge(java_infos)
+    output_groups = dict(
+        _direct_source_jars = java_info.source_jars,
+        _source_jars = java_info.transitive_source_jars,
+    )
 
     return ProviderInfo(
         name = "jvm_ctx",
         value = struct(
             java_info = java_info,
-            providers = providers,
+            providers = [java_info],
             output_groups = output_groups,
         ),
     )
@@ -443,9 +430,6 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
     )
     providers.append(AndroidPreDexJarInfo(binary_jar))
 
-    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        providers.append(dex_info)
-
     if postprocessing_output_map:
         providers.append(ProguardMappingInfo(postprocessing_output_map))
 
@@ -475,10 +459,6 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     java_toolchain = common.get_java_toolchain(ctx)
 
     java_info = java_common.merge([jvm_ctx.java_info, stamp_ctx.java_info]) if stamp_ctx.java_info else jvm_ctx.java_info
-    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        binary_runtime_jars.append(packaged_resources_ctx.class_jar)
-        if proto_ctx.class_jar:
-            binary_runtime_jars.append(proto_ctx.class_jar)
     binary_runtime_jars += java_info.runtime_output_jars
 
     if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
@@ -524,14 +504,9 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     else:
         runtime_jars = depset(binary_runtime_jars, transitive = [java_info.transitive_runtime_jars])
 
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        output = ctx.outputs.deploy_jar
-    else:
-        output = ctx.actions.declare_file(ctx.label.name + "_deploy.jar")
-
     deploy_jar = java.create_deploy_jar(
         ctx,
-        output = output,
+        output = ctx.outputs.deploy_jar,
         runtime_jars = runtime_jars,
         java_toolchain = java_toolchain,
         build_target = ctx.label.name,
@@ -554,15 +529,13 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
         )
         deploy_jar = filtered_deploy_jar
 
-    one_version_enforcement_output = None
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        # TODO(b/269498486): Switch this action to a validation action and add the output to validation_outputs.
-        one_version_enforcement_output = java.check_one_version(
-            ctx,
-            inputs = runtime_jars,
-            java_toolchain = java_toolchain,
-            one_version_enforcement_level = ctx.fragments.java.one_version_enforcement_level,
-        )
+    # TODO(b/269498486): Switch this action to a validation action and add the output to validation_outputs.
+    one_version_enforcement_output = java.check_one_version(
+        ctx,
+        inputs = runtime_jars,
+        java_toolchain = java_toolchain,
+        one_version_enforcement_level = ctx.fragments.java.one_version_enforcement_level,
+    )
 
     return ProviderInfo(
         name = "deploy_ctx",
@@ -621,43 +594,35 @@ def finalize(
     """
     output_groups["_validation"] = depset(validation_outputs)
 
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        output_groups["_hidden_top_level_INTERNAL_"] = depset(
-            direct = [
-                deploy_ctx.one_version_enforcement_output,
-            ] if deploy_ctx.one_version_enforcement_output else [],
-            transitive = [info["_hidden_top_level_INTERNAL_"] for info in utils.collect_providers(
-                OutputGroupInfo,
-                utils.dedupe_split_attr(ctx.split_attr.deps),
-            )],
-        )
-        providers.extend(
-            [
-                DefaultInfo(
-                    files = depset(implicit_outputs),
-                    runfiles = ctx.runfiles(files = implicit_outputs),
-                ),
-                OutputGroupInfo(**output_groups),
-            ],
-        )
-
-        providers.append(
-            AndroidFeatureFlagSet({
-                flag.label: value
-                for flag, value in ctx.attr.feature_flags.items()
-            }),
-        )
-
-        if is_instrumentation(ctx):
-            providers.append(
-                AndroidInstrumentationInfo(target = ctx.attr.instruments[ApkInfo]),
-            )
-
-    else:
-        providers.append(
-            OutputGroupInfo(
-                **output_groups
+    output_groups["_hidden_top_level_INTERNAL_"] = depset(
+        direct = [
+            deploy_ctx.one_version_enforcement_output,
+        ] if deploy_ctx.one_version_enforcement_output else [],
+        transitive = [info["_hidden_top_level_INTERNAL_"] for info in utils.collect_providers(
+            OutputGroupInfo,
+            utils.dedupe_split_attr(ctx.split_attr.deps),
+        )],
+    )
+    providers.extend(
+        [
+            DefaultInfo(
+                files = depset(implicit_outputs),
+                runfiles = ctx.runfiles(files = implicit_outputs),
             ),
+            OutputGroupInfo(**output_groups),
+        ],
+    )
+
+    providers.append(
+        AndroidFeatureFlagSet({
+            flag.label: value
+            for flag, value in ctx.attr.feature_flags.items()
+        }),
+    )
+
+    if is_instrumentation(ctx):
+        providers.append(
+            AndroidInstrumentationInfo(target = ctx.attr.instruments[ApkInfo]),
         )
 
     return providers
@@ -829,7 +794,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             # Proguard map from shrinking is the final output.
             proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
 
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)) and ctx.attr._generate_proguard_outputs:
+    if ctx.attr._generate_proguard_outputs:
         proguard_output_jar = ctx.outputs.proguard_jar
         proguard_output_config = ctx.outputs.proguard_config
     else:
@@ -971,69 +936,57 @@ def get_final_resources(
     return resources_apk, merged_manifest
 
 def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx, ap_ctx, optimize_ctx, r8_ctx, resource_shrinking_r8_ctx, **_unused_ctxs):
-    apk_packaging_ctx = struct()
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        signing_keys = []
-        if ctx.files.debug_signing_keys:
-            signing_keys.extend(ctx.files.debug_signing_keys)
-        elif ctx.file.debug_key:
-            signing_keys.append(ctx.file.debug_key)
+    signing_keys = []
+    if ctx.files.debug_signing_keys:
+        signing_keys.extend(ctx.files.debug_signing_keys)
+    elif ctx.file.debug_key:
+        signing_keys.append(ctx.file.debug_key)
 
-        use_r8 = acls.use_r8(str(ctx.label)) and ctx.files.proguard_specs
-        if getattr(r8_ctx, "dex_info", None) and getattr(dex_ctx, "dex_info", None):
-            fail("Either R8 or Dex should be used, but not both!")
-        dex_info = r8_ctx.dex_info if use_r8 else dex_ctx.dex_info
+    use_r8 = acls.use_r8(str(ctx.label)) and ctx.files.proguard_specs
+    if getattr(r8_ctx, "dex_info", None) and getattr(dex_ctx, "dex_info", None):
+        fail("Either R8 or Dex should be used, but not both!")
+    dex_info = r8_ctx.dex_info if use_r8 else dex_ctx.dex_info
 
-        resources_apk, merged_manifest = get_final_resources(
-            packaged_resources_ctx,
-            optimize_ctx,
-            resource_shrinking_r8_ctx,
-        )
+    resources_apk, merged_manifest = get_final_resources(
+        packaged_resources_ctx,
+        optimize_ctx,
+        resource_shrinking_r8_ctx,
+    )
 
-        if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-            unsigned_apk = ctx.outputs.unsigned_apk
-            signed_apk = ctx.outputs.signed_apk
-        else:
-            unsigned_apk = ctx.actions.declare_file(ctx.label.name + "_unsigned.apk")
-            signed_apk = ctx.actions.declare_file(ctx.label.name + ".apk")
-
-        apk_packaging_ctx = _apk_packaging.process(
-            ctx,
-            unsigned_apk = unsigned_apk,
-            signed_apk = signed_apk,
-            resources_apk = resources_apk,
-            final_classes_dex_zip = dex_info.final_classes_dex_zip,
-            deploy_jar = dex_info.deploy_jar,
-            native_libs = native_libs_ctx.native_libs_info.native_libs,
-            native_libs_aars = native_libs_ctx.native_libs_info.transitive_native_libs,
-            native_libs_name = native_libs_ctx.native_libs_info.native_libs_name,
-            coverage_metadata = dex_info.deploy_jar if ctx.configuration.coverage_enabled else None,
-            merged_manifest = merged_manifest,
-            art_profile_zip = ap_ctx.art_profile_zip,
-            java_resources_zip = dex_info.java_resource_jar,
-            compress_java_resources = ctx.fragments.android.compress_java_resources,
-            nocompress_extensions = ctx.attr.nocompress_extensions,
-            output_jar_creator = "bazel",
-            signing_keys = signing_keys,
-            signing_lineage = ctx.file.debug_signing_lineage_file,
-            signing_key_rotation_min_sdk = ctx.attr.key_rotation_min_sdk,
-            deterministic_signing = False,
-            java_toolchain = common.get_java_toolchain(ctx),
-            deploy_info_writer = get_android_toolchain(ctx).deploy_info_writer.files_to_run,
-            zip_aligner = get_android_sdk(ctx).zip_align,
-            apk_signer = get_android_sdk(ctx).apk_signer,
-            resource_extractor = get_android_toolchain(ctx).resource_extractor.files_to_run,
-            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-        )
+    apk_packaging_ctx = _apk_packaging.process(
+        ctx,
+        unsigned_apk = ctx.outputs.unsigned_apk,
+        signed_apk = ctx.outputs.signed_apk,
+        resources_apk = resources_apk,
+        final_classes_dex_zip = dex_info.final_classes_dex_zip,
+        deploy_jar = dex_info.deploy_jar,
+        native_libs = native_libs_ctx.native_libs_info.native_libs,
+        native_libs_aars = native_libs_ctx.native_libs_info.transitive_native_libs,
+        native_libs_name = native_libs_ctx.native_libs_info.native_libs_name,
+        coverage_metadata = dex_info.deploy_jar if ctx.configuration.coverage_enabled else None,
+        merged_manifest = merged_manifest,
+        art_profile_zip = ap_ctx.art_profile_zip,
+        java_resources_zip = dex_info.java_resource_jar,
+        compress_java_resources = ctx.fragments.android.compress_java_resources,
+        nocompress_extensions = ctx.attr.nocompress_extensions,
+        output_jar_creator = "bazel",
+        signing_keys = signing_keys,
+        signing_lineage = ctx.file.debug_signing_lineage_file,
+        signing_key_rotation_min_sdk = ctx.attr.key_rotation_min_sdk,
+        deterministic_signing = False,
+        java_toolchain = common.get_java_toolchain(ctx),
+        deploy_info_writer = get_android_toolchain(ctx).deploy_info_writer.files_to_run,
+        zip_aligner = get_android_sdk(ctx).zip_align,
+        apk_signer = get_android_sdk(ctx).apk_signer,
+        resource_extractor = get_android_toolchain(ctx).resource_extractor.files_to_run,
+        toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+    )
     return ProviderInfo(
         name = "apk_packaging_ctx",
         value = apk_packaging_ctx,
     )
 
 def _process_idl(ctx, **_unused_ctxs):
-    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        return ProviderInfo(name = "idl_ctx", value = struct())
-
     deps = utils.collect_providers(AndroidIdlInfo, ctx.attr.deps)
 
     android_idl_info = AndroidIdlInfo(
@@ -1076,9 +1029,6 @@ def _process_intellij(
         apk_packaging_ctx,
         resource_shrinking_r8_ctx = None,
         **_unused_ctxs):
-    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        return ProviderInfo(name = "intellij_ctx", value = struct())
-
     resources_apk, merged_manifest = get_final_resources(
         packaged_resources_ctx,
         optimize_ctx,
@@ -1106,18 +1056,16 @@ def _process_intellij(
     )
 
 def _process_coverage(ctx, **_unused_ctxs):
-    providers = []
-    if acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        providers.append(coverage_common.instrumented_files_info(
-            ctx,
-            source_attributes = ["srcs"],
-            dependency_attributes = ["assets", "deps", "instruments"],
-        ))
+    instrumented_info = coverage_common.instrumented_files_info(
+        ctx,
+        source_attributes = ["srcs"],
+        dependency_attributes = ["assets", "deps", "instruments"],
+    )
 
     return ProviderInfo(
         name = "coverage_ctx",
         value = struct(
-            providers = providers,
+            providers = [instrumented_info],
         ),
     )
 

@@ -41,8 +41,6 @@ load("//rules/acls:android_archive_exposed_package_allowlist.bzl", "ANDROID_ARCH
 load("//rules/acls:android_binary_min_sdk_version_attribute.bzl", "ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST")
 load("//rules/acls:android_binary_raw_access_to_resource_paths_allowlist.bzl", "ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST")
 load("//rules/acls:android_binary_resource_name_obfuscation_opt_out_allowlist.bzl", "ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST")
-load("//rules/acls:android_binary_starlark_javac.bzl", "ANDROID_BINARY_STARLARK_JAVAC_FALLBACK", "ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT")
-load("//rules/acls:android_binary_starlark_rollout.bzl", "ANDROID_BINARY_STARLARK_FALLBACK", "ANDROID_BINARY_STARLARK_ROLLOUT")
 load("//rules/acls:android_binary_with_sandboxed_sdks_allowlist.bzl", "ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST")
 load("//rules/acls:android_build_stamping_rollout.bzl", "ANDROID_BUILD_STAMPING_FALLBACK", "ANDROID_BUILD_STAMPING_ROLLOUT")
 load("//rules/acls:android_feature_splits_dogfood.bzl", "ANDROID_FEATURE_SPLITS_DOGFOOD")
@@ -93,9 +91,6 @@ def _in_android_archive_dogfood(fqn):
 
 def _in_android_archive_excluded_deps_denylist(fqn):
     return matches(fqn, ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST_DICT)
-
-def _in_android_binary_starlark_javac(fqn):
-    return not matches(fqn, ANDROID_BINARY_STARLARK_JAVAC_FALLBACK_DICT) and matches(fqn, ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT_DICT)
 
 def _in_android_binary_with_sandboxed_sdks_allowlist(fqn):
     return matches(fqn, ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT)
@@ -195,9 +190,6 @@ def _in_allow_proguard_apply_mapping(fqn):
 def _use_r8(fqn):
     return matches(fqn, USE_R8_DICT)
 
-def _in_android_binary_starlark_rollout(fqn):
-    return matches(fqn, ANDROID_BINARY_STARLARK_ROLLOUT_DICT) and not matches(fqn, ANDROID_BINARY_STARLARK_FALLBACK_DICT)
-
 def _in_disable_optimizing_dexer(fqn):
     return matches(fqn, DISABLE_OPTIMIZING_DEXER_DICT)
 
@@ -221,8 +213,6 @@ AAR_IMPORT_EXPORTS_R_JAVA_DICT = make_dict(AAR_IMPORT_EXPORTS_R_JAVA)
 ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT = make_dict(ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST)
 ANDROID_ARCHIVE_DOGFOOD_DICT = make_dict(ANDROID_ARCHIVE_DOGFOOD)
 ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST_DICT = make_dict(ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST)
-ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT)
-ANDROID_BINARY_STARLARK_JAVAC_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_JAVAC_FALLBACK)
 ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST)
 ANDROID_FEATURE_SPLITS_DOGFOOD_DICT = make_dict(ANDROID_FEATURE_SPLITS_DOGFOOD)
 ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_DICT = make_dict(ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS)
@@ -266,8 +256,6 @@ ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT = make_dict(ANDROID_B
 ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST)
 ALLOW_PROGUARD_APPLY_MAPPING_DICT = make_dict(ALLOW_PROGUARD_APPLY_MAPPING)
 USE_R8_DICT = make_dict(USE_R8)
-ANDROID_BINARY_STARLARK_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_ROLLOUT)
-ANDROID_BINARY_STARLARK_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_FALLBACK)
 DISABLE_OPTIMIZING_DEXER_DICT = make_dict(DISABLE_OPTIMIZING_DEXER)
 FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT = make_dict(FORCE_FINAL_ANDROID_BINARY_RESOURCES)
 
@@ -330,7 +318,6 @@ acls = struct(
     in_android_application_with_sandboxed_sdks_allowlist_dict = _in_android_application_with_sandboxed_sdks_allowlist_dict,
     in_android_archive_dogfood = _in_android_archive_dogfood,
     in_android_archive_excluded_deps_denylist = _in_android_archive_excluded_deps_denylist,
-    in_android_binary_starlark_javac = _in_android_binary_starlark_javac,
     in_android_binary_with_sandboxed_sdks_allowlist = _in_android_binary_with_sandboxed_sdks_allowlist,
     in_android_feature_splits_dogfood = _in_android_feature_splits_dogfood,
     in_android_library_starlark_resource_outputs_rollout = _in_android_library_starlark_resource_outputs_rollout,
@@ -359,7 +346,6 @@ acls = struct(
     in_android_binary_raw_access_to_resource_paths_allowlist = _in_android_binary_raw_access_to_resource_paths_allowlist,
     in_android_binary_resource_name_obfuscation_opt_out_allowlist = _in_android_binary_resource_name_obfuscation_opt_out_allowlist,
     in_allow_proguard_apply_mapping = _in_allow_proguard_apply_mapping,
-    in_android_binary_starlark_rollout = _in_android_binary_starlark_rollout,
     use_r8 = _use_r8,
     in_disable_optimizing_dexer = _in_disable_optimizing_dexer,
     in_force_final_android_binary_resources = _in_force_final_android_binary_resources,
