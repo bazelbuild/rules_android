@@ -143,3 +143,11 @@ tasks:
       ? "--enable_bzlmod"
     build_targets:
       - "//java/com/basicapp:basic_app"
+  windows_basicapp:
+    name: "Windows Basicapp"
+    platform: windows
+    working_directory: examples/basicapp
+    build_flags:
+      <<: *rules_flags
+    build_targets:
+      - "//java/com/basicapp:basic_app"
