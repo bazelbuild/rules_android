@@ -98,7 +98,6 @@ tasks:
   ubuntu2004_basicapp:
     name: "Basic app ubuntu"
     platform: ubuntu2004
-    name: basicapp
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -107,7 +106,6 @@ tasks:
   ubuntu2004_basicapp_bzlmod:
     name: "Basic app ubuntu bzlmod"
     platform: ubuntu2004
-    name: basicapp
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -117,7 +115,6 @@ tasks:
   macos_arm64_basicapp:
     name: "Basic app mac arm64"
     platform: macos_arm64
-    name: basicapp
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -126,7 +123,6 @@ tasks:
   macos_arm64_basicapp_bzlmod:
     name: "Basic app mac arm64 bzlmod"
     platform: macos_arm64
-    name: basicapp
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -136,7 +132,6 @@ tasks:
   windows_basicapp_bzlmod:
     name: "Windows Basicapp Bzlmod"
     platform: windows
-    name: basicapp
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
