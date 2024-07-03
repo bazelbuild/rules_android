@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """ Packages of android_binary, android_test, and android_local_test targets that are allowed to contain resource conflicts.
 
 See b/125484033.

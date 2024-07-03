@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allowlist of macro and targets that are allowed to use android_test."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")

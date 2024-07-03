@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allowlist for specifying `features` on the android_apk_to_bundle rule."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Rollout list for enabling test class derivation in android_instrumentation_test,"""
 
 load("//rules:acls.bzl", "make_dict", "matches")

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allow list for android_binary and android_test targets which configure multidex=native with a
 # pre-Lollipop minSdkVersion, until they're cleaned up. See b/36138693."""
 
