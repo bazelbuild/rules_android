@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allow list for Android Lint in the Android Rules."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
