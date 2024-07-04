@@ -49,6 +49,7 @@ bzl_library(
         "processing_pipeline.bzl",
         "proguard.bzl",
         "providers.bzl",
+        "reexport_providers.bzl",
         "resources.bzl",
         "sandboxed_sdk_toolbox.bzl",
         "utils.bzl",

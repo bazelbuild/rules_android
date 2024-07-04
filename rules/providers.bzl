@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel providers for Android rules."""
 
+load("//rules:reexport_providers.bzl", "providers")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
@@ -185,3 +186,31 @@ StarlarkAndroidIdeInfoForTesting = provider(
                       "native libs.",
     ),
 )
+
+# Native defined providers which will be gradually migrated to Starlark.
+# We re-export these here so that all our providers can be loaded from this file.
+ApkInfo = providers.ApkInfo
+AndroidInstrumentationInfo = providers.AndroidInstrumentationInfo
+AndroidResourcesInfo = providers.AndroidResourcesInfo
+AndroidNativeLibsInfo = providers.AndroidNativeLibsInfo
+AndroidApplicationResourceInfo = providers.AndroidApplicationResourceInfo
+AndroidBinaryNativeLibsInfo = providers.AndroidBinaryNativeLibsInfo
+AndroidSdkInfo = providers.AndroidSdkInfo
+AndroidManifestInfo = providers.AndroidManifestInfo
+AndroidAssetsInfo = providers.AndroidAssetsInfo
+AndroidLibraryAarInfo = providers.AndroidLibraryAarInfo
+AndroidProguardInfo = providers.AndroidProguardInfo
+AndroidIdlInfo = providers.AndroidIdlInfo
+AndroidIdeInfo = providers.AndroidIdeInfo
+AndroidPreDexJarInfo = providers.AndroidPreDexJarInfo
+AndroidCcLinkParamsInfo = providers.AndroidCcLinkParamsInfo
+DataBindingV2Info = providers.DataBindingV2Info
+AndroidLibraryResourceClassJarProvider = providers.AndroidLibraryResourceClassJarProvider  # buildifier: disable=name-conventions
+AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
+ProguardMappingInfo = providers.ProguardMappingInfo
+AndroidBinaryData = providers.AndroidBinaryData  # buildifier: disable=name-conventions
+BaselineProfileProvider = providers.BaselineProfileProvider  # buildifier: disable=name-conventions
+AndroidNeverLinkLibrariesProvider = providers.AndroidNeverLinkLibrariesProvider  # buildifier: disable=name-conventions
+AndroidOptimizedJarInfo = providers.AndroidOptimizedJarInfo
+AndroidDexInfo = providers.AndroidDexInfo
+AndroidOptimizationInfo = providers.AndroidOptimizationInfo
