@@ -13,7 +13,7 @@
 # limitations under the License.
 """This aspect is used to collect providers from an instrumented android_binary."""
 
-load("//rules:providers.bzl", "InstrumentedAppInfo")
+load("//rules:providers.bzl", "AndroidIdeInfo", "InstrumentedAppInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)

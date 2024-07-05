@@ -26,7 +26,7 @@ load(
     "//rules:java.bzl",
     _java = "java",
 )
-load("//rules:providers.bzl", "AndroidLintRulesInfo")
+load("//rules:providers.bzl", "AndroidAssetsInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "AndroidResourcesInfo")
 load(
     "//rules:resources.bzl",
     _resources = "resources",

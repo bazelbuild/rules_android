@@ -22,6 +22,7 @@ load(
     "ProviderInfo",
 )
 load("//rules:proguard.bzl", "proguard")
+load("//rules:providers.bzl", "AndroidApplicationResourceInfo", "AndroidDexInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load(
     "//rules:utils.bzl",

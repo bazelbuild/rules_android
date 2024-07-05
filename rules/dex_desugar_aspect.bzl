@@ -13,6 +13,7 @@
 # limitations under the License.
 """Aspect that transitively build .dex archives and desugar jars."""
 
+load("//rules:providers.bzl", "AndroidApplicationResourceInfo", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _attrs = "attrs")

@@ -26,7 +26,7 @@ load(
     "processing_pipeline",
 )
 load("//rules:proguard.bzl", _proguard = "proguard")
-load("//rules:providers.bzl", "AndroidLintRulesInfo", "StarlarkApkInfo")
+load("//rules:providers.bzl", "AndroidCcLinkParamsInfo", "AndroidIdlInfo", "AndroidLibraryAarInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "AndroidResourcesInfo", "BaselineProfileProvider", "DataBindingV2Info", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")

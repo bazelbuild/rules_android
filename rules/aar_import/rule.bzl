@@ -13,6 +13,7 @@
 # limitations under the License.
 """aar_import rule."""
 
+load("//rules:providers.bzl", "AndroidIdeInfo", "AndroidLibraryResourceClassJarProvider", "AndroidNativeLibsInfo")
 load(
     "//rules:utils.bzl",
     "ANDROID_SDK_TOOLCHAIN_TYPE",

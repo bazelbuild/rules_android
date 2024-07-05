@@ -34,7 +34,7 @@ load(
     "processing_pipeline",
 )
 load("//rules:proguard.bzl", "proguard")
-load("//rules:providers.bzl", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
+load("//rules:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "AndroidResourcesInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load(
     "//rules:utils.bzl",

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Starlark rules to include sdk toolchain into dep graph without actually utilize it."""
 
+load("//rules:providers.bzl", "AndroidSdkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
