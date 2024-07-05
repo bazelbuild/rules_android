@@ -18,6 +18,7 @@ load("//rules:java.bzl", _java = "java")
 load(
     "//rules:providers.bzl",
     "AndroidFeatureModuleInfo",
+    "ApkInfo",
 )
 load(
     "//rules:utils.bzl",

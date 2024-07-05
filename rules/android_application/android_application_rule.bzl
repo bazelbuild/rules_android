@@ -39,6 +39,10 @@ load(
     "//rules:providers.bzl",
     "AndroidBundleInfo",
     "AndroidFeatureModuleInfo",
+    "AndroidIdeInfo",
+    "AndroidPreDexJarInfo",
+    "ApkInfo",
+    "ProguardMappingInfo",
     "StarlarkAndroidResourcesInfo",
 )
 load(

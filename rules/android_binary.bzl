@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel rule for building an APK."""
 
+load("//rules:providers.bzl", "ApkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//rules/android_binary_internal:rule.bzl",

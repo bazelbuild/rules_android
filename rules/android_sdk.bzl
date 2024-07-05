@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel rule for Android sdk."""
 
+load("//rules:providers.bzl", "AndroidSdkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":attrs.bzl", "ANDROID_SDK_ATTRS")

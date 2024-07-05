@@ -13,6 +13,7 @@
 # limitations under the License.
 """Defines a split transition for to set both merge orders for the merge order test."""
 
+load("//rules:providers.bzl", "ApkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)

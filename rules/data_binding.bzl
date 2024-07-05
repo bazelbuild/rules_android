@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel Android Data Binding."""
 
+load("//rules:providers.bzl", "DataBindingV2Info")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", _utils = "utils")
 

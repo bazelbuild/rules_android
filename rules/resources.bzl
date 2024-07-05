@@ -15,6 +15,7 @@
 
 load("//rules:acls.bzl", "acls")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
+load("//rules:providers.bzl", "AndroidApplicationResourceInfo", "AndroidAssetsInfo", "AndroidLibraryResourceClassJarProvider", "AndroidResourcesInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
