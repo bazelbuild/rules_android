@@ -119,7 +119,10 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         value = struct(
             final_classes_dex_zip = dexes_zip,
             dex_info = android_dex_info,
-            providers = [android_dex_info],
+            providers = [
+                android_dex_info,
+                AndroidPreDexJarInfo(deploy_jar),
+            ],
         ),
     )
 
