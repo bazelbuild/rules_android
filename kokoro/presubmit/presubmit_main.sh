@@ -147,16 +147,14 @@ function main() {
 
   # Go to basic app workspace in the source tree
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
-  "$bazel" build \
-    "${COMMON_ARGS[@]}" \
-    "${RULE_ARGS[@]}" \
-    -- \
-    //java/com/basicapp:basic_app
+
+  # Query test
+  # See https://github.com/bazelbuild/rules_android/issues/241
+  "$bazel" query 'deps(...)' > /dev/null
 
   "$bazel" build \
     "${COMMON_ARGS[@]}" \
     "${RULE_ARGS[@]}" \
-    --enable_bzlmod \
     -- \
     //java/com/basicapp:basic_app
 
