@@ -28,8 +28,8 @@ def rules_android_prereqs(dev_mode = False):
         sha256 = "4da3761f6855ad916568e2bfe86213ba6d2637f56b8360538a7fb6125abf6518",
     )
 
-    RULES_JVM_EXTERNAL_TAG = "6.1"
-    RULES_JVM_EXTERNAL_SHA = "08ea921df02ffe9924123b0686dc04fd0ff875710bfadb7ad42badb931b0fd50"
+    RULES_JVM_EXTERNAL_TAG = "6.2"
+    RULES_JVM_EXTERNAL_SHA = "808cb5c30b5f70d12a2a745a29edc46728fd35fa195c1762a596b63ae9cebe05"
 
     maybe(
         http_archive,
