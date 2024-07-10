@@ -491,4 +491,5 @@ def android_application_macro(_android_binary, **attrs):
         sdk_bundles = sdk_bundles,
         manifest_values = attrs.get("manifest_values"),
         visibility = attrs.get("visibility", None),
+        tags = attrs.get("tags", []),
     )
