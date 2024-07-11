@@ -13,6 +13,7 @@
 # limitations under the License.
 """Attributes for android_application."""
 
+load("//rules:android_split_transition.bzl", "android_split_transition")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -105,7 +106,7 @@ ANDROID_FEATURE_MODULE_ATTRS = dict(
     feature_name = attr.string(),
     library = attr.label(
         allow_rules = ["android_library"],
-        cfg = android_common.multi_cpu_configuration,
+        cfg = android_split_transition,
         mandatory = True,
         doc = "android_library target to include as a feature split.",
     ),
