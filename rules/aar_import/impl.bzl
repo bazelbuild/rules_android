@@ -41,6 +41,7 @@ load(
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -445,9 +446,9 @@ def _collect_proguard(
         toolchain = None,
     )
     transitive_proguard_specs = []
-    for p in _utils.collect_providers(ProguardSpecProvider, ctx.attr.deps, ctx.attr.exports):
+    for p in _utils.collect_providers(ProguardSpecInfo, ctx.attr.deps, ctx.attr.exports):
         transitive_proguard_specs.append(p.specs)
-    return ProguardSpecProvider(depset([out_proguard], transitive = transitive_proguard_specs))
+    return ProguardSpecInfo(depset([out_proguard], transitive = transitive_proguard_specs))
 
 def impl(ctx):
     """The rule implementation.

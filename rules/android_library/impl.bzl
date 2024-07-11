@@ -33,6 +33,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -259,7 +260,7 @@ def _process_proguard(ctx, idl_ctx, **unused_sub_ctxs):
             ctx,
             proguard_configs = ctx.files.proguard_specs,
             proguard_spec_providers = utils.collect_providers(
-                ProguardSpecProvider,
+                ProguardSpecInfo,
                 ctx.attr.deps,
                 ctx.attr.exports,
                 idl_ctx.idl_deps,

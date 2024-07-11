@@ -342,26 +342,26 @@ def _assert_default_info(
     )
 
 def _assert_proguard_spec_provider(expected, actual):
-    """Asserts that expected matches actual ProguardSpecProvider.
+    """Asserts that expected matches actual ProguardSpecInfo.
 
     Args:
-      expected: A dict containing fields of a ProguardSpecProvider that are
-        compared against the actual given ProguardSpecProvider.
-      actual: A ProguardSpecProvider.
+      expected: A dict containing fields of a ProguardSpecInfo that are
+        compared against the actual given ProguardSpecInfo.
+      actual: A ProguardSpecInfo.
     """
     for key in expected.keys():
         if not hasattr(actual, key):
-            fail("Actual ProguardSpecProvider does not have attribute %s:\n%s" % (key, actual))
+            fail("Actual ProguardSpecInfo does not have attribute %s:\n%s" % (key, actual))
         actual_attr = getattr(actual, key)
         expected_attr = expected[key]
         if key in ["specs"]:
             _assert_files(
                 expected_attr,
                 actual_attr.to_list(),
-                "ProguardSpecProvider.%s" % key,
+                "ProguardSpecInfo.%s" % key,
             )
         else:
-            fail("Error validation of ProguardSpecProvider.%s not implemented." % key)
+            fail("Error validation of ProguardSpecInfo.%s not implemented." % key)
 
 def _assert_string(expected, actual, error_msg):
     if type(actual) != "string" and type(actual) != "NoneType":

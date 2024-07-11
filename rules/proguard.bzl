@@ -15,6 +15,7 @@
 
 load("//rules:providers.bzl", "AndroidProguardInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load(":android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load(":baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load(":common.bzl", "common")
@@ -65,7 +66,7 @@ def _process_specs(
       ctx: The context.
       proguard_configs: sequence of Files. A list of proguard config files to be
         processed. Optional.
-      proguard_spec_providers: sequence of ProguardSpecProvider providers. A
+      proguard_spec_providers: sequence of ProguardSpecInfo providers. A
         list of providers from the dependencies, exports, plugins,
         exported_plugins, etc. Optional.
       proguard_allowlister: The proguard_allowlister exeutable provider.
@@ -103,7 +104,7 @@ def _process_specs(
         proguard_configs = proguard_configs,
         transitive_proguard_configs = transitive_proguard_configs,
         providers = [
-            ProguardSpecProvider(transitive_proguard_configs),
+            ProguardSpecInfo(transitive_proguard_configs),
             # TODO(b/152659272): Remove this once the android_archive rule is
             # able to process a transitive closure of deps to produce an aar.
             AndroidProguardInfo(proguard_configs),
@@ -127,9 +128,9 @@ def _get_proguard_specs(
         ctx,
         resource_proguard_config,
         proguard_specs_for_manifest = []):
-    proguard_deps = utils.collect_providers(ProguardSpecProvider, utils.dedupe_split_attr(ctx.split_attr.deps))
+    proguard_deps = utils.collect_providers(ProguardSpecInfo, utils.dedupe_split_attr(ctx.split_attr.deps))
     if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
-        proguard_deps.append(utils.only(ctx.attr._jacoco_runtime)[ProguardSpecProvider])
+        proguard_deps.append(utils.only(ctx.attr._jacoco_runtime)[ProguardSpecInfo])
 
     local_proguard_specs = []
     if ctx.files.proguard_specs:
