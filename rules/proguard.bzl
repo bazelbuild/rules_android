@@ -190,6 +190,8 @@ def _optimization_action(
         baseline_profile_rewritten = None,
         resource_files = None,
         resource_files_rewritten = None,
+        resource_shrinker_log = None,
+        optimize_resources = False,
         runtype = None,
         last_stage_output = None,
         next_stage_output = None,
@@ -229,6 +231,8 @@ def _optimization_action(
       baseline_profile_rewritten: File. Optional file used to write the optimized profile rules.
       resource_files: File. Optional. Resources files to be optimized.
       resource_files_rewritten: File. Optional output file used to write the optimized resources.
+      resource_shrinker_log: File. Optional. File to output resource shrinking log to.
+      optimize_resources: Boolean. If true, the bytecode optimizer should do resource optimization.
       runtype: String. Optional string identifying this run. One of [INITIAL, OPTIMIZATION, FINAL]
       last_stage_output: File. Optional input file to this optimization stage, which was output by
         the previous optimization stage.
@@ -306,6 +310,13 @@ def _optimization_action(
     if resource_files_rewritten:
         args.add("-outputresourceszip", resource_files_rewritten)
         outputs.append(resource_files_rewritten)
+
+    if resource_shrinker_log:
+        args.add("-resourceshrinkerlog", resource_shrinker_log)
+        outputs.append(resource_shrinker_log)
+
+    if optimize_resources:
+        args.add("-allowresourceprocessing")
 
     if runtype:
         args.add("-runtype " + runtype)
@@ -399,6 +410,7 @@ def _apply_proguard(
         startup_profile = None,
         baseline_profile = None,
         resource_files = None,
+        resource_shrinker_log = None,
         proguard_tool = None):
     """Top-level method to apply proguard to a jar.
 
@@ -416,6 +428,7 @@ def _apply_proguard(
       startup_profile: File. The input merged startup profile to be optimized.
       baseline_profile: File. The input merged baseline profile to be optimized.
       resource_files: File. The zipped resources to be optimized.
+      resource_shrinker_log: File. Optional. File to output resource shrinking log to. If provided, this implies that the bytecode optimizer should be doing resource optimization.
       proguard_tool: FilesToRun. The proguard executable.
 
     Returns:
@@ -437,6 +450,8 @@ def _apply_proguard(
     neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
     library_jars = depset(library_jar_list, transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])
 
+    optimize_resources = bool(resource_shrinker_log)
+
     return _create_optimization_actions(
         ctx,
         proguard_specs,
@@ -452,7 +467,9 @@ def _apply_proguard(
         startup_profile,
         baseline_profile,
         resource_files,
+        resource_shrinker_log,
         proguard_tool,
+        optimize_resources,
     )
 
 def _get_proguard_output(
@@ -502,7 +519,9 @@ def _create_optimization_actions(
         startup_profile = None,
         baseline_profile = None,
         resource_files = None,
-        proguard_tool = None):
+        resource_shrinker_log = None,
+        proguard_tool = None,
+        optimize_resources = False):
     """Helper method to create all optimizaction actions based on the target configuration."""
     if not proguard_specs:
         fail("Missing proguard_specs in create_optimization_actions")
@@ -571,6 +590,8 @@ def _create_optimization_actions(
             baseline_profile_rewritten = outputs.baseline_profile_rewritten,
             resource_files = resource_files,
             resource_files_rewritten = outputs.resource_files_rewritten,
+            resource_shrinker_log = resource_shrinker_log,
+            optimize_resources = optimize_resources,
             final = True,
             mnemonic = mnemonic,
             progress_message = "Trimming binary with %s: %s" % (mnemonic, ctx.label),
@@ -599,6 +620,7 @@ def _create_optimization_actions(
         baseline_profile_rewritten = None,
         resource_files = resource_files,
         resource_files_rewritten = None,
+        optimize_resources = optimize_resources,
         final = False,
         runtype = "INITIAL",
         next_stage_output = last_stage_output,
@@ -615,6 +637,7 @@ def _create_optimization_actions(
                 filtered_library_jar,
                 proguard_specs,
                 proguard_mapping,
+                optimize_resources,
                 i,
                 "_INITIAL",
                 mnemonic,
@@ -628,6 +651,7 @@ def _create_optimization_actions(
                 filtered_library_jar,
                 proguard_specs,
                 proguard_mapping,
+                optimize_resources,
                 i,
                 "_FINAL",
                 mnemonic,
@@ -643,6 +667,7 @@ def _create_optimization_actions(
                     filtered_library_jar,
                     proguard_specs,
                     proguard_mapping,
+                    optimize_resources,
                     i,
                     "_ACTION_%s_OF_%s" % (j, bytecode_optimization_pass_actions),
                     mnemonic,
@@ -667,6 +692,8 @@ def _create_optimization_actions(
         baseline_profile_rewritten = outputs.baseline_profile_rewritten,
         resource_files = None,
         resource_files_rewritten = outputs.resource_files_rewritten,
+        resource_shrinker_log = resource_shrinker_log,
+        optimize_resources = optimize_resources,
         final = True,
         runtype = "FINAL",
         last_stage_output = last_stage_output,
@@ -683,6 +710,7 @@ def _create_single_optimization_action(
         library_jar,
         proguard_specs,
         proguard_mapping,
+        optimize_resources,
         optimization_pass_num,
         runtype_suffix,
         mnemonic,
@@ -697,6 +725,7 @@ def _create_single_optimization_action(
         proguard_specs,
         proguard_mapping = proguard_mapping,
         mnemonic = mnemonic,
+        optimize_resources = optimize_resources,
         final = False,
         runtype = "OPTIMIZATION" + runtype_suffix,
         last_stage_output = last_stage_output,
