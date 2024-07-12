@@ -38,6 +38,7 @@ genrule(
     srcs = [":aar_import_checks_bin"],
     outs = ["aar_import_checks.exe"],
     cmd = """cp "$$(find . -type f | grep 'aar_import_checks_bin.exe$$' | head -1)" "$@" """,
+    tags = ["manual"],
 )
 
 config_setting(
