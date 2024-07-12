@@ -810,6 +810,8 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
 
     enable_rewrite_resources_through_optimizer = enable_resource_shrinking and ctx.attr._rewrite_resources_through_optimizer
 
+    resource_shrinking_in_optimizer = acls.in_resource_shrinking_in_optimizer(str(ctx.label)) and _resources.is_resource_name_obfuscation_enabled(ctx, enable_resource_shrinking)
+    optimized_resource_shrinker_log = ctx.actions.declare_file(_resources.get_shrinker_log_name(ctx)) if resource_shrinking_in_optimizer else None
     proguard_output = proguard.apply_proguard(
         ctx,
         input_jar = deploy_ctx.deploy_jar,
@@ -824,6 +826,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         startup_profile = startup_profile,
         baseline_profile = baseline_profile,
         resource_files = packaged_resources_ctx.validation_result if enable_rewrite_resources_through_optimizer else None,
+        resource_shrinker_log = optimized_resource_shrinker_log,
         proguard_tool = get_android_sdk(ctx).proguard,
     )
 
@@ -838,19 +841,32 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         )
 
     shrunk_resource_output = None
+    resource_shrinker_log = None
     if enable_resource_shrinking:
-        shrunk_resource_output = _resources.shrink(
-            ctx,
-            resources_zip = proguard_output.resource_files_rewritten if enable_rewrite_resources_through_optimizer else packaged_resources_ctx.validation_result,
-            aapt = get_android_toolchain(ctx).aapt2.files_to_run,
-            android_jar = get_android_sdk(ctx).android_jar,
-            r_txt = packaged_resources_ctx.r_txt,
-            shrunk_jar = proguard_output_jar,
-            proguard_mapping = proguard_output_map,
-            busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
-            host_javabase = common.get_host_javabase(ctx),
-        )
-        implicit_outputs.append(shrunk_resource_output.shrinker_log)
+        if resource_shrinking_in_optimizer:
+            shrunk_resource_output = _resources.convert_resources_to_apk(
+                ctx,
+                resources_zip = proguard_output.resource_files_rewritten if enable_rewrite_resources_through_optimizer else packaged_resources_ctx.validation_result,
+                aapt = get_android_toolchain(ctx).aapt2.files_to_run,
+                android_jar = get_android_sdk(ctx).android_jar,
+                busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
+                host_javabase = common.get_host_javabase(ctx),
+            )
+            resource_shrinker_log = optimized_resource_shrinker_log
+        else:
+            shrunk_resource_output = _resources.shrink(
+                ctx,
+                resources_zip = proguard_output.resource_files_rewritten if enable_rewrite_resources_through_optimizer else packaged_resources_ctx.validation_result,
+                aapt = get_android_toolchain(ctx).aapt2.files_to_run,
+                android_jar = get_android_sdk(ctx).android_jar,
+                r_txt = packaged_resources_ctx.r_txt,
+                shrunk_jar = proguard_output_jar,
+                proguard_mapping = proguard_output_map,
+                busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
+                host_javabase = common.get_host_javabase(ctx),
+            )
+            resource_shrinker_log = shrunk_resource_output.shrinker_log
+        implicit_outputs.append(resource_shrinker_log)
 
     optimized_resource_output = _resources.optimize(
         ctx,
@@ -882,7 +898,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             optimized_resource_apk = optimized_resource_output.resources_apk,
             shrunk_resource_apk = shrunk_resource_output.resources_apk if shrunk_resource_output else None,
             shrunk_resource_zip = shrunk_resource_output.resources_zip if shrunk_resource_output else None,
-            resource_shrinker_log = shrunk_resource_output.shrinker_log if shrunk_resource_output else None,
+            resource_shrinker_log = resource_shrinker_log,
             resource_optimization_config = shrunk_resource_output.optimization_config if shrunk_resource_output else None,
             resource_path_shortening_map = optimized_resource_output.path_shortening_map,
         ),

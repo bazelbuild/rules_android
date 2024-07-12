@@ -191,6 +191,9 @@ _ResourcesOptimizeContextInfo = provider(
 # rules with resource shrinking and ProGuard enabled.
 _FEATURE_RESOURCE_NAME_OBFUSCATION = "resource_name_obfuscation"
 
+def _get_shrinker_log_name(ctx):
+    return ctx.label.name + "_files/resource_shrinker.log"
+
 def _generate_dummy_manifest(
         ctx,
         out_manifest = None,
@@ -2004,7 +2007,7 @@ def _shrink(
 
     out_apk = ctx.actions.declare_file(ctx.label.name + "_shrunk.ap_")
     out_zip = ctx.actions.declare_file(ctx.label.name + "_files/resource_files_shrunk.zip")
-    out_log = ctx.actions.declare_file(ctx.label.name + "_files/resource_shrinker.log")
+    out_log = ctx.actions.declare_file(_get_shrinker_log_name(ctx))
     out_config = ctx.actions.declare_file(ctx.label.name + "_files/resource_optimization.cfg")
     _busybox.shrink(
         ctx,
@@ -2027,6 +2030,53 @@ def _shrink(
     shrunk_ctx[_SHRUNK_RESOURCE_ZIP] = out_zip
     shrunk_ctx[_RESOURCE_SHRINKER_LOG] = out_log
     shrunk_ctx[_RESOURCE_OPTIMIZATION_CONFIG] = out_config
+
+    return _ResourcesShrinkContextInfo(**shrunk_ctx)
+
+def _convert_resources_to_apk(
+        ctx,
+        resources_zip = None,
+        aapt = None,
+        android_jar = None,
+        busybox = None,
+        host_javabase = None):
+    """Converts the resource zip into a compiled resource APK
+
+    Args:
+        ctx: The context.
+        resources_zip: File. The input resources file zip containing the merged assets and resources to be shrunk.
+        aapt: FilesToRunProvider. The AAPT executable.
+        android_jar: File. The Android Jar.
+        busybox: FilesToRunProvider. The ResourceBusyBox executable.
+        host_javabase: Target. The host javabase.
+
+    Returns:
+        A dict containing all of the shrunk resource outputs.
+    """
+    shrunk_ctx = {
+        _SHRUNK_RESOURCE_APK: None,
+        _SHRUNK_RESOURCE_ZIP: None,
+        _RESOURCE_SHRINKER_LOG: None,
+        _RESOURCE_OPTIMIZATION_CONFIG: None,
+    }
+
+    out_apk = ctx.actions.declare_file(ctx.label.name + "_shrunk.ap_")
+    out_log = _get_shrinker_log_name(ctx)
+
+    _busybox.convert_resources_to_apk(
+        ctx,
+        out_apk,
+        resources_zip = resources_zip,
+        aapt = aapt,
+        android_jar = android_jar,
+        debug = _compilation_mode.get(ctx) != _compilation_mode.OPT,
+        busybox = busybox,
+        host_javabase = host_javabase,
+    )
+
+    shrunk_ctx[_SHRUNK_RESOURCE_APK] = out_apk
+    shrunk_ctx[_SHRUNK_RESOURCE_ZIP] = resources_zip
+    shrunk_ctx[_RESOURCE_SHRINKER_LOG] = out_log
 
     return _ResourcesShrinkContextInfo(**shrunk_ctx)
 
@@ -2118,9 +2168,12 @@ resources = struct(
 
     # Exposed for android_binary
     is_resource_shrinking_enabled = _is_resource_shrinking_enabled,
+    is_resource_name_obfuscation_enabled = _is_resource_name_obfuscation_enabled,
     validate_manifest = _validate_manifest,
     shrink = _shrink,
+    convert_resources_to_apk = _convert_resources_to_apk,
     optimize = _optimize,
+    get_shrinker_log_name = _get_shrinker_log_name,
 )
 
 testing = struct(

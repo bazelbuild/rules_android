@@ -40,6 +40,7 @@ load("//rules/acls:android_archive_exposed_package_allowlist.bzl", "ANDROID_ARCH
 load("//rules/acls:android_binary_min_sdk_version_attribute.bzl", "ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST")
 load("//rules/acls:android_binary_raw_access_to_resource_paths_allowlist.bzl", "ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST")
 load("//rules/acls:android_binary_resource_name_obfuscation_opt_out_allowlist.bzl", "ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST")
+load("//rules/acls:android_binary_resource_shrinking_in_optimizer_rollout.bzl", "RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK", "RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT")
 load("//rules/acls:android_binary_with_sandboxed_sdks_allowlist.bzl", "ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST")
 load("//rules/acls:android_build_stamping_rollout.bzl", "ANDROID_BUILD_STAMPING_FALLBACK", "ANDROID_BUILD_STAMPING_ROLLOUT")
 load("//rules/acls:android_feature_splits_dogfood.bzl", "ANDROID_FEATURE_SPLITS_DOGFOOD")
@@ -195,6 +196,9 @@ def _in_disable_optimizing_dexer(fqn):
 def _in_force_final_android_binary_resources(fqn):
     return matches(fqn, FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT)
 
+def _in_resource_shrinking_in_optimizer(fqn):
+    return matches(fqn, RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT) and not matches(fqn, RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -255,6 +259,8 @@ ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT = make_dict(ANDROID_B
 ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST)
 ALLOW_PROGUARD_APPLY_MAPPING_DICT = make_dict(ALLOW_PROGUARD_APPLY_MAPPING)
 USE_R8_DICT = make_dict(USE_R8)
+RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT = make_dict(RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT)
+RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT = make_dict(RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK)
 DISABLE_OPTIMIZING_DEXER_DICT = make_dict(DISABLE_OPTIMIZING_DEXER)
 FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT = make_dict(FORCE_FINAL_ANDROID_BINARY_RESOURCES)
 
@@ -348,6 +354,7 @@ acls = struct(
     use_r8 = _use_r8,
     in_disable_optimizing_dexer = _in_disable_optimizing_dexer,
     in_force_final_android_binary_resources = _in_force_final_android_binary_resources,
+    in_resource_shrinking_in_optimizer = _in_resource_shrinking_in_optimizer,
 )
 
 # Visible for testing
