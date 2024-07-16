@@ -84,7 +84,7 @@ load("//rules/acls:use_baseline_as_startup_profile.bzl", "USE_BASELINE_AS_STARTU
 visibility(PROJECT_VISIBILITY)
 
 def _in_aar_import_deps_checker(fqn):
-    return not matches(fqn, AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT) and matches(fqn, AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT)
+    return False
 
 def _in_aar_import_explicit_exports_manifest(fqn):
     return matches(fqn, AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT)
