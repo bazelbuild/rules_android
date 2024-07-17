@@ -119,4 +119,8 @@ ANDROID_FEATURE_MODULE_ATTRS = dict(
         executable = True,
         default = ":feature_module_validation.sh",
     ),
+    is_asset_pack = attr.bool(
+        default = False,
+        doc = "Marks the feature module as an asset module. This enables the module to be distributed as archive files rather than just as APKs. Cannot contain any dex or native code.",
+    ),
 )

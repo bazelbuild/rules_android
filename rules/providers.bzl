@@ -119,6 +119,7 @@ AndroidFeatureModuleInfo = provider(
         min_sdk_version = "String, the min SDK version for this feature.",
         title_id = "String, resource identifier for the split title.",
         title_lib = "String, target of the split title android_library.",
+        is_asset_pack = "Boolean, whether this feature module is an asset pack. AI packs are a type of asset pack.",
     ),
 )
 
