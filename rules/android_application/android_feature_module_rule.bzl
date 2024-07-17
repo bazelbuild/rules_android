@@ -32,6 +32,8 @@ visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
     validation = ctx.actions.declare_file(ctx.label.name + "_validation")
+    if ctx.attr.binary[AndroidIdeInfo].native_libs and ctx.attr.is_asset_pack:
+        fail("Feature module %s is marked as an asset pack but contains native libraries" % ctx.label.name)
     inputs = [ctx.attr.binary[ApkInfo].unsigned_apk]
     args = ctx.actions.args()
     args.add(validation.path)
@@ -46,6 +48,7 @@ def _impl(ctx):
     args.add(utils.dedupe_split_attr(ctx.split_attr.library).label)
     args.add(get_android_toolchain(ctx).xmllint_tool.files_to_run.executable)
     args.add(get_android_toolchain(ctx).unzip_tool.files_to_run.executable)
+    args.add(ctx.attr.is_asset_pack)
 
     ctx.actions.run(
         executable = ctx.executable._feature_module_validation_script,
@@ -70,6 +73,7 @@ def _impl(ctx):
             feature_name = ctx.attr.feature_name,
             fused = ctx.attr.fused,
             manifest = ctx.file.manifest,
+            is_asset_pack = ctx.attr.is_asset_pack,
         ),
         OutputGroupInfo(_validation = depset([validation])),
     ]
@@ -203,4 +207,5 @@ EOF
         transitive_configs = transitive_configs,
         visibility = visibility,
         testonly = testonly,
+        is_asset_pack = getattr(attrs, "is_asset_pack", False),
     )

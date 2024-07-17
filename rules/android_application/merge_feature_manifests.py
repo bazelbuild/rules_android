@@ -19,12 +19,19 @@ import xml.etree.ElementTree as ET
 from absl import app
 from absl import flags
 
-_MAIN_MANIFEST = flags.DEFINE_string("main_manifest", None,
-                                     "Input main manifestl")
+_MAIN_MANIFEST = flags.DEFINE_string(
+    "main_manifest", None, "Input main manifest"
+)
 _FEATURE_MANIFEST = flags.DEFINE_string("feature_manifest", None,
                                         "Output feature manifest")
 _TITLE = flags.DEFINE_string("feature_title", None, "Feature title")
 _OUT = flags.DEFINE_string("out", None, "Output manifest")
+_IS_ASSET_PACK = flags.DEFINE_boolean(
+    "is_asset_pack",
+    False,
+    "Whether this feature module is an asset pack. AI packs are a special type"
+    " of asset packs.",
+)
 
 
 def _register_namespace(f):
@@ -56,7 +63,8 @@ def main(argv):
   feature_manifest = ET.parse(_FEATURE_MANIFEST.value)
 
   dist = feature_manifest.find("dist:module", ns)
-  dist.set("{%s}title" % ns["dist"], _TITLE.value)
+  if not _IS_ASSET_PACK.value:
+    dist.set("{%s}title" % ns["dist"], _TITLE.value)
   main_manifest.getroot().append(dist)
 
   main_manifest.write(_OUT.value, encoding="utf-8", xml_declaration=True)

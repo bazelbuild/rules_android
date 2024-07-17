@@ -102,9 +102,11 @@ def _process_feature_module(
     res = feature_target[AndroidFeatureModuleInfo].library[StarlarkAndroidResourcesInfo]
     binary = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk
     has_native_libs = bool(feature_target[AndroidFeatureModuleInfo].binary[AndroidIdeInfo].native_libs)
+    is_asset_pack = bool(feature_target[AndroidFeatureModuleInfo].is_asset_pack)
 
-    # Create res .proto-apk_, output depending on whether this split has native libs.
-    if has_native_libs:
+    # Create res .proto-apk_, output depending on whether further manipulations
+    # are required after busybox. This prevents action conflicts.
+    if has_native_libs or is_asset_pack:
         res_apk = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/res.proto-ap_")
     else:
         res_apk = out
@@ -141,24 +143,28 @@ def _process_feature_module(
         application_id = application_id,
     )
 
-    if not has_native_libs:
+    if not is_asset_pack and not has_native_libs:
         return
 
-    # Extract libs/ from split binary
-    native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
-    _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
+    if is_asset_pack:
+        # Return AndroidManifest.xml and assets from res-ap_
+        _common.filter_zip_include(ctx, res_apk, out, ["AndroidManifest.xml", "assets/*"])
+    else:
+        # Extract libs/ from split binary
+        native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
+        _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
 
-    # Extract AndroidManifest.xml and assets from res-ap_
-    filtered_res = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/filtered_res.zip")
-    _common.filter_zip_include(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
+        # Extract AndroidManifest.xml and assets from res-ap_
+        filtered_res = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/filtered_res.zip")
+        _common.filter_zip_include(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
 
-    # Merge into output
-    _java.singlejar(
-        ctx,
-        inputs = [filtered_res, native_libs],
-        output = out,
-        java_toolchain = _common.get_java_toolchain(ctx),
-    )
+        # Merge into output
+        _java.singlejar(
+            ctx,
+            inputs = [filtered_res, native_libs],
+            output = out,
+            java_toolchain = _common.get_java_toolchain(ctx),
+        )
 
 def _create_feature_manifest(
         ctx,
@@ -200,8 +206,9 @@ def _create_feature_manifest(
 
     # Rule has a manifest (already validated by android_feature_module).
     # Generate a priority manifest and then merge the user supplied manifest.
+    is_asset_pack = feature_target[AndroidFeatureModuleInfo].is_asset_pack
     priority_manifest = ctx.actions.declare_file(
-        ctx.label.name + "/" + feature_target.label.name + "/Prioriy_AndroidManifest.xml",
+        ctx.label.name + "/" + feature_target.label.name + "/Priority_AndroidManifest.xml",
     )
     args = ctx.actions.args()
     args.add(priority_manifest.path)
@@ -209,9 +216,12 @@ def _create_feature_manifest(
     args.add(java_package)
     args.add(info.feature_name)
     args.add(aapt2.executable)
+    args.add(info.manifest)
+    args.add(is_asset_pack)
+
     ctx.actions.run(
         executable = priority_feature_manifest_script,
-        inputs = [base_apk],
+        inputs = [base_apk, info.manifest],
         outputs = [priority_manifest],
         arguments = [args],
         tools = [
@@ -227,6 +237,8 @@ def _create_feature_manifest(
     args.add("--feature_manifest", info.manifest.path)
     args.add("--feature_title", "@string/" + info.title_id)
     args.add("--out", manifest.path)
+    if is_asset_pack:
+        args.add("--is_asset_pack")
     ctx.actions.run(
         executable = ctx.attr._merge_manifests.files_to_run,
         inputs = [priority_manifest, info.manifest],

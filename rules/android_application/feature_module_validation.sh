@@ -21,6 +21,7 @@ is_java8="${5}"
 lib_label="${6}"
 xmllint="${7}"
 unzip="${8}"
+is_asset_pack="${9}"
 
 if [[ -n "$manifest" ]]; then
   node_count=$("$xmllint" --xpath "count(//manifest/*)" "$manifest")
@@ -53,7 +54,7 @@ if [[ -n "$manifest" ]]; then
     exit 1
   fi
 
-  if [[ "$module_title" != "\${MODULE_TITLE}" ]]; then
+  if [[ "$is_asset_pack" = false && "$module_title" != "\${MODULE_TITLE}" ]]; then
     echo ""
     echo "$manifest dist:title should be \${MODULE_TITLE} placeholder"
     echo ""
