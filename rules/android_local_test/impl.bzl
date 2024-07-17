@@ -383,7 +383,7 @@ def finalize(
         coverage_common.instrumented_files_info(
             ctx = ctx,
             source_attributes = ["srcs"],
-            dependency_attributes = ["deps", "runtime_deps", "data"],
+            dependency_attributes = ["associates", "deps", "runtime_deps", "data"],
         ),
     ])
     return providers
