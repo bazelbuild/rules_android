@@ -214,10 +214,6 @@ ATTRS = _attrs.replace(
                     name = "optimizing_dexer",
                 ),
             ),
-            _desugared_lib_config = attr.label(
-                allow_single_file = True,
-                default = Label("//tools/android:full_desugar_jdk_libs_config_json"),
-            ),
             _desugared_java8_legacy_apis = attr.label(
                 default = Label("//tools/android:desugared_java8_legacy_apis"),
                 allow_single_file = True,
