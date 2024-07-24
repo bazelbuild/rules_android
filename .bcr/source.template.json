@@ -1,0 +1,5 @@
+{
+    "integrity": "",
+    "strip_prefix": "rules_android-{TAG}",
+    "url": "https://github.com/bazelbuild/rules_android/archive/refs/tags/{TAG}.tar.gz"
+}
