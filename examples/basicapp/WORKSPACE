@@ -26,6 +26,7 @@ local_repository(
     path = "../..", # rules_android's WORKSPACE relative to this inner workspace
 )
 
+# --SNIP--: Everything below this line goes into the example WORKSPACE snippet in the release notes.
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
 rules_android_prereqs()
 load("@rules_android//:defs.bzl", "rules_android_workspace")

@@ -1,0 +1,20 @@
+{
+    "homepage": "https://github.com/bazelbuild/rules_android",
+    "maintainers": [
+        {
+            "email": "ahumesky@google.com",
+            "github": "ahumesky",
+            "name": "ahumesky"
+        },
+        {
+            "email": "tedx@google.com",
+            "github": "ted-xie",
+            "name": "tedx"
+        }
+    ],
+    "repository": [
+        "github:bazelbuild/rules_android"
+    ],
+    "versions": [],
+    "yanked_versions": {}
+}
