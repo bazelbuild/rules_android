@@ -9,9 +9,6 @@ A version of Bazel built at or near head or a recent pre-release and the followi
 ```
 --experimental_enable_android_migration_apis
 --experimental_google_legacy_api
---incompatible_java_common_parameters
---android_databinding_use_v3_4_args
---experimental_android_databinding_v2
 ```
 
 ## Overview
@@ -31,62 +28,38 @@ To use the Starlark Bazel Android rules, add the following to your WORKSPACE fil
 
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-# Or a later commit
-RULES_ANDROID_COMMIT= "0bf3093bd011acd35de3c479c8990dd630d552aa"
-RULES_ANDROID_SHA = "b75a673a66c157138ab53f4d8612a6e655d38b69bb14207c1a6675f0e10afa61"
 http_archive(
     name = "rules_android",
-    url = "https://github.com/bazelbuild/rules_android/archive/%s.zip" % RULES_ANDROID_COMMIT,
-    sha256 = RULES_ANDROID_SHA,
-    strip_prefix = "rules_android-%s" % RULES_ANDROID_COMMIT,
+    sha256 = "fc6b022e97c2d5893aa3dd01b480f37cd386d82fc7e14edbcba393cd390a244e",
+    strip_prefix = "rules_android-0.5.0",
+    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.5.0/rules_android-v0.5.0.tar.gz",
 )
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
 rules_android_prereqs()
 load("@rules_android//:defs.bzl", "rules_android_workspace")
 rules_android_workspace()
 
-register_toolchains(
-    "@rules_android//toolchains/android:android_default_toolchain",
-    "@rules_android//toolchains/android_sdk:android_sdk_tools",
-)
-```
-
-
-Or, if you want to use bzlmod, add the following to your WORKSPACE.bzlmod file and MODULE.bazel file:
-
-WORKSPACE.bzlmod:
-
-```starlark
 load("@rules_android//rules:rules.bzl", "android_sdk_repository")
 android_sdk_repository(
     name = "androidsdk",
 )
-```
-
-MODULE.bazel:
-
-```starlark
-bazel_dep(name = "rules_java", version = "7.4.0")
-bazel_dep(name = "bazel_skylib", version = "1.3.0")
-
-bazel_dep(
-    name = "rules_android",
-    version = "0.2.0",
-)
-
-# Or a later commit
-RULES_ANDROID_COMMIT = "0bf3093bd011acd35de3c479c8990dd630d552aa"
-git_override(
-    module_name = "rules_android",
-    remote = "https://github.com/bazelbuild/rules_android",
-    commit = RULES_ANDROID_COMMIT,
-)
 
 register_toolchains(
     "@rules_android//toolchains/android:android_default_toolchain",
     "@rules_android//toolchains/android_sdk:android_sdk_tools",
 )
+```
+
+
+Or, if you want to use bzlmod, add the following to your MODULE.bazel file:
+
+MODULE.bazel:
+
+```starlark
+bazel_dep(name = "rules_java", version = "7.7.0")
+bazel_dep(name = "bazel_skylib", version = "1.3.0")
+
+bazel_dep(name = "rules_android", version = "0.5.0.bcr.1")
 ```
 
 
