@@ -758,18 +758,20 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
 
     implicit_outputs = []
 
-    proguard_specs = proguard.get_proguard_specs(
-        ctx,
-        packaged_resources_ctx.resource_proguard_config,
-        proguard_specs_for_manifest = [packaged_resources_ctx.resource_minsdk_proguard_config] if packaged_resources_ctx.resource_minsdk_proguard_config else [],
-    )
-    has_proguard_specs = bool(proguard_specs)
-
+    has_proguard_specs = bool(ctx.files.proguard_specs)
     enable_resource_shrinking = _resources.is_resource_shrinking_enabled(
         ctx.attr.shrink_resources,
         ctx.fragments.android.use_android_resource_shrinking,
         has_proguard_specs,
     )
+    resource_shrinking_in_optimizer = acls.in_resource_shrinking_in_optimizer(str(ctx.label)) and _resources.is_resource_name_obfuscation_enabled(ctx, enable_resource_shrinking)
+
+    proguard_specs = proguard.get_proguard_specs(
+        ctx,
+        None if resource_shrinking_in_optimizer else packaged_resources_ctx.resource_proguard_config,
+        proguard_specs_for_manifest = [packaged_resources_ctx.resource_minsdk_proguard_config] if packaged_resources_ctx.resource_minsdk_proguard_config else [],
+    )
+
     proguard_output_map = None
     generate_proguard_map = (
         ctx.attr.proguard_generate_mapping or enable_resource_shrinking
@@ -810,7 +812,6 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
 
     enable_rewrite_resources_through_optimizer = enable_resource_shrinking and ctx.attr._rewrite_resources_through_optimizer
 
-    resource_shrinking_in_optimizer = acls.in_resource_shrinking_in_optimizer(str(ctx.label)) and _resources.is_resource_name_obfuscation_enabled(ctx, enable_resource_shrinking)
     optimized_resource_shrinker_log = ctx.actions.declare_file(_resources.get_shrinker_log_name(ctx)) if resource_shrinking_in_optimizer else None
     proguard_output = proguard.apply_proguard(
         ctx,
