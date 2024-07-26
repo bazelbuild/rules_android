@@ -136,7 +136,7 @@ def _get_proguard_specs(
     if ctx.files.proguard_specs:
         local_proguard_specs = ctx.files.proguard_specs
     proguard_specs = _collect_transitive_proguard_specs(
-        [resource_proguard_config],
+        [resource_proguard_config] if resource_proguard_config else [],
         local_proguard_specs,
         proguard_deps,
     )
