@@ -383,7 +383,8 @@ def finalize(
         coverage_common.instrumented_files_info(
             ctx = ctx,
             source_attributes = ["srcs"],
-            dependency_attributes = ["deps", "runtime_deps", "data"],
+            # NOTE: Associates is only applicable for OSS rules_kotlin.
+            dependency_attributes = ["associates", "deps", "runtime_deps", "data"],
         ),
     ])
     return providers
