@@ -38,6 +38,7 @@ load(
 load(
     "//rules:providers.bzl",
     _AndroidAppsInfo = "AndroidAppsInfo",
+    _ApkInfo = "ApkInfo",
     _StarlarkApkInfo = "StarlarkApkInfo",
 )
 load(
@@ -90,4 +91,5 @@ android_tools_defaults_jar = _android_tools_defaults_jar
 asar_import = _asar_import
 instrumented_app_info_aspect = _instrumented_app_info_aspect
 StarlarkApkInfo = _StarlarkApkInfo
+ApkInfo = _ApkInfo
 AndroidAppsInfo = _AndroidAppsInfo
