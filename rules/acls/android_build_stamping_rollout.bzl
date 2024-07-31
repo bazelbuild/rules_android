@@ -19,6 +19,7 @@ visibility(PROJECT_VISIBILITY)
 
 # keep sorted
 ANDROID_BUILD_STAMPING_ROLLOUT = [
+    "//:__subpackages__",
 ]
 
 # keep sorted
