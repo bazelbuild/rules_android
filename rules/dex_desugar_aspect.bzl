@@ -92,9 +92,6 @@ def _aspect_impl(target, ctx):
         incremental_dexing == _tristate.auto):
         return []
 
-    # TODO(b/33557068): Desugar protos if needed instead of assuming they don't need desugaring
-    ignore_desugar = not ctx.fragments.android.desugar_java8 or ctx.rule.kind == "proto_library"
-
     extra_toolchain_jars = _get_platform_based_toolchain_jars(ctx)
 
     if hasattr(ctx.rule.attr, "neverlink") and ctx.rule.attr.neverlink:
@@ -108,7 +105,7 @@ def _aspect_impl(target, ctx):
         basename_clash = _check_basename_clash(runtime_jars)
         aspect_dexopts = _get_aspect_dexopts(ctx)
         for jar in runtime_jars:
-            if not ignore_desugar:
+            if ctx.fragments.android.desugar_java8:
                 unique_desugar_filename = (jar.path if basename_clash else jar.basename) + "_desugared.jar"
                 desugared_jar = _dex.get_dx_artifact(ctx, unique_desugar_filename, min_sdk_version)
                 _desugar.desugar(
