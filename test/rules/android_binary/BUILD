@@ -1,5 +1,4 @@
-load("//rules:rules.bzl", "android_library")
-load("//rules/android_binary_internal:rule.bzl", android_binary_internal = "android_binary_internal_macro")
+load("//rules:rules.bzl", "android_binary", "android_library")
 load(":test.bzl", "fake_cc_toolchain_config", "multiple_android_platforms_test")
 
 filegroup(name = "empty")
@@ -41,7 +40,7 @@ toolchain(
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
 
-android_binary_internal(
+android_binary(
     name = "basicapp",
     srcs = ["java/com/binary/AJavaClass.java"],
     custom_package = "com.binary",

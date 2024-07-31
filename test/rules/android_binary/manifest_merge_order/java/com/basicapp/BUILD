@@ -3,7 +3,7 @@ load("//rules:rules.bzl", "android_binary", "android_library")
 android_binary(
     name = "basic_app",
     manifest = "AndroidManifest.xml",
-    visibility = ["//test/rules/android_binary_internal/manifest_merge_order:__pkg__"],
+    visibility = ["//test/rules/android_binary/manifest_merge_order:__pkg__"],
     deps = [":basic_lib"],
 )
 

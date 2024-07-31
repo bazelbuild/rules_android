@@ -19,6 +19,6 @@ visibility(PROJECT_VISIBILITY)
 
 # keep sorted.
 ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST = [
-    "//test/rules/android_binary_internal:__subpackages__",
+    "//test/rules/android_binary:__subpackages__",
     "//tools/build_defs/android/test:__subpackages__",
 ]

@@ -16,5 +16,5 @@ py_test(
 
 manifest_merge_split(
     name = "basic_app_manifest_merge_order",
-    binary = "//test/rules/android_binary_internal/manifest_merge_order/java/com/basicapp:basic_app",
+    binary = "//test/rules/android_binary/manifest_merge_order/java/com/basicapp:basic_app",
 )

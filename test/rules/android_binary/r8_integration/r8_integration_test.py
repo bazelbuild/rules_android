@@ -26,9 +26,7 @@ class R8IntegrationTest(unittest.TestCase):
       self, apk, expect_unused_activity_resource, expect_unused_activity_class
   ):
     tmp = os.environ["TEST_TMPDIR"]
-    apk_directory = (
-        "test/rules/android_binary_internal/r8_integration/java/com/basicapp"
-    )
+    apk_directory = "test/rules/android_binary/r8_integration/java/com/basicapp"
     apk_tmp = os.path.join(tmp, apk)
     classes_dex = os.path.join(apk_tmp, "classes.dex")
     with zipfile.ZipFile(os.path.join(apk_directory, apk)) as zf:

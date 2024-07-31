@@ -16,7 +16,7 @@ load("//rules:rules.bzl", "android_binary", "android_library")
         proguard_specs = specs,
         resource_files = glob(["res/**"]),
         shrink_resources = shrink,
-        visibility = ["//test/rules/android_binary_internal/r8_integration:__pkg__"],
+        visibility = ["//test/rules/android_binary/r8_integration:__pkg__"],
         deps = [
             ":basic_lib",
             ":lib_with_specs",
