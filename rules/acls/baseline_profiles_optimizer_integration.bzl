@@ -19,7 +19,7 @@ visibility(PROJECT_VISIBILITY)
 
 # keep sorted
 BASELINE_PROFILES_OPTIMIZER_INTEGRATION = [
-    "//test/rules/android_binary_internal:__subpackages__",
+    "//test/rules/android_binary:__subpackages__",
 ]
 
 # keep sorted
