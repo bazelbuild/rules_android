@@ -5,7 +5,7 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])
 
 genrule(
-    name = "gen_aar_import_checks",
+    name = "gen_aar_import_checks_sh",
     outs = ["aar_import_checks.sh"],
     cmd = """
 cat > $@ <<"EOF"
@@ -26,19 +26,27 @@ EOF
     executable = True,
 )
 
-sh_binary(
-    name = "aar_import_checks_bin",
-    srcs = [":aar_import_checks.sh"],
-)
-
-# sh_binary produces 3 outputs, while the aar_import_checks label attr in the
-# Android toolchain expects a single file, so we need to pick out just the exe.
 genrule(
-    name = "get_aar_import_checks_exe",
-    srcs = [":aar_import_checks_bin"],
-    outs = ["aar_import_checks.exe"],
-    cmd = """cp "$$(find . -type f | grep 'aar_import_checks_bin.exe$$' | head -1)" "$@" """,
-    tags = ["manual"],
+    name = "gen_aar_import_checks_bat",
+    outs = ["aar_import_checks.bat"],
+    cmd = """
+cat > $@ <<"EOF"
+@ECHO OFF
+:args
+IF "%~1"=="-output" (
+  GOTO create_output
+) ELSE IF "%~1"=="" (
+  EXIT /B 1
+)
+SHIFT
+GOTO args
+:create_output
+SHIFT
+copy /y NUL "%~1" >NUL
+
+EOF
+""",
+    executable = True,
 )
 
 config_setting(
@@ -49,7 +57,7 @@ config_setting(
 alias(
     name = "aar_import_checks",
     actual = select({
-        ":windows": "aar_import_checks.exe",
-        "//conditions:default": "gen_aar_import_checks",
+        ":windows": "aar_import_checks.bat",
+        "//conditions:default": "aar_import_checks.sh",
     }),
 )
