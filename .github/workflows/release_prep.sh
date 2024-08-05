@@ -54,3 +54,22 @@ EOF
 
 awk 'f;/--SNIP--/{f=1}' examples/basicapp/WORKSPACE
 echo "\`\`\`" 
+
+cat << EOF
+
+## In BUILD
+
+Load the rules from \`rules_android\`:
+
+\`\`\`starlark
+load("@rules_android//rules:rules.bzl", "android_binary", "android_library")
+android_binary(
+    ...
+)
+
+android_library(
+   ...
+)
+\`\`\`
+EOF
+
