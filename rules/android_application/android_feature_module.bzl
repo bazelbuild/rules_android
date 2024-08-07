@@ -16,11 +16,11 @@
 This file exists to inject the correct version of android_binary and android_library.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
-    "//rules:android_binary.bzl",
+    "//rules/android_binary:rule.bzl",
     _android_binary_macro = "android_binary_macro",
 )
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//rules/android_library:rule.bzl",
     _android_library_macro = "android_library_macro",

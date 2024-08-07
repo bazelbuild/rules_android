@@ -577,11 +577,11 @@ def finalize(
         output_groups,
         deploy_ctx,
         **_unused_ctxs):
-    """Final step of the android_binary_internal processor pipeline.
+    """Final step of the android_binary processor pipeline.
 
     Args:
       ctx: The context.
-      providers: The list of providers for the android_binary_internal rule.
+      providers: The list of providers for the android_binary rule.
       validation_outputs: Validation outputs for the rule.
       implicit_outputs: Implicit outputs for the rule.
       output_groups: Output groups for the rule.
@@ -589,7 +589,7 @@ def finalize(
       **_unused_ctxs: Other contexts.
 
     Returns:
-      The list of providers the android_binary_internal rule should return.
+      The list of providers the android_binary rule should return.
     """
     output_groups["_validation"] = depset(validation_outputs)
 
