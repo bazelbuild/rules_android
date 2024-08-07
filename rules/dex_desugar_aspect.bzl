@@ -42,7 +42,7 @@ def _aspect_attrs():
         "_toolchain",  # to get Kotlin toolchain component in android_library
     ]
 
-# Also used by the android_binary_internal rule
+# Also used by the android_binary rule
 def get_aspect_deps(ctx):
     """Get all the deps of the dex_desugar_aspect that requires traversal.
 

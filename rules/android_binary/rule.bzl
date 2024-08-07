@@ -18,7 +18,6 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
-load("//rules:providers.bzl", "AndroidApplicationResourceInfo")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ATTRS")
@@ -28,7 +27,7 @@ visibility(PROJECT_VISIBILITY)
 
 _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging", "features", "exec_properties"]
 
-_DEFAULT_PROVIDES = [AndroidApplicationResourceInfo, OutputGroupInfo]
+_DEFAULT_PROVIDES = [ApkInfo, JavaInfo]
 
 def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs):
     label = "//" + _package_name + ":" + name
@@ -88,17 +87,14 @@ def make_rule(
         cfg = config_common.config_feature_flag_transition("feature_flags"),
     )
 
-android_binary_internal = make_rule()
+android_binary = make_rule()
 
+# TODO(zhaoqxu): Consider removing this method
 def sanitize_attrs(attrs, allowed_attrs = ATTRS.keys()):
     """Sanitizes the attributes.
 
-    The android_binary_internal has a subset of the android_binary attributes, but is
-    called from the android_binary macro with the same full set of attributes. This removes
-    any unnecessary attributes.
-
     Args:
-      attrs: A dict. The attributes for the android_binary_internal rule.
+      attrs: A dict. The attributes for the android_binary rule.
       allowed_attrs: The list of attribute keys to keep.
 
     Returns:
@@ -117,13 +113,10 @@ def sanitize_attrs(attrs, allowed_attrs = ATTRS.keys()):
 
     return attrs
 
-def android_binary_internal_macro(internal_rule = android_binary_internal, **attrs):
-    """android_binary_internal rule.
+def android_binary_macro(**attrs):
+    """android_binary rule.
 
     Args:
-      internal_rule: For migration only, do not use. The rule to run under the hood.
-                     This is used as a workaround to rename the android_binary_internal rule to
-                     android_binary.
       **attrs: Rule attributes
     """
 
@@ -133,7 +126,7 @@ def android_binary_internal_macro(internal_rule = android_binary_internal, **att
     if type(attrs.get("proguard_specs", None)) == "select" or attrs.get("proguard_specs", None):
         attrs["$generate_proguard_outputs"] = True
 
-    internal_rule(
+    android_binary(
         **sanitize_attrs(
             attrs,
             # _package_name and other attributes are allowed attributes but are also private.

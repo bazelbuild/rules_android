@@ -66,19 +66,6 @@ bzl_library(
 )
 
 bzl_library(
-    name = "android_binary_bzl",
-    srcs = [
-        "android_binary.bzl",
-    ],
-    visibility = ["//:__subpackages__"],
-    deps = [
-        ":visibility_bzl",
-        "//rules/android_binary_internal:bzl",
-        "@rules_java//java/common",
-    ],
-)
-
-bzl_library(
     name = "android_split_transition_bzl",
     srcs = [
         "android_split_transition.bzl",
@@ -119,12 +106,12 @@ bzl_library(
         "//stardoc:__pkg__",
     ],
     deps = [
-        ":android_binary_bzl",
         ":common_bzl",
         ":min_sdk_version_bzl",
         ":visibility_bzl",
         "//rules/aar_import:bzl",
         "//rules/android_application:bzl",
+        "//rules/android_binary:bzl",
         "//rules/android_library:bzl",
         "//rules/android_local_test:bzl",
         "//rules/android_sandboxed_sdk:bzl",

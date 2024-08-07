@@ -28,8 +28,8 @@ load(
     _android_application = "android_application",
 )
 load(
-    "//rules/android_binary_internal:rule.bzl",
-    _android_binary = "android_binary_internal",
+    "//rules/android_binary:rule.bzl",
+    _android_binary = "android_binary",
 )
 load(
     "//rules/android_library:rule.bzl",

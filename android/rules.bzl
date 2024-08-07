@@ -16,10 +16,6 @@
 # Don't use relative paths since this file is coppied to //android/rules.bzl.
 
 load(
-    "//rules:android_binary.bzl",
-    _android_binary = "android_binary_macro",
-)
-load(
     "//rules:android_ndk_repository.bzl",
     _android_ndk_repository = "android_ndk_repository",
 )
@@ -48,6 +44,10 @@ load(
 load(
     "//rules/android_application:android_application.bzl",
     _android_application = "android_application",
+)
+load(
+    "//rules/android_binary:rule.bzl",
+    _android_binary = "android_binary_macro",
 )
 load(
     "//rules/android_library:rule.bzl",

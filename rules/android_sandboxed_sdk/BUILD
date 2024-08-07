@@ -19,7 +19,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
-        "//rules:android_binary_bzl",
         "//rules:common_bzl",
+        "//rules/android_binary:bzl",
     ],
 )
