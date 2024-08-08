@@ -440,6 +440,14 @@ def _get_compilation_mode(ctx):
     """
     return ctx.var["COMPILATION_MODE"]
 
+def _get_bool(v):
+    v = v.lower()
+    if v == "true":
+        return True
+    if v == "false":
+        return False
+    fail("Unknown bool: " + v)
+
 compilation_mode = struct(
     DBG = "dbg",
     FASTBUILD = "fastbuild",
@@ -465,6 +473,7 @@ utils = struct(
     list_or_depset_to_list = _list_or_depset_to_list,
     add_cls_prefix = _add_cls_prefix,
     get_cls = _get_cls,
+    get_bool = _get_bool
 )
 
 log = struct(
