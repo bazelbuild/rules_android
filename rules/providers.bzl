@@ -200,7 +200,6 @@ AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidLibraryAarInfo = providers.AndroidLibraryAarInfo
-AndroidProguardInfo = providers.AndroidProguardInfo
 AndroidIdlInfo = providers.AndroidIdlInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
 AndroidPreDexJarInfo = providers.AndroidPreDexJarInfo

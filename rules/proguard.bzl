@@ -13,7 +13,6 @@
 # limitations under the License.
 """Bazel Android Proguard library for the Android rules."""
 
-load("//rules:providers.bzl", "AndroidProguardInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load(":android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
@@ -105,9 +104,6 @@ def _process_specs(
         transitive_proguard_configs = transitive_proguard_configs,
         providers = [
             ProguardSpecInfo(transitive_proguard_configs),
-            # TODO(b/152659272): Remove this once the android_archive rule is
-            # able to process a transitive closure of deps to produce an aar.
-            AndroidProguardInfo(proguard_configs),
         ],
     )
 
