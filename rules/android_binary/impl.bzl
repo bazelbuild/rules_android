@@ -723,13 +723,6 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
                 zipper = get_android_toolchain(ctx).zipper.files_to_run,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
-            providers.append(
-                BaselineProfileProvider(
-                    # Unnecessary to pass the transitive profiles to native rule
-                    depset(),
-                    art_profile_zip,
-                ),
-            )
     return ProviderInfo(
         name = "ap_ctx",
         value = struct(
