@@ -40,10 +40,7 @@ providers = struct(
     AndroidLibraryResourceClassJarProvider = AndroidLibraryResourceClassJarProvider,
     AndroidFeatureFlagSet = AndroidFeatureFlagSet,
     ProguardMappingInfo = ProguardMappingInfo,
-    AndroidBinaryData = AndroidBinaryData,
     BaselineProfileProvider = BaselineProfileProvider,
-    AndroidNeverLinkLibrariesProvider = AndroidNeverLinkLibrariesProvider,
-    AndroidOptimizedJarInfo = AndroidOptimizedJarInfo,
     AndroidDexInfo = AndroidDexInfo,
     AndroidOptimizationInfo = AndroidOptimizationInfo,
 )
