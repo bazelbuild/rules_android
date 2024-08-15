@@ -209,9 +209,6 @@ DataBindingV2Info = providers.DataBindingV2Info
 AndroidLibraryResourceClassJarProvider = providers.AndroidLibraryResourceClassJarProvider  # buildifier: disable=name-conventions
 AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
 ProguardMappingInfo = providers.ProguardMappingInfo
-AndroidBinaryData = providers.AndroidBinaryData  # buildifier: disable=name-conventions
 BaselineProfileProvider = providers.BaselineProfileProvider  # buildifier: disable=name-conventions
-AndroidNeverLinkLibrariesProvider = providers.AndroidNeverLinkLibrariesProvider  # buildifier: disable=name-conventions
-AndroidOptimizedJarInfo = providers.AndroidOptimizedJarInfo
 AndroidDexInfo = providers.AndroidDexInfo
 AndroidOptimizationInfo = providers.AndroidOptimizationInfo
