@@ -18,6 +18,7 @@ load("//mobile_install/adapters:android_binary.bzl", "android_binary")
 load("//mobile_install/adapters:android_library.bzl", "android_library")
 load("//mobile_install/adapters:android_sdk.bzl", "android_sdk")
 load("//mobile_install/adapters:apk_import.bzl", "apk_import")
+load("//mobile_install/adapters:default.bzl", "default_adapter")
 load("//mobile_install/adapters:java_import.bzl", "java_import")
 load("//mobile_install/adapters:java_library.bzl", "java_library")
 load("//mobile_install/adapters:java_lite_proto_library.bzl", "java_lite_proto_library")
@@ -42,7 +43,7 @@ ADAPTERS = dict(
 )
 
 def get(kind, adapters = ADAPTERS):
-    return adapters.get(kind, None)
+    return adapters.get(kind, default_adapter)
 
 def get_all_aspect_attrs(adapters = ADAPTERS):
     """The union of all the aspect attrs required by all rule adapters.
