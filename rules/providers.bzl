@@ -186,6 +186,15 @@ AndroidLibraryAarInfo = provider(
     ),
 )
 
+AndroidBinaryNativeLibsInfo = provider(
+    doc = "AndroidBinaryNativeLibsInfo",
+    fields = dict(
+        native_libs = "",
+        native_libs_name = "",
+        transitive_native_libs = "",
+    ),
+)
+
 AndroidNativeLibsInfo = provider(
     doc = "AndroidNativeLibsInfo",
     fields = dict(
@@ -208,7 +217,6 @@ ApkInfo = providers.ApkInfo
 AndroidInstrumentationInfo = providers.AndroidInstrumentationInfo
 AndroidResourcesInfo = providers.AndroidResourcesInfo
 AndroidApplicationResourceInfo = providers.AndroidApplicationResourceInfo
-AndroidBinaryNativeLibsInfo = providers.AndroidBinaryNativeLibsInfo
 AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
