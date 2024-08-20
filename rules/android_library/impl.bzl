@@ -339,19 +339,9 @@ def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
         host_javabase = _common.get_host_javabase(ctx),
     )
 
-    # TODO(b/170409221): Clean this up once Starlark migration is complete. Create and propagate
-    # a native aar info provider with the Starlark artifacts to avoid breaking downstream
-    # targets.
     if not ctx.attr.neverlink:
         aar_ctx[_PROVIDERS].append(AndroidLibraryAarInfo(
-            aar = starlark_aar,
-            manifest = resources_ctx.starlark_processed_manifest,
-            aars_from_deps = utils.collect_providers(
-                AndroidLibraryAarInfo,
-                ctx.attr.deps,
-                ctx.attr.exports,
-            ),
-            defines_local_resources = resources_ctx.defines_resources,
+            aar = starlark_aar if resources_ctx.defines_resources else None,
         ))
 
     return ProviderInfo(
