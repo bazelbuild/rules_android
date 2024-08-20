@@ -999,17 +999,15 @@ def _process_idl(ctx, **_unused_ctxs):
     deps = utils.collect_providers(AndroidIdlInfo, ctx.attr.deps)
 
     android_idl_info = AndroidIdlInfo(
-        depset(
+        transitive_idl_import_roots = depset(
             transitive = [dep.transitive_idl_import_roots for dep in deps],
             order = "preorder",
         ),
-        depset(
+        transitive_idl_imports = depset(
             transitive = [dep.transitive_idl_imports for dep in deps],
             order = "preorder",
         ),
-        # TODO(b/146216105): Delete this field once AndroidIdlInfo is Starlarkified.
-        depset(),
-        depset(
+        transitive_idl_preprocessed = depset(
             transitive = [dep.transitive_idl_preprocessed for dep in deps],
             order = "preorder",
         ),

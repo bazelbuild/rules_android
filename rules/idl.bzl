@@ -261,9 +261,8 @@ def _process(
         idl_java_srcs = idl_java_srcs,
         idl_deps = [aidl_lib] if (idl_java_srcs and aidl_lib and not uses_aosp_compiler) else [],
         providers = [
-            # TODO(b/146216105): Make this a Starlark provider.
             AndroidIdlInfo(
-                depset(
+                transitive_idl_import_roots = depset(
                     _determine_idl_import_roots(
                         ctx.label.package,
                         idl_import_root,
@@ -272,13 +271,12 @@ def _process(
                     transitive = transitive_idl_import_roots,
                     order = "preorder",
                 ),
-                depset(
+                transitive_idl_imports = depset(
                     idl_parcelables + idl_srcs + idl_preprocessed,
                     transitive = transitive_idl_imports,
                     order = "preorder",
                 ),
-                depset(),  # TODO(b/146216105): Delete this field once in Starlark.
-                depset(idl_preprocessed, transitive = transitive_idl_preprocessed),
+                transitive_idl_preprocessed = depset(idl_preprocessed, transitive = transitive_idl_preprocessed),
             ),
         ],
     )
