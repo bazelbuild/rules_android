@@ -211,6 +211,13 @@ AndroidIdlInfo = provider(
     ),
 )
 
+AndroidCcLinkParamsInfo = provider(
+    doc = "AndroidCcLinkParamsInfo",
+    fields = dict(
+        link_params = "",
+    ),
+)
+
 AndroidPreDexJarInfo = provider(
     doc = "AndroidPreDexJarInfo",
     fields = dict(
@@ -228,7 +235,6 @@ AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
-AndroidCcLinkParamsInfo = providers.AndroidCcLinkParamsInfo
 DataBindingV2Info = providers.DataBindingV2Info
 AndroidLibraryResourceClassJarProvider = providers.AndroidLibraryResourceClassJarProvider  # buildifier: disable=name-conventions
 AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
