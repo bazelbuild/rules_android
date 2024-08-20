@@ -202,6 +202,15 @@ AndroidNativeLibsInfo = provider(
     ),
 )
 
+AndroidIdlInfo = provider(
+    doc = "AndroidIdlInfo",
+    fields = dict(
+        transitive_idl_import_roots = "Returns a depset of strings of all the idl import roots.",
+        transitive_idl_imports = "Returns a depset of artifacts of all the idl imports.",
+        transitive_idl_preprocessed = "Returns a depset of artifacts of all the idl preprocessed files.",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 ApkInfo = providers.ApkInfo
@@ -212,7 +221,6 @@ AndroidBinaryNativeLibsInfo = providers.AndroidBinaryNativeLibsInfo
 AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
-AndroidIdlInfo = providers.AndroidIdlInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
 AndroidPreDexJarInfo = providers.AndroidPreDexJarInfo
 AndroidCcLinkParamsInfo = providers.AndroidCcLinkParamsInfo

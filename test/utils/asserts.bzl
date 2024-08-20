@@ -589,13 +589,6 @@ def _assert_android_idl_info(expected, actual, label_under_test):
     )
 
     _assert_file_depset(
-        expected.transitive_idl_jars,
-        actual.transitive_idl_jars,
-        "AndroidIdlInfo.transitive_idl_jars",
-        ignore_label_prefix,
-    )
-
-    _assert_file_depset(
         expected.transitive_idl_preprocessed,
         actual.transitive_idl_preprocessed,
         "AndroidIdlInfo.transitive_idl_preprocessed",

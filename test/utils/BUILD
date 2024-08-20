@@ -28,6 +28,7 @@ bzl_library(
         "//tools/build_defs/android:__subpackages__",
     ],
     deps = [
+        "//rules:providers_bzl",
         "//rules:visibility_bzl",
         "@rules_java//java:core_rules",
         "@bazel_skylib//lib:unittest",
