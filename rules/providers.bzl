@@ -188,6 +188,13 @@ StarlarkAndroidIdeInfoForTesting = provider(
     ),
 )
 
+AndroidLibraryAarInfo = provider(
+    doc = "AndroidLibraryAarInfo",
+    fields = dict(
+        aar = "The aar.",
+    ),
+)
+
 AndroidNativeLibsInfo = provider(
     doc = "AndroidNativeLibsInfo",
     fields = dict(
@@ -205,7 +212,6 @@ AndroidBinaryNativeLibsInfo = providers.AndroidBinaryNativeLibsInfo
 AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
-AndroidLibraryAarInfo = providers.AndroidLibraryAarInfo
 AndroidIdlInfo = providers.AndroidIdlInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
 AndroidPreDexJarInfo = providers.AndroidPreDexJarInfo
