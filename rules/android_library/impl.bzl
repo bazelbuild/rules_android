@@ -365,7 +365,7 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
         value = struct(
             providers = [
                 AndroidNativeLibsInfo(
-                    depset(
+                    native_libs = depset(
                         transitive = [
                             p.native_libs
                             for p in utils.collect_providers(
