@@ -368,7 +368,7 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
                     ),
                 ),
                 AndroidCcLinkParamsInfo(
-                    cc_common.merge_cc_infos(
+                    link_params = cc_common.merge_cc_infos(
                         cc_infos = [
                                        info.cc_link_params_info
                                        for info in utils.collect_providers(
