@@ -211,6 +211,13 @@ AndroidIdlInfo = provider(
     ),
 )
 
+AndroidPreDexJarInfo = provider(
+    doc = "AndroidPreDexJarInfo",
+    fields = dict(
+        pre_dex_jar = "",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 ApkInfo = providers.ApkInfo
@@ -221,7 +228,6 @@ AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
-AndroidPreDexJarInfo = providers.AndroidPreDexJarInfo
 AndroidCcLinkParamsInfo = providers.AndroidCcLinkParamsInfo
 DataBindingV2Info = providers.DataBindingV2Info
 AndroidLibraryResourceClassJarProvider = providers.AndroidLibraryResourceClassJarProvider  # buildifier: disable=name-conventions

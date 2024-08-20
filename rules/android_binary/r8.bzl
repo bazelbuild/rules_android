@@ -121,7 +121,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
             dex_info = android_dex_info,
             providers = [
                 android_dex_info,
-                AndroidPreDexJarInfo(deploy_jar),
+                AndroidPreDexJarInfo(pre_dex_jar = deploy_jar),
             ],
         ),
     )
