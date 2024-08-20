@@ -118,7 +118,11 @@ def process(ctx, filename, merged_libraries_map = {}):
         ctx.actions.write(output = libs_name, content = native_libs_basename)
 
     transitive_native_libs = _get_transitive_native_libs(ctx)
-    return AndroidBinaryNativeLibsInfo(libs, libs_name, transitive_native_libs)
+    return AndroidBinaryNativeLibsInfo(
+        native_libs = libs,
+        native_libs_name = libs_name,
+        transitive_native_libs = transitive_native_libs,
+    )
 
 # Collect all native shared libraries across split transitions. Some AARs
 # contain shared libraries across multiple architectures, e.g. x86 and
