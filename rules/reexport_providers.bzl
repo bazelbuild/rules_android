@@ -24,7 +24,6 @@ providers = struct(
     ApkInfo = ApkInfo,
     AndroidInstrumentationInfo = AndroidInstrumentationInfo,
     AndroidResourcesInfo = AndroidResourcesInfo,
-    AndroidNativeLibsInfo = AndroidNativeLibsInfo,
     AndroidApplicationResourceInfo = AndroidApplicationResourceInfo,
     AndroidBinaryNativeLibsInfo = AndroidBinaryNativeLibsInfo,
     AndroidSdkInfo = AndroidSdkInfo,

@@ -552,7 +552,7 @@ def impl(ctx):
     )
     providers.append(
         AndroidNativeLibsInfo(
-            depset(
+            native_libs = depset(
                 [native_libs],
                 transitive = [info.native_libs for info in native_libs_infos],
             ),

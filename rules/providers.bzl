@@ -188,12 +188,18 @@ StarlarkAndroidIdeInfoForTesting = provider(
     ),
 )
 
+AndroidNativeLibsInfo = provider(
+    doc = "AndroidNativeLibsInfo",
+    fields = dict(
+        native_libs = "Returns the native libraries produced by the rule.",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 ApkInfo = providers.ApkInfo
 AndroidInstrumentationInfo = providers.AndroidInstrumentationInfo
 AndroidResourcesInfo = providers.AndroidResourcesInfo
-AndroidNativeLibsInfo = providers.AndroidNativeLibsInfo
 AndroidApplicationResourceInfo = providers.AndroidApplicationResourceInfo
 AndroidBinaryNativeLibsInfo = providers.AndroidBinaryNativeLibsInfo
 AndroidSdkInfo = providers.AndroidSdkInfo
