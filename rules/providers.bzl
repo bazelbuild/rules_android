@@ -32,15 +32,6 @@ AndroidAppsInfo = provider(
 
 
 
-AndroidJavaInfo = provider(
-    doc = "Provides outputs for the Android Java Compilation",
-    fields = dict(
-        aidl = "AndroidIdlInfo",
-        aide = "AndroidIdeInfo",
-        java = "JavaInfo",
-    ),
-)
-
 AndroidFilteredJdepsInfo = provider(
     doc = "Provides a filtered jdeps proto.",
     fields = dict(
