@@ -232,6 +232,14 @@ AndroidInstrumentationInfo = provider(
     ),
 )
 
+# buildifier: disable=name-conventions
+AndroidLibraryResourceClassJarProvider = provider(
+    doc = "AndroidLibraryResourceClassJarProvider",
+    fields = dict(
+        jars = "",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 ApkInfo = providers.ApkInfo
@@ -241,7 +249,6 @@ AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
 DataBindingV2Info = providers.DataBindingV2Info
-AndroidLibraryResourceClassJarProvider = providers.AndroidLibraryResourceClassJarProvider  # buildifier: disable=name-conventions
 AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
 ProguardMappingInfo = providers.ProguardMappingInfo
 BaselineProfileProvider = providers.BaselineProfileProvider  # buildifier: disable=name-conventions

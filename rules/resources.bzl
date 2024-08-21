@@ -1865,7 +1865,7 @@ def _process_starlark(
     # adding the R.jar as a runtime dependency.
     resources_ctx[_PROVIDERS].append(
         AndroidLibraryResourceClassJarProvider(
-            depset(
+            jars = depset(
                 (resources_ctx[_R_JAVA].runtime_output_jars if resources_ctx[_R_JAVA] else []),
                 transitive = [
                     p.jars
