@@ -13,7 +13,7 @@
 # limitations under the License.
 """Aspect that transitively build .dex archives and desugar jars."""
 
-load("//rules:providers.bzl", "AndroidApplicationResourceInfo", "AndroidIdeInfo")
+load("//rules:providers.bzl", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _attrs = "attrs")
@@ -174,9 +174,6 @@ def _get_produced_runtime_jars(target, ctx, extra_toolchain_jars):
         # TODO(b/124540821): Disable R.jar desugaring (with a flag).
         if AndroidIdeInfo in target and target[AndroidIdeInfo].resource_jar:
             jars.append(target[AndroidIdeInfo].resource_jar.class_jar)
-
-        if AndroidApplicationResourceInfo in target and target[AndroidApplicationResourceInfo].build_stamp_jar:
-            jars.append(target[AndroidApplicationResourceInfo].build_stamp_jar)
 
         jars.extend(extra_toolchain_jars)
         return jars

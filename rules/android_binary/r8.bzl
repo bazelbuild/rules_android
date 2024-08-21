@@ -22,7 +22,7 @@ load(
     "ProviderInfo",
 )
 load("//rules:proguard.bzl", "proguard")
-load("//rules:providers.bzl", "AndroidApplicationResourceInfo", "AndroidDexInfo", "AndroidPreDexJarInfo")
+load("//rules:providers.bzl", "AndroidDexInfo", "AndroidPreDexJarInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load(
     "//rules:utils.bzl",
@@ -139,8 +139,6 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
       The r8_ctx ProviderInfo.
     """
 
-    aari = packaged_resources_ctx.android_application_resource
-
     if (not acls.use_r8(str(ctx.label)) or
         not _resources.is_resource_shrinking_enabled(
             ctx.attr.shrink_resources,
@@ -150,8 +148,7 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
         return ProviderInfo(
             name = "resource_shrinking_r8_ctx",
             value = struct(
-                android_application_resource_info_with_shrunk_resource_apk = None,
-                providers = [aari],
+                resource_apk_shrunk = None,
             ),
         )
 
@@ -205,26 +202,9 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
-    # Replace the resource apk in the AndroidApplicationResourceInfo provider from resource
-    # processing.
-    # TODO(b/308978693): Stop propagating the provider after the starlark migration is complete.
-    new_aari = AndroidApplicationResourceInfo(
-        resource_apk = resource_apk_shrunk,
-        resource_java_src_jar = aari.resource_java_src_jar,
-        resource_java_class_jar = aari.resource_java_class_jar,
-        manifest = aari.manifest,
-        resource_proguard_config = aari.resource_proguard_config,
-        main_dex_proguard_config = aari.main_dex_proguard_config,
-        r_txt = aari.r_txt,
-        resources_zip = aari.resources_zip,
-        databinding_info = aari.databinding_info,
-        should_compile_java_srcs = aari.should_compile_java_srcs,
-    )
-
     return ProviderInfo(
         name = "resource_shrinking_r8_ctx",
         value = struct(
-            android_application_resource_info_with_shrunk_resource_apk = new_aari,
-            providers = [new_aari],
+            resource_apk_shrunk = resource_apk_shrunk,
         ),
     )

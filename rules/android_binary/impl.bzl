@@ -122,9 +122,6 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         instrument_xslt = ctx.file._add_g3itr_xslt,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = ctx.attr._host_javabase,
-        # The AndroidApplicationResourceInfo will be added to the list of providers in
-        # ResourceShrinkerR8Processor if R8-based resource shrinking is not performed.
-        add_application_resource_info_to_providers = False,
         use_r_package = ctx.attr.use_r_package,
     )
     return ProviderInfo(
@@ -925,24 +922,19 @@ def get_final_resources(
         resource_shrinking_r8_ctx: Optional. The context of R8 shrinking.
     Returns:
         resources_apk: The resource apk.
-        merged_manifest: The merged manifest.
     """
-    r8_shrunk_resources_output = None
+    r8_resource_apk_shrunk = None
     if resource_shrinking_r8_ctx:
-        r8_shrunk_resources_output = resource_shrinking_r8_ctx.android_application_resource_info_with_shrunk_resource_apk
-    if optimize_ctx.resources_apk and r8_shrunk_resources_output:
+        r8_resource_apk_shrunk = resource_shrinking_r8_ctx.resource_apk_shrunk
+    if optimize_ctx.resources_apk and r8_resource_apk_shrunk:
         fail("Either R8 Resource Shrinking or Proguard Resource Shrinking/Optimization should be used, but not both!")
 
     if optimize_ctx.resources_apk:
-        resources_apk = optimize_ctx.resources_apk
-        merged_manifest = packaged_resources_ctx.processed_manifest
-    elif r8_shrunk_resources_output:
-        resources_apk = r8_shrunk_resources_output.resource_apk
-        merged_manifest = r8_shrunk_resources_output.manifest
+        return optimize_ctx.resources_apk
+    elif r8_resource_apk_shrunk:
+        return r8_resource_apk_shrunk
     else:
-        resources_apk = packaged_resources_ctx.resources_apk
-        merged_manifest = packaged_resources_ctx.processed_manifest
-    return resources_apk, merged_manifest
+        return packaged_resources_ctx.resources_apk
 
 def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx, ap_ctx, optimize_ctx, r8_ctx, resource_shrinking_r8_ctx, **_unused_ctxs):
     signing_keys = []
@@ -956,7 +948,7 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
         fail("Either R8 or Dex should be used, but not both!")
     dex_info = r8_ctx.dex_info if use_r8 else dex_ctx.dex_info
 
-    resources_apk, merged_manifest = get_final_resources(
+    resources_apk = get_final_resources(
         packaged_resources_ctx,
         optimize_ctx,
         resource_shrinking_r8_ctx,
@@ -973,7 +965,7 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
         native_libs_aars = native_libs_ctx.native_libs_info.transitive_native_libs,
         native_libs_name = native_libs_ctx.native_libs_info.native_libs_name,
         coverage_metadata = dex_info.deploy_jar if ctx.configuration.coverage_enabled else None,
-        merged_manifest = merged_manifest,
+        merged_manifest = packaged_resources_ctx.processed_manifest,
         art_profile_zip = ap_ctx.art_profile_zip,
         java_resources_zip = dex_info.java_resource_jar,
         compress_java_resources = ctx.fragments.android.compress_java_resources,
@@ -1036,7 +1028,7 @@ def _process_intellij(
         apk_packaging_ctx,
         resource_shrinking_r8_ctx = None,
         **_unused_ctxs):
-    resources_apk, merged_manifest = get_final_resources(
+    resources_apk = get_final_resources(
         packaged_resources_ctx,
         optimize_ctx,
         resource_shrinking_r8_ctx,
@@ -1047,7 +1039,7 @@ def _process_intellij(
         java_package = java_package,
         manifest = manifest_ctx.processed_manifest,
         defines_resources = True,
-        merged_manifest = merged_manifest,
+        merged_manifest = packaged_resources_ctx.processed_manifest,
         resources_apk = resources_apk,
         r_jar = utils.only(packaged_resources_ctx.r_java.outputs.jars) if packaged_resources_ctx.r_java else None,
         java_info = jvm_ctx.java_info,
