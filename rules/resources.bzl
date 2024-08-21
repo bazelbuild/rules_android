@@ -15,7 +15,7 @@
 
 load("//rules:acls.bzl", "acls")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
-load("//rules:providers.bzl", "AndroidApplicationResourceInfo", "AndroidAssetsInfo", "AndroidLibraryResourceClassJarProvider", "AndroidResourcesInfo")
+load("//rules:providers.bzl", "AndroidAssetsInfo", "AndroidLibraryResourceClassJarProvider", "AndroidResourcesInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -122,7 +122,6 @@ _PACKAGED_VALIDATION_RESULT = "validation_result"
 _PACKAGED_R_TXT = "r_txt"
 _RESOURCE_MINSDK_PROGUARD_CONFIG = "resource_minsdk_proguard_config"
 _RESOURCE_PROGUARD_CONFIG = "resource_proguard_config"
-_ANDROID_APPLICATION_RESOURCE = "android_application_resource"
 
 _ResourcesPackageContextInfo = provider(
     "Packaged resources context object",
@@ -138,7 +137,6 @@ _ResourcesPackageContextInfo = provider(
         _RESOURCE_PROGUARD_CONFIG: "Resource proguard config",
         _MAIN_DEX_PROGUARD_CONFIG: "Main dex proguard config",
         _PROVIDERS: "The list of all providers to propagate.",
-        _ANDROID_APPLICATION_RESOURCE: "The AndroidApplicationResourceInfo provider.",
     },
 )
 
@@ -523,8 +521,7 @@ def _package(
         xsltproc = None,
         instrument_xslt = None,
         busybox = None,
-        host_javabase = None,
-        add_application_resource_info_to_providers = True):
+        host_javabase = None):
     """Package resources for top-level rules.
 
     Args:
@@ -594,9 +591,6 @@ def _package(
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
       host_javabase: A Target. The host javabase.
-      # TODO(b/308978693): Delete this after Starlark android_binary starlark migration is complete.
-      add_application_resource_info_to_providers: boolean. Whether to add the
-          AndroidApplicationResourceInfo provider to the list of providers for this processor.
 
     Returns:
       A ResourcesPackageContextInfo containing packaged resource artifacts and
@@ -867,22 +861,6 @@ def _package(
     packages_to_r_txts = dict()
     for pkg, depsets in packages_to_r_txts_depset.items():
         packages_to_r_txts[pkg] = depset(transitive = depsets)
-
-    android_application_resource_info = AndroidApplicationResourceInfo(
-        resource_apk = resource_apk,
-        resource_java_src_jar = r_java,
-        resource_java_class_jar = output_class_jar,
-        manifest = processed_manifest,
-        resource_proguard_config = proguard_cfg,
-        main_dex_proguard_config = main_dex_proguard_cfg,
-        r_txt = r_txt,
-        resources_zip = resource_files_zip,
-        databinding_info = data_binding_layout_info,
-        should_compile_java_srcs = should_compile_java_srcs,
-    )
-    packaged_resources_ctx[_ANDROID_APPLICATION_RESOURCE] = android_application_resource_info
-    if add_application_resource_info_to_providers:
-        packaged_resources_ctx[_PROVIDERS].append(android_application_resource_info)
 
     return _ResourcesPackageContextInfo(**packaged_resources_ctx)
 

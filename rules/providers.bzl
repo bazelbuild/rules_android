@@ -230,7 +230,6 @@ AndroidPreDexJarInfo = provider(
 ApkInfo = providers.ApkInfo
 AndroidInstrumentationInfo = providers.AndroidInstrumentationInfo
 AndroidResourcesInfo = providers.AndroidResourcesInfo
-AndroidApplicationResourceInfo = providers.AndroidApplicationResourceInfo
 AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
