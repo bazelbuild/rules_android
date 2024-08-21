@@ -22,7 +22,6 @@ visibility(PROJECT_VISIBILITY)
 
 providers = struct(
     ApkInfo = ApkInfo,
-    AndroidInstrumentationInfo = AndroidInstrumentationInfo,
     AndroidResourcesInfo = AndroidResourcesInfo,
     AndroidSdkInfo = AndroidSdkInfo,
     AndroidManifestInfo = AndroidManifestInfo,
