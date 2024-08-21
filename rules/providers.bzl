@@ -225,10 +225,16 @@ AndroidPreDexJarInfo = provider(
     ),
 )
 
+AndroidInstrumentationInfo = provider(
+    doc = "AndroidInstrumentationInfo",
+    fields = dict(
+        target = "Returns the target ApkInfo of the instrumentation test.",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 ApkInfo = providers.ApkInfo
-AndroidInstrumentationInfo = providers.AndroidInstrumentationInfo
 AndroidResourcesInfo = providers.AndroidResourcesInfo
 AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
