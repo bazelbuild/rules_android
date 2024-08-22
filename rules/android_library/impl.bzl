@@ -447,7 +447,7 @@ def _process_baseline_profiles(ctx, **unused_ctx):
         name = "bp_ctx",
         value = struct(
             providers = [
-                BaselineProfileProvider(depset(
+                BaselineProfileProvider(files = depset(
                     ctx.files.baseline_profiles,
                     transitive = [bp.files for bp in utils.collect_providers(BaselineProfileProvider, ctx.attr.deps, ctx.attr.exports)],
                 )),
