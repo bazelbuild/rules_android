@@ -34,7 +34,7 @@ load(
     "processing_pipeline",
 )
 load("//rules:proguard.bzl", "proguard")
-load("//rules:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "AndroidResourcesInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
+load("//rules:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidPreDexJarInfo", "AndroidResourcesInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load(
     "//rules:utils.bzl",
@@ -871,30 +871,6 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     if optimized_resource_output.path_shortening_map:
         implicit_outputs.append(optimized_resource_output.path_shortening_map)
 
-    providers = []
-
-    # TODO(zhaoqxu): Stop populating AndroidOptimizationInfo once the starlark android_binary rule
-    # is fully rolled out.
-    providers.append(
-        AndroidOptimizationInfo(
-            optimized_jar = proguard_output.output_jar,
-            mapping = proguard_output.mapping,
-            seeds = proguard_output.seeds,
-            library_jar = proguard_output.library_jar,
-            config = proguard_output.config,
-            usage = proguard_output.usage,
-            proto_mapping = proguard_output.proto_mapping,
-            rewritten_startup_profile = proguard_output.startup_profile_rewritten,
-            rewriten_merged_baseline_profile = proguard_output.baseline_profile_rewritten,
-            optimized_resource_apk = optimized_resource_output.resources_apk,
-            shrunk_resource_apk = shrunk_resource_output.resources_apk if shrunk_resource_output else None,
-            shrunk_resource_zip = shrunk_resource_output.resources_zip if shrunk_resource_output else None,
-            resource_shrinker_log = resource_shrinker_log,
-            resource_optimization_config = shrunk_resource_output.optimization_config if shrunk_resource_output else None,
-            resource_path_shortening_map = optimized_resource_output.path_shortening_map,
-        ),
-    )
-
     optimized_resources_apk = optimized_resource_output.resources_apk
     if not optimized_resources_apk and enable_resource_shrinking:
         optimized_resources_apk = shrunk_resource_output.resources_apk
@@ -904,7 +880,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         value = struct(
             proguard_output = proguard_output,
             resources_apk = optimized_resources_apk,
-            providers = providers,
+            providers = [],
             implicit_outputs = implicit_outputs,
         ),
     )

@@ -276,4 +276,3 @@ AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
 DataBindingV2Info = providers.DataBindingV2Info
 AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
-AndroidOptimizationInfo = providers.AndroidOptimizationInfo

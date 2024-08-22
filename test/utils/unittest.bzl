@@ -95,6 +95,44 @@ def _analysis_test_error(message, *args):
         ),
     ]
 
+def _find_artifact(target, output_suffix, mnemonic = None, fail_if_not_found = True):
+    """Finds an artifact with the given suffix in the outputs of the actions of the given target.
+
+    If fail_if_not_found is true, fails if no artifact is found.
+
+    Args:
+      target: The target to search for the artifact.
+      output_suffix: The suffix of the artifact to search for.
+      mnemonic: The mnemonic of the action to search for. If not specified, searches all actions.
+      fail_if_not_found: Whether to fail if the artifact is not found.
+    Returns:
+      The artifact with the given suffix in the outputs of the actions of the given target.
+    """
+    if mnemonic:
+        actions_found = [a for a in target.actions if a.mnemonic == mnemonic]
+        if fail_if_not_found and len(actions_found) == 0:
+            fail("No action found with mnemonic %s. Action mnemonics:\n%s" %
+                 (mnemonic, "\n".join([a.mnemonic for a in target.actions])))
+    else:
+        actions_found = target.actions
+
+    artifacts = []
+    for action in actions_found:
+        for output in action.outputs.to_list():
+            if output.short_path.endswith(output_suffix):
+                artifacts.append((action.mnemonic, output))
+
+    if len(artifacts) > 1:
+        fail("Multiple artifacts found with suffix %s in outputs of action with mnemonic %s. Artifacts:\n%s" %
+             (output_suffix, mnemonic, "\n".join([o[0] + ": " + str(o[1]) for o in artifacts])))
+    if len(artifacts) == 0:
+        if fail_if_not_found:
+            fail("No artifact found with suffix %s in outputs of action with mnemonic %s." %
+                 (output_suffix, mnemonic))
+        else:
+            return None
+    return artifacts[0][1]
+
 analysistest = _analysistest
 
 unittest = struct(
@@ -108,4 +146,5 @@ unittest = struct(
     make = _unittest.make,
     prefix = _prefix_from_test_info,
     test_suite = _test_suite,
+    find_artifact = _find_artifact,
 )
