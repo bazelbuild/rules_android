@@ -240,6 +240,13 @@ AndroidLibraryResourceClassJarProvider = provider(
     ),
 )
 
+ProguardMappingInfo = provider(
+    doc = "ProguardMappingInfo",
+    fields = dict(
+        proguard_mapping = "",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 ApkInfo = providers.ApkInfo
@@ -250,7 +257,6 @@ AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
 DataBindingV2Info = providers.DataBindingV2Info
 AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
-ProguardMappingInfo = providers.ProguardMappingInfo
 BaselineProfileProvider = providers.BaselineProfileProvider  # buildifier: disable=name-conventions
 AndroidDexInfo = providers.AndroidDexInfo
 AndroidOptimizationInfo = providers.AndroidOptimizationInfo

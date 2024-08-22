@@ -29,7 +29,6 @@ providers = struct(
     AndroidIdeInfo = AndroidIdeInfo,
     DataBindingV2Info = DataBindingV2Info,
     AndroidFeatureFlagSet = AndroidFeatureFlagSet,
-    ProguardMappingInfo = ProguardMappingInfo,
     BaselineProfileProvider = BaselineProfileProvider,
     AndroidDexInfo = AndroidDexInfo,
     AndroidOptimizationInfo = AndroidOptimizationInfo,
