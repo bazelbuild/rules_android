@@ -427,7 +427,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
     providers.append(AndroidPreDexJarInfo(pre_dex_jar = binary_jar))
 
     if postprocessing_output_map:
-        providers.append(ProguardMappingInfo(postprocessing_output_map))
+        providers.append(ProguardMappingInfo(proguard_mapping = postprocessing_output_map))
 
     return ProviderInfo(
         name = "dex_ctx",
