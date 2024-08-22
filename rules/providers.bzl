@@ -218,6 +218,17 @@ AndroidCcLinkParamsInfo = provider(
     ),
 )
 
+AndroidDexInfo = provider(
+    doc = "AndroidDexInfo",
+    fields = dict(
+        deploy_jar = "The deploy jar.",
+        filtered_deploy_jar = "The filtered deploy jar.",
+        final_classes_dex_zip = "The zip file containing the final dex classes.",
+        final_proguard_output_map = "The final proguard output map.",
+        java_resource_jar = "The final Java resource jar.",
+    ),
+)
+
 AndroidPreDexJarInfo = provider(
     doc = "AndroidPreDexJarInfo",
     fields = dict(
@@ -258,5 +269,4 @@ AndroidIdeInfo = providers.AndroidIdeInfo
 DataBindingV2Info = providers.DataBindingV2Info
 AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
 BaselineProfileProvider = providers.BaselineProfileProvider  # buildifier: disable=name-conventions
-AndroidDexInfo = providers.AndroidDexInfo
 AndroidOptimizationInfo = providers.AndroidOptimizationInfo
