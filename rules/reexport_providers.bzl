@@ -21,7 +21,6 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 visibility(PROJECT_VISIBILITY)
 
 providers = struct(
-    ApkInfo = ApkInfo,
     AndroidResourcesInfo = AndroidResourcesInfo,
     AndroidSdkInfo = AndroidSdkInfo,
     AndroidManifestInfo = AndroidManifestInfo,

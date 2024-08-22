@@ -18,6 +18,7 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
+load("//rules:providers.bzl", "ApkInfo")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ATTRS")
