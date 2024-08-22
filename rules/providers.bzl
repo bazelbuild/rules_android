@@ -244,6 +244,14 @@ AndroidInstrumentationInfo = provider(
 )
 
 # buildifier: disable=name-conventions
+BaselineProfileProvider = provider(
+    doc = "BaselineProfileProvider",
+    fields = dict(
+        files = "",
+    ),
+)
+
+# buildifier: disable=name-conventions
 AndroidLibraryResourceClassJarProvider = provider(
     doc = "AndroidLibraryResourceClassJarProvider",
     fields = dict(
@@ -268,5 +276,4 @@ AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
 DataBindingV2Info = providers.DataBindingV2Info
 AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
-BaselineProfileProvider = providers.BaselineProfileProvider  # buildifier: disable=name-conventions
 AndroidOptimizationInfo = providers.AndroidOptimizationInfo
