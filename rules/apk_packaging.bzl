@@ -161,10 +161,10 @@ def _process(
             unsigned_apk = unsigned_apk,
             deploy_jar = deploy_jar,
             coverage_metadata = coverage_metadata,
-            merged_manifest = merged_manifest,
             signing_keys = signing_keys,
             signing_lineage = signing_lineage,
             signing_min_v3_rotation_api_version = signing_key_rotation_min_sdk,
+            keystore = signing_keys[0] if signing_keys else None,
         ),
     )
     apk_packaging_ctx[_OUTPUT_GROUPS] = dict(

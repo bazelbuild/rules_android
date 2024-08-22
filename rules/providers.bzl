@@ -179,6 +179,20 @@ StarlarkAndroidIdeInfoForTesting = provider(
     ),
 )
 
+ApkInfo = provider(
+    doc = "ApkInfo",
+    fields = dict(
+        signing_lineage = "Returns the signing lineage file, if present, that was used to sign the APK.",
+        keystore = "Returns a keystore that was used to sign the APK. Deprecated: prefer signing_keys.",
+        coverage_metadata = "Returns the coverage metadata artifact generated in the transitive closure.",
+        deploy_jar = "Returns the deploy jar used to build the APK.",
+        unsigned_apk = "Returns a unsigned APK built from the target.",
+        signed_apk = "Returns a signed APK built from the target.",
+        signing_keys = "Returns a list of signing keystores that were used to sign the APK.",
+        signing_min_v3_rotation_api_version = "Returns the minimum API version for signing the APK with key rotation.",
+    ),
+)
+
 AndroidLibraryAarInfo = provider(
     doc = "AndroidLibraryAarInfo",
     fields = dict(
@@ -277,7 +291,6 @@ DataBindingV2Info = provider(
 
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
-ApkInfo = providers.ApkInfo
 AndroidResourcesInfo = providers.AndroidResourcesInfo
 AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
