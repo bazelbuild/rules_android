@@ -250,6 +250,14 @@ AndroidPreDexJarInfo = provider(
     ),
 )
 
+# buildifier: disable=name-conventions
+AndroidFeatureFlagSet = provider(
+    doc = "AndroidFeatureFlagSet",
+    fields = dict(
+        flags = "Returns the flags contained by the provider.",
+    ),
+)
+
 AndroidInstrumentationInfo = provider(
     doc = "AndroidInstrumentationInfo",
     fields = dict(
@@ -288,4 +296,3 @@ AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
 DataBindingV2Info = providers.DataBindingV2Info
-AndroidFeatureFlagSet = providers.AndroidFeatureFlagSet  # buildifier: disable=name-conventions
