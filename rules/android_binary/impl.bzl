@@ -610,7 +610,7 @@ def finalize(
     )
 
     providers.append(
-        AndroidFeatureFlagSet({
+        AndroidFeatureFlagSet(flags = {
             flag.label: value
             for flag, value in ctx.attr.feature_flags.items()
         }),
