@@ -288,6 +288,16 @@ ProguardMappingInfo = provider(
     ),
 )
 
+DataBindingV2Info = provider(
+    doc = "DataBindingV2Info",
+    fields = dict(
+        class_infos = "",
+        setter_stores = "",
+        transitive_br_files = "",
+        java_packages = "List of the Java packages of this rule and any rules that this rule exports.",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 AndroidResourcesInfo = providers.AndroidResourcesInfo
@@ -295,4 +305,3 @@ AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo
-DataBindingV2Info = providers.DataBindingV2Info

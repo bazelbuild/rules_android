@@ -142,8 +142,7 @@ def _get_javac_opts(
         deps):
     java_packages = []
     for info in deps:
-        for label_and_java_package in info.label_and_java_packages:
-            java_packages.append(label_and_java_package.java_package)
+        java_packages.extend(info.java_packages)
 
     javac_opts = []
     javac_opts.append("-Aandroid.databinding.dependencyArtifactsDir=" +
@@ -166,6 +165,12 @@ def _get_javac_opts(
     javac_opts.append("-Aandroid.databinding.classLogDir=" + class_info_path)
     javac_opts.append("-Aandroid.databinding.layoutInfoDir=" + layout_info_path)
     return javac_opts
+
+def _merge_lists(lists):
+    merged = []
+    for sublist in lists:
+        merged.extend(sublist)
+    return merged
 
 def _process(
         ctx,
@@ -224,8 +229,12 @@ def _process(
     if not enable_data_binding:
         db_info[_PROVIDERS] = [
             DataBindingV2Info(
-                databinding_v2_providers_in_deps = deps,
-                databinding_v2_providers_in_exports = exports,
+                setter_stores = depset(transitive = [info.setter_stores for info in exports]),
+                class_infos = depset(transitive = [info.class_infos for info in exports]),
+                transitive_br_files = depset(transitive =
+                                                 [info.transitive_br_files for info in deps] +
+                                                 [info.transitive_br_files for info in exports]),
+                java_packages = _merge_lists([info.java_packages for info in exports]),
             ),
         ]
         return struct(**db_info)
@@ -293,13 +302,20 @@ def _process(
 
     db_info[_PROVIDERS] = [
         DataBindingV2Info(
-            setter_store_file = setter_store_out,
-            class_info_file = class_info,
-            br_file = br_out,
-            label = str(ctx.label),
-            java_package = java_package,
-            databinding_v2_providers_in_deps = deps,
-            databinding_v2_providers_in_exports = exports,
+            setter_stores = depset(
+                direct = [setter_store_out] if setter_store_out else [],
+                transitive = [info.setter_stores for info in exports],
+            ),
+            class_infos = depset(
+                direct = [class_info] if class_info else [],
+                transitive = [info.class_infos for info in exports],
+            ),
+            transitive_br_files = depset(
+                direct = [br_out] if br_out else [],
+                transitive = [info.transitive_br_files for info in deps] +
+                             [info.transitive_br_files for info in exports],
+            ),
+            java_packages = [java_package] + _merge_lists([info.java_packages for info in exports]),
         ),
     ]
 
