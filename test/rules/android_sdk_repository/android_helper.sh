@@ -33,6 +33,11 @@ function set_up() {
   rm -rf *
   touch WORKSPACE
 
+  cat > .bazelrc <<EOF
+# Re-enable workspace after https://github.com/bazelbuild/bazel/commit/5881c38c54416add9faec35b7731954f4baf12d8
+common --enable_workspace=true
+EOF
+
   # Clean out the test android SDK if any
   rm -rf "${TEST_TMPDIR}/android_sdk"
 
