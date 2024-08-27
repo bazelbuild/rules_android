@@ -66,6 +66,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "providers_bzl",
+    srcs = [
+        "providers.bzl",
+        "reexport_providers.bzl",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [":visibility_bzl"],
+)
+
+bzl_library(
     name = "android_split_transition_bzl",
     srcs = [
         "android_split_transition.bzl",
