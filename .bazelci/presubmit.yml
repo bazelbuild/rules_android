@@ -4,10 +4,12 @@ bazel: last_green
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
+  ? "--enable_workspace=true"
   # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
   ? "--java_runtime_version=17"
 rules_flags: &rules_flags
   ? "--enable_bzlmod=false"
+  ? "--enable_workspace=true"
 
 tools: &tools
   name: "Tools"
@@ -34,9 +36,11 @@ tools_bzlmod: &tools_bzlmod
   build_flags:
     <<: *tools_flags
     ? "--enable_bzlmod"
+    ? "--enable_workspace=false"
   test_flags:
     <<: *tools_flags
     ? "--enable_bzlmod"
+    ? "--enable_workspace=false"
   <<: *tools
 rules: &rules
   name: "Rules"
@@ -53,9 +57,11 @@ rules_bzlmod: &rules_bzlmod
   build_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
+    ? "--enable_workspace=false"
   test_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
+    ? "--enable_workspace=false"
   <<: *rules
 
 tasks:
@@ -110,6 +116,7 @@ tasks:
     build_flags:
       <<: *rules_flags
       ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
     build_targets:
       - "//java/com/basicapp:basic_app"
   macos_arm64_basicapp:
@@ -127,6 +134,7 @@ tasks:
     build_flags:
       <<: *rules_flags
       ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
     build_targets:
       - "//java/com/basicapp:basic_app"
   windows_basicapp_bzlmod:
@@ -136,6 +144,7 @@ tasks:
     build_flags:
       <<: *rules_flags
       ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
     build_targets:
       - "//java/com/basicapp:basic_app"
   windows_basicapp:
