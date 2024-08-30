@@ -24,7 +24,7 @@ load(
 load("//mobile_install:resources.bzl", "liteparse")
 load("//mobile_install:transform.bzl", "dex")
 load("//rules:java.bzl", _java = "java")
-load("//rules:providers.bzl", "AndroidAssetsInfo", "AndroidResourcesInfo")
+load("//rules:providers.bzl", "AndroidAssetsInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
@@ -54,9 +54,12 @@ def _adapt(target, ctx):
 
     label = None
     resources = depset()
-    if AndroidResourcesInfo in target:
-        label = target[AndroidResourcesInfo].label
-        resources = target[AndroidResourcesInfo].direct_android_resources
+    if StarlarkAndroidResourcesInfo in target:
+        label = target.label
+        resources = depset(transitive = [
+            node.resources
+            for node in target[StarlarkAndroidResourcesInfo].direct_resources_nodes.to_list()
+        ])
 
     return [
         providers.make_mi_android_assets_info(
