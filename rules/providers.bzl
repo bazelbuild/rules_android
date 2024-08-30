@@ -89,6 +89,7 @@ StarlarkAndroidResourcesInfo = provider(
         transitive_resource_files = "Depset of transitive resource files",
         packages_to_r_txts = "Map of packages to depset of r_txt files",
         transitive_resource_apks = "Depset of transitive resource only apk files",
+        package = "String, the package used for the generated Java resources",
     ),
 )
 
