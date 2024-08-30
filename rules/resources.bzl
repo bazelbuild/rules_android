@@ -1787,6 +1787,7 @@ def _process_starlark(
                 transitive = transitive_resource_apks,
                 order = "preorder",
             ),
+            package = java_package,
         ))
     else:
         # Depsets are ordered below to match the order in the legacy native rules.
@@ -1858,6 +1859,7 @@ def _process_starlark(
                 transitive = transitive_resource_apks,
                 order = "preorder",
             ),
+            package = java_package,
         ))
 
     # TODO(b/69552500): In the Starlark Android Rules, the R compile time
