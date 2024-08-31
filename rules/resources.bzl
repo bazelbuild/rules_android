@@ -254,20 +254,20 @@ def _add_g3itr(
     )
 
 def _get_legacy_mergee_manifests(resources_infos):
-    all_dependencies = depset(
+    all_dependency_nodes = depset(
         transitive = [
-            ri.direct_android_resources
+            ri.direct_resources_nodes
             for ri in resources_infos
         ] + [
-            ri.transitive_android_resources
+            ri.transitive_resources_nodes
             for ri in resources_infos
         ],
     )
 
     mergee_manifests = []
-    for dep in all_dependencies.to_list():
-        if dep.to_provider.manifest.exports_manifest:
-            mergee_manifests.append(dep.to_provider.manifest.manifest)
+    for node in all_dependency_nodes.to_list():
+        if node.exports_manifest:
+            mergee_manifests.append(node.manifest)
 
     return depset(mergee_manifests)
 
