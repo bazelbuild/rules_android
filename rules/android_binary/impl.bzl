@@ -34,7 +34,7 @@ load(
     "processing_pipeline",
 )
 load("//rules:proguard.bzl", "proguard")
-load("//rules:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidPreDexJarInfo", "AndroidResourcesInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkApkInfo")
+load("//rules:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidPreDexJarInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load(
     "//rules:utils.bzl",
@@ -62,8 +62,8 @@ def _base_validations_processor(ctx, **_unused_ctxs):
 
     # Validates that there are no targets with resources in the srcs
     for src in ctx.attr.srcs:
-        if AndroidResourcesInfo in src:
-            fail("srcs should not contain label with resources %s" % str(src[AndroidResourcesInfo].label))
+        if StarlarkAndroidResourcesInfo in src:
+            fail("srcs should not contain label with resources %s" % str(src.label))
 
     use_r8 = acls.use_r8(str(ctx.label)) and bool(ctx.files.proguard_specs)
     return ProviderInfo(

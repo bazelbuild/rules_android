@@ -26,7 +26,7 @@ load(
     "processing_pipeline",
 )
 load("//rules:proguard.bzl", _proguard = "proguard")
-load("//rules:providers.bzl", "AndroidCcLinkParamsInfo", "AndroidIdlInfo", "AndroidLibraryAarInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "AndroidResourcesInfo", "BaselineProfileProvider", "DataBindingV2Info", "StarlarkApkInfo")
+load("//rules:providers.bzl", "AndroidCcLinkParamsInfo", "AndroidIdlInfo", "AndroidLibraryAarInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "BaselineProfileProvider", "DataBindingV2Info", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -203,9 +203,8 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
     if resources_ctx.defines_resources:
         # Verify that srcs do no contain labels.
         for src in ctx.attr.srcs:
-            if AndroidResourcesInfo in src:
-                log.error(_SRCS_CONTAIN_RESOURCE_LABEL_ERROR %
-                          src[AndroidResourcesInfo].label)
+            if StarlarkAndroidResourcesInfo in src:
+                log.error(_SRCS_CONTAIN_RESOURCE_LABEL_ERROR % src.label)
 
     return ProviderInfo(
         name = "resources_ctx",
