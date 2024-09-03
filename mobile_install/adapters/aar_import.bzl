@@ -57,7 +57,7 @@ def _adapt(target, ctx):
     if StarlarkAndroidResourcesInfo in target:
         label = target.label
         resources = depset(transitive = [
-            node.resources
+            node.resource_files
             for node in target[StarlarkAndroidResourcesInfo].direct_resources_nodes.to_list()
         ])
 
