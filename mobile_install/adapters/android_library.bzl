@@ -19,7 +19,6 @@ load(
     "MIAndroidAssetsInfo",
     "MIAndroidDexInfo",
     "MIAndroidResourcesInfo",
-    "MIAndroidSdkInfo",
     "MIJavaResourcesInfo",
     "providers",
 )
@@ -35,6 +34,7 @@ visibility(PROJECT_VISIBILITY)
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return [
+        "_aidl_lib",
         "_android_sdk",
         # Access the kt toolchain to get kotlin std and runtime libs.
         "_toolchain",
@@ -56,10 +56,9 @@ def _adapt(target, ctx):
     if ctx.rule.attr.neverlink:
         return []
 
+    aidl_lib = []
     if target[AndroidIdeInfo].idl_generated_java_files:
-        aidl_lib = [ctx.rule.attr._android_sdk[MIAndroidSdkInfo].aidl_lib]
-    else:
-        aidl_lib = []
+        aidl_lib = [ctx.rule.attr._aidl_lib]
 
     return [
         providers.make_mi_android_aar_native_libs_info(

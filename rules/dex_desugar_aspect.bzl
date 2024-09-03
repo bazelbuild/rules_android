@@ -30,7 +30,7 @@ _tristate = _attrs.tristate
 def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return [
-        "aidl_lib",  # for the aidl runtime in the android_sdk rule
+        "_aidl_lib",  # for the aidl runtime on android_library
         "deps",
         "exports",
         "runtime",
@@ -179,11 +179,8 @@ def _get_produced_runtime_jars(target, ctx, extra_toolchain_jars):
         return jars
 
 def _get_platform_based_toolchain_jars(ctx):
-    android_sdk = _get_android_sdk(ctx)
-
-    if android_sdk.aidl_lib:
-        return android_sdk.aidl_lib[JavaInfo].runtime_output_jars
-
+    if hasattr(ctx.rule.attr, "_aidl_lib"):
+        return ctx.rule.attr._aidl_lib[JavaInfo].runtime_output_jars
     return []
 
 def _get_aspect_dexopts(ctx):

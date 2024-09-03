@@ -99,13 +99,6 @@ MIAndroidResourcesInfo = provider(
     ),
 )
 
-MIAndroidSdkInfo = provider(
-    doc = "Provides android_sdk rule information",
-    fields = dict(
-        aidl_lib = "The aidl_lib attribute of an android_sdk rule.",
-    ),
-)
-
 MIJavaResourcesInfo = provider(
     doc = "Provider Java Resources information",
     fields = dict(

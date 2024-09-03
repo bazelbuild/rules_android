@@ -25,7 +25,7 @@ def _impl(ctx):
     android_sdk_info = AndroidSdkInfo(
         ctx.attr.build_tools_version,
         ctx.file.framework_aidl,
-        ctx.attr.aidl_lib,
+        None,
         ctx.file.android_jar,
         ctx.file.source_properties,
         ctx.file.shrinked_android_jar,

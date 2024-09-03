@@ -16,7 +16,6 @@
 load("//mobile_install/adapters:aar_import.bzl", "aar_import")
 load("//mobile_install/adapters:android_binary.bzl", "android_binary")
 load("//mobile_install/adapters:android_library.bzl", "android_library")
-load("//mobile_install/adapters:android_sdk.bzl", "android_sdk")
 load("//mobile_install/adapters:apk_import.bzl", "apk_import")
 load("//mobile_install/adapters:default.bzl", "default_adapter")
 load("//mobile_install/adapters:java_import.bzl", "java_import")
@@ -33,7 +32,6 @@ ADAPTERS = dict(
     aar_import = aar_import,
     android_binary = android_binary,
     android_library = android_library,
-    android_sdk = android_sdk,
     apk_import = apk_import,
     java_import = java_import,
     java_library = java_library,
