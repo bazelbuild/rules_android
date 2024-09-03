@@ -236,6 +236,9 @@ ATTRS = _attrs.add(
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
         ),
+        _aidl_lib = attr.label(
+            default = Label("//rules:aidl_lib"),
+        ),
     ),
     _attrs.compilation_attributes(),
     _attrs.DATA_CONTEXT,

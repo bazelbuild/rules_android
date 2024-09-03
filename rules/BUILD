@@ -154,3 +154,10 @@ int_setting(
         "//:__subpackages__",
     ],
 )
+
+# Empty AIDL Library for OSS.
+# TODO: Delete this once AOSP compiler is used everywhere.
+java_library(
+    name = "aidl_lib",
+    visibility = ["//visibility:public"],
+)

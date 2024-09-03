@@ -251,6 +251,7 @@ ANDROID_SDK_ATTRS = dict(
     ),
     aidl_lib = attr.label(
         allow_files = [".jar"],
+        doc = "Deprecated, only used for the soon to be deleted forked compiler.",
     ),
     android_jar = attr.label(
         allow_single_file = [".jar"],
