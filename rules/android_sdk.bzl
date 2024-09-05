@@ -15,7 +15,6 @@
 
 load("//rules:providers.bzl", "AndroidSdkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":attrs.bzl", "ANDROID_SDK_ATTRS")
 
 visibility(PROJECT_VISIBILITY)
@@ -23,27 +22,24 @@ visibility(PROJECT_VISIBILITY)
 def _impl(ctx):
     proguard = ctx.attr._proguard if ctx.attr._proguard else ctx.attr.proguard
     android_sdk_info = AndroidSdkInfo(
-        ctx.attr.build_tools_version,
-        ctx.file.framework_aidl,
-        None,
-        ctx.file.android_jar,
-        ctx.file.source_properties,
-        ctx.file.shrinked_android_jar,
-        ctx.file.main_dex_classes,
-        ctx.attr.adb.files_to_run,
-        ctx.attr.dx.files_to_run,
-        ctx.attr.main_dex_list_creator.files_to_run,
-        ctx.attr.aidl.files_to_run,
-        ctx.attr.aapt.files_to_run,
-        ctx.attr.aapt2.files_to_run,
-        ctx.attr.apkbuilder.files_to_run if ctx.attr.apkbuilder else None,
-        ctx.attr.apksigner.files_to_run,
-        proguard.files_to_run,
-        ctx.attr.zipalign.files_to_run,
-        # Passing the 'system' here is only necessary to support native android_binary.
-        # TODO(b/149114743): remove this after the migration to android_application.
-        ctx.attr._system[java_common.BootClassPathInfo] if ctx.attr._system and java_common.BootClassPathInfo in ctx.attr._system else None,
-        ctx.attr.legacy_main_dex_list_generator.files_to_run if ctx.attr.legacy_main_dex_list_generator else None,
+        build_tools_version = ctx.attr.build_tools_version,
+        framework_aidl = ctx.file.framework_aidl,
+        aidl_lib = None,
+        android_jar = ctx.file.android_jar,
+        source_properties = ctx.file.source_properties,
+        shrinked_android_jar = ctx.file.shrinked_android_jar,
+        main_dex_classes = ctx.file.main_dex_classes,
+        adb = ctx.attr.adb.files_to_run,
+        dx = ctx.attr.dx.files_to_run,
+        main_dex_list_creator = ctx.attr.main_dex_list_creator.files_to_run,
+        aidl = ctx.attr.aidl.files_to_run,
+        aapt = ctx.attr.aapt.files_to_run,
+        aapt2 = ctx.attr.aapt2.files_to_run,
+        apk_builder = ctx.attr.apkbuilder.files_to_run if ctx.attr.apkbuilder else None,
+        apk_signer = ctx.attr.apksigner.files_to_run,
+        proguard = proguard.files_to_run,
+        zip_align = ctx.attr.zipalign.files_to_run,
+        legacy_main_dex_list_generator = ctx.attr.legacy_main_dex_list_generator.files_to_run if ctx.attr.legacy_main_dex_list_generator else None,
     )
     return [
         android_sdk_info,
