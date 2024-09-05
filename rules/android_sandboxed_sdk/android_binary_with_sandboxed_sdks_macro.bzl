@@ -21,7 +21,7 @@ load("//rules:acls.bzl", "acls")
 load("//rules:bundletool.bzl", _bundletool = "bundletool")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
-load("//rules:providers.bzl", "ApkInfo")
+load("//rules:providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkApkInfo", "AndroidSandboxedSdkBundleInfo", "ApkInfo")
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
@@ -32,7 +32,6 @@ load(
     _utils = "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkApkInfo", "AndroidSandboxedSdkBundleInfo")
 
 visibility(PROJECT_VISIBILITY)
 

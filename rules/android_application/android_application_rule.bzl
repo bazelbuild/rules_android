@@ -37,10 +37,12 @@ load(
 )
 load(
     "//rules:providers.bzl",
+    "AndroidArchivedSandboxedSdkInfo",
     "AndroidBundleInfo",
     "AndroidFeatureModuleInfo",
     "AndroidIdeInfo",
     "AndroidPreDexJarInfo",
+    "AndroidSandboxedSdkBundleInfo",
     "ApkInfo",
     "ProguardMappingInfo",
     "StarlarkAndroidResourcesInfo",
@@ -57,11 +59,6 @@ load(
     _log = "log",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(
-    "//rules/android_sandboxed_sdk:providers.bzl",
-    "AndroidArchivedSandboxedSdkInfo",
-    "AndroidSandboxedSdkBundleInfo",
-)
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
 load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")

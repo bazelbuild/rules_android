@@ -18,7 +18,7 @@ load(
     _common = "common",
 )
 load("//rules:java.bzl", _java = "java")
-load("//rules:providers.bzl", "ApkInfo")
+load("//rules:providers.bzl", "AndroidSandboxedSdkInfo", "ApkInfo")
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
@@ -28,7 +28,6 @@ load(
     _get_android_toolchain = "get_android_toolchain",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(":providers.bzl", "AndroidSandboxedSdkInfo")
 
 visibility(PROJECT_VISIBILITY)
 
