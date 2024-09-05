@@ -343,10 +343,33 @@ AndroidSandboxedSdkApkInfo = provider(
     ),
 )
 
+AndroidSdkInfo = provider(
+    doc = "AndroidSdkInfo",
+    fields = dict(
+        build_tools_version = "",
+        framework_aidl = "",
+        aidl_lib = "",
+        android_jar = "",
+        source_properties = "",
+        shrinked_android_jar = "",
+        main_dex_classes = "",
+        adb = "",
+        dx = "",
+        main_dex_list_creator = "",
+        aidl = "",
+        aapt = "",
+        aapt2 = "",
+        apk_builder = "",
+        apk_signer = "",
+        proguard = "",
+        legacy_main_dex_list_generator = "",
+        zip_align = "",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 AndroidResourcesInfo = providers.AndroidResourcesInfo
-AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
 AndroidIdeInfo = providers.AndroidIdeInfo

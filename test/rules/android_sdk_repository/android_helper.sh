@@ -36,41 +36,52 @@ function set_up() {
   cat > .bazelrc <<EOF
 # Re-enable workspace after https://github.com/bazelbuild/bazel/commit/5881c38c54416add9faec35b7731954f4baf12d8
 common --enable_workspace=true
+
+common --experimental_google_legacy_api
 EOF
 
   # Clean out the test android SDK if any
   rm -rf "${TEST_TMPDIR}/android_sdk"
 
   # Make sure the rules exist and seed the WORKSPACE.
-  rm -rf "${TEST_TMPDIR}/android_sdk_repository_src"
+  rm -rf "${TEST_TMPDIR}/rules_android"
   set_up_rules
 }
 
 function set_up_rules() {
-  local android_revision_rule="$(rlocation rules_android/rules/android_revision.bzl)"
+  local rules_android="$(dirname $(rlocation rules_android/rules/android_sdk.bzl))"
+  if [[ -z "${rules_android}" ]]; then
+    fail "Failed to locate rules_android"
+  fi
+  local dest_dir="${TEST_TMPDIR}/rules_android"
+  mkdir -p "${dest_dir}/rules"
 
-  local repo_rule="$(rlocation rules_android/rules/android_sdk_repository/rule.bzl)"
-  local repo_rule_dir="$(dirname "${repo_rule}")"
-  local dest_dir="${TEST_TMPDIR}/android_sdk_repository_src"
-  mkdir -p "${dest_dir}/rules/android_sdk_repository"
-  cp -r "${repo_rule_dir}"/* "${dest_dir}/rules/android_sdk_repository"
+  cp -r -L "${rules_android}"/* "${dest_dir}/rules"
+  chmod +r "${dest_dir}/rules/rules.bzl"
+
+  cat > "${dest_dir}/rules/rules.bzl" <<EOF
+load("//rules:android_sdk.bzl", _android_sdk = "android_sdk")
+android_sdk = _android_sdk
+EOF
+
   cat > "${dest_dir}/WORKSPACE" <<EOF
 workspace(name = "android_sdk_repository_src")
 EOF
+
   cat > "${dest_dir}/rules/BUILD" <<EOF
 exports_files(["*.bzl"])
 EOF
-  cp "${android_revision_rule}" "${dest_dir}/rules/"
+
   cat > "${dest_dir}/rules/android_sdk_repository/BUILD" <<EOF
 exports_files(["*.bzl"])
 EOF
 
   cat >> WORKSPACE <<EOF
 local_repository(
-    name = "android_sdk_repository_src",
+    name = "rules_android",
     path = "${dest_dir}",
 )
-load("@android_sdk_repository_src//rules/android_sdk_repository:rule.bzl", "android_sdk_repository")
+load("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository")
 EOF
 }
 
