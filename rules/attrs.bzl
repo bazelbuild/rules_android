@@ -340,6 +340,9 @@ ANDROID_SDK_ATTRS = dict(
             name = "proguard_top",
         ),
     ),
+    _system = attr.label(
+        default = Label("//tools/android:bootclasspath_android_only"),
+    ),
 )
 
 # Attributes for resolving platform-based toolchains. Only needed by the native
