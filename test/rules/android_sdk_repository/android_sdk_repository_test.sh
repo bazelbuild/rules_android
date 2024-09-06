@@ -28,10 +28,202 @@ source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
 source "$(rlocation rules_android/test/bashunit/unittest.bash)" || \
   (echo >&2 "Failed to locate bashunit.sh" && exit 1)
 
-ENABLE_PLATFORMS=false
+source "$(rlocation rules_android/test/rules/android_sdk_repository/android_helper.sh)" || \
+  (echo >&2 "Failed to locate android_helper.sh" && exit 1)
 
-# Source and run the actual tests from test_lib.sh
-source "$(rlocation rules_android/test/rules/android_sdk_repository/test_lib.sh)" || \
-  (echo >&2 "Failed to locate test_lib.sh" && exit 1)
+# Tests for Android Sdk Repository
+
+# Test that the dummy SDK exists.
+function test_dummy_sdk() {
+  # Create android SDK
+  local sdk_path="$(create_android_sdk_basic)"
+
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  "${BIT_BAZEL_BINARY}" query @androidsdk//:sdk-dummy >& $TEST_log || fail "Dummy SDK missing"
+}
+
+# Check that the empty BUILD file was created.
+function test_android_sdk_repository_no_path_or_android_home() {
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+)
+EOF
+
+  verify_no_android_sdk
+  "${BIT_BAZEL_BINARY}" build @androidsdk//:files >& $TEST_log && fail "Should have failed" || true
+  expect_log "Either the path attribute of android_sdk_repository"
+}
+
+function test_android_sdk_repository_path_from_attribute() {
+  # Create android SDK
+  local sdk_path="$(create_android_sdk_basic)"
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  # Verify the SDK is created correctly.
+  verify_android_sdk
+}
+
+function test_android_sdk_repository_path_from_environment() {
+  # Create android SDK
+  local sdk_path="$(create_android_sdk_basic)"
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+)
+EOF
+
+  export ANDROID_HOME="${sdk_path}"
+  # Verify the SDK is created correctly.
+  verify_android_sdk
+}
+
+function test_android_sdk_repository_fails_invalid_path() {
+  # Create an empty SDK directory.
+  mkdir -p "$TEST_TMPDIR/android_sdk"
+
+  # Add to repository with the invalid path
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "$TEST_TMPDIR/android_sdk",
+)
+EOF
+
+  "${BIT_BAZEL_BINARY}" query @androidsdk//:files >& $TEST_log && fail "Should have failed" || true
+  expect_log "No Android SDK apis found in the Android SDK"
+}
+
+function test_build_tools_largest() {
+  # create several build tools, including ones with malformed names
+  # (e.g. .DStore) to confirm they are properly excluded and do not cause
+  # crashes.
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31
+  add_build_tools "${sdk_path}" 10.1.2 20.2.3 30.3.4 .DStore
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  check_android_sdk_provider
+  expect_log "build_tools_version: 30.3.4"
+}
+
+# TODO(rules-android): Fix API selection with platforms.
+function ignore_test_api_level_default() {
+  # create several api levels
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31 23 45
+  add_build_tools "${sdk_path}" 30.3.4
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  # Should be the largest API level available
+  check_android_sdk_provider
+  expect_log "api_level: 45"
+}
+
+# TODO(rules-android): Fix API selection with platforms.
+function ignore_test_api_level_specific() {
+  # create several api levels
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31 23 45
+  add_build_tools "${sdk_path}" 30.3.4
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+    api_level = 31,
+)
+EOF
+
+  check_android_sdk_provider
+  expect_log "api_level: 31"
+}
+
+function test_api_level_specific_missing() {
+  # create several api levels
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31 23 45
+  add_build_tools "${sdk_path}" 30.3.4
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+    api_level = 30,
+)
+EOF
+
+  "${BIT_BAZEL_BINARY}" query @androidsdk//:files >& $TEST_log && fail "Should have failed" || true
+  expect_log "Android SDK api level 30 was requested but it is not installed"
+}
+
+function test_api_level_flag() {
+  # create several api levels
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31 23 45
+  add_build_tools "${sdk_path}" 30.3.4
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  check_android_sdk_provider --@androidsdk//:api_level=31
+  expect_log "api_level: 31"
+}
+
+function test_non_numeric_api_level() {
+  # create a couple numeric api levels, and a non-numeric api level
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31 23 TiramisuPrivacySandbox
+  add_build_tools "${sdk_path}" 30.3.4
+
+  # Add to repository.
+  cat >> WORKSPACE <<EOF
+android_sdk_repository(
+    name = "androidsdk",
+    path = "${sdk_path}",
+)
+EOF
+
+  check_android_sdk_provider
+  # Non-numeric api level should be ignored, and highest numeric api level
+  # should still be picked.
+  expect_log "api_level: 31"
+}
 
 run_suite "Android integration tests for SDK"
