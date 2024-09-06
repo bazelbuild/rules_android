@@ -246,15 +246,11 @@ function check_android_sdk_provider() {
     "$@"
   )
 
-  if [[ ${ENABLE_PLATFORMS:-false} == "true" ]]; then
-    write_platforms
-    write_android_sdk_provider_platforms
-    extra_args+=(
-      "--platforms=//platforms:arm64-v8a"
-    )
-  else
-    write_android_sdk_provider
-  fi
+  write_platforms
+  write_android_sdk_provider_platforms
+  extra_args+=(
+    "--platforms=//platforms:arm64-v8a"
+  )
 
   cat > sdk_check/BUILD <<EOF
 load(":check.bzl", "show_sdk_info")
