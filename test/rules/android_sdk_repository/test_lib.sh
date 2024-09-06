@@ -129,11 +129,8 @@ EOF
   expect_log "build_tools_version: 30.3.4"
 }
 
-function test_api_level_default() {
-  if [[ "${ENABLE_PLATFORMS:-false}" == "true" ]]; then
-    # TODO(katre): Fix API selection with platforms.
-    return
-  fi
+# TODO(rules-android): Fix API selection with platforms.
+function ignore_test_api_level_default() {
   # create several api levels
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31 23 45
@@ -152,11 +149,8 @@ EOF
   expect_log "api_level: 45"
 }
 
-function test_api_level_specific() {
-  if [[ "${ENABLE_PLATFORMS:-false}" == "true" ]]; then
-    # TODO(katre): Fix API selection with platforms.
-    return
-  fi
+# TODO(rules-android): Fix API selection with platforms.
+function ignore_test_api_level_specific() {
   # create several api levels
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31 23 45
