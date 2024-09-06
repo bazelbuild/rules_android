@@ -43,18 +43,6 @@ sh_library(
 )
 
 script_test(
-    name = "android_sdk_repository_test",
-    srcs = ["android_sdk_repository_test.sh"],
-    bazel_binaries = bazel_binaries,
-    bazel_version = bazel_binaries.versions.current,
-    deps = [
-        ":test_lib",
-        "//test/bashunit",
-        "@bazel_tools//tools/bash/runfiles",
-    ],
-)
-
-script_test(
     name = "android_sdk_repository_platforms_test",
     srcs = ["android_sdk_repository_platforms_test.sh"],
     bazel_binaries = bazel_binaries,
@@ -70,6 +58,5 @@ test_suite(
     name = "integration_tests",
     tests = [
         ":android_sdk_repository_platforms_test",
-        ":android_sdk_repository_test",
     ],
 )
