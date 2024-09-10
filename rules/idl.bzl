@@ -13,7 +13,7 @@
 # limitations under the License.
 """Bazel Android IDL library for the Android rules."""
 
-load("//rules:providers.bzl", "AndroidIdlInfo")
+load("//providers:providers.bzl", "AndroidIdlInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")

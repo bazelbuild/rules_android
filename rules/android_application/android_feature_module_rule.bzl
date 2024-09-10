@@ -13,14 +13,14 @@
 # limitations under the License.
 """android_feature_module rule."""
 
-load("//rules:acls.bzl", "acls")
-load("//rules:java.bzl", _java = "java")
 load(
-    "//rules:providers.bzl",
+    "//providers:providers.bzl",
     "AndroidFeatureModuleInfo",
     "AndroidIdeInfo",
     "ApkInfo",
 )
+load("//rules:acls.bzl", "acls")
+load("//rules:java.bzl", _java = "java")
 load(
     "//rules:utils.bzl",
     "get_android_toolchain",

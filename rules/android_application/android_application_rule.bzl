@@ -14,6 +14,18 @@
 """android_application rule."""
 
 load(
+    "//providers:providers.bzl",
+    "AndroidArchivedSandboxedSdkInfo",
+    "AndroidBundleInfo",
+    "AndroidFeatureModuleInfo",
+    "AndroidIdeInfo",
+    "AndroidPreDexJarInfo",
+    "AndroidSandboxedSdkBundleInfo",
+    "ApkInfo",
+    "ProguardMappingInfo",
+    "StarlarkAndroidResourcesInfo",
+)
+load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
 )
@@ -34,18 +46,6 @@ load(
 load(
     "//rules:java.bzl",
     _java = "java",
-)
-load(
-    "//rules:providers.bzl",
-    "AndroidArchivedSandboxedSdkInfo",
-    "AndroidBundleInfo",
-    "AndroidFeatureModuleInfo",
-    "AndroidIdeInfo",
-    "AndroidPreDexJarInfo",
-    "AndroidSandboxedSdkBundleInfo",
-    "ApkInfo",
-    "ProguardMappingInfo",
-    "StarlarkAndroidResourcesInfo",
 )
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",

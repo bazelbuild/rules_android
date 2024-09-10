@@ -14,7 +14,7 @@
 """Bazel testing library asserts."""
 
 load(
-    "//rules:providers.bzl",
+    "//providers:providers.bzl",
     "ResourcesNodeInfo",
     "StarlarkAndroidIdeInfoForTesting",
     "StarlarkAndroidResourcesInfo",

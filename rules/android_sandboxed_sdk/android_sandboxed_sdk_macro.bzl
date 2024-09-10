@@ -13,12 +13,12 @@
 # limitations under the License.
 """Bazel rule for defining an Android Sandboxed SDK."""
 
+load("//providers:providers.bzl", "AndroidSandboxedSdkInfo", "ApkInfo")
 load(
     "//rules:common.bzl",
     _common = "common",
 )
 load("//rules:java.bzl", _java = "java")
-load("//rules:providers.bzl", "AndroidSandboxedSdkInfo", "ApkInfo")
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",

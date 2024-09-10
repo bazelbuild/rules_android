@@ -13,6 +13,7 @@
 # limitations under the License.
 """Implementation."""
 
+load("//providers:providers.bzl", "AndroidAssetsInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "AndroidResourcesInfo")
 load(
     "//rules:acls.bzl",
     _acls = "acls",
@@ -26,7 +27,6 @@ load(
     "//rules:java.bzl",
     _java = "java",
 )
-load("//rules:providers.bzl", "AndroidAssetsInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "AndroidResourcesInfo")
 load(
     "//rules:resources.bzl",
     _resources = "resources",

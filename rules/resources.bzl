@@ -13,9 +13,9 @@
 # limitations under the License.
 """Bazel Android Resources."""
 
+load("//providers:providers.bzl", "AndroidAssetsInfo", "AndroidLibraryResourceClassJarProvider", "AndroidResourcesInfo", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
-load("//rules:providers.bzl", "AndroidAssetsInfo", "AndroidLibraryResourceClassJarProvider", "AndroidResourcesInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -26,11 +26,6 @@ load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
 load(":proguard.bzl", _proguard = "proguard")
-load(
-    ":providers.bzl",
-    "ResourcesNodeInfo",
-    "StarlarkAndroidResourcesInfo",
-)
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils", _compilation_mode = "compilation_mode", _log = "log")
 
 visibility(PROJECT_VISIBILITY)

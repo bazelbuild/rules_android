@@ -25,7 +25,7 @@ load(
 )
 load("//mobile_install:transform.bzl", "dex", "filter_jars")
 load("//mobile_install:utils.bzl", "utils")
-load("//rules:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidIdeInfo")
+load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
