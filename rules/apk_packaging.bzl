@@ -13,7 +13,7 @@
 # limitations under the License.
 """Defines Bazel Apk processing methods for Android rules."""
 
-load("//rules:providers.bzl", "ApkInfo")
+load("//providers:providers.bzl", "ApkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", "java")
 

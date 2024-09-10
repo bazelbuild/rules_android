@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel rule for Android local test."""
 
+load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
@@ -22,7 +23,6 @@ load(
     "ProviderInfo",
     "processing_pipeline",
 )
-load("//rules:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//rules:resources.bzl", "resources")
 load(
     "//rules:utils.bzl",

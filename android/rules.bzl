@@ -32,7 +32,7 @@ load(
     _instrumented_app_info_aspect = "instrumented_app_info_aspect",
 )
 load(
-    "//rules:providers.bzl",
+    "//providers:providers.bzl",
     _AndroidAppsInfo = "AndroidAppsInfo",
     _ApkInfo = "ApkInfo",
     _StarlarkApkInfo = "StarlarkApkInfo",

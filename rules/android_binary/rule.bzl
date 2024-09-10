@@ -13,12 +13,12 @@
 # limitations under the License.
 """Starlark Android Binary for Android Rules."""
 
+load("//providers:providers.bzl", "ApkInfo")
 load("//rules:acls.bzl", "acls")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
-load("//rules:providers.bzl", "ApkInfo")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ATTRS")

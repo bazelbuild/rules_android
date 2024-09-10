@@ -48,8 +48,6 @@ bzl_library(
         "path.bzl",
         "processing_pipeline.bzl",
         "proguard.bzl",
-        "providers.bzl",
-        "reexport_providers.bzl",
         "resources.bzl",
         "sandboxed_sdk_toolbox.bzl",
         "utils.bzl",
@@ -57,22 +55,13 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":visibility_bzl",
+        "//providers:providers_bzl",
         "//rules/acls:bzl",
         "//rules/android_common:bzl",
         "//rules/flags:bzl",
         "@bazel_skylib//lib:paths",
         "@rules_java//java/common",
     ],
-)
-
-bzl_library(
-    name = "providers_bzl",
-    srcs = [
-        "providers.bzl",
-        "reexport_providers.bzl",
-    ],
-    visibility = ["//:__subpackages__"],
-    deps = [":visibility_bzl"],
 )
 
 bzl_library(

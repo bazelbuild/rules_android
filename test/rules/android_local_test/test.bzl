@@ -16,7 +16,7 @@
 rule_test: Inspect and assert on rule providers.
 """
 
-load("//rules:providers.bzl", "AndroidFilteredJdepsInfo")
+load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//test/utils:asserts.bzl", "asserts")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")

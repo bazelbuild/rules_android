@@ -13,7 +13,7 @@
 # limitations under the License.
 """Common methods for use by the IntelliJ Aspect."""
 
-load("//rules:providers.bzl", "AndroidIdeInfo")
+load("//providers:providers.bzl", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
 load(":utils.bzl", _utils = "utils")

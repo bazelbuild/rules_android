@@ -17,7 +17,7 @@ Used for determining the -libraryjars argument for Proguard. The compile-time cl
 unsufficient here as those are ijars.
 """
 
-load("//rules:providers.bzl", "AndroidLibraryResourceClassJarProvider")
+load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider")
 load(
     "//rules:utils.bzl",
     "utils",

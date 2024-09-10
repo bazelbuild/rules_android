@@ -13,6 +13,7 @@
 # limitations under the License.
 """Rule for importing an Android Sandboxed SDK archive for further processing."""
 
+load("//providers:providers.bzl", "AndroidArchivedSandboxedSdkInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -21,7 +22,6 @@ load(
     "//rules:common.bzl",
     _common = "common",
 )
-load("//rules:providers.bzl", "AndroidArchivedSandboxedSdkInfo")
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",

@@ -13,15 +13,15 @@
 # limitations under the License.
 """Attributes for android_application."""
 
+load(
+    "//providers:providers.bzl",
+    "AndroidArchivedSandboxedSdkInfo",
+    "AndroidSandboxedSdkBundleInfo",
+)
 load("//rules:android_split_transition.bzl", "android_split_transition")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
-)
-load(
-    "//rules:providers.bzl",
-    "AndroidArchivedSandboxedSdkInfo",
-    "AndroidSandboxedSdkBundleInfo",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 

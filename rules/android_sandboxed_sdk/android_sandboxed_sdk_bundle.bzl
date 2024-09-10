@@ -13,6 +13,7 @@
 # limitations under the License.
 """Rule for creating an Android Sandboxed SDK Bundle (ASB)."""
 
+load("//providers:providers.bzl", "AndroidSandboxedSdkBundleInfo", "AndroidSandboxedSdkInfo")
 load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
@@ -25,7 +26,6 @@ load(
     "//rules:common.bzl",
     _common = "common",
 )
-load("//rules:providers.bzl", "AndroidSandboxedSdkBundleInfo", "AndroidSandboxedSdkInfo")
 load(
     "//rules:utils.bzl",
     _get_android_toolchain = "get_android_toolchain",

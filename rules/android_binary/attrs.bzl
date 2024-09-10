@@ -13,6 +13,7 @@
 # limitations under the License.
 """Attributes."""
 
+load("//providers:providers.bzl", "StarlarkApkInfo")
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
 load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
 load("//rules:android_split_transition.bzl", "android_split_transition", "android_transition")
@@ -25,7 +26,6 @@ load(
     "//rules:native_deps.bzl",
     "split_config_aspect",
 )
-load("//rules:providers.bzl", "StarlarkApkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 

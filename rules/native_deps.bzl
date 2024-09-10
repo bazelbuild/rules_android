@@ -16,7 +16,7 @@ Defines the native libs processing and an aspect to collect build configuration
 of split deps
 """
 
-load("//rules:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidCcLinkParamsInfo", "AndroidNativeLibsInfo")
+load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidCcLinkParamsInfo", "AndroidNativeLibsInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//lib:paths.bzl", "paths")

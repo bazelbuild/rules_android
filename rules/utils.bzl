@@ -13,8 +13,8 @@
 # limitations under the License.
 """Utilities for the Android rules."""
 
+load("//providers:providers.bzl", "FailureInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(":providers.bzl", "FailureInfo")
 
 visibility(PROJECT_VISIBILITY)
 

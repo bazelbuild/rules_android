@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel rule for defining an Android binary that depends on sandboxed SDKs."""
 
+load("//providers:providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkApkInfo", "AndroidSandboxedSdkBundleInfo", "ApkInfo")
 load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
@@ -21,7 +22,6 @@ load("//rules:acls.bzl", "acls")
 load("//rules:bundletool.bzl", _bundletool = "bundletool")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
-load("//rules:providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkApkInfo", "AndroidSandboxedSdkBundleInfo", "ApkInfo")
 load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
