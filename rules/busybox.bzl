@@ -20,6 +20,10 @@ visibility(PROJECT_VISIBILITY)
 
 _ANDROID_RESOURCES_STRICT_DEPS = "android_resources_strict_deps"
 
+# Feature which would cause AndroidCompiledResourceMerger actions to pass a flag with the same
+# name to ResourceProcessorBusyBox.
+_FEATURE_ANNOTATE_R_FIELDS_FROM_TRANSITIVE_DEPS = "annotate_r_fields_from_transitive_deps"
+
 def _sanitize_assets_dir(assets_dir):
     sanitized_assets_dir = "/".join(
         [
@@ -787,6 +791,9 @@ def _merge_compiled(
             join_with = "&",
         )
         transitive_input_files.append(transitive_compiled_resources)
+
+    if _FEATURE_ANNOTATE_R_FIELDS_FROM_TRANSITIVE_DEPS in ctx.features:
+        args.add("--annotate_r_fields_from_transitive_deps")
 
     _set_warning_level(ctx, args)
 
