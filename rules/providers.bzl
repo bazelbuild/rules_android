@@ -28,6 +28,8 @@ load(
     _AndroidResourcesInfo = "AndroidResourcesInfo",
     _AndroidSdkInfo = "AndroidSdkInfo",
     _ApkInfo = "ApkInfo",
+    _Dex2OatApkInfo = "Dex2OatApkInfo",
+    _GooglePlayServicesVersionInfo = "GooglePlayServicesVersionInfo",
     _ProguardMappingInfo = "ProguardMappingInfo",
     _StarlarkAndroidResourcesInfo = "StarlarkAndroidResourcesInfo",
     _StarlarkDex2OatInfo = "StarlarkDex2OatInfo",
@@ -49,6 +51,8 @@ AndroidNativeLibsInfo = _AndroidNativeLibsInfo
 AndroidResourcesInfo = _AndroidResourcesInfo
 AndroidSdkInfo = _AndroidSdkInfo
 ApkInfo = _ApkInfo
+Dex2OatApkInfo = _Dex2OatApkInfo
+GooglePlayServicesVersionInfo = _GooglePlayServicesVersionInfo
 ProguardMappingInfo = _ProguardMappingInfo
 StarlarkAndroidResourcesInfo = _StarlarkAndroidResourcesInfo
 StarlarkDex2OatInfo = _StarlarkDex2OatInfo
