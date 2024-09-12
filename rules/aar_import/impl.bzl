@@ -13,7 +13,7 @@
 # limitations under the License.
 """Implementation."""
 
-load("//providers:providers.bzl", "AndroidAssetsInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "AndroidResourcesInfo")
+load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo")
 load(
     "//rules:acls.bzl",
     _acls = "acls",
@@ -180,7 +180,6 @@ def _process_resources(
 <manifest package="%s">
 </manifest>
 """ % package)
-
 
     return struct(**resources_ctx)
 
