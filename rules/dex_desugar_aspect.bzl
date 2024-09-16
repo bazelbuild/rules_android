@@ -34,7 +34,6 @@ def _aspect_attrs():
         "exports",
         "runtime",
         "runtime_deps",
-        "_android_sdk",
         "_aspect_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
         "_build_stamp_deps",  # for build stamp runtime class deps
         "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
