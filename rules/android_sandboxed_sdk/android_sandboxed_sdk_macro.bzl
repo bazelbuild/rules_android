@@ -93,7 +93,8 @@ def android_sandboxed_sdk_macro(
         name,
         sdk_modules_config,
         deps,
-        min_sdk_version = 21,
+        min_sdk_version,
+        target_sdk_version = 34,
         visibility = None,
         testonly = None,
         tags = [],
@@ -106,6 +107,7 @@ def android_sandboxed_sdk_macro(
       sdk_modules_config: Module config for this SDK.
       deps: Set of android libraries that make up this SDK.
       min_sdk_version: Min SDK version for the SDK.
+      target_sdk_version: Target SDK version for the SDK.
       visibility: A list of targets allowed to depend on this rule.
       testonly: Whether this library is only for testing.
       tags: A list of string tags passed to generated targets.
@@ -124,11 +126,15 @@ def android_sandboxed_sdk_macro(
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="{package}">
-    <uses-sdk android:minSdkVersion="{min_sdk_version}"/>
+    <uses-sdk android:minSdkVersion="{min_sdk_version}" android:targetSdkVersion="{target_sdk_version}" />
     <application />
 </manifest>
 EOF
-""".format(package = package, min_sdk_version = min_sdk_version),
+""".format(
+            package = package,
+            min_sdk_version = min_sdk_version,
+            target_sdk_version = target_sdk_version,
+        ),
     )
 
     bin_fqn = "%s_bin" % fully_qualified_name
