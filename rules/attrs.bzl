@@ -13,7 +13,7 @@
 # limitations under the License.
 """Common attributes for Android rules."""
 
-load("//providers:providers.bzl", "AndroidSdkInfo", "ApkInfo")
+load("//providers:providers.bzl", "ApkInfo")
 load("//rules:android_split_transition.bzl", "android_transition")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
@@ -95,11 +95,6 @@ _DEFAULT_ANDROID_SDK = configuration_field(
 
 # Android SDK attribute.
 _ANDROID_SDK = dict(
-    _android_sdk = attr.label(
-        allow_rules = ["android_sdk"],
-        default = "@androidsdk//:sdk",
-        providers = [AndroidSdkInfo],
-    ),
     _dummy_android_sdk = attr.label(
         default = "//toolchains/android_sdk:dummy_sdk_tools",
     ),
