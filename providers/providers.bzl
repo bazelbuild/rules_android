@@ -343,10 +343,67 @@ AndroidSandboxedSdkApkInfo = provider(
     ),
 )
 
+# buildifier: disable=name-conventions
+def _AndroidIdeInfo_init(
+        java_package,
+        manifest,
+        generated_manifest,
+        idl_import_root,
+        idl_srcs,
+        idl_generated_java_files,
+        idl_source_jar,
+        idl_class_jar,
+        defines_android_resources,
+        resource_jar,
+        resource_apk,
+        signed_apk,
+        aar,
+        apks_under_test,
+        native_libs):
+    return {
+        "java_package": java_package,
+        "manifest": manifest,
+        "generated_manifest": generated_manifest,
+        "idl_import_root": idl_import_root,
+        "idl_srcs": idl_srcs,
+        "idl_generated_java_files": idl_generated_java_files,
+        "idl_source_jar": idl_source_jar,
+        "idl_class_jar": idl_class_jar,
+        "defines_android_resources": defines_android_resources,
+        "resource_jar": resource_jar,
+        "resource_apk": resource_apk,
+        "signed_apk": signed_apk,
+        "aar": aar,
+        "apks_under_test": apks_under_test,
+        "native_libs": native_libs,
+    }
+
+# buildifier: disable=name-conventions
+AndroidIdeInfo, _AndroidIdeInfo_raw = provider(
+    init = _AndroidIdeInfo_init,
+    doc = "AndroidIdeInfo",
+    fields = dict(
+        java_package = "",
+        manifest = "",
+        generated_manifest = "",
+        idl_import_root = "",
+        idl_srcs = "",
+        idl_generated_java_files = "",
+        idl_source_jar = "",
+        idl_class_jar = "",
+        defines_android_resources = "",
+        resource_jar = "",
+        resource_apk = "",
+        signed_apk = "",
+        aar = "",
+        apks_under_test = "",
+        native_libs = "",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 AndroidResourcesInfo = providers.AndroidResourcesInfo
 AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo
-AndroidIdeInfo = providers.AndroidIdeInfo

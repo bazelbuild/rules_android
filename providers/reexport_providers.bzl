@@ -25,5 +25,4 @@ providers = struct(
     AndroidSdkInfo = AndroidSdkInfo,
     AndroidManifestInfo = AndroidManifestInfo,
     AndroidAssetsInfo = AndroidAssetsInfo,
-    AndroidIdeInfo = AndroidIdeInfo,
 )
