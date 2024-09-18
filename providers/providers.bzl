@@ -401,9 +401,76 @@ AndroidIdeInfo, _AndroidIdeInfo_raw = provider(
     ),
 )
 
+# buildifier: disable=unused-variable
+def _AndroidSdkInfo_init(
+    build_tools_version,
+    framework_aidl,
+    aidl_lib,
+    android_jar,
+    source_properties,
+    shrinked_android_jar,
+    main_dex_classes,
+    adb,
+    dx,
+    main_dex_list_creator,
+    aidl,
+    aapt,
+    aapt2,
+    apk_builder,
+    apk_signer,
+    proguard,
+    zip_align,
+    system,  # not used
+    legacy_main_dex_list_generator):
+  return {
+      "android_jar": android_jar,
+      "legacy_main_dex_list_generator": legacy_main_dex_list_generator,
+      "zip_align": zip_align,
+      "proguard": proguard,
+      "apk_signer": apk_signer,
+      "apk_builder": apk_builder,
+      "aapt2": aapt2,
+      "aapt": aapt,
+      "aidl": aidl,
+      "main_dex_list_creator": main_dex_list_creator,
+      "dx": dx,
+      "adb": adb,
+      "main_dex_classes": main_dex_classes,
+      "shrinked_android_jar": shrinked_android_jar,
+      "source_properties": source_properties,
+      "aidl_lib": aidl_lib,
+      "framework_aidl": framework_aidl,
+      "build_tools_version": build_tools_version,
+  }
+
+# buildifier: disable=name-conventions
+AndroidSdkInfo, _AndroidSdkInfo_raw = provider(
+    init = _AndroidSdkInfo_init,
+    doc = "AndroidSdkInfo",
+    fields = dict(
+        build_tools_version = "",
+        framework_aidl = "",
+        aidl_lib = "",
+        android_jar = "",
+        source_properties = "",
+        shrinked_android_jar = "",
+        main_dex_classes = "",
+        adb = "",
+        dx = "",
+        main_dex_list_creator = "",
+        aidl = "",
+        aapt = "",
+        aapt2 = "",
+        apk_builder = "",
+        apk_signer = "",
+        proguard = "",
+        legacy_main_dex_list_generator = "",
+        zip_align = "",
+    ),
+)
+
 # Native defined providers which will be gradually migrated to Starlark.
 # We re-export these here so that all our providers can be loaded from this file.
 AndroidResourcesInfo = providers.AndroidResourcesInfo
-AndroidSdkInfo = providers.AndroidSdkInfo
 AndroidManifestInfo = providers.AndroidManifestInfo
 AndroidAssetsInfo = providers.AndroidAssetsInfo

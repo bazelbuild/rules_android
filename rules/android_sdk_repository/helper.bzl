@@ -14,6 +14,7 @@
 """Helpers for the build file used in android_sdk_repository."""
 
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
+load("@rules_android//rules:rules.bzl", "android_sdk")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 
 def _bool_flag_impl(_unused_ctx):
@@ -220,6 +221,7 @@ def create_android_sdk_rules(
             framework_aidl = "platforms/android-%d/framework.aidl" % api_level,
             legacy_main_dex_list_generator = ":generate_main_dex_list",
             main_dex_classes = "build-tools/%s/mainDexClasses.rules" % build_tools_directory,
+            main_dex_list_creator = ":main_dex_list_creator",
             proguard = select({
                 ":disallow_proguard": ":fail",
                 "//conditions:default": "@bazel_tools//tools/jdk:proguard",
@@ -564,7 +566,7 @@ def create_dummy_sdk_toolchain():
 
     native.sh_binary(name = "empty-binary", srcs = [":genrule"])
 
-    native.android_sdk(
+    android_sdk(
         name = "sdk-dummy",
         aapt = ":empty-binary",
         adb = ":empty-binary",

@@ -21,7 +21,7 @@ sh_library(
     testonly = True,
     srcs = ["android_helper.sh"],
     data = [
-        "//rules/android_sdk_repository:bzl",
+        "//rules:bzl",
     ],
     visibility = ["//visibility:private"],
     deps = [

@@ -103,11 +103,13 @@ bzl_library(
     visibility = [
         "//mobile_install:__pkg__",
         "//stardoc:__pkg__",
+        "//test/rules/android_sdk_repository:__pkg__",
     ],
     deps = [
         ":common_bzl",
         ":min_sdk_version_bzl",
         ":visibility_bzl",
+        "//providers:providers_bzl",
         "//rules/aar_import:bzl",
         "//rules/android_application:bzl",
         "//rules/android_binary:bzl",
