@@ -68,7 +68,6 @@ _VERSION_CODE = "versionCode"
 _MIN_SDK_VERSION = "minSdkVersion"
 
 # Resources context attributes.
-_ASSETS_PROVIDER = "assets_provider"
 _DATA_BINDING_LAYOUT_INFO = "data_binding_layout_info"
 _DEFINES_RESOURCES = "defines_resources"
 _DIRECT_ANDROID_RESOURCES = "direct_android_resources"
@@ -79,7 +78,6 @@ _R_JAVA = "r_java"
 _RESOURCES_APK = "resources_apk"
 _VALIDATION_RESULTS = "validation_results"
 _VALIDATION_OUTPUTS = "validation_outputs"
-_RESOURCES_PROVIDER = "resources_provider"
 _STARLARK_PROCESSED_MANIFEST = "starlark_processed_manifest"
 _STARLARK_R_TXT = "starlark_r_txt"
 _STARLARK_PROCESSED_RESOURCES = "starlark_processed_resources"
@@ -96,11 +94,6 @@ _ResourcesProcessContextInfo = provider(
         _RESOURCES_APK: "ResourcesApk.",
         _VALIDATION_RESULTS: "List of validation results.",
         _VALIDATION_OUTPUTS: "List of outputs given to OutputGroupInfo _validation group",
-
-        # TODO(djwhang): The android_library aar generation requires direct
-        # access to providers. Remove once aar is its own rule.
-        _ASSETS_PROVIDER: "AndroidAssetsInfo provider.",
-        _RESOURCES_PROVIDER: "AndroidResourcesInfo provider.",
         _STARLARK_PROCESSED_MANIFEST: "The processed manifest from the starlark resource processing pipeline.",
         _STARLARK_R_TXT: "The R.txt from the starlark resource processing pipeline.",
         _STARLARK_PROCESSED_RESOURCES: "The processed resources from the starlark processing pipeline.",

@@ -52,7 +52,6 @@ DEPS_ALLOW_RULES = [
 DEPS_PROVIDERS = [
     [CcInfo],
     [JavaInfo],
-    ["AndroidResourcesInfo", "AndroidAssetsInfo"],
 ]
 
 DEPS_ASPECTS = [
