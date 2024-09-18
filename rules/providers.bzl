@@ -15,7 +15,6 @@
 
 load(
     "//providers:providers.bzl",
-    _AndroidAssetsInfo = "AndroidAssetsInfo",
     _AndroidBundleInfo = "AndroidBundleInfo",
     _AndroidDeviceInfo = "AndroidDeviceInfo",
     _AndroidDeviceScriptFixtureInfo = "AndroidDeviceScriptFixtureInfo",
@@ -23,9 +22,7 @@ load(
     _AndroidIdeInfo = "AndroidIdeInfo",
     _AndroidInstrumentationInfo = "AndroidInstrumentationInfo",
     _AndroidLibraryAarInfo = "AndroidLibraryAarInfo",
-    _AndroidManifestInfo = "AndroidManifestInfo",
     _AndroidNativeLibsInfo = "AndroidNativeLibsInfo",
-    _AndroidResourcesInfo = "AndroidResourcesInfo",
     _AndroidSdkInfo = "AndroidSdkInfo",
     _ApkInfo = "ApkInfo",
     _Dex2OatApkInfo = "Dex2OatApkInfo",
@@ -38,7 +35,6 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 
-AndroidAssetsInfo = _AndroidAssetsInfo
 AndroidBundleInfo = _AndroidBundleInfo
 AndroidDeviceInfo = _AndroidDeviceInfo
 AndroidDeviceScriptFixtureInfo = _AndroidDeviceScriptFixtureInfo
@@ -46,9 +42,7 @@ AndroidHostServiceFixtureInfo = _AndroidHostServiceFixtureInfo
 AndroidIdeInfo = _AndroidIdeInfo
 AndroidInstrumentationInfo = _AndroidInstrumentationInfo
 AndroidLibraryAarInfo = _AndroidLibraryAarInfo
-AndroidManifestInfo = _AndroidManifestInfo
 AndroidNativeLibsInfo = _AndroidNativeLibsInfo
-AndroidResourcesInfo = _AndroidResourcesInfo
 AndroidSdkInfo = _AndroidSdkInfo
 ApkInfo = _ApkInfo
 Dex2OatApkInfo = _Dex2OatApkInfo
