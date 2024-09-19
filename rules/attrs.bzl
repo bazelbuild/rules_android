@@ -228,13 +228,13 @@ _DATA_CONTEXT = _add(
 
 ANDROID_SDK_ATTRS = dict(
     aapt = attr.label(
-        allow_single_file = True,
+        allow_files = True,
         cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     aapt2 = attr.label(
-        allow_single_file = True,
+        allow_files = True,
         cfg = "exec",
         executable = True,
     ),
@@ -323,7 +323,7 @@ ANDROID_SDK_ATTRS = dict(
         cfg = "exec",
     ),
     zipalign = attr.label(
-        allow_single_file = True,
+        allow_files = True,
         cfg = "exec",
         executable = True,
         mandatory = True,

@@ -191,8 +191,7 @@ def create_android_sdk_rules(
             },
         )
 
-        # TODO(katre): Use the Starlark android_sdk
-        native.android_sdk(
+        android_sdk(
             name = "sdk-%d" % api_level,
             aapt = select({
                 ":windows": "build-tools/%s/aapt.exe" % build_tools_directory,
