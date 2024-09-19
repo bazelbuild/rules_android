@@ -90,19 +90,17 @@ def make_rule(
 
 android_binary = make_rule()
 
-# TODO(zhaoqxu): Consider removing this method
-def sanitize_attrs(attrs, allowed_attrs = ATTRS.keys()):
+def sanitize_attrs(attrs):
     """Sanitizes the attributes.
 
     Args:
       attrs: A dict. The attributes for the android_binary rule.
-      allowed_attrs: The list of attribute keys to keep.
 
     Returns:
       A dictionary containing valid attributes.
     """
     for attr_name in list(attrs.keys()):
-        if attr_name not in allowed_attrs and attr_name not in _DEFAULT_ALLOWED_ATTRS:
+        if attr_name == "dex_shards":  # No longer supported.
             attrs.pop(attr_name, None)
         elif attr_name == "shrink_resources":
             if attrs[attr_name] == None:
@@ -127,17 +125,4 @@ def android_binary_macro(**attrs):
     if type(attrs.get("proguard_specs", None)) == "select" or attrs.get("proguard_specs", None):
         attrs["$generate_proguard_outputs"] = True
 
-    android_binary(
-        **sanitize_attrs(
-            attrs,
-            # _package_name and other attributes are allowed attributes but are also private.
-            # We need to allow the $ form of the attribute to stop the sanitize function from
-            # removing it.
-            allowed_attrs = list(ATTRS.keys()) +
-                            [
-                                "$package_name",
-                                "$rewrite_resources_through_optimizer",
-                                "$generate_proguard_outputs",
-                            ],
-        )
-    )
+    android_binary(**sanitize_attrs(attrs))
