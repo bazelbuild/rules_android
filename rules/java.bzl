@@ -560,7 +560,7 @@ def _check_one_version(
     args.use_param_file("@%s", use_always = True)
 
     args.add("--output", output)
-    args.add("--whitelist", allowlist)
+    args.add("--allowlist", allowlist)
     if one_version_enforcement_level == "WARNING":
         args.add("--succeed_on_found_violations")
     args.add_all(
