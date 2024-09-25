@@ -2,6 +2,8 @@
 # Sandboxed SDKs are libraries that are released separately from Android apps and can run in the
 # Privacy Sandbox.
 
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = ["//:__subpackages__"],
