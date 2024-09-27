@@ -69,6 +69,7 @@ load(
 )
 load("//rules/acls:proguard_apply_mapping.bzl", "ALLOW_PROGUARD_APPLY_MAPPING")
 load("//rules/acls:r8.bzl", "USE_R8")
+load("//rules/acls:record_desugaring.bzl", "RECORD_DESUGARING_FALLBACK", "RECORD_DESUGARING_ROLLOUT")
 load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
 load("//rules/acls:test_to_instrument_test_rollout.bzl", "TEST_TO_INSTRUMENT_TEST_FALLBACK", "TEST_TO_INSTRUMENT_TEST_ROLLOUT")
 
@@ -199,6 +200,9 @@ def _in_force_final_android_binary_resources(fqn):
 def _in_resource_shrinking_in_optimizer(fqn):
     return matches(fqn, RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT) and not matches(fqn, RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT)
 
+def _in_record_desugaring_rollout(fqn):
+    return matches(fqn, RECORD_DESUGARING_ROLLOUT_DICT) and not matches(fqn, RECORD_DESUGARING_FALLBACK_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -263,6 +267,8 @@ RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT = make_dict(RESOURCE_SHRINKING_IN_O
 RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT = make_dict(RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK)
 DISABLE_OPTIMIZING_DEXER_DICT = make_dict(DISABLE_OPTIMIZING_DEXER)
 FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT = make_dict(FORCE_FINAL_ANDROID_BINARY_RESOURCES)
+RECORD_DESUGARING_FALLBACK_DICT = make_dict(RECORD_DESUGARING_FALLBACK)
+RECORD_DESUGARING_ROLLOUT_DICT = make_dict(RECORD_DESUGARING_ROLLOUT)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -355,6 +361,7 @@ acls = struct(
     in_disable_optimizing_dexer = _in_disable_optimizing_dexer,
     in_force_final_android_binary_resources = _in_force_final_android_binary_resources,
     in_resource_shrinking_in_optimizer = _in_resource_shrinking_in_optimizer,
+    in_record_desugaring_rollout = _in_record_desugaring_rollout,
 )
 
 # Visible for testing
