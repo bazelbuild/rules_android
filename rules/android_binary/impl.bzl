@@ -803,9 +803,23 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     enable_rewrite_resources_through_optimizer = enable_resource_shrinking and ctx.attr._rewrite_resources_through_optimizer
 
     optimized_resource_shrinker_log = ctx.actions.declare_file(_resources.get_shrinker_log_name(ctx)) if resource_shrinking_in_optimizer else None
+
+    # Pre-process (i.e. filter) the deploy jar before passing to optimizer.
+    # The desugared synthetics map is not updated by the optimizer with the
+    # new class names. Optimization invalidates this mapping, so simply remove
+    # it. The mapping is useful for incremental dexing but is not needed for
+    # monolithic dexing.
+    filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_filtered_deploy.jar")
+    common.filter_zip_exclude(
+        ctx,
+        output = filtered_deploy_jar,
+        input = deploy_ctx.deploy_jar,
+        filters = ["META-INF/metadata/synthetic-contexts.map"],
+    )
+
     proguard_output = proguard.apply_proguard(
         ctx,
-        input_jar = deploy_ctx.deploy_jar,
+        input_jar = filtered_deploy_jar,
         proguard_specs = proguard_specs,
         proguard_optimization_passes = getattr(ctx.attr, "proguard_optimization_passes", None),
         proguard_output_jar = proguard_output_jar,
