@@ -19,6 +19,7 @@ load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
+load(":dex_toolchains.bzl", "dex_toolchains")
 load(":min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", _get_android_sdk = "get_android_sdk", _utils = "utils")
 
@@ -26,19 +27,16 @@ visibility(PROJECT_VISIBILITY)
 
 _tristate = _attrs.tristate
 
-def _aspect_attrs():
-    """Attrs of the rule requiring traversal by the aspect."""
-    return [
-        "_aidl_lib",  # for the aidl runtime on android_library
-        "deps",
-        "exports",
-        "runtime",
-        "runtime_deps",
-        "_aspect_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
-        "_build_stamp_deps",  # for build stamp runtime class deps
-        "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
-        "_toolchain",  # to get Kotlin toolchain component in android_library
-    ]
+_ATTR_ASPECTS = [
+    "_aidl_lib",  # for the aidl runtime on android_library
+    "deps",
+    "exports",
+    "runtime",
+    "runtime_deps",
+    "_aspect_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
+    "_build_stamp_deps",  # for build stamp runtime class deps
+    "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
+]
 
 # Also used by the android_binary rule
 def get_aspect_deps(ctx):
@@ -51,7 +49,7 @@ def get_aspect_deps(ctx):
         deps_list: List of all deps of the dex_desugar_aspect that requires traversal.
     """
     deps_list = []
-    for attr in _aspect_attrs():
+    for attr in _ATTR_ASPECTS:
         # android_binary's deps attr has a split transition, so when
         # this is called from android_binary, deps should be accessed
         # via ctx.split_attr instead of ctx.attr to ensure that the same
@@ -67,6 +65,12 @@ def get_aspect_deps(ctx):
             deps_list += deps
         elif str(type(deps)) == "Target":
             deps_list.append(deps)
+
+    deps_list.extend([
+        ctx.toolchains[toolchain_type]
+        for toolchain_type in dex_toolchains
+        if (toolchain_type in ctx.toolchains)
+    ])
 
     return deps_list
 
@@ -227,9 +231,16 @@ def _power_set(items):
 
     return power_set
 
+def _opt_kwargs():
+    """Optional args to pass to the aspect definition if Bazel supports them."""
+    result = {}
+    if dex_toolchains:
+        result["toolchains_aspects"] = dex_toolchains
+    return result
+
 dex_desugar_aspect = aspect(
     implementation = _aspect_impl,
-    attr_aspects = _aspect_attrs(),
+    attr_aspects = _ATTR_ASPECTS,
     attrs = _attrs.add(
         {
             "_desugar_java8": attr.label(
@@ -253,4 +264,5 @@ dex_desugar_aspect = aspect(
         ANDROID_SDK_TOOLCHAIN_TYPE,
     ],
     required_aspect_providers = [[JavaInfo]],
+    **_opt_kwargs()
 )

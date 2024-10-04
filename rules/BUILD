@@ -98,6 +98,7 @@ bzl_library(
         "baseline_profiles.bzl",
         "dex.bzl",
         "dex_desugar_aspect.bzl",
+        "dex_toolchains.bzl",
         "rules.bzl",
     ],
     visibility = [
