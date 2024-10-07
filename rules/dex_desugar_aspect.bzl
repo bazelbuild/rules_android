@@ -27,15 +27,17 @@ visibility(PROJECT_VISIBILITY)
 
 _tristate = _attrs.tristate
 
+# Keep sorted
 _ATTR_ASPECTS = [
     "_aidl_lib",  # for the aidl runtime on android_library
+    "_aspect_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
+    "_build_stamp_deps",  # for build stamp runtime class deps
+    "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
+    "_toolchain",  # For _java_lite_grpc_library
     "deps",
     "exports",
     "runtime",
     "runtime_deps",
-    "_aspect_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
-    "_build_stamp_deps",  # for build stamp runtime class deps
-    "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
 ]
 
 # Also used by the android_binary rule
@@ -58,6 +60,8 @@ def get_aspect_deps(ctx):
         # this is called from the aspect impl.
         if attr == "deps" and hasattr(ctx, "split_attr"):
             deps = _utils.dedupe_split_attr(ctx.split_attr.deps)
+        elif attr == "_toolchain" and getattr(ctx, "kind", "") == "kt_jvm_toolchain":
+            pass  # TODO(b/370300302): Prevent double-deps on Kotlin toolchain. Delete when fixed.
         else:
             deps = getattr(ctx.attr, attr, [])
 
