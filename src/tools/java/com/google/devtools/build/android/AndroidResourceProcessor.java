@@ -13,8 +13,6 @@
 // limitations under the License.
 package com.google.devtools.build.android;
 
-import android.databinding.AndroidDataBinding;
-import android.databinding.cli.ProcessXmlOptions;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.builder.core.DefaultManifestParser;
@@ -47,6 +45,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -202,7 +201,7 @@ public class AndroidResourceProcessor {
       @Nullable Path publicResourcesOut)
       throws IOException {
     try (JunctionCreator junctions =
-        System.getProperty("os.name").toLowerCase().startsWith("windows")
+        System.getProperty("os.name").toLowerCase(Locale.ROOT).startsWith("windows")
             ? new WindowsJunctionCreator(Files.createDirectories(tempRoot.resolve("juncts")))
             : new NoopJunctionCreator()) {
       sourceOut = junctions.create(sourceOut);
@@ -304,7 +303,7 @@ public class AndroidResourceProcessor {
                     ? inputResourcesDir.getRoot().relativize(inputResourcesDir)
                     : inputResourcesDir));
 
-    ProcessXmlOptions options = new ProcessXmlOptions();
+    ProcessXmlOptionsWrapper options = new ProcessXmlOptionsWrapper();
     options.setAppId(packagePath);
     options.setResInput(inputResourcesDir.toFile());
     options.setResOutput(processedResourceDir.toFile());
@@ -314,7 +313,7 @@ public class AndroidResourceProcessor {
     options.setZipLayoutInfo(shouldZipDataBindingInfo);
 
     try {
-      AndroidDataBinding.doRun(options);
+      AndroidDataBindingWrapper.doRun(options);
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }

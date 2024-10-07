@@ -14,7 +14,6 @@
 
 package com.google.devtools.build.android;
 
-import android.databinding.AndroidDataBinding;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -115,7 +114,7 @@ public final class GenerateDatabindingBaseClassesAction {
         classInfo -> dbArgsBuilder.add("-dependencyClassInfoList").add(classInfo.toString()));
 
     try {
-      AndroidDataBinding.main(
+      AndroidDataBindingWrapper.main(
           Streams.mapWithIndex(
                   dbArgsBuilder.build().stream(), (arg, index) -> index == 0 ? arg : arg + " ")
               .toArray(String[]::new));
