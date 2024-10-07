@@ -99,7 +99,7 @@ public class CompatDexBuilderTest {
 
     try (ZipFile zipFile = new ZipFile(outputZip.toFile(), UTF_8)) {
       assertThat(zipFile.getEntry(contextName + ".class.dex")).isNotNull();
-      ZipEntry entry = zipFile.getEntry("META-INF/synthetic-contexts.map");
+      ZipEntry entry = zipFile.getEntry("META-INF/metadata/synthetic-contexts.map");
       assertThat(entry).isNotNull();
       try (BufferedReader reader =
           new BufferedReader(new InputStreamReader(zipFile.getInputStream(entry), UTF_8))) {

@@ -323,7 +323,7 @@ public class CompatDexBuilder {
         String contextMapping = contextMappingBuilder.toString();
         if (!contextMapping.isEmpty()) {
           ZipUtils.addEntry(
-              "META-INF/synthetic-contexts.map",
+              "META-INF/metadata/synthetic-contexts.map",
               contextMapping.getBytes(UTF_8),
               ZipEntry.STORED,
               out);
