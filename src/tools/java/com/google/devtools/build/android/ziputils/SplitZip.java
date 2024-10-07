@@ -432,7 +432,7 @@ public class SplitZip implements EntryHandler {
       CentralDirectory cdir = centralDirectories.get(in.getFilename());
 
       for (DirectoryEntry entry : cdir.list()) {
-        if (entry.getFilename().equals("META-INF/synthetic-contexts.map")) {
+        if (entry.getFilename().equals("META-INF/metadata/synthetic-contexts.map")) {
           parseSyntheticContextsMap(in.entryFor(entry).getContent(), syntheticClassContexts);
           break;
         }
