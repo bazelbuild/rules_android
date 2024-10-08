@@ -809,7 +809,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     # new class names. Optimization invalidates this mapping, so simply remove
     # it. The mapping is useful for incremental dexing but is not needed for
     # monolithic dexing.
-    filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_filtered_deploy.jar")
+    filtered_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_deploy_filtered_for_optimizer.jar")
     common.filter_zip_exclude(
         ctx,
         output = filtered_deploy_jar,
