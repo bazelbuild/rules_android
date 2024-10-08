@@ -20,7 +20,7 @@ load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":adapters.bzl", "adapters")
 load(":debug.bzl", "debug")
-load(":tools.bzl", "TOOL_ATTRS")
+load(":tools.bzl", "TOOLCHAIN_TYPES", "TOOL_ATTRS")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -69,6 +69,12 @@ def make_aspect(
     )
     attrs.update(min_sdk_version.attrs)
     attrs.update(tools)
+
+    # Optional args to pass to the aspect definition if Bazel supports them.
+    opt_kwargs = {}
+    if TOOLCHAIN_TYPES:
+        opt_kwargs["toolchains_aspects"] = TOOLCHAIN_TYPES
+
     return aspect(
         attr_aspects = adapters.get_all_aspect_attrs(),
         attrs = attrs,
@@ -80,6 +86,7 @@ def make_aspect(
         toolchains = [
             ANDROID_SDK_TOOLCHAIN_TYPE,
         ],
+        **opt_kwargs
     )
 
 # MIASPECT allows you to run the aspect directly on a Blaze/Bazel command.

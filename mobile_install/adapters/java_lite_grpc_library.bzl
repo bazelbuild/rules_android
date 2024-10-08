@@ -35,6 +35,14 @@ def _adapt(target, ctx):
     Returns:
       A list of providers.
     """
+    if JavaInfo not in target:
+        return []
+
+    # TODO: This is needed as the adapter is shared between kt and java grpc library.
+    # Consider splitting this out into two separater adapters. Although this will need
+    # refactoring of the adapter test, which handles both.
+    is_java = (ctx.rule.kind == "_java_lite_grpc_library")
+
     return [
         providers.make_mi_android_dex_info(
             dex_shards = dex(
@@ -45,7 +53,11 @@ def _adapt(target, ctx):
             deps = providers.collect(
                 MIAndroidDexInfo,
                 ctx.rule.attr.deps,
-                [ctx.rule.attr._toolchain],
+                [
+                    ctx.rule.attr._toolchain,
+                ] if is_java else [
+                    ctx.rule.toolchains["//third_party/bazel_rules/rules_kotlin/toolchains/kotlin_jvm"],
+                ],
             ),
         ),
         providers.make_mi_java_resources_info(

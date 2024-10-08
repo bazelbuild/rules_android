@@ -155,3 +155,6 @@ TOOL_ATTRS = dict(
     ),
 
 )
+
+# Toolchains that will be traversed by the adapters.
+TOOLCHAIN_TYPES = []
