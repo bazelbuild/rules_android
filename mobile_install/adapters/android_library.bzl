@@ -23,6 +23,7 @@ load(
     "providers",
 )
 load("//mobile_install:resources.bzl", "get_assets_dir")
+load("//mobile_install:tools.bzl", "TOOLCHAIN_TYPES")
 load("//mobile_install:transform.bzl", "dex", "filter_jars")
 load("//providers:providers.bzl", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -36,8 +37,6 @@ def _aspect_attrs():
     return [
         "_aidl_lib",
         "_android_sdk",
-        # Access the kt toolchain to get kotlin std and runtime libs.
-        "_toolchain",
         "deps",
         "exports",
     ]
@@ -52,9 +51,15 @@ def _adapt(target, ctx):
     Returns:
       A list of providers.
     """
-    kt_toolchain = [ctx.rule.attr._toolchain] if hasattr(ctx.rule.attr, "_toolchain") else []
+
     if ctx.rule.attr.neverlink:
         return []
+
+    toolchains = [
+        ctx.rule.toolchains[toolchain_type]
+        for toolchain_type in TOOLCHAIN_TYPES
+        if (toolchain_type in ctx.rule.toolchains)
+    ]
 
     aidl_lib = []
     if target[AndroidIdeInfo].idl_generated_java_files:
@@ -94,7 +99,7 @@ def _adapt(target, ctx):
                 ctx.rule.attr.deps,
                 ctx.rule.attr.exports,
                 aidl_lib,
-                kt_toolchain,
+                toolchains,
             ),
         ),
         providers.make_mi_android_resources_info(
@@ -111,7 +116,7 @@ def _adapt(target, ctx):
                 ctx.rule.attr.deps,
                 ctx.rule.attr.exports,
                 aidl_lib,
-                kt_toolchain,
+                toolchains,
             ),
         ),
     ]
