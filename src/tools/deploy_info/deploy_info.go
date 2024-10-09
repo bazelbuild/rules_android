@@ -20,9 +20,9 @@ import (
 	"io/ioutil"
 	"log"
 
-	pb "src/tools/deploy_info/proto/android_deploy_info_go_proto"
 	_ "src/common/golang/flagfile"
 	"src/common/golang/flags"
+	pb "src/tools/deploy_info/proto/android_deploy_info_go_proto"
 	"google.golang.org/protobuf/proto"
 )
 
