@@ -24,6 +24,7 @@ load(
     _attrs = "attrs",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load(":android_feature_module_validation_aspect.bzl", "android_feature_module_validation_aspect")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -102,7 +103,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
 )
 
 ANDROID_FEATURE_MODULE_ATTRS = dict(
-    binary = attr.label(),
+    binary = attr.label(aspects = [android_feature_module_validation_aspect]),
     feature_name = attr.string(),
     library = attr.label(
         allow_rules = ["android_library"],
