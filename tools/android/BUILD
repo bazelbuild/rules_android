@@ -419,6 +419,15 @@ py_test(
     deps = [":aar_resources_extractor"],
 )
 
+java_binary(
+    name = "apkdeployer",
+    main_class = "com.android.tools.deployer.DeployerRunner",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        "@rules_android_maven//:com_android_tools_apkdeployer_apkdeployer",
+    ],
+)
+
 java_library(
     name = "auto_service_lib",
     exports = [
