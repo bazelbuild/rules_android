@@ -16,7 +16,7 @@ package com.google.devtools.build.android.desugar.scan;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.devtools.java.asm.GoogleOpcodes;
+import org.objectweb.asm.Opcodes;
 import javax.annotation.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;

@@ -14,7 +14,7 @@
 package com.google.devtools.build.android.desugar.io;
 
 import com.google.common.collect.ImmutableList;
-import com.google.devtools.java.asm.GoogleOpcodes;
+import org.objectweb.asm.Opcodes;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
