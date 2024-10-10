@@ -252,19 +252,6 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
           .put(640, Density.XXXHIGH)
           .buildOrThrow();
 
-  // NO-BAZEL-EXPORT BEGIN
-  // Use a fully-qualified class reference as this is not available on bazel
-  private static final ImmutableMap<
-          Configuration.GrammaticalGender, com.android.resources.GrammaticalGender>
-      GRAMMATICAL_GENDER_MAP =
-          ImmutableMap.of(
-              Configuration.GrammaticalGender.GRAM_GENDER_NEUTER,
-              com.android.resources.GrammaticalGender.NEUTER,
-              Configuration.GrammaticalGender.GRAM_GENDER_FEMININE,
-              com.android.resources.GrammaticalGender.FEMININE,
-              Configuration.GrammaticalGender.GRAM_GENDER_MASCULINE,
-              com.android.resources.GrammaticalGender.MASCULINE);
-  // NO-BAZEL-EXPORT END
 
   private final boolean includeFileContentsForValidation;
 
@@ -529,14 +516,6 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
       configuration.setVersionQualifier(new VersionQualifier(protoConfig.getSdkVersion()));
     }
 
-    // NO-BAZEL-EXPORT BEGIN
-    // Use a fully-qualified class reference as this is not available on bazel
-    if (GRAMMATICAL_GENDER_MAP.containsKey(protoConfig.getGrammaticalGender())) {
-      configuration.setGrammaticalGenderQualifier(
-          new com.android.ide.common.resources.configuration.GrammaticalGenderQualifier(
-              GRAMMATICAL_GENDER_MAP.get(protoConfig.getGrammaticalGender())));
-    }
-    // NO-BAZEL-EXPORT END
 
     return Arrays.stream(configuration.getQualifiers())
         .map(ResourceQualifier::getFolderSegment)

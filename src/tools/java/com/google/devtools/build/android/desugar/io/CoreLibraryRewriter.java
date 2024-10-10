@@ -15,7 +15,7 @@ package com.google.devtools.build.android.desugar.io;
 
 import com.google.devtools.build.android.desugar.langmodel.ClassName;
 import com.google.devtools.build.android.desugar.langmodel.TypeMapper;
-import com.google.devtools.java.asm.GoogleOpcodes;
+import org.objectweb.asm.Opcodes;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.annotation.Nullable;

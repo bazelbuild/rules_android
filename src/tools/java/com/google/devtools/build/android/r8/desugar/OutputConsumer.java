@@ -32,7 +32,7 @@ import com.google.devtools.build.android.r8.DependencyCollector;
 import com.google.devtools.build.android.r8.DescriptorUtils;
 import com.google.devtools.build.android.r8.Desugar;
 import com.google.devtools.build.android.r8.ZipUtils;
-import com.google.devtools.java.asm.GoogleOpcodes;
+import org.objectweb.asm.Opcodes;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -206,7 +206,7 @@ public class OutputConsumer implements ClassFileConsumer {
       private int methodCount;
 
       private DependencyCollectorClassVisitor(DependencyCollector dependencyCollector) {
-        super(GoogleOpcodes.LATEST, null);
+        super(Opcodes.ASM9, null);
         this.dependencyCollector = dependencyCollector;
       }
 

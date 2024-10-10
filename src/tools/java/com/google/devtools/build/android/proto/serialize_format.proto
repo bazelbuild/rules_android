@@ -15,7 +15,6 @@ syntax = "proto2";
 
 package xml;
 
-option java_api_version = 2;
 option java_package = "com.google.devtools.build.android.proto";
 
 // A header message describing information about the rest of the message stream,

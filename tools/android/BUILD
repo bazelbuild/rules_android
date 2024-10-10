@@ -1,6 +1,11 @@
-load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load(":defs.bzl", "android_jar", "run_ijar", "run_singlejar")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 config_setting(
     name = "minimal_desugaring",
@@ -412,4 +417,78 @@ py_test(
     name = "aar_resources_extractor_test",
     srcs = ["aar_resources_extractor_test.py"],
     deps = [":aar_resources_extractor"],
+)
+
+java_library(
+    name = "auto_service_lib",
+    exports = [
+        "@rules_android_maven//:com_google_auto_service_auto_service",
+        "@rules_android_maven//:com_google_auto_service_auto_service_annotations",
+    ],
+)
+
+java_library(
+    name = "autovalue_lib",
+    exports = [
+        ":auto_service_lib",
+        ":autovalue_lib",
+        "@rules_android_maven//:com_google_auto_auto_common",
+    ],
+)
+
+java_plugin(
+    name = "autovalue_plugin",
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = [
+        "@android_tools//:all_android_tools_deploy.jar",
+    ],
+)
+
+java_plugin(
+    name = "auto_annotation_plugin",
+    processor_class = "com.google.auto.value.processor.AutoAnnotationProcessor",
+    deps = ["@android_tools//:all_android_tools_deploy.jar"],
+)
+
+java_plugin(
+    name = "auto_builder_plugin",
+    processor_class = "com.google.auto.value.processor.AutoBuilderProcessor",
+    deps = ["@android_tools//:all_android_tools_deploy.jar"],
+)
+
+java_library(
+    name = "auto_value_api",
+    exports = [
+        "@rules_android_maven//:com_google_auto_value_auto_value_annotations",
+    ],
+)
+
+java_library(
+    name = "autovalue",
+    exported_plugins = [
+        ":autovalue_plugin",
+        ":auto_annotation_plugin",
+        ":auto_builder_plugin",
+    ],
+    visibility = ["//src/tools/java/com/google/devtools/build/android:__subpackages__"],
+    exports = [
+        ":auto_value_api",
+    ],
+)
+
+java_library(
+    name = "error_prone_annotations",
+    exports = [
+        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
+        "@rules_android_maven//:com_google_errorprone_error_prone_type_annotations",
+    ],
+)
+
+java_library(
+    name = "error_prone",
+    exports = [
+        ":error_prone_annotations",
+        "@rules_android_maven//:com_google_errorprone_error_prone_check_api",
+        "@rules_android_maven//:com_google_errorprone_error_prone_core",
+    ],
 )
