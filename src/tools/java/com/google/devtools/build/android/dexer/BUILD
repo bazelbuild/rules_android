@@ -12,14 +12,6 @@ filegroup(
     ],
 )
 
-filegroup(
-    name = "embedded_tools",
-    srcs = glob(
-        ["*.java"],
-    ) + ["BUILD.tools"],
-    visibility = ["//visibility:public"],
-)
-
 genrule(
     name = "android_dex_from_android_tools_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
@@ -30,6 +22,29 @@ genrule(
 java_import(
     name = "android_dex_from_android_tools",
     jars = [":android_dex_from_android_tools_gen"],
+)
+
+java_binary(
+    name = "DexFileSplitter",
+    srcs = [
+        "AsyncZipOut.java",
+        "DexFileSplitter.java",
+        "DexLimitTracker.java",
+        "ZipEntryComparator.java",
+        "ZipEntryPredicates.java",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":DexFileSplitter_lib",
+        ":android_dex_from_android_tools",
+        "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
+        "//src/tools/java/com/google/devtools/build/android:android_options_utils",
+        "//tools/android:autovalue",
+        "@rules_android_maven//:com_beust_jcommander",
+        "@rules_android_maven//:com_google_code_findbugs_jsr305",
+        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
+        "@rules_android_maven//:com_google_guava_guava",
+    ],
 )
 
 java_library(

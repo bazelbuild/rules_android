@@ -59,7 +59,7 @@ java_plugin(
     processor_class = "android.databinding.annotationprocessor.ProcessDataBinding",
     visibility = ["//visibility:public"],
     deps = [
-        "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:all_android_tools",
+        "//src/tools/java/com/google/devtools/build/android:databinding_exec_jar",
     ],
 )
 
@@ -180,7 +180,7 @@ sh_binary(
     data = [
         ":d8_desugar_params",
         ":full_desugar_jdk_libs_config_json",
-        "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8:desugar",
+        "//src/tools/java/com/google/devtools/build/android/r8:desugar",
         "@bazel_tools//tools/bash/runfiles",
     ],
     visibility = ["//visibility:public"],
@@ -230,19 +230,19 @@ java_binary(
 
 alias(
     name = "merge_dexzips",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/ziputils:reducer",
+    actual = "//src/tools/java/com/google/devtools/build/android/ziputils:reducer",
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "shuffle_jars",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/ziputils:mapper",
+    actual = "//src/tools/java/com/google/devtools/build/android/ziputils:mapper",
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "zip_filter",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ZipFilterAction",
+    actual = "//src/tools/java/com/google/devtools/build/android:ZipFilterAction",
     visibility = ["//visibility:public"],
 )
 
@@ -251,7 +251,7 @@ java_binary(
     main_class = "android.databinding.AndroidDataBinding",
     visibility = ["//visibility:public"],
     runtime_deps = [
-        "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:all_android_tools",
+        "//src/tools/java/com/google/devtools/build/android:databinding_exec_jar",
     ],
 )
 
@@ -261,7 +261,7 @@ java_binary(
     name = "d8_dexbuilder",
     main_class = "com.google.devtools.build.android.r8.CompatDexBuilder",
     visibility = ["//visibility:private"],
-    runtime_deps = ["@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8"],
+    runtime_deps = ["//src/tools/java/com/google/devtools/build/android/r8"],
 )
 
 alias(
@@ -278,7 +278,7 @@ alias(
 
 alias(
     name = "dexsharder",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/dexer:DexFileSplitter",
+    actual = "//src/tools/java/com/google/devtools/build/android/dexer:DexFileSplitter",
     visibility = ["//visibility:public"],
 )
 
@@ -286,7 +286,7 @@ java_binary(
     name = "d8_dexmerger",
     main_class = "com.google.devtools.build.android.r8.DexFileMerger",
     visibility = ["//visibility:private"],
-    runtime_deps = ["@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8"],
+    runtime_deps = ["//src/tools/java/com/google/devtools/build/android/r8"],
 )
 
 alias(
@@ -431,7 +431,6 @@ java_library(
     name = "autovalue_lib",
     exports = [
         ":auto_service_lib",
-        ":autovalue_lib",
         "@rules_android_maven//:com_google_auto_auto_common",
     ],
 )

@@ -12,20 +12,6 @@ filegroup(
     ],
 )
 
-filegroup(
-    name = "embedded_tools",
-    srcs = glob(
-        [
-            "*.java",
-            "desugar/*.java",
-        ],
-        exclude = [
-            "NoAndroidSdkStub.java",
-        ],
-    ) + ["BUILD.tools"],
-    visibility = ["//visibility:public"],
-)
-
 java_library(
     name = "r8",
     srcs = glob(
@@ -37,7 +23,9 @@ java_library(
             "NoAndroidSdkStub.java",
         ],
     ),
-    visibility = ["//src/test/java/com/google/devtools/build/android/r8:__pkg__"],
+    visibility = [
+        "//visibility:public",
+    ],
     runtime_deps = [
         "//src/tools/java/com/google/devtools/build/android/desugar/dependencies",
     ],
@@ -102,7 +90,10 @@ java_binary(
         "-Dcom.android.tools.r8.lambdaClassFieldsNotFinal",
     ],
     main_class = "com.google.devtools.build.android.r8.Desugar",
-    visibility = ["//src/test/java/com/google/devtools/build/android/r8:__pkg__"],
+    visibility = [
+        "//src/test/java/com/google/devtools/build/android/r8:__pkg__",
+        "//tools/android:__pkg__",
+    ],
     runtime_deps = [
         ":r8",
     ],
