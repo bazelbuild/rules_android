@@ -71,6 +71,7 @@ maven.install(
         "androidx.privacysandbox.tools:tools-apipackager:1.0.0-alpha06",
         "androidx.test:core:1.6.0-alpha01",
         "androidx.test.ext:junit:1.2.0-alpha01",
+        "com.android.tools.apkdeployer:apkdeployer:8.8.0-alpha05",
         "org.gradle:gradle-core:4.2.1",
         "com.android.tools.build:bundletool:1.15.5",
         "com.android.tools:desugar_jdk_libs_minimal:2.0.4",
