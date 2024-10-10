@@ -81,7 +81,7 @@ _ATTRS = dict(
     android_resources_busybox = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ResourceProcessorBusyBox_deploy.jar",
+        default = Label("//src/tools/java/com/google/devtools/build/android:ResourceProcessorBusyBox_deploy.jar"),
         executable = True,
     ),
     apk_to_bundle_tool = attr.label(
@@ -155,7 +155,7 @@ _ATTRS = dict(
     idlclass = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/idlclass:IdlClass_deploy.jar",
+        default = Label("//src/tools/java/com/google/devtools/build/android/idlclass:IdlClass_deploy.jar"),
         executable = True,
     ),
     import_deps_checker = attr.label(

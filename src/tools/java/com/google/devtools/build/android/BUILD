@@ -20,7 +20,7 @@ java_binary(
     # recent example, 400 MB of memory was enough for about 500,000 entries.
     jvm_flags = ["-Xmx1600m"],
     main_class = "com.google.devtools.build.android.ZipFilterAction",
-    visibility = ["//visibility:private"],
+    visibility = ["//tools/android:__pkg__"],
     runtime_deps = [":android_builder_lib"],
 )
 
@@ -58,6 +58,18 @@ genrule(
 java_import(
     name = "databinding_exec_jar",
     jars = [":databinding_exec_jar_gen"],
+)
+
+genrule(
+    name = "kotlin_jar_gen",
+    srcs = ["@android_tools//:all_android_tools_deploy.jar"],
+    outs = ["kotlin.jar"],
+    cmd = "unzip -q $< 'kotlin/*.class' && zip $@ $$(find . -name \"*.class\")",
+)
+
+java_import(
+    name = "kotlin_jar",
+    jars = [":kotlin.jar"],
 )
 
 java_library(
@@ -100,6 +112,7 @@ java_library(
         ":android_databinding_wrapper_lib",
         ":android_options_utils",
         ":dependency_info",
+        ":kotlin_jar",
         ":singlejar_jar",
         ":zip_jar",
         "//src/tools/java/com/google/devtools/build/android/junctions",
@@ -132,7 +145,7 @@ genrule(
     name = "android_common_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
     outs = ["android_common_exec.jar"],
-    cmd = "unzip -q $< 'com/android/*.class' && zip $@ $$(find . -name \"*.class\")",
+    cmd = "unzip -q $< 'com/google/wireless*.class' 'com/android/*.class' && zip $@ $$(find . -name \"*.class\")",
 )
 
 java_import(

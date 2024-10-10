@@ -95,7 +95,7 @@ TOOL_ATTRS = dict(
         default = Label("//tools/jdk:current_java_toolchain"),
     ),
     _resource_busybox = attr.label(
-        default = Label("@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ResourceProcessorBusyBox_deploy.jar"),
+        default = Label("//src/tools/java/com/google/devtools/build/android:ResourceProcessorBusyBox_deploy.jar"),
         allow_files = True,
         cfg = "exec",
         executable = True,
