@@ -69,6 +69,7 @@ maven.install(
         "androidx.privacysandbox.tools:tools-apipackager:1.0.0-alpha06",
         "androidx.test:core:1.6.0-alpha01",
         "androidx.test.ext:junit:1.2.0-alpha01",
+        "com.android.tools.apkdeployer:apkdeployer:8.8.0-alpha05",
         "com.android.tools.build:apksig:8.3.0-alpha18",
         "com.android.tools.build:bundletool:1.15.5",
         "com.android.tools:desugar_jdk_libs_minimal:2.0.4",
@@ -91,7 +92,7 @@ maven.install(
     ],
     # To generate, run:
     # REPIN=1 bazelisk run --enable_bzlmod @rules_android_maven//:pin
-    lock_file = "//:rules_android_maven_install.json",
+    # lock_file = "//:rules_android_maven_install.json",
     use_starlark_android_rules = True,
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
 )

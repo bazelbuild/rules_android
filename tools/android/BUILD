@@ -413,3 +413,22 @@ py_test(
     srcs = ["aar_resources_extractor_test.py"],
     deps = [":aar_resources_extractor"],
 )
+
+java_import(
+    name = "apkdeployer_import",
+    jars = [
+        "@apkdeployer//jar:file",
+        "@adblib//jar:file",
+        "@ddmlib//jar:file",
+    ],
+    visibility = ["//visibility:private"],
+)
+
+java_binary(
+    name = "apkdeployer",
+    main_class = "com.android.tools.deployer.DeployerRunner",
+    runtime_deps = [
+        "@rules_android_maven//:com_android_tools_apkdeployer_apkdeployer",
+    ],
+    visibility = ["//visibility:public"],
+)
