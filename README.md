@@ -31,8 +31,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "rules_android",
     sha256 = "fc6b022e97c2d5893aa3dd01b480f37cd386d82fc7e14edbcba393cd390a244e",
-    strip_prefix = "rules_android-0.5.0",
-    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.5.0/rules_android-v0.5.0.tar.gz",
+    strip_prefix = "rules_android-0.6.0",
+    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.6.0/rules_android-v0.6.0.tar.gz",
 )
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
 rules_android_prereqs()
@@ -56,10 +56,10 @@ Or, if you want to use bzlmod, add the following to your MODULE.bazel file:
 MODULE.bazel:
 
 ```starlark
-bazel_dep(name = "rules_java", version = "7.7.0")
+bazel_dep(name = "rules_java", version = "7.11.1")
 bazel_dep(name = "bazel_skylib", version = "1.3.0")
 
-bazel_dep(name = "rules_android", version = "0.5.0.bcr.1")
+bazel_dep(name = "rules_android", version = "0.6.0")
 ```
 
 
