@@ -1,14 +1,6 @@
 # Description:
 #   Tool for desugaring Java constructs not supported by Android tools or devices.
 
-filegroup(
-    name = "embedded_tools",
-    srcs = ["BUILD.tools"],
-    visibility = [
-        "//src/tools/java/com/google/devtools/build/android:__pkg__",
-    ],
-)
-
 java_library(
     name = "desugar",
     tags = ["manual"],

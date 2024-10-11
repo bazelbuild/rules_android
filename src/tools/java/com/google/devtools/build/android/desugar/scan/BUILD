@@ -3,14 +3,6 @@
 
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
-filegroup(
-    name = "embedded_tools",
-    srcs = ["BUILD.tools"],
-    visibility = [
-        "//src/tools/java/com/google/devtools/build/android:__pkg__",
-    ],
-)
-
 java_library(
     name = "scan",
     srcs = glob(["*.java"]),

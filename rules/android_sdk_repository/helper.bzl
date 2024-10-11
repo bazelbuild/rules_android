@@ -414,13 +414,13 @@ def create_android_sdk_rules(
             "-Xmx8g",
         ],
         main_class = "com.android.tools.r8.GenerateMainDexList",
-        runtime_deps = ["@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8"],
+        runtime_deps = ["@rules_android//src/tools/java/com/google/devtools/build/android/r8"],
     )
     java_binary(
         name = "d8_compat_dx",
         main_class = "com.google.devtools.build.android.r8.CompatDx",
         runtime_deps = [
-            "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8",
+            "@rules_android//src/tools/java/com/google/devtools/build/android/r8",
         ],
     )
     native.alias(
