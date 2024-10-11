@@ -78,6 +78,16 @@ EOF
 exports_files(["*.bzl"])
 EOF
 
+  mkdir -p ${dest_dir}/src/tools/java/com/google/devtools/build/android/r8
+  cat > "${dest_dir}/src/tools/java/com/google/devtools/build/android/r8/BUILD" <<EOF
+genrule(
+    name = "r8",
+    outs = ["r8.txt"],
+    cmd = "echo -n > \$@",
+    visibility = ["//visibility:public"],
+)
+EOF
+
   cat >> WORKSPACE <<EOF
 local_repository(
     name = "rules_android",
