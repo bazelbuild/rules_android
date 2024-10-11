@@ -93,9 +93,6 @@ def rules_android_workspace():
             "com.google.errorprone:error_prone_type_annotations:2.33.0",
             "com.google.errorprone:error_prone_check_api:2.33.0",
             "com.google.errorprone:error_prone_core:2.33.0",
-            # bazel_worker_api deps
-            "com.google.code.gson:gson:2.10.1",
-            "org.mockito:mockito-core:5.4.0",
         ],
         repositories = [
             "https://repo1.maven.org/maven2",
@@ -110,6 +107,24 @@ def rules_android_workspace():
         # NOTE: above lockfile currently disabled due to https://github.com/bazelbuild/rules_jvm_external/issues/1134.
     )
 
+    maven_install(
+        name = "maven",
+        artifacts = [ # bazel worker api
+            "com.google.code.gson:gson:2.10.1", # bazel worker api
+            "com.google.errorprone:error_prone_annotations:2.23.0", # bazel worker api
+            "com.google.guava:guava:33.0.0-jre", # bazel worker api
+            "com.google.protobuf:protobuf-java:4.27.2", # bazel worker api
+            "com.google.protobuf:protobuf-java-util:4.27.2", # bazel worker api
+            "junit:junit:4.13.2", # bazel worker api
+            "org.mockito:mockito-core:5.4.0", # bazel worker api
+            "com.google.truth:truth:1.4.0", # bazel worker api
+        ], # bazel worker api
+        aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+        repositories = [
+            "https://repo1.maven.org/maven2",
+            "https://maven.google.com",
+        ],
+    )
     go_rules_dependencies()
 
     _GO_TOOLCHAIN_VERSION = "1.22.4"
