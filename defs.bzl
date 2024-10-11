@@ -29,6 +29,7 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
@@ -161,3 +162,6 @@ def rules_android_workspace():
         # We recommend using the same version your team is already standardized on.
         python_version = "3.11",
     )
+
+    rules_shell_dependencies()
+    rules_shell_toolchains()
