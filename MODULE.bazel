@@ -85,7 +85,7 @@ maven.install(
         "org.robolectric:robolectric:4.10.3",
         "com.google.flogger:flogger:0.8",
         "com.google.guava:guava:32.1.2-jre",
-        "com.google.protobuf:protobuf-java-util:3.9.2",
+        "com.google.protobuf:protobuf-java-util:4.27.2",
         "com.google.truth:truth:1.1.5",
         "info.picocli:picocli:4.7.4",
         "jakarta.inject:jakarta.inject-api:2.0.1",
@@ -120,6 +120,9 @@ maven.install(
         "com.google.errorprone:error_prone_type_annotations:2.33.0",
         "com.google.errorprone:error_prone_check_api:2.33.0",
         "com.google.errorprone:error_prone_core:2.33.0",
+        # bazel_worker_api deps
+        "com.google.code.gson:gson:2.10.1",
+        "org.mockito:mockito-core:5.4.0",
     ],
     repositories = [
         "https://maven.google.com",
