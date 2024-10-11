@@ -308,7 +308,7 @@ filegroup(
 run_singlejar(
     name = "gen_java_base_extras_jar",
     srcs = [
-        "@bazel_tools//tools/jdk:platformclasspath",
+        "@rules_java//toolchains:platformclasspath",
     ],
     out = "java_base_extras.jar",
     include_prefixes = [
