@@ -146,6 +146,32 @@ def rules_android_prereqs(dev_mode = False):
         sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
     )
 
+    maybe(
+        http_archive,
+        name = "bazel_worker_api",
+        strip_prefix = "bazel-worker-api-0.0.1/proto",
+        patch_cmds = [
+            "find . -name 'BUILD.bazel' -exec sed -i 's/maven/rules_android_maven/g' {} \\;",
+        ],
+        urls = [
+            "https://github.com/bazelbuild/bazel-worker-api/releases/download/v0.0.1/bazel-worker-api-v0.0.1.tar.gz",
+        ],
+        sha256 = "b341e3fba0a3dd0ab7bfdc7e256fad711a1f9e9255563a74c305676046b5a184",
+    )
+
+    maybe(
+        http_archive,
+        name = "bazel_worker_java",
+        strip_prefix = "bazel-worker-api-0.0.1/java",
+        patch_cmds = [
+            "find . -name 'BUILD.bazel' -exec sed -i 's/maven/rules_android_maven/g' {} \\;",
+        ],
+        urls = [
+            "https://github.com/bazelbuild/bazel-worker-api/releases/download/v0.0.1/bazel-worker-api-v0.0.1.tar.gz",
+        ],
+        sha256 = "b341e3fba0a3dd0ab7bfdc7e256fad711a1f9e9255563a74c305676046b5a184",
+    )
+
     _apksig_archive()
 
     if dev_mode:
