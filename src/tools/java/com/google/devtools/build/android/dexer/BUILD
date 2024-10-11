@@ -85,8 +85,6 @@ java_library(
     runtime_deps = [
         "@bazel_tools//src/main/protobuf:worker_protocol_java_proto",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        #"//third_party/android_dex",  # For DexFileSplitter so that it doesn't rely on dx.
-        "@androidsdk//:dx_jar_import",
         "@rules_android_maven//:com_google_auto_value_auto_value",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_guava_guava",
