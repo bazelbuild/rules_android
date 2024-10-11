@@ -172,6 +172,14 @@ def rules_android_prereqs(dev_mode = False):
         sha256 = "b341e3fba0a3dd0ab7bfdc7e256fad711a1f9e9255563a74c305676046b5a184",
     )
 
+    maybe(
+        http_archive,
+        name = "rules_shell",
+        sha256 = "a86bcdcfb7a14267fa81bd18e199a53315b864a89378a7eecd3db739bfa436e2",
+        strip_prefix = "rules_shell-0.1.2",
+        url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.1.2/rules_shell-v0.1.2.tar.gz",
+    )
+
     _apksig_archive()
 
     if dev_mode:

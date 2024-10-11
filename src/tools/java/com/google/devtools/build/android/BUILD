@@ -1,6 +1,7 @@
 # Actions for Android rules.
 
 load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library")
+load("//tools/android:defs.bzl", "run_singlejar")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -24,11 +25,13 @@ java_binary(
     runtime_deps = [":android_builder_lib"],
 )
 
-genrule(
+run_singlejar(
     name = "zip_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["zip.jar"],
-    cmd = "unzip -q $< 'com/google/devtools/build/zip/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "zip.jar",
+    include_prefixes = [
+        "com/google/devtools/build/zip/",
+    ],
 )
 
 java_import(
@@ -36,11 +39,13 @@ java_import(
     jars = [":zip_jar_gen"],
 )
 
-genrule(
+run_singlejar(
     name = "singlejar_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["singlejar.jar"],
-    cmd = "unzip -q $< 'com/google/devtools/build/singlejar/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "singlejar.jar",
+    include_prefixes = [
+        "com/google/devtools/build/singlejar/",
+    ],
 )
 
 java_import(
@@ -48,11 +53,13 @@ java_import(
     jars = [":singlejar_jar_gen"],
 )
 
-genrule(
+run_singlejar(
     name = "databinding_exec_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["databinding_exec.jar"],
-    cmd = "unzip -q $< 'android/databinding/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "databinding_exec.jar",
+    include_prefixes = [
+        "android/databinding/",
+    ],
 )
 
 java_import(
@@ -60,11 +67,13 @@ java_import(
     jars = [":databinding_exec_jar_gen"],
 )
 
-genrule(
+run_singlejar(
     name = "kotlin_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["kotlin.jar"],
-    cmd = "unzip -q $< 'kotlin/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "kotlin.jar",
+    include_prefixes = [
+        "kotlin/",
+    ],
 )
 
 java_import(
@@ -141,11 +150,14 @@ java_library(
     ],
 )
 
-genrule(
+run_singlejar(
     name = "android_common_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["android_common_exec.jar"],
-    cmd = "unzip -q $< 'com/google/wireless*.class' 'com/android/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "android_common_exec.jar",
+    include_prefixes = [
+        "com/google/wireless/",
+        "com/android/",
+    ],
 )
 
 java_import(

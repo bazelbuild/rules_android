@@ -1,4 +1,5 @@
 # Tests for validate-modules-config command.
+load("@rules_java//java:defs.bzl", "java_test")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -11,7 +12,6 @@ java_test(
     name = "ValidateModulesConfigCommandTest",
     size = "small",
     srcs = ["ValidateModulesConfigCommandTest.java"],
-    data = glob(["testdata/*"]),
     deps = [
         "//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/utils",
         "@rules_android_maven//:com_android_tools_build_bundletool",

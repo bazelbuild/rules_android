@@ -1,4 +1,5 @@
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_java//java:defs.bzl", "java_import", "java_library")
+load("//tools/android:defs.bzl", "run_singlejar")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -28,11 +29,13 @@ filegroup(
     visibility = [":android-prod"],
 )
 
-genrule(
+run_singlejar(
     name = "windows_file_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["windows_file.jar"],
-    cmd = "unzip -q $< 'com/google/devtools/build/lib/windows/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "windows_file.jar",
+    include_prefixes = [
+        "com/google/devtools/build/lib/windows/",
+    ],
 )
 
 java_import(

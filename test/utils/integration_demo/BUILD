@@ -3,6 +3,7 @@ load(
     "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
     "script_test",
 )
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 package(
     default_applicable_licenses = ["//:license"],

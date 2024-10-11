@@ -1,7 +1,8 @@
 # Description:
 #   Collection of dex utilities used in the bazel android actions.
 
-load("@rules_java//java:defs.bzl", "java_import", "java_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library")
+load("//tools/android:defs.bzl", "run_singlejar")
 
 filegroup(
     name = "srcs",
@@ -12,11 +13,13 @@ filegroup(
     ],
 )
 
-genrule(
+run_singlejar(
     name = "android_dex_from_android_tools_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["android_dex_from_android_tools.jar"],
-    cmd = "unzip -q $< 'com/android/dex/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "android_dex_from_android_tools.jar",
+    include_prefixes = [
+        "com/android/dex/",
+    ],
 )
 
 java_import(

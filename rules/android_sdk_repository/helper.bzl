@@ -16,6 +16,7 @@
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
 load("@rules_android//rules:rules.bzl", "android_sdk")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 def _bool_flag_impl(_unused_ctx):
     pass
@@ -315,7 +316,7 @@ def create_android_sdk_rules(
             ]),
         )
 
-        native.sh_binary(
+        sh_binary(
             name = tool + "_binary",
             srcs = [tool + "_runner.sh"],
             data = [
@@ -341,7 +342,7 @@ def create_android_sdk_rules(
         }),
     )
 
-    native.sh_binary(
+    sh_binary(
         name = "bash_fail",
         srcs = [":generate_fail_sh"],
     )
@@ -353,7 +354,7 @@ def create_android_sdk_rules(
         executable = 1,
     )
 
-    native.sh_binary(
+    sh_binary(
         name = "windows_fail.cmd",
         srcs = [":generate_fail_cmd"],
     )
@@ -385,7 +386,7 @@ def create_android_sdk_rules(
         ]),
     )
 
-    native.sh_binary(
+    sh_binary(
         name = "main_dex_list_creator",
         srcs = ["main_dex_list_creator.sh"],
         data = [":main_dex_list_creator_java"],
@@ -563,7 +564,7 @@ def create_dummy_sdk_toolchain():
         executable = 1,
     )
 
-    native.sh_binary(name = "empty-binary", srcs = [":genrule"])
+    sh_binary(name = "empty-binary", srcs = [":genrule"])
 
     android_sdk(
         name = "sdk-dummy",

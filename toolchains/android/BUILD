@@ -1,8 +1,9 @@
 # Description:
 #   Defines the Android toolchain.
 
-load(":toolchain.bzl", "android_toolchain")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load(":toolchain.bzl", "android_toolchain")
 
 licenses(["notice"])
 
