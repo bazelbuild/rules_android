@@ -16,12 +16,10 @@
 out="${1}"
 manifest="${2}"
 apk="${3}"
-is_coverage="${4}"
-is_java8="${5}"
-lib_label="${6}"
-xmllint="${7}"
-unzip="${8}"
-is_asset_pack="${9}"
+lib_label="${4}"
+xmllint="${5}"
+unzip="${6}"
+is_asset_pack="${7}"
 
 if [[ -n "$manifest" ]]; then
   node_count=$("$xmllint" --xpath "count(//manifest/*)" "$manifest")
@@ -57,20 +55,6 @@ if [[ -n "$manifest" ]]; then
   if [[ "$is_asset_pack" = false && "$module_title" != "\${MODULE_TITLE}" ]]; then
     echo ""
     echo "$manifest dist:title should be \${MODULE_TITLE} placeholder"
-    echo ""
-    exit 1
-  fi
-fi
-
-# Skip dex validation when running under code coverage.
-# When running under code coverage an additional dep is implicitly added to all
-# binary targets, causing a validation failure.
-if [[ "$is_coverage" == "false" ]]; then
-  dexes=$("$unzip" -l "$apk" | grep ".dex" | wc -l)
-  if [[ ("$is_java8" == "true" && "$dexes" -gt 1 ) || ( "$is_java8" == "false" && "$dexes" -gt 0)]]; then
-    echo ""
-    echo "android_feature_module does not support Java or Kotlin sources."
-    echo "Check $lib_label for any srcs or deps."
     echo ""
     exit 1
   fi

@@ -96,8 +96,19 @@ def _process_feature_module(
         get_android_toolchain(ctx).android_resources_busybox,
         _common.get_host_javabase(ctx),
     )
+
+    # Remove all dexes from the feature module apk. jvm / resources are not
+    # supported in feature modules. The android_feature_module rule has
+    # already validated that there are no transitive sources / resources, but
+    # we may get dexes via e.g. the legacy dex or the record globals.
+    binary = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "_filtered.apk")
+    _common.filter_zip_exclude(
+        ctx,
+        output = binary,
+        input = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk,
+        filter_types = [".dex"],
+    )
     res = feature_target[AndroidFeatureModuleInfo].library[StarlarkAndroidResourcesInfo]
-    binary = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk
     has_native_libs = bool(feature_target[AndroidFeatureModuleInfo].binary[AndroidIdeInfo].native_libs)
     is_asset_pack = bool(feature_target[AndroidFeatureModuleInfo].is_asset_pack)
 
