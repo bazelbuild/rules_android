@@ -44,8 +44,6 @@ def _impl(ctx):
     else:
         args.add("")
     args.add(ctx.attr.binary[ApkInfo].unsigned_apk.path)
-    args.add(ctx.configuration.coverage_enabled)
-    args.add(ctx.fragments.android.desugar_java8_libs)
     args.add(utils.dedupe_split_attr(ctx.split_attr.library).label)
     args.add(get_android_toolchain(ctx).xmllint_tool.files_to_run.executable)
     args.add(get_android_toolchain(ctx).unzip_tool.files_to_run.executable)
