@@ -41,6 +41,8 @@ script_test(
         "//test/bashunit",
         "@bazel_tools//tools/bash/runfiles",
     ],
+    # TODO(b/372950743): Fix the rules_shell integration with this test.
+    tags = ["manual"],
 )
 
 test_suite(
@@ -48,4 +50,6 @@ test_suite(
     tests = [
         ":android_sdk_repository_test",
     ],
+    # TODO(b/372950743): Fix the rules_shell integration with this test.
+    tags = ["manual"],
 )
