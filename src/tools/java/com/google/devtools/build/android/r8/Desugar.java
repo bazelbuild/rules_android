@@ -56,6 +56,7 @@ import java.util.logging.Logger;
 public class Desugar {
 
   public static final String DESUGAR_DEPS_FILENAME = "META-INF/desugar_deps";
+  public static final String CONTEXT_MAP_FILENAME = "META-INF/metadata/synthetic-contexts.map";
   // We shard the compilation if we have more than this number of entries to avoid timing out.
   private static final int NUMBER_OF_ENTRIES_PER_SHARD = 100000;
   private static final Logger logger = Logger.getLogger(Desugar.class.getName());
@@ -423,6 +424,7 @@ public class Desugar {
               .setGlobalSyntheticsConsumer(new NoOpGlobalSyntheticsConsumer())
               .setIntermediate(true)
               .setMinApiLevel(options.minSdkVersion)
+              .setSyntheticInfoConsumer(consumer.getContextConsumer())
               .setProgramConsumer(consumer);
       bootclasspathProviders.forEach(builder::addLibraryResourceProvider);
       if (desugaredLibConfig != null) {
