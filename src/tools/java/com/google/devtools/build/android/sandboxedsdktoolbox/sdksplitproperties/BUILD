@@ -1,4 +1,5 @@
 # Command to generate the SdkSplitProperties file for sandboxed SDK dependencies.
+load("@rules_java//java:defs.bzl", "java_library")
 
 package(
     default_applicable_licenses = ["//:license"],
