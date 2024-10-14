@@ -1,6 +1,6 @@
 ---
 
-bazel: last_green
+bazel: 7.4.0rc1
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"

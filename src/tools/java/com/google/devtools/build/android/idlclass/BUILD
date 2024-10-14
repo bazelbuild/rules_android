@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library")
+load("//tools/android:defs.bzl", "run_singlejar")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -13,11 +14,13 @@ java_binary(
 )
 
 # NOTE: jarhelper actually exists in @bazel_tools, but its visibility is set too restrictively.
-genrule(
+run_singlejar(
     name = "jarhelper_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["jarhelper.jar"],
-    cmd = "unzip -q $< 'com/google/devtools/build/buildjar/jarhelper/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "jarhelper.jar",
+    include_prefixes = [
+        "com/google/devtools/build/buildjar/jarhelper/",
+    ],
 )
 
 java_import(

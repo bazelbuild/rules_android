@@ -1,7 +1,7 @@
 # Description:
 #   Collection of dex utilities used in the bazel android actions.
 
-load("@rules_java//java:defs.bzl", "java_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
 filegroup(
     name = "srcs",

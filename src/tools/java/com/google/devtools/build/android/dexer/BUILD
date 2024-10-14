@@ -1,7 +1,8 @@
 # Description:
 #   Collection of dex utilities used in the bazel android actions.
 
-load("@rules_java//java:defs.bzl", "java_import", "java_library")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library")
+load("//tools/android:defs.bzl", "run_singlejar")
 
 filegroup(
     name = "srcs",
@@ -12,11 +13,13 @@ filegroup(
     ],
 )
 
-genrule(
+run_singlejar(
     name = "android_dex_from_android_tools_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    outs = ["android_dex_from_android_tools.jar"],
-    cmd = "unzip -q $< 'com/android/dex/*.class' && zip $@ $$(find . -name \"*.class\")",
+    out = "android_dex_from_android_tools.jar",
+    include_prefixes = [
+        "com/android/dex/",
+    ],
 )
 
 java_import(
@@ -80,10 +83,8 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android:__pkg__",
     ],
     runtime_deps = [
-        "@bazel_tools//src/main/protobuf:worker_protocol_java_proto",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        #"//third_party/android_dex",  # For DexFileSplitter so that it doesn't rely on dx.
-        "@androidsdk//:dx_jar_import",
+        "@bazel_tools//src/main/protobuf:worker_protocol_java_proto",
         "@rules_android_maven//:com_google_auto_value_auto_value",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_guava_guava",

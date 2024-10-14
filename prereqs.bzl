@@ -42,9 +42,9 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "com_google_protobuf",
-        sha256 = "87407cd28e7a9c95d9f61a098a53cf031109d451a7763e7dd1253abf8b4df422",
-        strip_prefix = "protobuf-3.19.1",
-        urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.19.1.tar.gz"],
+        sha256 = "b2340aa47faf7ef10a0328190319d3f3bee1b24f426d4ce8f4253b6f27ce16db",
+        strip_prefix = "protobuf-28.2",
+        urls = ["https://github.com/protocolbuffers/protobuf/archive/v28.2.tar.gz"],
     )
 
     maybe(
@@ -130,9 +130,9 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "rules_proto",
-        sha256 = "303e86e722a520f6f326a50b41cfc16b98fe6d1955ce46642a5b7a67c11c0f5d",
-        strip_prefix = "rules_proto-6.0.0",
-        url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.0/rules_proto-6.0.0.tar.gz",
+        sha256 = "6fb6767d1bef535310547e03247f7518b03487740c11b6c6adb7952033fe1295",
+        strip_prefix = "rules_proto-6.0.2",
+        url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.2/rules_proto-6.0.2.tar.gz",
     )
 
     maybe(
@@ -150,9 +150,6 @@ def rules_android_prereqs(dev_mode = False):
         http_archive,
         name = "bazel_worker_api",
         strip_prefix = "bazel-worker-api-0.0.1/proto",
-        patch_cmds = [
-            "find . -name 'BUILD.bazel' -exec sed -i 's/maven/rules_android_maven/g' {} \\;",
-        ],
         urls = [
             "https://github.com/bazelbuild/bazel-worker-api/releases/download/v0.0.1/bazel-worker-api-v0.0.1.tar.gz",
         ],
@@ -163,13 +160,18 @@ def rules_android_prereqs(dev_mode = False):
         http_archive,
         name = "bazel_worker_java",
         strip_prefix = "bazel-worker-api-0.0.1/java",
-        patch_cmds = [
-            "find . -name 'BUILD.bazel' -exec sed -i 's/maven/rules_android_maven/g' {} \\;",
-        ],
         urls = [
             "https://github.com/bazelbuild/bazel-worker-api/releases/download/v0.0.1/bazel-worker-api-v0.0.1.tar.gz",
         ],
         sha256 = "b341e3fba0a3dd0ab7bfdc7e256fad711a1f9e9255563a74c305676046b5a184",
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_shell",
+        sha256 = "a86bcdcfb7a14267fa81bd18e199a53315b864a89378a7eecd3db739bfa436e2",
+        strip_prefix = "rules_shell-0.1.2",
+        url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.1.2/rules_shell-v0.1.2.tar.gz",
     )
 
     _apksig_archive()

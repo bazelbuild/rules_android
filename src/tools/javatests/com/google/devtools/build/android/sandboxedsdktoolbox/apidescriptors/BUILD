@@ -1,4 +1,5 @@
 # Tests for extract-api-descriptors command.
+load("@rules_java//java:defs.bzl", "java_test")
 
 package(
     default_applicable_licenses = ["//:license"],

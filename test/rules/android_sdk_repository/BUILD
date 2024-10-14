@@ -35,6 +35,8 @@ script_test(
     srcs = ["android_sdk_repository_test.sh"],
     bazel_binaries = bazel_binaries,
     bazel_version = bazel_binaries.versions.current,
+    # TODO(b/372950743): Fix the rules_shell integration with this test.
+    tags = ["manual"],
     deps = [
         ":android_helper",
         "//test/bashunit",
@@ -44,6 +46,8 @@ script_test(
 
 test_suite(
     name = "integration_tests",
+    # TODO(b/372950743): Fix the rules_shell integration with this test.
+    tags = ["manual"],
     tests = [
         ":android_sdk_repository_test",
     ],

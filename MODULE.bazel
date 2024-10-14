@@ -7,6 +7,7 @@ module(
 bazel_dep(name = "platforms", version = "0.0.5")
 bazel_dep(name = "rules_license", version = "0.0.4")
 bazel_dep(name = "rules_java", version = "7.11.1")
+bazel_dep(name = "rules_shell", version = "0.1.2")
 
 bazel_dep(name = "stardoc", version = "0.6.2", dev_dependency = True)
 # Use a later commit until a version with table of contents, stamping, and
@@ -84,7 +85,7 @@ maven.install(
         "org.robolectric:robolectric:4.10.3",
         "com.google.flogger:flogger:0.8",
         "com.google.guava:guava:32.1.2-jre",
-        "com.google.protobuf:protobuf-java-util:3.9.2",
+        "com.google.protobuf:protobuf-java-util:4.27.2",
         "com.google.truth:truth:1.1.5",
         "info.picocli:picocli:4.7.4",
         "jakarta.inject:jakarta.inject-api:2.0.1",

@@ -29,6 +29,7 @@ load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
+load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
@@ -57,7 +58,7 @@ def rules_android_workspace():
             "org.robolectric:robolectric:4.10.3",
             "com.google.flogger:flogger:0.8",
             "com.google.guava:guava:32.1.2-jre",
-            "com.google.protobuf:protobuf-java-util:3.9.2",
+            "com.google.protobuf:protobuf-java-util:4.27.2",
             "com.google.truth:truth:1.1.5",
             "info.picocli:picocli:4.7.4",
             "jakarta.inject:jakarta.inject-api:2.0.1",
@@ -106,6 +107,27 @@ def rules_android_workspace():
         # NOTE: above lockfile currently disabled due to https://github.com/bazelbuild/rules_jvm_external/issues/1134.
     )
 
+    maven_install(
+        # Specifically named since the worker API lib needs `@maven` to exist.
+        # All lines in the artifacts list must be tagged "bazel worker api" for
+        # the presubmit maven artifact consistency checker to pass.
+        name = "maven",
+        artifacts = [ # bazel worker api
+            "com.google.code.gson:gson:2.10.1", # bazel worker api
+            "com.google.errorprone:error_prone_annotations:2.23.0", # bazel worker api
+            "com.google.guava:guava:33.0.0-jre", # bazel worker api
+            "com.google.protobuf:protobuf-java:4.27.2", # bazel worker api
+            "com.google.protobuf:protobuf-java-util:4.27.2", # bazel worker api
+            "junit:junit:4.13.2", # bazel worker api
+            "org.mockito:mockito-core:5.4.0", # bazel worker api
+            "com.google.truth:truth:1.4.0", # bazel worker api
+        ], # bazel worker api
+        aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+        repositories = [
+            "https://repo1.maven.org/maven2",
+            "https://maven.google.com",
+        ],
+    )
     go_rules_dependencies()
 
     _GO_TOOLCHAIN_VERSION = "1.22.4"
@@ -161,3 +183,6 @@ def rules_android_workspace():
         # We recommend using the same version your team is already standardized on.
         python_version = "3.11",
     )
+
+    rules_shell_dependencies()
+    rules_shell_toolchains()

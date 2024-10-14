@@ -45,7 +45,7 @@ run_singlejar = rule(
     implementation = _run_singlejar_impl,
     doc = "Runs singlejar over the given files.",
     attrs = {
-        "srcs": attr.label_list(mandatory = True),
+        "srcs": attr.label_list(mandatory = True, allow_files = True),
         "out": attr.output(mandatory = True),
         "include_prefixes": attr.string_list(),
         "_java_toolchain": attr.label(default = Label("//tools/jdk:toolchain")),
