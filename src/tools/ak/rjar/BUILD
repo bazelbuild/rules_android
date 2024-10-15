@@ -33,6 +33,7 @@ go_test(
     name = "rjar_test",
     size = "small",
     srcs = ["rjar_test.go"],
+    args = ["--java_path=$(location @local_jdk//:bin/java:java)"],
     data = [
         "//src/tools/ak/rjar/testdata:R",
         "//src/tools/ak/rjar/testdata:pkgs",
