@@ -544,7 +544,7 @@ def _get_effective_incremental_dexing(
     # use_incremental_dexing config flag will take effect if incremental_dexing attr is not set
     return use_incremental_dexing
 
-def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_jar = None, android_jar = None, min_sdk_version = 0):
+def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_jar = None, bootclasspath_jar = None, min_sdk_version = 0):
     if not build_customized_files:
         # TODO(b/329432231): Can we build this for each Android binary or generate one per minSdkVersion at least?
         return utils.only(get_android_toolchain(ctx).java8_legacy_dex.files.to_list()), None
@@ -556,7 +556,7 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
         args = ctx.actions.args()
         args.add("--rules", java8_legacy_dex_rules)
         args.add("--binary", binary_jar)
-        args.add("--android_jar", android_jar)
+        args.add("--android_jar", bootclasspath_jar)
         args.add("--output", java8_legacy_dex)
         args.add("--output_map", java8_legacy_dex_map)
         if min_sdk_version:
@@ -564,7 +564,7 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
 
         ctx.actions.run(
             executable = get_android_toolchain(ctx).build_java8_legacy_dex.files_to_run,
-            inputs = [binary_jar, android_jar],
+            inputs = [binary_jar, bootclasspath_jar],
             outputs = [java8_legacy_dex_rules, java8_legacy_dex_map, java8_legacy_dex],
             arguments = [args],
             mnemonic = "BuildLegacyDex",
