@@ -391,7 +391,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
 
         java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(
             ctx,
-            android_jar = get_android_sdk(ctx).android_jar,
+            bootclasspath_jar = utils.only(common.get_java_toolchain(ctx)[java_common.JavaToolchainInfo].bootclasspath.to_list()),
             binary_jar = binary_jar,
             build_customized_files = is_binary_optimized,
             min_sdk_version = _min_sdk_version.clamp(ctx.attr.min_sdk_version),

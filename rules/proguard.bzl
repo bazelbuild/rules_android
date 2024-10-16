@@ -19,7 +19,7 @@ load(":android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load(":baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load(":common.bzl", "common")
 load(":java.bzl", "java")
-load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_sdk", "utils")
+load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "utils")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -440,7 +440,7 @@ def _apply_proguard(
             proguard_usage,
         )
 
-    library_jar_list = [get_android_sdk(ctx).android_jar]
+    library_jar_list = [utils.only(common.get_java_toolchain(ctx)[java_common.JavaToolchainInfo].bootclasspath.to_list())]
     if ctx.fragments.android.desugar_java8:
         library_jar_list.append(ctx.file._desugared_java8_legacy_apis)
     neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
