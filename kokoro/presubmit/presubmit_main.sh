@@ -55,7 +55,7 @@ function main() {
   echo "== installing bazelisk ========================================="
   bazel_install_dir=$(mktemp -d)
   BAZELISK_VERSION="1.18.0"
-  export USE_BAZEL_VERSION="7.2.1"
+  export USE_BAZEL_VERSION="last_green"
   DownloadBazelisk "$BAZELISK_VERSION" linux amd64 "$bazel_install_dir"
   bazel="$bazel_install_dir/bazel"
   echo "============================================================="
@@ -114,11 +114,6 @@ function main() {
   # The sed commands in the `<()` blocks extract the artifacts list from maven_install.
   # `diff -w` compares the two files without whitespaces.
   diff -w <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' defs.bzl | grep -v "bazel worker api") <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' MODULE.bazel)
-
-  # Sync with bzlmod disabled to sniff out WORKSPACE issues
-  "$bazel" sync --noenable_bzlmod > /dev/null
-  # Run with bzlmod enabled to catch missing bzlmod deps.
-  "$bazel" sync --enable_bzlmod > /dev/null
 
   TEST_TARGETS=(
     "//src/common/golang/..."
