@@ -259,7 +259,11 @@ def _process_deploy_jar(ctx, java_package, jvm_ctx, proto_ctx, resources_ctx, **
 
 def _preprocess_stub(ctx, **_unused_sub_ctxs):
     javabase = ctx.attr._current_java_runtime[java_common.JavaRuntimeInfo]
-    java_executable = javabase.java_executable_exec_path
+    java_executable = javabase.java_executable_runfiles_path
+    if ctx.workspace_name != "google3":
+        # Bazel tests need the runfiles location of the java executable, and the workspace name.
+        java_executable = "$(rlocation " + ctx.workspace_name + "/" + java_executable + ")"
+
     java_executable_files = javabase.files
 
     substitutes = {
