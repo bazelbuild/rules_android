@@ -257,13 +257,21 @@ def _process_deploy_jar(ctx, java_package, jvm_ctx, proto_ctx, resources_ctx, **
         runfiles = ctx.runfiles(files = res_runfiles, transitive_files = classpath),
     )
 
+def _is_windows(ctx):
+    return ctx.configuration.host_path_separator == ";"
+
+def _is_absolute_target_platform_path(ctx, path):
+    if _is_windows(ctx):
+        return len(path) > 2 and path[1] == ":"
+    return path.startswith("/")
+
 def _preprocess_stub(ctx, **_unused_sub_ctxs):
     javabase = ctx.attr._current_java_runtime[java_common.JavaRuntimeInfo]
-    java_executable = javabase.java_executable_exec_path
+    java_executable = ctx.workspace_name + "/" + javabase.java_executable_runfiles_path
     java_executable_files = javabase.files
 
     substitutes = {
-        "%javabin%": "JAVABIN=" + java_executable,
+        "%javabin%": "JAVABIN=$(rlocation " + java_executable + ")",
         "%load_lib%": "",
         "%set_ASAN_OPTIONS%": "",
     }
