@@ -514,8 +514,6 @@ def _get_jvm_flags(ctx, main_class, robolectric_properties_path, additional_jvm_
             {},
         )
         for flag in ctx.attr.jvm_flags
-    ] + [
-        "-Djava.locale.providers=CLDR,JRE",  # TODO(b/334926816): remove this after updating to JDK 23
     ]
 
 def _zip_file(ctx, f, dir_name, out_zip):
