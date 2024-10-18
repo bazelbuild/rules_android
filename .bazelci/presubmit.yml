@@ -1,6 +1,5 @@
----
-
-bazel: 7.4.0
+matrix:
+  bazel: [7.3.2, 7.4.0, last_green]
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
