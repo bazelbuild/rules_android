@@ -1067,7 +1067,7 @@ def _bump_min_sdk(
     args.add("-log", log.path)
 
     out_manifest = ctx.actions.declare_file(
-        out_dir + "AndroidManifest.xml",
+        out_dir + manifest.path.split("/")[-1],
     )
     args.add("-output", out_manifest.path)
     ctx.actions.run(
