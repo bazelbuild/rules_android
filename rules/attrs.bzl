@@ -201,12 +201,6 @@ _DATA_CONTEXT = _add(
             default = Label("//tools/android:merge_manifests"),
             executable = True,
         ),
-        # TODO(b/145617058) Switching back to head RPBB until the Android rules release process is improved
-        _android_resources_busybox = attr.label(
-            cfg = "exec",
-            default = Label("//rules:ResourceProcessorBusyBox"),
-            executable = True,
-        ),
         _xsltproc_tool = attr.label(
             cfg = "exec",
             default = Label("//tools/android/xslt:xslt"),
