@@ -9,12 +9,6 @@ exports_files([
     "rules.bzl",
 ])
 
-alias(
-    name = "ResourceProcessorBusyBox",
-    actual = "//src/tools/java/com/google/devtools/build/android:ResourceProcessorBusyBox",
-    visibility = ["//visibility:public"],
-)
-
 bzl_library(
     name = "android_revision_bzl",
     srcs = [
