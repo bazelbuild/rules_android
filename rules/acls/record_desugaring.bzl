@@ -13,10 +13,6 @@
 # limitations under the License.
 """Allowlist to enable Java 17 Record desugaring."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-
-visibility(PROJECT_VISIBILITY)
-
 # keep sorted
 RECORD_DESUGARING_ROLLOUT = [
 ]
