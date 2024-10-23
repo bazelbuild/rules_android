@@ -10,7 +10,6 @@ android_binary(
 android_library(
     name = "basic_lib",
     manifest = "AndroidManifest.xml",
-    resource_files = glob(["res/**"]),
     # Do not sort: manifest_merge_order_test tests that we don't sort these in the rule code
     deps = [
         ":manifest_ZZZ_foo",
