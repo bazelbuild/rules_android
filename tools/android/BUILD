@@ -1,6 +1,7 @@
 load("@rules_java//java:defs.bzl", "java_binary", "java_library", "java_plugin")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(":defs.bzl", "android_jar", "run_ijar", "run_singlejar")
 
 package(
@@ -290,6 +291,21 @@ java_binary(
     runtime_deps = ["//src/tools/java/com/google/devtools/build/android/r8"],
 )
 
+java_binary(
+    name = "global_synthetics_generator",
+    jvm_flags = [
+        "-XX:+TieredCompilation",
+        "-XX:TieredStopAtLevel=1",
+        # Consistent with what we use for desugar.
+        "-Xms8g",
+        "-Xmx8g",
+    ],
+    main_class = "com.android.tools.r8.GlobalSyntheticsGenerator",
+    runtime_deps = [
+        "@android_gmaven_r8//jar",
+    ],
+)
+
 alias(
     name = "dexmerger",
     actual = ":d8_dexmerger",
@@ -500,4 +516,54 @@ java_library(
         "@rules_android_maven//:com_google_errorprone_error_prone_check_api",
         "@rules_android_maven//:com_google_errorprone_error_prone_core",
     ],
+)
+
+genrule(
+    name = "desugar_globals",
+    outs = ["desugar.globals"],
+    cmd = "$(JAVA) -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --output $@".format(min_sdk_version.DEPOT_FLOOR),
+    toolchains = ["//tools/jdk:current_host_java_runtime"],
+    tools = [":global_synthetics_generator_deploy.jar"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "desugar_globals_dex_archive",
+    srcs = [":desugar.globals"],
+    outs = ["desugar_globals.zip"],
+    cmd = """
+      $(JAVA) -jar $(location :d8_deploy.jar) --no-desugaring --globals $(location :desugar.globals) --output $(@)
+    """,
+    toolchains = ["//tools/jdk:current_host_java_runtime"],
+    tools = [":d8_deploy.jar"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "desugar_globals_classes",
+    outs = ["desugar_globals_classes.zip"],
+    cmd = "$(JAVA) -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --classfile --output $@".format(min_sdk_version.DEPOT_FLOOR),
+    toolchains = ["//tools/jdk:current_host_java_runtime"],
+    tools = [":global_synthetics_generator_deploy.jar"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "desugar_globals_jar",
+    srcs = [":desugar_globals_classes.zip"],
+    outs = ["desugar_globals.jar"],
+    cmd = """
+    tmp=$$(mktemp -d)
+    unzip $(location :desugar_globals_classes.zip) -d $${tmp}
+    rm $${tmp}/kind
+    rm $${tmp}/compilerinfo
+    mv $${tmp}/com/android/tools/r8/RecordTag.global $${tmp}/com/android/tools/r8/RecordTag.class
+    mv $${tmp}/com/android/tools/r8/DesugarMethodHandlesLookup.global $${tmp}/com/android/tools/r8/DesugarMethodHandlesLookup.class
+    mv $${tmp}/com/android/tools/r8/DesugarVarHandle.global $${tmp}/com/android/tools/r8/DesugarVarHandle.class
+    mv $${tmp}'/com/android/tools/r8/DesugarVarHandle$$$$ExternalSyntheticBackportWithForwarding0.global' $${tmp}'/com/android/tools/r8/DesugarVarHandle$$$$ExternalSyntheticBackportWithForwarding0.class'
+    out=$$(pwd)/$(@)
+    cd $${tmp}
+    zip -r $${out} .
+""",
+    visibility = ["//visibility:public"],
 )

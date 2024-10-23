@@ -28,7 +28,11 @@ public class SampleApp extends Activity {
   public void onCreate(Bundle state) {
     super.onCreate(state);
 
+    SampleRecord record = new SampleRecord("name", 1);
+
     setContentView(R.layout.basic_activity);
+    TextView tv = findViewById(R.id.record_text);
+    tv.setText(record.toString());
   }
 
   public native String getString();

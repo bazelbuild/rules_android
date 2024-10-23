@@ -14,7 +14,7 @@
 """Aspect for mobile-install."""
 
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
-load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
+load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "ANDROID_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -85,6 +85,7 @@ def make_aspect(
         implementation = aspect_impl,
         toolchains = [
             ANDROID_SDK_TOOLCHAIN_TYPE,
+            ANDROID_TOOLCHAIN_TYPE,
         ],
         **opt_kwargs
     )

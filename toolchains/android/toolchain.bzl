@@ -132,6 +132,15 @@ _ATTRS = dict(
         default = "//tools/android:desugar_java8_extra_bootclasspath",
         executable = True,
     ),
+    desugar_globals = attr.label(
+        cfg = "exec",
+        allow_single_file = True,
+        default = Label("//tools/android:desugar.globals"),
+    ),
+    desugar_globals_jar = attr.label(
+        cfg = "exec",
+        default = Label("@androidsdk//:fail"),
+    ),
     dexbuilder = attr.label(
         cfg = "exec",
         default = Label("//tools/android:dexbuilder"),
