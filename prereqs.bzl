@@ -138,12 +138,9 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "rules_python",
-        strip_prefix = "rules_python-0.23.1",
-        urls = [
-            "https://github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
-        ],
-        sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
+        sha256 = "bd4797821b72b80b69e3c5ab4ad037e7fd1e6a0a27aebf42424c7ab0ce32e254",
+        strip_prefix = "rules_python-0.37.1",
+        url = "https://github.com/bazelbuild/rules_python/releases/download/0.37.1/rules_python-0.37.1.tar.gz",
     )
 
     maybe(
