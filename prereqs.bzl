@@ -174,6 +174,14 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.1.2/rules_shell-v0.1.2.tar.gz",
     )
 
+    maybe(
+        http_archive,
+        name = "rules_cc",
+        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.13/rules_cc-0.0.13.tar.gz"],
+        sha256 = "d9bdd3ec66b6871456ec9c965809f43a0901e692d754885e89293807762d3d80",
+        strip_prefix = "rules_cc-0.0.13",
+    )
+
     _apksig_archive()
 
     if dev_mode:
