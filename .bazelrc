@@ -3,4 +3,4 @@ common --experimental_enable_android_migration_apis
 common --java_runtime_version=17
 common --android_sdk=@androidsdk//:sdk
 
-common --incompatible_autoload_externally=+@rules_shell,+@rules_java,+@rules_python,+@protobuf
+common --incompatible_autoload_externally=+@rules_shell,+@rules_java,+@rules_cc,+@rules_python,+@protobuf
