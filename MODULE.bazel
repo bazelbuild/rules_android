@@ -21,7 +21,12 @@ git_override(
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
-bazel_dep(name = "protobuf", version = "28.2", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "29.0-rc1", repo_name = "com_google_protobuf")
+git_override(
+    module_name = "protobuf",
+    remote = "https://github.com/protocolbuffers/protobuf",
+    commit = "083de5faeb2d7a1940d1028c317a4a8bad60fe07",
+)
 bazel_dep(name = "rules_jvm_external", version = "6.2")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
 bazel_dep(name = "rules_robolectric", version = "4.11.1", repo_name = "robolectric")
