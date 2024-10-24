@@ -13,7 +13,6 @@
 # limitations under the License.
 """Workspace setup macro for rules_android."""
 
-load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -169,8 +168,6 @@ def rules_android_workspace():
 
     rules_java_dependencies()
     rules_java_toolchains()
-
-    bazel_features_deps()
 
     rules_proto_dependencies()
     rules_proto_toolchains()
