@@ -39,36 +39,11 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_TAG)
     )
 
-    # Required by rules_proto.
-    BAZEL_FEATURES_VERSION = "1.9.1"
-    BAZEL_FEATURES_HASH = "d7787da289a7fb497352211ad200ec9f698822a9e0757a4976fd9f713ff372b3"
-    maybe(
-        http_archive,
-        name = "bazel_features",
-        sha256 = BAZEL_FEATURES_HASH,
-        strip_prefix = "bazel_features-" + BAZEL_FEATURES_VERSION,
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v" + BAZEL_FEATURES_VERSION + "/bazel_features-v" + BAZEL_FEATURES_VERSION + ".tar.gz",
-    )
-    maybe(
-        http_archive,
-        name = "proto_bazel_features",
-        sha256 = BAZEL_FEATURES_HASH,
-        strip_prefix = "bazel_features-" + BAZEL_FEATURES_VERSION,
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v" + BAZEL_FEATURES_VERSION + "/bazel_features-v" + BAZEL_FEATURES_VERSION + ".tar.gz",
-    )
-
     PROTOBUF_VERSION = "29.0-rc2"
     PROTOBUF_HASH = "ce5d00b78450a0ca400bf360ac00c0d599cc225f049d986a27e9a4e396c5a84a"
     maybe(
         http_archive,
         name = "protobuf",
-        sha256 = PROTOBUF_HASH,
-        strip_prefix = "protobuf-" + PROTOBUF_VERSION,
-        urls = ["https://github.com/protocolbuffers/protobuf/archive/v" + PROTOBUF_VERSION + ".tar.gz"],
-    )
-    maybe(
-        http_archive,
-        name = "com_google_protobuf",
         sha256 = PROTOBUF_HASH,
         strip_prefix = "protobuf-" + PROTOBUF_VERSION,
         urls = ["https://github.com/protocolbuffers/protobuf/archive/v" + PROTOBUF_VERSION + ".tar.gz"],
