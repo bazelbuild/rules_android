@@ -49,6 +49,13 @@ def rules_android_prereqs(dev_mode = False):
         strip_prefix = "bazel_features-" + BAZEL_FEATURES_VERSION,
         url = "https://github.com/bazel-contrib/bazel_features/releases/download/v" + BAZEL_FEATURES_VERSION + "/bazel_features-v" + BAZEL_FEATURES_VERSION + ".tar.gz",
     )
+    maybe(
+        http_archive,
+        name = "proto_bazel_features",
+        sha256 = BAZEL_FEATURES_HASH,
+        strip_prefix = "bazel_features-" + BAZEL_FEATURES_VERSION,
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v" + BAZEL_FEATURES_VERSION + "/bazel_features-v" + BAZEL_FEATURES_VERSION + ".tar.gz",
+    )
 
     PROTOBUF_VERSION = "29.0-rc2"
     PROTOBUF_HASH = "ce5d00b78450a0ca400bf360ac00c0d599cc225f049d986a27e9a4e396c5a84a"
