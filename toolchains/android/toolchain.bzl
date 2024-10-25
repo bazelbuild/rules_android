@@ -305,11 +305,6 @@ _ATTRS = dict(
         default = Label("//src/validations/validate_manifest"),
         executable = True,
     ),
-    rex_wrapper = attr.label(
-        cfg = "exec",
-        default = "@androidsdk//:fail",
-        executable = True,
-    ),
     resource_extractor = attr.label(
         cfg = "exec",
         default = "//src/tools/java_resource_extractor:resource_extractor",
