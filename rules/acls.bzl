@@ -62,6 +62,7 @@ load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOU
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
 load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
+load("//rules/acls:optimizer_execution_requirements.bzl", "OPTIMIZER_EXECUTION_REQUIREMENTS")
 load(
     "//rules/acls:partial_jetification_targets.bzl",
     "PARTIAL_JETIFICATION_TARGETS_FALLBACK",
@@ -203,6 +204,9 @@ def _in_resource_shrinking_in_optimizer(fqn):
 def _in_record_desugaring_rollout(fqn):
     return matches(fqn, RECORD_DESUGARING_ROLLOUT_DICT) and not matches(fqn, RECORD_DESUGARING_FALLBACK_DICT)
 
+def _get_optimizer_execution_requirements(target_package):
+    return OPTIMIZER_EXECUTION_REQUIREMENTS.get(target_package, None)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -322,6 +326,7 @@ def matches(fqn, dct):
 acls = struct(
     get_android_archive_duplicate_class_allowlist = _get_android_archive_duplicate_class_allowlist,
     get_android_archive_exposed_package_allowlist = _get_android_archive_exposed_package_allowlist,
+    get_optimizer_execution_requirements = _get_optimizer_execution_requirements,
     in_aar_import_deps_checker = _in_aar_import_deps_checker,
     in_aar_import_explicit_exports_manifest = _in_aar_import_explicit_exports_manifest,
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
