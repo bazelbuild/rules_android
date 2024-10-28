@@ -15,6 +15,7 @@
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
+load(":acls.bzl", "acls")
 load(":android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load(":baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load(":common.bzl", "common")
@@ -332,6 +333,7 @@ def _optimization_action(
         arguments = [args],
         mnemonic = mnemonic,
         progress_message = progress_message,
+        execution_requirements = acls.get_optimizer_execution_requirements(ctx.label.package),
         toolchain = None,  # TODO(timpeut): correctly set this based off which optimizer is selected
     )
 
