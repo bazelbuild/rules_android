@@ -130,7 +130,7 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android/resources",
         "//src/tools/java/com/google/devtools/build/android/ziputils:ziputils_lib",
         "//tools/android:autovalue",
-        "@bazel_tools//src/main/protobuf:worker_protocol_java_proto",
+        "@bazel_worker_java//:worker_protocol_java_proto",
         "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
         "@rules_android_maven//:com_beust_jcommander",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",

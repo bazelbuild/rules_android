@@ -84,7 +84,7 @@ java_library(
     ],
     runtime_deps = [
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@bazel_tools//src/main/protobuf:worker_protocol_java_proto",
+        "@bazel_worker_api//:worker_protocol_proto",
         "@rules_android_maven//:com_google_auto_value_auto_value",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_guava_guava",

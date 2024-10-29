@@ -13,6 +13,7 @@
 # limitations under the License.
 """Helpers for the build file used in android_sdk_repository."""
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_jar")
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
 load("@rules_android//rules:rules.bzl", "android_sdk")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
@@ -426,7 +427,7 @@ def create_android_sdk_rules(
     )
     native.alias(
         name = "d8_jar_import",
-        actual = "@android_gmaven_r8//jar",
+        actual = "@rules_android_maven//:com_android_tools_r8",
     )
 
 TAGDIR_TO_TAG_MAP = {
