@@ -189,22 +189,16 @@ def _process_incremental_dexing(
             toolchain_type = toolchain_type,
         )
 
-        # TODO(asinclair): Remove this once the rollout is complete.
-        dex_merger_actions_args = dict(
+        # TODO(b/130571505): Implement this after SpawnActionTemplate is supported in Starlark
+        android_common.create_dex_merger_actions(
+            ctx,
             output = dexes,
             input = shards,
             dexopts = dexopts,
             dexmerger = dexmerger,
             min_sdk_version = min_sdk_version,
         )
-        if acls.in_record_desugaring_rollout(str(ctx.label)):
-            dex_merger_actions_args["desugar_globals"] = utils.only(get_android_toolchain(ctx).desugar_globals.files.to_list())
 
-        # TODO(b/130571505): Implement this after SpawnActionTemplate is supported in Starlark
-        android_common.create_dex_merger_actions(
-            ctx,
-            **dex_merger_actions_args
-        )
         _java.singlejar(
             ctx,
             output = output,
@@ -379,27 +373,22 @@ def _shard_dexes(
 
     return output
 
-def _append_java8_legacy_dex(
-        ctx,
-        output = None,
-        input = None,
-        java8_legacy_dex = None,
-        dex_zips_merger = None):
+def _append_desugar_dexes(ctx, output = None, input = None, dexes = None, dex_zips_merger = None):
     args = ctx.actions.args()
 
-    # Order matters here: we want java8_legacy_dex to be the highest-numbered classesN.dex
+    # Order matters here: we want the additional dex(s) to be the highest-numbered classesN.dex
     args.add("--input_zip", input)
-    args.add("--input_zip", java8_legacy_dex)
+    args.add_all(dexes, before_each = "--input_zip")
     args.add("--output_zip", output)
 
     ctx.actions.run(
         executable = dex_zips_merger,
-        inputs = [input, java8_legacy_dex],
+        inputs = [input] + dexes,
         outputs = [output],
         arguments = [args],
-        mnemonic = "AppendJava8LegacyDex",
         use_default_shell_env = True,
-        progress_message = "Adding Java8 legacy library for %s" % ctx.label,
+        mnemonic = "AppendDesugarDexes",
+        progress_message = "Adding Desugar dex file(s) for %s" % ctx.label,
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -842,7 +831,7 @@ def _transform_dex_list_through_proguard_map(
     return obfuscated_main_dex_list
 
 dex = struct(
-    append_java8_legacy_dex = _append_java8_legacy_dex,
+    append_desugar_dexes = _append_desugar_dexes,
     dex = _dex,
     dex_merge = _dex_merge,
     generate_main_dex_list = _generate_main_dex_list,
