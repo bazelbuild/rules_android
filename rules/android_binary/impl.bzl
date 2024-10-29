@@ -406,11 +406,15 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
 
-        _dex.append_java8_legacy_dex(
+        dexes_to_append = []
+        if acls.in_record_desugaring_rollout(str(ctx.label)) and not is_binary_optimized:
+            dexes_to_append.append(utils.only(get_android_toolchain(ctx).desugar_globals_dex_archive.files.to_list()))
+        dexes_to_append.append(java8_legacy_dex)
+        _dex.append_desugar_dexes(
             ctx,
             output = final_classes_dex_zip,
             input = classes_dex_zip,
-            java8_legacy_dex = java8_legacy_dex,
+            dexes = dexes_to_append,
             dex_zips_merger = get_android_toolchain(ctx).dex_zips_merger.files_to_run,
         )
     else:
