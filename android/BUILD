@@ -16,3 +16,16 @@
 Package used for redirecting Starlark rules from //android/rules.bzl to //rules/rules.bzl.
 Used for easier migration to a new branch due to directory differences.
 """
+
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+bzl_library(
+    name = "rules",
+    srcs = ["rules.bzl"],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        "//rules:bzl",
+    ],
+)
