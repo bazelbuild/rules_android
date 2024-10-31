@@ -67,7 +67,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         _bundle_keystore_properties = attr.label(
             allow_single_file = True,
-            default = "//rules:bundle_keystore_properties.tmpl",
+            default = None,
         ),
         _feature_manifest_script = attr.label(
             allow_single_file = True,
@@ -79,8 +79,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
             default = Label("//tools/jdk:toolchain_android_only"),
         ),
         _merge_manifests = attr.label(
-            default = ":merge_feature_manifests.par",
-            allow_single_file = True,
+            default = ":merge_feature_manifests",
             cfg = "exec",
             executable = True,
         ),
@@ -114,6 +113,7 @@ ANDROID_FEATURE_MODULE_ATTRS = dict(
     manifest = attr.label(allow_single_file = True),
     title_id = attr.string(),
     title_lib = attr.string(),
+    fused = attr.bool(),
     _feature_module_validation_script = attr.label(
         allow_single_file = True,
         cfg = "exec",

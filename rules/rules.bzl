@@ -54,6 +54,10 @@ load(
     _android_library = "android_library_macro",
 )
 load(
+    "//rules/android_application:android_feature_module.bzl",
+    _android_feature_module = "android_feature_module",
+)
+load(
     "//rules/android_local_test:rule.bzl",
     _android_local_test = "android_local_test",
 )
@@ -81,6 +85,7 @@ aar_import = _aar_import
 android_application = _android_application
 android_binary = _android_binary
 android_library = _android_library
+android_feature_module = _android_feature_module
 android_local_test = _android_local_test
 android_ndk_repository = _android_ndk_repository
 android_sandboxed_sdk = _android_sandboxed_sdk
