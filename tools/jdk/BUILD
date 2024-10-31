@@ -8,7 +8,6 @@ default_java_toolchain(
         "//tools/android:desugar_java8_extra_bootclasspath",
     ],
 
-    source_version = "8",
     visibility = ["//visibility:public"],
 )
 
