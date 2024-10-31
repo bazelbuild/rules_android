@@ -96,7 +96,6 @@ bzl_library(
         "rules.bzl",
     ],
     visibility = [
-        "//android:__pkg__",
         "//mobile_install:__pkg__",
         "//stardoc:__pkg__",
         "//test/rules/android_sdk_repository:__pkg__",
@@ -118,6 +117,21 @@ bzl_library(
         "@rules_java//java/common",
     ],
 )
+
+# Publicly-visible single-file `rules.bzl` target, for users of
+# `bazelbuild/bazel-skylib`'s `bazel_skylib_gazelle_plugin`:
+# https://registry.bazel.build/modules/bazel_skylib_gazelle_plugin
+bzl_library(
+    name = "rules",
+    srcs = ["rules.bzl"],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        ":bzl",
+    ],
+)
+
 
 bzl_library(
     name = "min_sdk_version_bzl",
