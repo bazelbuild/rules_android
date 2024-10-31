@@ -7,16 +7,21 @@ oldest_signer_properties="%oldest_signer_properties%"
 newest_key="%newest_key%"
 lineage="%lineage%"
 min_rotation_api="%min_rotation_api%"
-tmp="$(mktemp /tmp/XXXXbundle.apks)"
+aapt2_path="%aapt2_path%"
+tmp="$(mktemp -t bundleXXXXXX).apks"
 
 function cleanup {
-  rm  -r "$tmp"
+  rm -rf "$tmp"
 }
 trap cleanup EXIT
+
+# bundletool doesn't support symlink for aapt2 paramater
+aapt2_path=$(readlink $aapt2_path)
 
 args=(
   --bundle="$aab"
   --output="$tmp"
+  --aapt2="$aapt2_path"
   --overwrite
   --local-testing
   --ks="$newest_key"
