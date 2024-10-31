@@ -66,7 +66,6 @@ def rules_android_prereqs(dev_mode = False):
         ],
     )
 
-    #maybe(
     http_archive(
         name = "bazel_skylib",
         sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
@@ -105,8 +104,7 @@ def rules_android_prereqs(dev_mode = False):
         patches = [Label("//:robolectric-bazel.patch")],
     )
 
-    maybe(
-        http_archive,
+    http_archive(
         name = "rules_license",
         urls = [
             "https://github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",

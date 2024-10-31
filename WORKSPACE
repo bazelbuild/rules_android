@@ -5,7 +5,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 load("prereqs.bzl", "rules_android_prereqs")
 
-# Required by rules_proto.
+# Required by protobuf and rules_proto 
 BAZEL_FEATURES_VERSION = "1.20.0"
 BAZEL_FEATURES_HASH = "c2596994cf63513bd44180411a4ac3ae95d32bf59148fcb6087a4642b3ffef11"
 maybe(
