@@ -18,6 +18,8 @@ load(
     "AndroidFeatureModuleInfo",
     "AndroidIdeInfo",
     "ApkInfo",
+    "ResourcesNodeInfo",
+    "StarlarkAndroidResourcesInfo",
 )
 load("//rules:acls.bzl", "acls")
 load("//rules:java.bzl", _java = "java")
@@ -29,6 +31,8 @@ load(
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -64,19 +68,26 @@ def _impl(ctx):
         toolchain = None,
     )
 
+    proguard_provider = []
+    if ctx.attr.proguard_specs:
+        proguard_provider = [
+            ProguardSpecInfo(depset(ctx.files.proguard_specs))
+        ]
+
     return [
         AndroidFeatureModuleInfo(
             binary = ctx.attr.binary,
             library = utils.dedupe_split_attr(ctx.split_attr.library),
             title_id = ctx.attr.title_id,
             title_lib = ctx.attr.title_lib,
+            library_resources_only_lib = ctx.attr.library_resources_only_lib,
             feature_name = ctx.attr.feature_name,
             fused = ctx.attr.fused,
             manifest = ctx.file.manifest,
             is_asset_pack = ctx.attr.is_asset_pack,
         ),
         OutputGroupInfo(_validation = depset([validation])),
-    ]
+    ] + proguard_provider
 
 android_feature_module = rule(
     attrs = ANDROID_FEATURE_MODULE_ATTRS,
@@ -95,10 +106,11 @@ def get_feature_module_paths(fqn):
     # Given a fqn to an android_feature_module, returns the absolute paths to
     # all implicitly generated targets
     return struct(
-        binary = Label("%s_bin" % fqn),
-        manifest_lib = Label("%s_AndroidManifest" % fqn),
-        title_strings_xml = Label("%s_title_strings_xml" % fqn),
-        title_lib = Label("%s_title_lib" % fqn),
+        binary = native.package_relative_label("%s_bin" % fqn),
+        manifest_lib = native.package_relative_label("%s_AndroidManifest" % fqn),
+        title_strings_xml = native.package_relative_label("%s_title_strings_xml" % fqn),
+        title_lib = native.package_relative_label("%s_title_lib" % fqn),
+        library_resources_only_lib = native.package_relative_label("%s_resources_only_lib" % fqn),
     )
 
 def android_feature_module_macro(_android_binary, _android_library, **attrs):
@@ -129,6 +141,8 @@ def android_feature_module_macro(_android_binary, _android_library, **attrs):
     targets = get_feature_module_paths(fqn)
 
     tags = getattr(attrs, "tags", [])
+    tags += ["has_proguard_specs"]
+
     transitive_configs = getattr(attrs, "transitive_configs", [])
     visibility = getattr(attrs, "visibility", None)
     testonly = getattr(attrs, "testonly", None)
@@ -147,6 +161,7 @@ tools:keep="@string/{title_id}">
 </resources>
 EOF
 """.format(title = attrs.title, title_id = title_id),
+    visibility = ["//visibility:public"],
     )
 
     # Create AndroidManifest.xml
@@ -178,6 +193,19 @@ EOF
         testonly = testonly,
     )
 
+    # Create a resource-only android library so that base module
+    # includes android resources of feature modules, similarly to Buck.
+    resource_only_lib_internal_name = targets.library_resources_only_lib.name + "_internal"
+    android_resources_only(
+        name = resource_only_lib_internal_name,
+        deps = [attrs.library],
+    )
+    _android_library(
+        name = targets.library_resources_only_lib.name,
+        exports = [":" + resource_only_lib_internal_name],
+        visibility = visibility,
+    )
+
     # Wrap any deps in an android_binary. Will be validated to ensure does not contain any dexes
     binary_attrs = {
         "name": targets.binary.name,
@@ -188,7 +216,7 @@ EOF
         "transitive_configs": transitive_configs,
         "visibility": visibility,
         "feature_flags": getattr(attrs, "feature_flags", None),
-        "$enable_manifest_merging": False,
+        "$enable_manifest_merging": True,
         "testonly": testonly,
     }
     _android_binary(**binary_attrs)
@@ -202,9 +230,77 @@ EOF
         feature_name = getattr(attrs, "feature_name", attrs.name),
         fused = getattr(attrs, "fused", True),
         manifest = getattr(attrs, "manifest", None),
+        proguard_specs = getattr(attrs, "proguard_specs", []),
         tags = tags,
         transitive_configs = transitive_configs,
         visibility = visibility,
         testonly = testonly,
         is_asset_pack = getattr(attrs, "is_asset_pack", False),
     )
+
+# Dedicated rules to implement a resource-only android library from all transitive deps.
+def _android_resources_only_impl(ctx):
+    direct_resources_nodes = []
+    direct_compiled_resources = []
+    transitive_compiled_resources = []
+    transitive_r_txts = []
+    transitive_resource_files = []
+    packages_to_r_txts_depset = dict()
+    transitive_resource_apks = []
+
+    for dep in ctx.attr.deps:
+        if StarlarkAndroidResourcesInfo in dep:
+            info = dep[StarlarkAndroidResourcesInfo]
+            for resources_node in info.direct_resources_nodes.to_list():
+                filtered_resources_node = ResourcesNodeInfo(
+                    label = resources_node.label,
+                    assets = depset(),
+                    assets_dir = None,
+                    assets_symbols = None,
+                    compiled_assets = None,
+                    resource_apks = resources_node.resource_apks,
+                    resource_files = resources_node.resource_files,
+                    compiled_resources = resources_node.compiled_resources,
+                    r_txt = resources_node.r_txt,
+                    manifest = resources_node.manifest,
+                    exports_manifest = False,
+                )
+                direct_resources_nodes.append(filtered_resources_node)
+            direct_compiled_resources.append(info.direct_compiled_resources)
+            transitive_compiled_resources.append(info.transitive_compiled_resources)
+            transitive_r_txts.append(info.transitive_r_txts)
+            transitive_resource_files.append(info.transitive_resource_files)
+            transitive_resource_apks.append(info.transitive_resource_apks)
+            for pkg, r_txts in info.packages_to_r_txts.items():
+                packages_to_r_txts_depset.setdefault(pkg, []).append(r_txts)
+
+    packages_to_r_txts = dict()
+    for pkg, depsets in packages_to_r_txts_depset.items():
+        packages_to_r_txts[pkg] = depset(transitive = depsets)
+
+    provider = StarlarkAndroidResourcesInfo(
+        direct_resources_nodes = depset(direct_resources_nodes),
+        transitive_resources_nodes = depset(),
+        direct_compiled_resources = depset(transitive=direct_compiled_resources),
+        transitive_compiled_resources = depset(transitive=transitive_compiled_resources),
+        transitive_r_txts = depset(transitive=transitive_r_txts),
+        transitive_resource_files = depset(transitive=transitive_resource_files),
+        packages_to_r_txts = packages_to_r_txts,
+        transitive_resource_apks = depset(transitive=transitive_resource_apks),
+        transitive_assets = depset(),
+        transitive_assets_symbols = depset(),
+        transitive_compiled_assets = depset(),
+        transitive_manifests = depset(),
+    )
+
+    return [provider, CcInfo()]
+
+android_resources_only = rule(
+    implementation = _android_resources_only_impl,
+    attrs = {
+        "deps": attr.label_list(
+            doc = "Android libraries containing both resources and Java code",
+            providers = [StarlarkAndroidResourcesInfo],  # Ensure only android_library targets are allowed
+        ),
+    },
+)

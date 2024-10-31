@@ -1118,6 +1118,10 @@ def _generate_binary_r(
         outputs = [out_class_jar],
         mnemonic = "StarlarkRClassGenerator",
         progress_message = "Generating R classes",
+        jvm_flags = [
+            "-Xms8g",
+            "-Xmx8g",
+        ],
     )
 
 def _make_aar(
@@ -1389,8 +1393,6 @@ def _optimize(
         args.add("--enable-sparse-encoding")
     args.add("-o", out_apk)
     args.add(in_apk)
-
-    _set_warning_level(ctx, args)
 
     _java_run(
         ctx = ctx,

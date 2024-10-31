@@ -15,15 +15,21 @@
 
 out_manifest="${1}"
 base_apk="${2}"
-package="${3}"
+feature_manifest="${3}"
 split="${4}"
 aapt="${5}"
-in_manifest="${6}" # Developer-provided manifest for the feature module
-is_asset_pack="${7}"
+dex_zip="${6}"
 
 aapt_cmd="$aapt dump xmltree $base_apk --file AndroidManifest.xml"
 version_code=$(${aapt_cmd} | grep "http://schemas.android.com/apk/res/android:versionCode" | cut -d "=" -f2 | head -n 1)
 min_sdk=$(${aapt_cmd} | grep "http://schemas.android.com/apk/res/android:minSdkVersion" | cut -d "=" -f2 | head -n 1)
+package=$(awk -F 'package="' '{if ($2 != "") print $2}' $feature_manifest | cut -d '"' -f1)
+
+has_code="false"
+if unzip -l "${dex_zip}" classes.dex > /dev/null; then
+    has_code="true"
+fi
+
 if [[ -z "$version_code" ]]
 then
 	echo "Base app missing versionCode in AndroidManifest.xml"
@@ -58,8 +64,8 @@ else
 			android:versionCode="$version_code"
 			android:isFeatureSplit="true">
 
-		<application android:hasCode="false" /> <!-- currently only supports asset splits -->
-		<uses-sdk android:minSdkVersion="$min_sdk" />
-	</manifest>
-	EOF
+  <application android:hasCode="$has_code" />
+  <uses-sdk android:minSdkVersion="$min_sdk" />
+</manifest>
+EOF
 fi
