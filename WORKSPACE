@@ -1,12 +1,13 @@
 workspace(name = "rules_android")
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 load("prereqs.bzl", "rules_android_prereqs")
 
 # Required by rules_proto.
-BAZEL_FEATURES_VERSION = "1.9.1"
-BAZEL_FEATURES_HASH = "d7787da289a7fb497352211ad200ec9f698822a9e0757a4976fd9f713ff372b3"
+BAZEL_FEATURES_VERSION = "1.20.0"
+BAZEL_FEATURES_HASH = "c2596994cf63513bd44180411a4ac3ae95d32bf59148fcb6087a4642b3ffef11"
 maybe(
     http_archive,
     name = "bazel_features",

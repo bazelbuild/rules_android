@@ -23,13 +23,13 @@ def rules_android_prereqs(dev_mode = False):
         http_archive,
         name = "rules_java",
         urls = [
-            "https://github.com/bazelbuild/rules_java/releases/download/8.1.0/rules_java-8.1.0.tar.gz",
+            "https://github.com/bazelbuild/rules_java/releases/download/7.12.2/rules_java-7.12.2.tar.gz",
         ],
-        sha256 = "a4151b0b482020f90b81e82f6e75be0e9ba180af1e5addf2fd4ec1b064246119",
+        sha256 = "a9690bc00c538246880d5c83c233e4deb83fe885f54c21bb445eb8116a180b83",
     )
 
-    RULES_JVM_EXTERNAL_TAG = "6.2"
-    RULES_JVM_EXTERNAL_SHA = "808cb5c30b5f70d12a2a745a29edc46728fd35fa195c1762a596b63ae9cebe05"
+    RULES_JVM_EXTERNAL_TAG = "6.5"
+    RULES_JVM_EXTERNAL_SHA = "3a4d56357851cf5b0dae538b3f3e0612a4f58925dfb3cadb2e0c4e87d51e629e"
 
     maybe(
         http_archive,
@@ -48,6 +48,13 @@ def rules_android_prereqs(dev_mode = False):
         strip_prefix = "protobuf-" + PROTOBUF_VERSION,
         urls = ["https://github.com/protocolbuffers/protobuf/archive/v" + PROTOBUF_VERSION + ".tar.gz"],
     )
+    maybe(
+        http_archive,
+        name = "com_google_protobuf",
+        sha256 = PROTOBUF_HASH,
+        strip_prefix = "protobuf-" + PROTOBUF_VERSION,
+        urls = ["https://github.com/protocolbuffers/protobuf/archive/v" + PROTOBUF_VERSION + ".tar.gz"],
+    )
 
     maybe(
         http_archive,
@@ -59,13 +66,12 @@ def rules_android_prereqs(dev_mode = False):
         ],
     )
 
-    maybe(
-        http_archive,
+    #maybe(
+    http_archive(
         name = "bazel_skylib",
-        sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         urls = [
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
         ],
     )
 
@@ -103,10 +109,9 @@ def rules_android_prereqs(dev_mode = False):
         http_archive,
         name = "rules_license",
         urls = [
-            "https://github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
+            "https://github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
         ],
-        sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
+        sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
     )
 
     maybe(
