@@ -7,11 +7,6 @@ module(
 bazel_dep(name = "platforms", version = "0.0.5")
 bazel_dep(name = "rules_license", version = "0.0.4")
 bazel_dep(name = "rules_java", version = "7.12.2")
-git_override(
-    module_name = "rules_java",
-    remote = "https://github.com/bazelbuild/rules_java.git",
-    commit = "2cc0a475f0f7deedad21be869bb3a69fba0afa5a",
-)
 bazel_dep(name = "rules_shell", version = "0.1.2")
 
 bazel_dep(name = "stardoc", version = "0.6.2", dev_dependency = True)
@@ -34,7 +29,7 @@ git_override(
     commit = "3ea96498725cb21e3ac18490cc3f3b75db2259ca",
 )
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
-bazel_dep(name = "rules_robolectric", version = "4.11.1", repo_name = "robolectric")
+bazel_dep(name = "rules_robolectric", version = "4.13", repo_name = "robolectric")
 
 register_toolchains("//toolchains/android:all")
 
