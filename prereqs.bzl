@@ -23,13 +23,13 @@ def rules_android_prereqs(dev_mode = False):
         http_archive,
         name = "rules_java",
         urls = [
-            "https://github.com/bazelbuild/rules_java/releases/download/7.11.1/rules_java-7.11.1.tar.gz",
+            "https://github.com/bazelbuild/rules_java/releases/download/7.12.2/rules_java-7.12.2.tar.gz",
         ],
-        sha256 = "6f3ce0e9fba979a844faba2d60467843fbf5191d8ca61fa3d2ea17655b56bb8c",
+        sha256 = "a9690bc00c538246880d5c83c233e4deb83fe885f54c21bb445eb8116a180b83",
     )
 
-    RULES_JVM_EXTERNAL_TAG = "6.2"
-    RULES_JVM_EXTERNAL_SHA = "808cb5c30b5f70d12a2a745a29edc46728fd35fa195c1762a596b63ae9cebe05"
+    RULES_JVM_EXTERNAL_TAG = "6.5"
+    RULES_JVM_EXTERNAL_SHA = "3a4d56357851cf5b0dae538b3f3e0612a4f58925dfb3cadb2e0c4e87d51e629e"
 
     maybe(
         http_archive,
@@ -39,12 +39,21 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_TAG)
     )
 
+    PROTOBUF_VERSION = "29.0-rc2"
+    PROTOBUF_HASH = "ce5d00b78450a0ca400bf360ac00c0d599cc225f049d986a27e9a4e396c5a84a"
+    maybe(
+        http_archive,
+        name = "protobuf",
+        sha256 = PROTOBUF_HASH,
+        strip_prefix = "protobuf-" + PROTOBUF_VERSION,
+        urls = ["https://github.com/protocolbuffers/protobuf/archive/v" + PROTOBUF_VERSION + ".tar.gz"],
+    )
     maybe(
         http_archive,
         name = "com_google_protobuf",
-        sha256 = "b2340aa47faf7ef10a0328190319d3f3bee1b24f426d4ce8f4253b6f27ce16db",
-        strip_prefix = "protobuf-28.2",
-        urls = ["https://github.com/protocolbuffers/protobuf/archive/v28.2.tar.gz"],
+        sha256 = PROTOBUF_HASH,
+        strip_prefix = "protobuf-" + PROTOBUF_VERSION,
+        urls = ["https://github.com/protocolbuffers/protobuf/archive/v" + PROTOBUF_VERSION + ".tar.gz"],
     )
 
     maybe(
@@ -57,13 +66,11 @@ def rules_android_prereqs(dev_mode = False):
         ],
     )
 
-    maybe(
-        http_archive,
+    http_archive(
         name = "bazel_skylib",
-        sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+        sha256 = "bc283cdfcd526a52c3201279cda4bc298652efa898b10b4db0837dc51652756f",
         urls = [
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
         ],
     )
 
@@ -97,14 +104,12 @@ def rules_android_prereqs(dev_mode = False):
         patches = [Label("//:robolectric-bazel.patch")],
     )
 
-    maybe(
-        http_archive,
+    http_archive(
         name = "rules_license",
         urls = [
-            "https://github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_license/releases/download/0.0.4/rules_license-0.0.4.tar.gz",
+            "https://github.com/bazelbuild/rules_license/releases/download/1.0.0/rules_license-1.0.0.tar.gz",
         ],
-        sha256 = "6157e1e68378532d0241ecd15d3c45f6e5cfd98fc10846045509fb2a7cc9e381",
+        sha256 = "26d4021f6898e23b82ef953078389dd49ac2b5618ac564ade4ef87cced147b38",
     )
 
     maybe(
@@ -115,15 +120,6 @@ def rules_android_prereqs(dev_mode = False):
             "https://github.com/abseil/abseil-py/archive/refs/tags/v1.4.0.tar.gz",
         ],
         strip_prefix = "abseil-py-1.4.0",
-    )
-
-    # Required by rules_proto.
-    maybe(
-        http_archive,
-        name = "bazel_features",
-        sha256 = "d7787da289a7fb497352211ad200ec9f698822a9e0757a4976fd9f713ff372b3",
-        strip_prefix = "bazel_features-1.9.1",
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.9.1/bazel_features-v1.9.1.tar.gz",
     )
 
     # Required by rules_go.
@@ -138,12 +134,9 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "rules_python",
-        strip_prefix = "rules_python-0.23.1",
-        urls = [
-            "https://github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_python/releases/download/0.23.1/rules_python-0.23.1.tar.gz",
-        ],
-        sha256 = "84aec9e21cc56fbc7f1335035a71c850d1b9b5cc6ff497306f84cced9a769841",
+        sha256 = "bd4797821b72b80b69e3c5ab4ad037e7fd1e6a0a27aebf42424c7ab0ce32e254",
+        strip_prefix = "rules_python-0.37.1",
+        url = "https://github.com/bazelbuild/rules_python/releases/download/0.37.1/rules_python-0.37.1.tar.gz",
     )
 
     maybe(
@@ -172,6 +165,14 @@ def rules_android_prereqs(dev_mode = False):
         sha256 = "a86bcdcfb7a14267fa81bd18e199a53315b864a89378a7eecd3db739bfa436e2",
         strip_prefix = "rules_shell-0.1.2",
         url = "https://github.com/bazelbuild/rules_shell/releases/download/v0.1.2/rules_shell-v0.1.2.tar.gz",
+    )
+
+    maybe(
+        http_archive,
+        name = "rules_cc",
+        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.13/rules_cc-0.0.13.tar.gz"],
+        sha256 = "d9bdd3ec66b6871456ec9c965809f43a0901e692d754885e89293807762d3d80",
+        strip_prefix = "rules_cc-0.0.13",
     )
 
     _apksig_archive()

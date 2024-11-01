@@ -1,6 +1,6 @@
 ---
 
-bazel: 7.4.0rc4
+bazel: 7.4.0
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"

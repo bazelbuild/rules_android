@@ -206,21 +206,21 @@ java_binary(
     name = "d8",
     main_class = "com.android.tools.r8.D8",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@android_gmaven_r8//jar"],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
 )
 
 java_binary(
     name = "r8",
     main_class = "com.android.tools.r8.R8",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@android_gmaven_r8//jar"],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
 )
 
 java_binary(
     name = "tracereferences",
     main_class = "com.android.tools.r8.tracereferences.TraceReferences",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@android_gmaven_r8//jar"],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
 )
 
 java_binary(
@@ -301,9 +301,7 @@ java_binary(
         "-Xmx8g",
     ],
     main_class = "com.android.tools.r8.GlobalSyntheticsGenerator",
-    runtime_deps = [
-        "@android_gmaven_r8//jar",
-    ],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
 )
 
 alias(

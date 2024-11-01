@@ -1,5 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
+load("@rules_java//java:defs.bzl", "java_library")
 
 exports_files([
     "data_binding_annotation_template.txt",

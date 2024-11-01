@@ -13,10 +13,9 @@
 # limitations under the License.
 """Workspace setup macro for rules_android."""
 
-load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load(
     "@io_bazel_rules_go//go:deps.bzl",
     "go_download_sdk",
@@ -53,18 +52,19 @@ def rules_android_workspace():
             "com.android.tools:desugar_jdk_libs_nio:2.0.4",
             "com.android.tools:desugar_jdk_libs_configuration_nio:2.0.4",
             "com.android.tools.build:gradle:8.7.0",
+            "com.android.tools:r8:8.3.37",
             "org.bouncycastle:bcprov-jdk18on:1.77",
             "org.hamcrest:hamcrest-core:2.2",
             "org.robolectric:robolectric:4.10.3",
             "com.google.flogger:flogger:0.8",
             "com.google.guava:guava:32.1.2-jre",
-            "com.google.protobuf:protobuf-java-util:4.27.2",
             "com.google.truth:truth:1.1.5",
             "info.picocli:picocli:4.7.4",
             "jakarta.inject:jakarta.inject-api:2.0.1",
             "junit:junit:4.13.2",
             "com.beust:jcommander:1.82",
-            "com.google.protobuf:protobuf-java:4.28.2",
+            "com.google.protobuf:protobuf-java:4.29.0-RC2",
+            "com.google.protobuf:protobuf-java-util:4.29.0-RC2",
             "com.google.code.findbugs:jsr305:3.0.2",
             "androidx.databinding:databinding-compiler:8.7.0",
             "org.ow2.asm:asm:9.6",
@@ -169,8 +169,6 @@ def rules_android_workspace():
 
     rules_java_dependencies()
     rules_java_toolchains()
-
-    bazel_features_deps()
 
     rules_proto_dependencies()
     rules_proto_toolchains()
