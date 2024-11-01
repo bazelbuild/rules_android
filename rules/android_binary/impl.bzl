@@ -470,7 +470,10 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
     dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
     if ctx.fragments.android.desugar_java8:
         desugared_jars = []
-        if acls.in_record_desugaring_rollout(str(ctx.label)):
+
+        # Only include the desugar globals in the deploy jar if this target will be optimized.
+        # For non-optimized targets this gets merged in as a separate dex.
+        if acls.in_record_desugaring_rollout(str(ctx.label)) and ctx.attr.proguard_specs:
             desugared_jars.append(utils.only(get_android_toolchain(ctx).desugar_globals_jar.files.to_list()))
         desugar_dict = {d.jar: d.desugared_jar for d in dex_archives if d.desugared_jar}
 
