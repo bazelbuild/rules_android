@@ -32,8 +32,8 @@ java_library(
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_options_utils",
         "//tools/android:autovalue",
-        "@android_gmaven_r8//jar",
         "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
+        "@rules_android_maven//:com_android_tools_r8",
         "@rules_android_maven//:com_beust_jcommander",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_guava_guava",
