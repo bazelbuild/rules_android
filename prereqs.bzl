@@ -129,10 +129,9 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "rules_proto",
-        sha256 = RULES_PROTO_HASH,
-        strip_prefix = "rules_proto-%s" % RULES_PROTO_VERSION,
-        # url = "https://github.com/bazelbuild/rules_proto/releases/download/%s/rules_proto-%s.tar.gz" % (RULES_PROTO_VERSION, RULES_PROTO_VERSION),
-        url = "https://github.com/bazelbuild/rules_proto/archive/%s/rules_proto-%s.tar.gz" % (RULES_PROTO_VERSION, RULES_PROTO_VERSION),
+        sha256 = "6fb6767d1bef535310547e03247f7518b03487740c11b6c6adb7952033fe1295",
+        strip_prefix = "rules_proto-6.0.2",
+        url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.2/rules_proto-6.0.2.tar.gz",
     )
 
     maybe(
