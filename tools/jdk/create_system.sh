@@ -13,19 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# A script to generate a java system library for use in Android compilation
-
-# Detect windows OS before `set -e` is called
-exe=""
-if [[ "$(uname)" =~ Windows ]]; then
-  exe=".exe"
-fi
-
-# Append .exe to binary names if applicable
-javac="javac$exe"
-jmod="jmod$exe"
-jlink="jlink$exe"
-
 set -euo pipefail
 
 function ParseArgs() {
@@ -77,20 +64,20 @@ chmod -R a+rx "${DIR}/classes"
 
 rm -rf "${FLAGS_output}"
 
-"${FLAGS_java_home}/bin/$javac" \
+"${FLAGS_java_home}/bin/javac" \
   -d "${DIR}/classes" \
   --system=none \
   --patch-module=java.base="${DIR}/classes" \
   "${FLAGS_module_info}"
 
-"${FLAGS_java_home}/bin/$jmod" \
+"${FLAGS_java_home}/bin/jmod" \
   create \
-  --module-version "$("${FLAGS_java_home}/bin/$jlink" --version)" \
+  --module-version "$("${FLAGS_java_home}/bin/jlink" --version)" \
   --target-platform linux-amd64 \
   --class-path "${DIR}/classes" \
   "${DIR}/jmod/java.base.jmod"
 
-"${FLAGS_java_home}/bin/$jlink" \
+"${FLAGS_java_home}/bin/jlink" \
   --module-path "${DIR}/jmod" \
   --add-modules java.base \
   --output "${FLAGS_output}" \
