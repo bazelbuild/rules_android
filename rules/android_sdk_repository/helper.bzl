@@ -156,7 +156,7 @@ def create_android_sdk_rules(
                ] + [
             "platforms/android-%d/%s" % (api_level, filename)
             for api_level in api_levels
-            for filename in ["android.jar", "framework.aidl"]
+            for filename in ["android.jar", "core-for-system-modules.jar", "framework.aidl"]
         ] + select({
             ":windows": windows_only_files,
             "//conditions:default": linux_only_files,
@@ -270,6 +270,11 @@ def create_android_sdk_rules(
     native.alias(
         name = "sdk-toolchain",
         actual = ":sdk-%d-toolchain" % default_api_level,
+    )
+
+    java_import(
+        name = "core-for-system-modules-jar",
+        jars = ["platforms/android-%d/core-for-system-modules.jar" % default_api_level],
     )
 
     java_binary(

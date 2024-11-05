@@ -71,6 +71,12 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+alias(
+    name = "unzip",
+    actual = "//toolchains/android:unzip",
+    visibility = ["//visibility:public"],
+)
+
 genrule(
     name = "full_desugar_jdk_libs_config_json",
     srcs = [

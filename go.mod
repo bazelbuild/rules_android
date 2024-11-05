@@ -3,6 +3,7 @@ module github.com/bazelbuild/rules_android
 go 1.21.1
 
 require (
+	bitbucket.org/creachadair/stringset v0.0.14
 	github.com/bazelbuild/rules_go v0.50.1
 	github.com/golang/glog v1.1.2
 	github.com/google/go-cmp v0.5.9

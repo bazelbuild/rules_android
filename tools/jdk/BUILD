@@ -1,11 +1,55 @@
 load("@rules_java//toolchains:default_java_toolchain.bzl", "default_java_toolchain")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//tools/jdk:system.bzl", "android_system")
+
+sh_binary(
+    name = "create_system",
+    srcs = ["create_system.sh"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "fake_jar",
+    testonly = 1,
+    outs = ["fake.jar"],
+    cmd = "set -euo pipefail\n" +
+          "mkdir -p a/b\n" +
+          "mkdir -p c/d\n" +
+          "touch a/b/x.class\n" +
+          "touch c/d/y.class\n" +
+          "touch foobar.txt\n" +
+          "zip -q -r $@ a c foobar.txt",
+)
+
+sh_test(
+    name = "jar_to_module_info_test",
+    srcs = ["jar_to_module_info_test.sh"],
+    data = [
+        "test_module_info_golden.txt",
+        ":fake_jar",
+        "//src/tools/jar_to_module_info",
+    ],
+    deps = [
+        "@bazel_tools//tools/bash/runfiles",
+    ],
+)
+
+android_system(
+    name = "bootclasspath_android_only",
+    bootclasspath = [
+        "//tools/android:android_jar",
+        "//tools/android:desugar_java8_extra_bootclasspath",
+    ],
+    core_jars = [
+        "@androidsdk//:core-for-system-modules-jar",
+    ],
+)
 
 default_java_toolchain(
     name = "toolchain_android_only",
     bootclasspath = [
-        "//tools/android:android_jar",
-        # TODO(b/175805830): Add this only when desugaring is enabled.
-        "//tools/android:desugar_java8_extra_bootclasspath",
+        ":bootclasspath_android_only",
     ],
     visibility = ["//visibility:public"],
 )
