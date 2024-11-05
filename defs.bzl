@@ -165,6 +165,13 @@ def rules_android_workspace():
         sum = "h1:DVjP2PbBOzHyzA+dn3WhHIq4NdVu3Q+pvivFICf/7fo=",
     )
 
+    go_repository(
+        name = "org_bitbucket_creachadair_stringset",
+        importpath = "bitbucket.org/creachadair/stringset",
+        version = "v0.0.14",
+        sum = "h1:t1ejQyf8utS4GZV/4fM+1gvYucggZkfhb+tMobDxYOE=",
+    )
+
     robolectric_repositories()
 
     rules_java_dependencies()
