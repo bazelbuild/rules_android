@@ -73,7 +73,10 @@ alias(
 
 alias(
     name = "unzip",
-    actual = "//toolchains/android:unzip",
+    actual = select({
+      "@platforms//os:windows": "//toolchains/android:unzip.exe",
+      "//conditions:default": "//toolchains/android:unzip",
+    }),
     visibility = ["//visibility:public"],
 )
 
