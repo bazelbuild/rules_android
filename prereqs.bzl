@@ -13,19 +13,21 @@
 # limitations under the License.
 """Sets up prerequisites for rules_android."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//bzlmod_extensions:apksig.bzl", _apksig_archive = "apksig")
 
 def rules_android_prereqs(dev_mode = False):
     """Downloads prerequisite repositories for rules_android."""
-    maybe(
-        http_archive,
-        name = "rules_java",
-        urls = [
-            "https://github.com/bazelbuild/rules_java/releases/download/7.12.2/rules_java-7.12.2.tar.gz",
-        ],
-        sha256 = "a9690bc00c538246880d5c83c233e4deb83fe885f54c21bb445eb8116a180b83",
+    http_archive(
+        name = "android_tools",
+        sha256 = "d7cdfc03f3ad6571b7719f4355379177a4bde68d17dca2bdbf6c274d72e4d6cf",
+        url = "https://mirror.bazel.build/bazel_android_tools/android_tools_pkg-0.31.0.tar",
+    )
+    http_jar(
+        name = "android_gmaven_r8",
+        sha256 = "59753e70a74f918389cc87f1b7d66b5c0862932559167425708ded159e3de439",
+        url = "https://maven.google.com/com/android/tools/r8/8.3.37/r8-8.3.37.jar",
     )
 
     RULES_JVM_EXTERNAL_TAG = "6.5"
@@ -41,8 +43,7 @@ def rules_android_prereqs(dev_mode = False):
 
     PROTOBUF_VERSION = "29.0-rc2"
     PROTOBUF_HASH = "ce5d00b78450a0ca400bf360ac00c0d599cc225f049d986a27e9a4e396c5a84a"
-    maybe(
-        http_archive,
+    http_archive(
         name = "protobuf",
         sha256 = PROTOBUF_HASH,
         strip_prefix = "protobuf-" + PROTOBUF_VERSION,
@@ -123,12 +124,15 @@ def rules_android_prereqs(dev_mode = False):
     )
 
     # Required by rules_go.
+    RULES_PROTO_VERSION = "07cdde807a02f7f4baa714f9f1e1c26f02148d51"
+    RULES_PROTO_HASH = "93f343cfe1d70086e30811236ff1be291fbac862cd41cfe6fb41d7ac0600b6d3"
     maybe(
         http_archive,
         name = "rules_proto",
-        sha256 = "6fb6767d1bef535310547e03247f7518b03487740c11b6c6adb7952033fe1295",
-        strip_prefix = "rules_proto-6.0.2",
-        url = "https://github.com/bazelbuild/rules_proto/releases/download/6.0.2/rules_proto-6.0.2.tar.gz",
+        sha256 = RULES_PROTO_HASH,
+        strip_prefix = "rules_proto-%s" % RULES_PROTO_VERSION,
+        # url = "https://github.com/bazelbuild/rules_proto/releases/download/%s/rules_proto-%s.tar.gz" % (RULES_PROTO_VERSION, RULES_PROTO_VERSION),
+        url = "https://github.com/bazelbuild/rules_proto/archive/%s/rules_proto-%s.tar.gz" % (RULES_PROTO_VERSION, RULES_PROTO_VERSION),
     )
 
     maybe(
@@ -181,9 +185,9 @@ def rules_android_prereqs(dev_mode = False):
         maybe(
             http_archive,
             name = "rules_bazel_integration_test",
-            sha256 = "d6dada79939533a8127000d2aafa125f29a4a97f720e01c050fdeb81b1080b08",
+            sha256 = "ab56cdd55a28781287242c7124ce9ff791ae8318ed641057f10edd98c55d7ed5",
             urls = [
-                "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.17.0/rules_bazel_integration_test.v0.17.0.tar.gz",
+                "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.26.0/rules_bazel_integration_test.v0.26.0.tar.gz",
             ],
         )
 

@@ -23,7 +23,6 @@ load(
     "go_rules_dependencies",
 )
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
-load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
@@ -174,8 +173,6 @@ def rules_android_workspace():
 
     robolectric_repositories()
 
-    rules_java_dependencies()
-    rules_java_toolchains()
 
     rules_proto_dependencies()
     rules_proto_toolchains()
