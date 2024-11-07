@@ -42,6 +42,7 @@ def android_application(**attrs):
     `feature_modules` | New. List of labels to `android_feature_module`s to include as feature splits. Note: must be fully qualified paths (//some:target), not relative.
     `bundle_config_file` | New. String path to .pb.json file containing the bundle config. See the [bundletool docs](https://developer.android.com/studio/build/building-cmdline#bundleconfig) for format and examples. Note: this attribute is subject to changes which may require teams to migrate their configurations to a build target.
     `app_integrity_config` | Optional. String path to .binarypb file containing the play integrity config. See https://github.com/google/bundletool/blob/master/src/main/proto/app_integrity_config.proto.
+    `device_group_config` | Optional. String path to .json file containing the device targeting definitions. See https://github.com/google/bundletool/blob/master/src/main/proto/device_targeting_config.proto.
     `rotation_config` | Optional. String path to .textproto file containing the V3 rotation config.
 
     Args:
