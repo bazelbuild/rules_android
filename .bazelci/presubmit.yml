@@ -155,3 +155,57 @@ tasks:
       <<: *rules_flags
     build_targets:
       - "//java/com/basicapp:basic_app"
+  ubuntu2004_databinding:
+    name: "Databinding Basic app ubuntu"
+    platform: ubuntu2004
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  ubuntu2004_databinding_bzlmod:
+    name: "Databinding Basic app ubuntu bzlmod"
+    platform: ubuntu2004
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  macos_arm64_databinding:
+    name: "Databinding Basic app mac arm64"
+    platform: macos_arm64
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  macos_arm64_databinding_bzlmod:
+    name: "Databinding Basic app mac arm64 bzlmod"
+    platform: macos_arm64
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  windows_databinding_bzlmod:
+    name: "Databinding Basic app Windows Bzlmod"
+    platform: windows
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  windows_databinding:
+    name: "Databinding Basic app Windows"
+    platform: windows
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+    build_targets:
+      - "//java/com/basicapp:basic_app"
