@@ -356,6 +356,9 @@ def _impl(ctx):
     if ProguardMappingInfo in ctx.attr.base_module:
         metadata["com.android.tools.build.obfuscation/proguard.map"] = ctx.attr.base_module[ProguardMappingInfo].proguard_mapping
 
+    if ctx.file.device_group_config:
+        metadata["com.android.tools.build.bundletool/DeviceGroupConfig.pb"] = ctx.file.device_group_config
+
     if ctx.file.rotation_config:
         metadata["com.google.play.apps.signing/RotationConfig.textproto"] = ctx.file.rotation_config
 
@@ -449,6 +452,7 @@ def android_application_macro(_android_binary, **attrs):
 
     # Must pop these because android_binary does not have these attributes.
     app_integrity_config = attrs.pop("app_integrity_config", None)
+    device_group_config = attrs.pop("device_group_config", None)
     rotation_config = attrs.pop("rotation_config", None)
 
     # default to [] if feature_modules = None is passed
@@ -502,6 +506,7 @@ def android_application_macro(_android_binary, **attrs):
         base_module = ":%s" % base_split_name,
         bundle_config_file = bundle_config_file,
         app_integrity_config = app_integrity_config,
+        device_group_config = device_group_config,
         rotation_config = rotation_config,
         custom_package = attrs.get("custom_package", None),
         testonly = attrs.get("testonly"),

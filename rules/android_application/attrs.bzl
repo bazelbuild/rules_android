@@ -45,6 +45,12 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
                   "Provide a path to a binary .binarypb instance of " +
                   "https://github.com/google/bundletool/blob/master/src/main/proto/app_integrity_config.proto",
         ),
+        device_group_config = attr.label(
+            allow_single_file = [".json"],
+            doc = "Path to the device targeting configuration json file. " +
+                  "See " +
+                  "https://github.com/google/bundletool/blob/master/src/main/proto/device_targeting_config.proto",
+        ),
         rotation_config = attr.label(
             allow_single_file = [".textproto"],
             default = None,
