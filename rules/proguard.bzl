@@ -14,6 +14,7 @@
 """Bazel Android Proguard library for the Android rules."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load(":acls.bzl", "acls")
 load(":android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
