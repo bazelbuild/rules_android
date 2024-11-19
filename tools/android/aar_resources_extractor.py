@@ -25,8 +25,6 @@ In the future, this script may be extended to also extract assets.
 import os
 import zipfile
 
-# Do not edit this line. Placeholder for copybara transform.
-
 from absl import app
 from absl import flags
 

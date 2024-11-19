@@ -20,8 +20,6 @@ import shutil
 import unittest
 import zipfile
 
-# Do not edit this line. Placeholder for copybara transform.
-
 from tools.android import aar_resources_extractor
 
 
