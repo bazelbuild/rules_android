@@ -23,8 +23,6 @@ import os
 import re
 import zipfile
 
-# Do not edit this line. Placeholder for copybara transform.
-
 from absl import app
 from absl import flags
 
