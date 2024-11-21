@@ -12,6 +12,7 @@ rules_flags: &rules_flags
 
 tools: &tools
   name: "Tools"
+  bazel: ${{ bazel }}
   build_targets:
     - "//android/..."
     - "//src/..."
@@ -32,6 +33,7 @@ tools: &tools
     <<: *tools_flags
 tools_bzlmod: &tools_bzlmod
   name: "Tools Bzlmod"
+  bazel: ${{ bazel }}
   build_flags:
     <<: *tools_flags
     ? "--enable_bzlmod"
@@ -43,6 +45,7 @@ tools_bzlmod: &tools_bzlmod
   <<: *tools
 rules: &rules
   name: "Rules"
+  bazel: ${{ bazel }}
   build_targets:
     - "//rules/..."
   test_targets:
@@ -53,6 +56,7 @@ rules: &rules
     <<: *rules_flags
 rules_bzlmod: &rules_bzlmod
   name: "Rules Bzlmod"
+  bazel: ${{ bazel }}
   build_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
