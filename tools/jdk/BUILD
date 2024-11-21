@@ -1,6 +1,6 @@
 alias(
     name = "toolchain_android_only",
-    actual = "@bazel_tools//tools/jdk:current_java_toolchain",
+    actual = "@rules_java//toolchains:current_java_toolchain",
     visibility = ["//visibility:public"],
 )
 
