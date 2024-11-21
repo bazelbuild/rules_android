@@ -1,5 +1,9 @@
 matrix:
-  bazel: [7.4.0, last_green]
+  bazel: [
+    7.4.0,
+    7.4.1,
+    # last_green,
+  ]
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
