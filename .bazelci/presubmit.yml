@@ -1,6 +1,8 @@
----
-
-bazel: 7.4.0
+matrix:
+  bazel: [
+    7.4.1,
+    # last_green, # Enable this once WORKSPACE builds with Bazel 8 work.
+  ]
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
@@ -67,43 +69,56 @@ rules_bzlmod: &rules_bzlmod
 tasks:
   ubuntu2004_tools:
     platform: ubuntu2004
+    bazel: ${{ bazel }}
     <<: *tools
   ubuntu2004_rules:
     platform: ubuntu2004
+    bazel: ${{ bazel }}
     <<: *rules
   macos_tools:
     platform: macos
+    bazel: ${{ bazel }}
     <<: *tools
   macos_rules:
     platform: macos
+    bazel: ${{ bazel }}
     <<: *rules
   macos_arm64_tools:
     platform: macos_arm64
+    bazel: ${{ bazel }}
     <<: *tools
   macos_arm64_rules:
     platform: macos_arm64
+    bazel: ${{ bazel }}
     <<: *rules
   ubuntu2004_tools_bzlmod:
     platform: ubuntu2004
+    bazel: ${{ bazel }}
     <<: *tools_bzlmod
   ubuntu2004_rules_bzlmod:
     platform: ubuntu2004
+    bazel: ${{ bazel }}
     <<: *rules_bzlmod
   macos_bzlmods_tools:
     platform: macos
+    bazel: ${{ bazel }}
     <<: *tools_bzlmod
   macos_bzlmods_rules:
     platform: macos
+    bazel: ${{ bazel }}
     <<: *rules_bzlmod
   macos_arm64_tools_bzlmod:
     platform: macos_arm64
+    bazel: ${{ bazel }}
     <<: *tools_bzlmod
   macos_arm64_rules_bzlmod:
     platform: macos_arm64
+    bazel: ${{ bazel }}
     <<: *rules_bzlmod
   ubuntu2004_basicapp:
     name: "Basic app ubuntu"
     platform: ubuntu2004
+    bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -112,6 +127,7 @@ tasks:
   ubuntu2004_basicapp_bzlmod:
     name: "Basic app ubuntu bzlmod"
     platform: ubuntu2004
+    bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -122,6 +138,7 @@ tasks:
   macos_arm64_basicapp:
     name: "Basic app mac arm64"
     platform: macos_arm64
+    bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -130,6 +147,7 @@ tasks:
   macos_arm64_basicapp_bzlmod:
     name: "Basic app mac arm64 bzlmod"
     platform: macos_arm64
+    bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -140,6 +158,7 @@ tasks:
   windows_basicapp_bzlmod:
     name: "Windows Basicapp Bzlmod"
     platform: windows
+    bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
@@ -150,6 +169,7 @@ tasks:
   windows_basicapp:
     name: "Windows Basicapp"
     platform: windows
+    bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
