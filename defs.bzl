@@ -15,7 +15,7 @@
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-#load("@protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load(
     "@io_bazel_rules_go//go:deps.bzl",
     "go_download_sdk",
@@ -23,26 +23,19 @@ load(
     "go_rules_dependencies",
 )
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
-#load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
 load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
-#load("@bazel_features//:deps.bzl", "bazel_features_deps")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
 
-    #rules_java_dependencies()
-    #rules_java_toolchains()
+    protobuf_deps()
 
     bazel_skylib_workspace()
-    
-    #bazel_features_deps()
-
-    #protobuf_deps()
 
     maven_install(
         name = "rules_android_maven",
