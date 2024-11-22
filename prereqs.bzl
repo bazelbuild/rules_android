@@ -46,7 +46,6 @@ def rules_android_prereqs(dev_mode = False):
 
     RULES_JVM_EXTERNAL_TAG = "6.5"
     RULES_JVM_EXTERNAL_SHA = "3a4d56357851cf5b0dae538b3f3e0612a4f58925dfb3cadb2e0c4e87d51e629e"
-
     maybe(
         http_archive,
         name = "rules_jvm_external",
@@ -57,19 +56,12 @@ def rules_android_prereqs(dev_mode = False):
 
     PROTOBUF_VERSION = "29.0-rc3"
     PROTOBUF_HASH = "92571ddbab033a5c8facf71cf3c7987cbfeeea472db8bd3f92e94e8d1450c34a"
-    #maybe(
-    #    http_archive,
-    #    name = "protobuf",
-    #    sha256 = PROTOBUF_HASH,
-    #    strip_prefix = "protobuf-" + PROTOBUF_VERSION,
-    #    urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v29.0-rc3/protobuf-29.0-rc3.tar.gz"],
-    #)
     maybe(
         http_archive,
         name = "com_google_protobuf",
         sha256 = PROTOBUF_HASH,
         strip_prefix = "protobuf-" + PROTOBUF_VERSION,
-        urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v29.0-rc3/protobuf-29.0-rc3.tar.gz"],
+        urls = ["https://github.com/protocolbuffers/protobuf/releases/download/v{0}/protobuf-{0}.tar.gz".format(PROTOBUF_VERSION)],
     )
 
     maybe(
@@ -103,12 +95,10 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "bazel_gazelle",
-        sha256 = "d3e516f7cfb8b7db9cdd5d3002d6143eda37a8cbec207cc991bf5dcf944200a0",
-        strip_prefix = "bazel-gazelle-0.40.0",  # only needed for archive from tags, release archive doesn't put everything into one top-level directory
+        sha256 = "a80893292ae1d78eaeedd50d1cab98f242a17e3d5741b1b9fb58b5fd9d2d57bc",
         urls = [
-            #"https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.39.1/bazel-gazelle-v0.39.1.tar.gz",
-            #"https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.39.1/bazel-gazelle-v0.39.1.tar.gz",
-            "https://github.com/bazel-contrib/bazel-gazelle/archive/refs/tags/v0.40.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.40.0/bazel-gazelle-v0.40.0.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.40.0/bazel-gazelle-v0.40.0.tar.gz",
         ],
     )
 
@@ -168,7 +158,6 @@ def rules_android_prereqs(dev_mode = False):
         ],
         sha256 = BAZEL_WORKER_API_HASH,
     )
-
     maybe(
         http_archive,
         name = "bazel_worker_java",
@@ -215,23 +204,6 @@ def rules_android_prereqs(dev_mode = False):
             "https://github.com/bazelbuild/bazel-skylib/releases/download/1.7.1/bazel-skylib-1.7.1.tar.gz",
         ],
     )
-
-    # ~ BAZEL_FEATURES_VERSION = "1.20.0"
-    # ~ BAZEL_FEATURES_HASH = "c2596994cf63513bd44180411a4ac3ae95d32bf59148fcb6087a4642b3ffef11"
-    # ~ maybe(
-        # ~ http_archive,
-        # ~ name = "bazel_features",
-        # ~ sha256 = BAZEL_FEATURES_HASH,
-        # ~ strip_prefix = "bazel_features-" + BAZEL_FEATURES_VERSION,
-        # ~ url = "https://github.com/bazel-contrib/bazel_features/releases/download/v" + BAZEL_FEATURES_VERSION + "/bazel_features-v" + BAZEL_FEATURES_VERSION + ".tar.gz",
-    # ~ )
-    # ~ maybe(
-        # ~ http_archive,
-        # ~ name = "proto_bazel_features",
-        # ~ sha256 = BAZEL_FEATURES_HASH,
-        # ~ strip_prefix = "bazel_features-" + BAZEL_FEATURES_VERSION,
-        # ~ url = "https://github.com/bazel-contrib/bazel_features/releases/download/v" + BAZEL_FEATURES_VERSION + "/bazel_features-v" + BAZEL_FEATURES_VERSION + ".tar.gz",
-    # ~ )
 
     _apksig_archive()
 
