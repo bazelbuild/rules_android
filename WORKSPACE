@@ -27,16 +27,27 @@ bazel_features_deps()
 
 rules_android_prereqs(dev_mode = True)
 
+http_archive(
+    name = "rules_java",
+    urls = [
+        "https://github.com/bazelbuild/rules_java/releases/download/8.3.0/rules_java-8.3.0.tar.gz",
+    ],
+    sha256 = "c7bd858a132c7b8febe040a90fa138c2e3e7f0bce47122ac2ad43906036a276c",
+)
+load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
+rules_java_dependencies()
+rules_java_toolchains()
+
+load("defs_dev.bzl", "rules_android_workspace")
+
+rules_android_workspace()
+
 load("//rules:rules.bzl", "android_sdk_repository")
 
 maybe(
     android_sdk_repository,
     name = "androidsdk",
 )
-
-load("defs_dev.bzl", "rules_android_workspace")
-
-rules_android_workspace()
 
 register_toolchains("//toolchains/android:all")
 

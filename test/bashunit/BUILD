@@ -1,4 +1,5 @@
 load("@rules_python//python:py_test.bzl", "py_test")
+load("@rules_shell//shell:sh_library.bzl", "sh_library")
 
 package(
     default_applicable_licenses = ["//:license"],

@@ -60,6 +60,18 @@ bazel_skylib_workspace()
 
 load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
 rules_android_prereqs()
+
+http_archive(
+    name = "rules_java",
+    urls = [
+        "https://github.com/bazelbuild/rules_java/releases/download/8.3.0/rules_java-8.3.0.tar.gz",
+    ],
+    sha256 = "c7bd858a132c7b8febe040a90fa138c2e3e7f0bce47122ac2ad43906036a276c",
+)
+load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
+rules_java_dependencies()
+rules_java_toolchains()
+
 load("@rules_android//:defs.bzl", "rules_android_workspace")
 rules_android_workspace()
 
