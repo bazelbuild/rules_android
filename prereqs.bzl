@@ -204,6 +204,7 @@ def rules_android_prereqs(dev_mode = False):
         ],
     )
 
+    # This is only needed for bazel 8.0.0rc4
     http_archive(
         name = "bazel_features",
         sha256 = "af3d4fb1cf4f25942cb4a933b1ad93a0ea9fe9ee70c2af7f369fb72a67c266e5",
