@@ -204,6 +204,13 @@ def rules_android_prereqs(dev_mode = False):
         ],
     )
 
+    http_archive(
+        name = "bazel_features",
+        sha256 = "af3d4fb1cf4f25942cb4a933b1ad93a0ea9fe9ee70c2af7f369fb72a67c266e5",
+        strip_prefix = "bazel_features-1.21.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.21.0/bazel_features-v1.21.0.tar.gz",
+    )
+
     _apksig_archive()
 
     if dev_mode:
