@@ -29,9 +29,13 @@ load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
 load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
+
+
+    bazel_features_deps()
 
     protobuf_deps()
 
