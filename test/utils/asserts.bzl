@@ -555,7 +555,7 @@ def _assert_output_group_info(expected, actual):
 
 def _assert_generated_extension_registry_provider(expected, actual):
     if expected and not actual:
-        fail("GeneratedExtensionRegistryProvider was expected but not found!")
+        fail("GeneratedExtensionRegistryInfo was expected but not found!")
     for key in expected:
         actual_attr = getattr(actual, key, None)
         if actual_attr == None:  # both empty depset and list will fail.
@@ -564,7 +564,7 @@ def _assert_generated_extension_registry_provider(expected, actual):
         _assert_files(
             expected[key],
             [actual_attr] if type(actual_attr) != "depset" else actual_attr.to_list(),
-            "GeneratedExtensionRegistryProvider." + key,
+            "GeneratedExtensionRegistryInfo." + key,
         )
 
 def _assert_android_idl_info(expected, actual, label_under_test):
