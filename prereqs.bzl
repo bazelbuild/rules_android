@@ -43,8 +43,8 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://maven.google.com/com/android/tools/r8/8.3.37/r8-8.3.37.jar",
     )
 
-    RULES_JVM_EXTERNAL_TAG = "6.5"
-    RULES_JVM_EXTERNAL_SHA = "3a4d56357851cf5b0dae538b3f3e0612a4f58925dfb3cadb2e0c4e87d51e629e"
+    RULES_JVM_EXTERNAL_TAG = "6.6"
+    RULES_JVM_EXTERNAL_SHA = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7"
     maybe(
         http_archive,
         name = "rules_jvm_external",

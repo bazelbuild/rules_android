@@ -22,7 +22,7 @@ rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolc
 use_repo(rules_java_toolchains, "remote_java_tools")
 
 bazel_dep(name = "protobuf", repo_name = "com_google_protobuf", version = "29.0-rc3")
-bazel_dep(name = "rules_jvm_external", version = "6.5")
+bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
 bazel_dep(name = "rules_robolectric", version = "4.13", repo_name = "robolectric")
 
