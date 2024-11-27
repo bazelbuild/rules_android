@@ -218,9 +218,9 @@ def rules_android_prereqs(dev_mode = False):
         maybe(
             http_archive,
             name = "rules_bazel_integration_test",
-            sha256 = "d6dada79939533a8127000d2aafa125f29a4a97f720e01c050fdeb81b1080b08",
+            sha256 = "04d7816612a7aa25b1d9cd40e4bbad7e7da7a7731cf4a9bece69e9711ea26d4b",
             urls = [
-                "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.17.0/rules_bazel_integration_test.v0.17.0.tar.gz",
+                "https://github.com/bazel-contrib/rules_bazel_integration_test/releases/download/v0.27.0/rules_bazel_integration_test.v0.27.0.tar.gz",
             ],
         )
 
