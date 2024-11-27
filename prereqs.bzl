@@ -84,10 +84,10 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "io_bazel_rules_go",
-        sha256 = "f4a9314518ca6acfa16cc4ab43b0b8ce1e4ea64b81c38d8a3772883f153346b8",
+        sha256 = "4f404f8c1668764891feacc4cf222d82bf6da8461148f797d97843aa71043596",
+        strip_prefix = "rules_go-e8adba26a407fbea9354a6d88f6f97bf3ae1106c",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.50.1/rules_go-v0.50.1.zip",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.50.1/rules_go-v0.50.1.zip",
+            "https://github.com/bazel-contrib/rules_go/archive/e8adba26a407fbea9354a6d88f6f97bf3ae1106c.zip",
         ],
     )
 
