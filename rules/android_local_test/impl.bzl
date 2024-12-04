@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel rule for Android local test."""
 
-load("//rules:acls.bzl", "acls")
+load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
@@ -24,7 +23,6 @@ load(
     "ProviderInfo",
     "processing_pipeline",
 )
-load("//rules:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//rules:resources.bzl", "resources")
 load(
     "//rules:utils.bzl",
@@ -107,6 +105,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         compilation_mode = compilation_mode.get(ctx),
         java_package = java_package,
         shrink_resources = attrs.tristate.no,
+        build_java_with_final_resources = True,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         android_jar = get_android_sdk(ctx).android_jar,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
@@ -260,7 +259,11 @@ def _process_deploy_jar(ctx, java_package, jvm_ctx, proto_ctx, resources_ctx, **
 
 def _preprocess_stub(ctx, **_unused_sub_ctxs):
     javabase = ctx.attr._current_java_runtime[java_common.JavaRuntimeInfo]
-    java_executable = javabase.java_executable_exec_path
+    java_executable = javabase.java_executable_runfiles_path
+    if ctx.workspace_name != "google3":
+        # Bazel tests need the runfiles location of the java executable, and the workspace name.
+        java_executable = "$(rlocation " + ctx.workspace_name + "/" + java_executable + ")"
+
     java_executable_files = javabase.files
 
     substitutes = {
@@ -384,7 +387,8 @@ def finalize(
         coverage_common.instrumented_files_info(
             ctx = ctx,
             source_attributes = ["srcs"],
-            dependency_attributes = ["deps", "runtime_deps", "data"],
+            # NOTE: Associates is only applicable for OSS rules_kotlin.
+            dependency_attributes = ["associates", "deps", "runtime_deps", "data"],
         ),
     ])
     return providers
@@ -510,9 +514,7 @@ def _get_jvm_flags(ctx, main_class, robolectric_properties_path, additional_jvm_
             {},
         )
         for flag in ctx.attr.jvm_flags
-    ] + ([
-        "-Djava.locale.providers=CLDR,JRE",  # TODO(b/334926816): remove this after updating to JDK 23
-    ] if acls.use_cldr(str(ctx.label)) else [])
+    ]
 
 def _zip_file(ctx, f, dir_name, out_zip):
     cmd = """

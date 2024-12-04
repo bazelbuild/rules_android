@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Packages in this list are allowed to specify custom dex2oat options."""
+
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 # keep sorted
 CAN_USE_DEX2OAT_OPTIONS = [

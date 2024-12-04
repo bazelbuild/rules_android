@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Rule for creating an Android Sandboxed SDK Bundle (ASB)."""
 
+load("//providers:providers.bzl", "AndroidSandboxedSdkBundleInfo", "AndroidSandboxedSdkInfo")
 load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
@@ -31,7 +31,6 @@ load(
     _get_android_toolchain = "get_android_toolchain",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(":providers.bzl", "AndroidSandboxedSdkBundleInfo", "AndroidSandboxedSdkInfo")
 
 visibility(PROJECT_VISIBILITY)
 

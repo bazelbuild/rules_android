@@ -11,17 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """android_feature_module rule.
 
 This file exists to inject the correct version of android_binary and android_library.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
-    "//rules:android_binary.bzl",
+    "//rules/android_binary:rule.bzl",
     _android_binary_macro = "android_binary_macro",
 )
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//rules/android_library:rule.bzl",
     _android_library_macro = "android_library_macro",

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Android toolchain."""
 
 _ATTRS = dict(
@@ -29,25 +28,25 @@ _ATTRS = dict(
     aar_embedded_jars_extractor = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:aar_embedded_jars_extractor",
+        default = "//tools/android:aar_embedded_jars_extractor",
         executable = True,
     ),
     aar_embedded_proguard_extractor = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:aar_embedded_proguard_extractor",
+        default = "//tools/android:aar_embedded_proguard_extractor",
         executable = True,
     ),
     aar_native_libs_zip_creator = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:aar_native_libs_zip_creator",
+        default = "//tools/android:aar_native_libs_zip_creator",
         executable = True,
     ),
     aar_resources_extractor = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//tools/android:aar_resources_extractor",
+        default = "//tools/android:aar_resources_extractor",
         executable = True,
     ),
     adb = attr.label(
@@ -82,7 +81,7 @@ _ATTRS = dict(
     android_resources_busybox = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ResourceProcessorBusyBox_deploy.jar",
+        default = Label("//src/tools/java/com/google/devtools/build/android:ResourceProcessorBusyBox_deploy.jar"),
         executable = True,
     ),
     apk_to_bundle_tool = attr.label(
@@ -133,6 +132,15 @@ _ATTRS = dict(
         default = "//tools/android:desugar_java8_extra_bootclasspath",
         executable = True,
     ),
+    desugar_globals = attr.label(
+        cfg = "exec",
+        allow_single_file = True,
+        default = Label("//tools/android:desugar.globals"),
+    ),
+    desugar_globals_jar = attr.label(
+        cfg = "exec",
+        default = Label("@androidsdk//:fail"),
+    ),
     dexbuilder = attr.label(
         cfg = "exec",
         default = Label("//tools/android:dexbuilder"),
@@ -156,7 +164,7 @@ _ATTRS = dict(
     idlclass = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/idlclass:IdlClass_deploy.jar",
+        default = Label("//src/tools/java/com/google/devtools/build/android/idlclass:IdlClass_deploy.jar"),
         executable = True,
     ),
     import_deps_checker = attr.label(
@@ -297,9 +305,9 @@ _ATTRS = dict(
         default = Label("//src/validations/validate_manifest"),
         executable = True,
     ),
-    rex_wrapper = attr.label(
+    resource_extractor = attr.label(
         cfg = "exec",
-        default = "@androidsdk//:fail",
+        default = "//src/tools/java_resource_extractor:resource_extractor",
         executable = True,
     ),
     deploy_info_writer = attr.label(

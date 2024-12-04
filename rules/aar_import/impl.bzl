@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Implementation."""
 
+load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo")
 load(
     "//rules:acls.bzl",
     _acls = "acls",
@@ -27,7 +27,6 @@ load(
     "//rules:java.bzl",
     _java = "java",
 )
-load("//rules:providers.bzl", "AndroidLintRulesInfo")
 load(
     "//rules:resources.bzl",
     _resources = "resources",
@@ -42,6 +41,7 @@ load(
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -180,7 +180,6 @@ def _process_resources(
 <manifest package="%s">
 </manifest>
 """ % package)
-
 
     return struct(**resources_ctx)
 
@@ -446,9 +445,9 @@ def _collect_proguard(
         toolchain = None,
     )
     transitive_proguard_specs = []
-    for p in _utils.collect_providers(ProguardSpecProvider, ctx.attr.deps, ctx.attr.exports):
+    for p in _utils.collect_providers(ProguardSpecInfo, ctx.attr.deps, ctx.attr.exports):
         transitive_proguard_specs.append(p.specs)
-    return ProguardSpecProvider(depset([out_proguard], transitive = transitive_proguard_specs))
+    return ProguardSpecInfo(depset([out_proguard], transitive = transitive_proguard_specs))
 
 def impl(ctx):
     """The rule implementation.
@@ -552,7 +551,7 @@ def impl(ctx):
     )
     providers.append(
         AndroidNativeLibsInfo(
-            depset(
+            native_libs = depset(
                 [native_libs],
                 transitive = [info.native_libs for info in native_libs_infos],
             ),

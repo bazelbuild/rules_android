@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel Java APIs for the Android rules."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -561,7 +560,7 @@ def _check_one_version(
     args.use_param_file("@%s", use_always = True)
 
     args.add("--output", output)
-    args.add("--whitelist", allowlist)
+    args.add("--allowlist", allowlist)
     if one_version_enforcement_level == "WARNING":
         args.add("--succeed_on_found_violations")
     args.add_all(

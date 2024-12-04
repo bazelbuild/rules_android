@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Access Control Lists.
 
 To create a new list:
@@ -41,8 +40,7 @@ load("//rules/acls:android_archive_exposed_package_allowlist.bzl", "ANDROID_ARCH
 load("//rules/acls:android_binary_min_sdk_version_attribute.bzl", "ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST")
 load("//rules/acls:android_binary_raw_access_to_resource_paths_allowlist.bzl", "ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST")
 load("//rules/acls:android_binary_resource_name_obfuscation_opt_out_allowlist.bzl", "ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST")
-load("//rules/acls:android_binary_starlark_javac.bzl", "ANDROID_BINARY_STARLARK_JAVAC_FALLBACK", "ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT")
-load("//rules/acls:android_binary_starlark_rollout.bzl", "ANDROID_BINARY_STARLARK_FALLBACK", "ANDROID_BINARY_STARLARK_ROLLOUT")
+load("//rules/acls:android_binary_resource_shrinking_in_optimizer_rollout.bzl", "RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK", "RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT")
 load("//rules/acls:android_binary_with_sandboxed_sdks_allowlist.bzl", "ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST")
 load("//rules/acls:android_build_stamping_rollout.bzl", "ANDROID_BUILD_STAMPING_FALLBACK", "ANDROID_BUILD_STAMPING_ROLLOUT")
 load("//rules/acls:android_feature_splits_dogfood.bzl", "ANDROID_FEATURE_SPLITS_DOGFOOD")
@@ -53,18 +51,18 @@ load("//rules/acls:android_library_starlark_resource_outputs.bzl", "ANDROID_LIBR
 load("//rules/acls:android_library_use_aosp_aidl_compiler.bzl", "ANDROID_LIBRARY_USE_AOSP_AIDL_COMPILER_ALLOWLIST")
 load("//rules/acls:android_lint_checks_rollout.bzl", "ANDROID_LINT_CHECKS_FALLBACK", "ANDROID_LINT_CHECKS_ROLLOUT")
 load("//rules/acls:android_lint_rollout.bzl", "ANDROID_LINT_FALLBACK", "ANDROID_LINT_ROLLOUT")
-load("//rules/acls:android_multidex_native_min_sdk_allowlist.bzl", "ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST")
 load("//rules/acls:android_test_lockdown.bzl", "ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS", "ANDROID_TEST_LOCKDOWN_TARGETS")
 load("//rules/acls:b122039567.bzl", "B122039567")
 load("//rules/acls:baseline_profiles_optimizer_integration.bzl", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION_FALLBACK")
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
-load("//rules/acls:cldr.bzl", "USE_CLDR_FALLBACK", "USE_CLDR_ROLLOUT")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
 load("//rules/acls:disable_optimizing_dexer.bzl", "DISABLE_OPTIMIZING_DEXER")
+load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOURCES")
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
 load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
+load("//rules/acls:optimizer_execution_requirements.bzl", "OPTIMIZER_EXECUTION_REQUIREMENTS")
 load(
     "//rules/acls:partial_jetification_targets.bzl",
     "PARTIAL_JETIFICATION_TARGETS_FALLBACK",
@@ -72,6 +70,7 @@ load(
 )
 load("//rules/acls:proguard_apply_mapping.bzl", "ALLOW_PROGUARD_APPLY_MAPPING")
 load("//rules/acls:r8.bzl", "USE_R8")
+load("//rules/acls:record_desugaring.bzl", "RECORD_DESUGARING_FALLBACK", "RECORD_DESUGARING_ROLLOUT")
 load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
 load("//rules/acls:test_to_instrument_test_rollout.bzl", "TEST_TO_INSTRUMENT_TEST_FALLBACK", "TEST_TO_INSTRUMENT_TEST_ROLLOUT")
 
@@ -94,9 +93,6 @@ def _in_android_archive_dogfood(fqn):
 
 def _in_android_archive_excluded_deps_denylist(fqn):
     return matches(fqn, ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST_DICT)
-
-def _in_android_binary_starlark_javac(fqn):
-    return not matches(fqn, ANDROID_BINARY_STARLARK_JAVAC_FALLBACK_DICT) and matches(fqn, ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT_DICT)
 
 def _in_android_binary_with_sandboxed_sdks_allowlist(fqn):
     return matches(fqn, ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT)
@@ -196,17 +192,20 @@ def _in_allow_proguard_apply_mapping(fqn):
 def _use_r8(fqn):
     return matches(fqn, USE_R8_DICT)
 
-def _in_android_binary_starlark_rollout(fqn):
-    return matches(fqn, ANDROID_BINARY_STARLARK_ROLLOUT_DICT) and not matches(fqn, ANDROID_BINARY_STARLARK_FALLBACK_DICT)
-
-def _in_android_binary_multidex_native_min_sdk_allowlist(fqn):
-    return matches(fqn, ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST_DICT)
-
 def _in_disable_optimizing_dexer(fqn):
     return matches(fqn, DISABLE_OPTIMIZING_DEXER_DICT)
 
-def _use_cldr(fqn):
-    return matches(fqn, USE_CLDR_ROLLOUT_DICT) and not matches(fqn, USE_CLDR_FALLBACK_DICT)
+def _in_force_final_android_binary_resources(fqn):
+    return matches(fqn, FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT)
+
+def _in_resource_shrinking_in_optimizer(fqn):
+    return matches(fqn, RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT) and not matches(fqn, RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT)
+
+def _in_record_desugaring_rollout(fqn):
+    return matches(fqn, RECORD_DESUGARING_ROLLOUT_DICT) and not matches(fqn, RECORD_DESUGARING_FALLBACK_DICT)
+
+def _get_optimizer_execution_requirements(target_package):
+    return OPTIMIZER_EXECUTION_REQUIREMENTS.get(target_package, None)
 
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
@@ -225,8 +224,6 @@ AAR_IMPORT_EXPORTS_R_JAVA_DICT = make_dict(AAR_IMPORT_EXPORTS_R_JAVA)
 ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT = make_dict(ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST)
 ANDROID_ARCHIVE_DOGFOOD_DICT = make_dict(ANDROID_ARCHIVE_DOGFOOD)
 ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST_DICT = make_dict(ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST)
-ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_JAVAC_ROLLOUT)
-ANDROID_BINARY_STARLARK_JAVAC_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_JAVAC_FALLBACK)
 ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_WITH_SANDBOXED_SDKS_ALLOWLIST)
 ANDROID_FEATURE_SPLITS_DOGFOOD_DICT = make_dict(ANDROID_FEATURE_SPLITS_DOGFOOD)
 ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_DICT = make_dict(ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS)
@@ -270,12 +267,12 @@ ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT = make_dict(ANDROID_B
 ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST)
 ALLOW_PROGUARD_APPLY_MAPPING_DICT = make_dict(ALLOW_PROGUARD_APPLY_MAPPING)
 USE_R8_DICT = make_dict(USE_R8)
-ANDROID_BINARY_STARLARK_ROLLOUT_DICT = make_dict(ANDROID_BINARY_STARLARK_ROLLOUT)
-ANDROID_BINARY_STARLARK_FALLBACK_DICT = make_dict(ANDROID_BINARY_STARLARK_FALLBACK)
-ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST_DICT = make_dict(ANDROID_MULTIDEX_NATIVE_MIN_SDK_ALLOWLIST)
+RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT = make_dict(RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT)
+RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT = make_dict(RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK)
 DISABLE_OPTIMIZING_DEXER_DICT = make_dict(DISABLE_OPTIMIZING_DEXER)
-USE_CLDR_ROLLOUT_DICT = make_dict(USE_CLDR_ROLLOUT)
-USE_CLDR_FALLBACK_DICT = make_dict(USE_CLDR_FALLBACK)
+FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT = make_dict(FORCE_FINAL_ANDROID_BINARY_RESOURCES)
+RECORD_DESUGARING_FALLBACK_DICT = make_dict(RECORD_DESUGARING_FALLBACK)
+RECORD_DESUGARING_ROLLOUT_DICT = make_dict(RECORD_DESUGARING_ROLLOUT)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -329,6 +326,7 @@ def matches(fqn, dct):
 acls = struct(
     get_android_archive_duplicate_class_allowlist = _get_android_archive_duplicate_class_allowlist,
     get_android_archive_exposed_package_allowlist = _get_android_archive_exposed_package_allowlist,
+    get_optimizer_execution_requirements = _get_optimizer_execution_requirements,
     in_aar_import_deps_checker = _in_aar_import_deps_checker,
     in_aar_import_explicit_exports_manifest = _in_aar_import_explicit_exports_manifest,
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
@@ -336,7 +334,6 @@ acls = struct(
     in_android_application_with_sandboxed_sdks_allowlist_dict = _in_android_application_with_sandboxed_sdks_allowlist_dict,
     in_android_archive_dogfood = _in_android_archive_dogfood,
     in_android_archive_excluded_deps_denylist = _in_android_archive_excluded_deps_denylist,
-    in_android_binary_starlark_javac = _in_android_binary_starlark_javac,
     in_android_binary_with_sandboxed_sdks_allowlist = _in_android_binary_with_sandboxed_sdks_allowlist,
     in_android_feature_splits_dogfood = _in_android_feature_splits_dogfood,
     in_android_library_starlark_resource_outputs_rollout = _in_android_library_starlark_resource_outputs_rollout,
@@ -365,11 +362,11 @@ acls = struct(
     in_android_binary_raw_access_to_resource_paths_allowlist = _in_android_binary_raw_access_to_resource_paths_allowlist,
     in_android_binary_resource_name_obfuscation_opt_out_allowlist = _in_android_binary_resource_name_obfuscation_opt_out_allowlist,
     in_allow_proguard_apply_mapping = _in_allow_proguard_apply_mapping,
-    in_android_binary_starlark_rollout = _in_android_binary_starlark_rollout,
-    in_android_binary_multidex_native_min_sdk_allowlist = _in_android_binary_multidex_native_min_sdk_allowlist,
     use_r8 = _use_r8,
     in_disable_optimizing_dexer = _in_disable_optimizing_dexer,
-    use_cldr = _use_cldr,
+    in_force_final_android_binary_resources = _in_force_final_android_binary_resources,
+    in_resource_shrinking_in_optimizer = _in_resource_shrinking_in_optimizer,
+    in_record_desugaring_rollout = _in_record_desugaring_rollout,
 )
 
 # Visible for testing

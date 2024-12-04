@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allow list for build stamping in the Android Rules."""
+
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 # keep sorted
 ANDROID_BUILD_STAMPING_ROLLOUT = [
+    "//:__subpackages__",
 ]
 
 # keep sorted

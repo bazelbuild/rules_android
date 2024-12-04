@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel rule for defining an Android binary that depends on sandboxed SDKs."""
 
+load("//providers:providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkApkInfo", "AndroidSandboxedSdkBundleInfo", "ApkInfo")
 load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
@@ -32,7 +32,6 @@ load(
     _utils = "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo", "AndroidSandboxedSdkApkInfo", "AndroidSandboxedSdkBundleInfo")
 
 visibility(PROJECT_VISIBILITY)
 

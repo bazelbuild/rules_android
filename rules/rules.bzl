@@ -11,15 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Starlark rules for building Android apps."""
 
 # Don't use relative paths since this file is coppied to //android/rules.bzl.
 
-load(
-    "//rules:android_binary.bzl",
-    _android_binary = "android_binary_macro",
-)
 load(
     "//rules:android_ndk_repository.bzl",
     _android_ndk_repository = "android_ndk_repository",
@@ -37,8 +32,9 @@ load(
     _instrumented_app_info_aspect = "instrumented_app_info_aspect",
 )
 load(
-    "//rules:providers.bzl",
+    "//providers:providers.bzl",
     _AndroidAppsInfo = "AndroidAppsInfo",
+    _ApkInfo = "ApkInfo",
     _StarlarkApkInfo = "StarlarkApkInfo",
 )
 load(
@@ -48,6 +44,10 @@ load(
 load(
     "//rules/android_application:android_application.bzl",
     _android_application = "android_application",
+)
+load(
+    "//rules/android_binary:rule.bzl",
+    _android_binary = "android_binary_macro",
 )
 load(
     "//rules/android_library:rule.bzl",
@@ -91,4 +91,5 @@ android_tools_defaults_jar = _android_tools_defaults_jar
 asar_import = _asar_import
 instrumented_app_info_aspect = _instrumented_app_info_aspect
 StarlarkApkInfo = _StarlarkApkInfo
+ApkInfo = _ApkInfo
 AndroidAppsInfo = _AndroidAppsInfo

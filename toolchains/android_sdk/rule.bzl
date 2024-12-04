@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Starlark rules to include sdk toolchain into dep graph without actually utilize it."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -32,7 +31,6 @@ dummy_toolchain_dep = rule(
     attrs = {
         "sdk_toolchain": attr.label(
             mandatory = True,
-            providers = [AndroidSdkInfo],
         ),
     },
 )

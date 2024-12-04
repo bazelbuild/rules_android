@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel rule for defining an Android Sandboxed SDK."""
 
+load("//providers:providers.bzl", "AndroidSandboxedSdkInfo", "ApkInfo")
 load(
     "//rules:common.bzl",
     _common = "common",
@@ -28,11 +28,11 @@ load(
     _get_android_toolchain = "get_android_toolchain",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(":providers.bzl", "AndroidSandboxedSdkInfo")
 
 visibility(PROJECT_VISIBILITY)
 
 _ATTRS = dict(
+    java_package_name = attr.string(),
     sdk_modules_config = attr.label(
         allow_single_file = [".pb.json"],
     ),
@@ -47,6 +47,15 @@ _ATTRS = dict(
 )
 
 def _impl(ctx):
+    validation = ctx.actions.declare_file(ctx.label.name + "_validation")
+    _sandboxed_sdk_toolbox.validate_modules_config(
+        ctx,
+        output = validation,
+        sdk_module_config = ctx.file.sdk_modules_config,
+        java_package_name = ctx.attr.java_package_name,
+        sandboxed_sdk_toolbox = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
+        host_javabase = _common.get_host_javabase(ctx),
+    )
     sdk_api_descriptors = ctx.actions.declare_file(ctx.label.name + "_sdk_api_descriptors.jar")
     _sandboxed_sdk_toolbox.extract_api_descriptors(
         ctx,
@@ -64,6 +73,7 @@ def _impl(ctx):
             sdk_module_config = ctx.file.sdk_modules_config,
             sdk_api_descriptors = sdk_api_descriptors,
         ),
+        OutputGroupInfo(_validation = depset([validation])),
     ]
 
 _android_sandboxed_sdk = rule(
@@ -83,7 +93,8 @@ def android_sandboxed_sdk_macro(
         name,
         sdk_modules_config,
         deps,
-        min_sdk_version = 21,
+        min_sdk_version,
+        target_sdk_version = 34,
         visibility = None,
         testonly = None,
         tags = [],
@@ -96,10 +107,12 @@ def android_sandboxed_sdk_macro(
       sdk_modules_config: Module config for this SDK.
       deps: Set of android libraries that make up this SDK.
       min_sdk_version: Min SDK version for the SDK.
+      target_sdk_version: Target SDK version for the SDK.
       visibility: A list of targets allowed to depend on this rule.
       testonly: Whether this library is only for testing.
       tags: A list of string tags passed to generated targets.
-      custom_package: Java package for resources,
+      custom_package: Java package for resources. This needs to be the same as the package set in
+        the sdk_modules_config.
       android_binary: android_binary rule used to create the intermediate SDK APK.
     """
     fully_qualified_name = "//%s:%s" % (native.package_name(), name)
@@ -113,11 +126,15 @@ def android_sandboxed_sdk_macro(
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="{package}">
-    <uses-sdk android:minSdkVersion="{min_sdk_version}"/>
+    <uses-sdk android:minSdkVersion="{min_sdk_version}" android:targetSdkVersion="{target_sdk_version}" />
     <application />
 </manifest>
 EOF
-""".format(package = package, min_sdk_version = min_sdk_version),
+""".format(
+            package = package,
+            min_sdk_version = min_sdk_version,
+            target_sdk_version = target_sdk_version,
+        ),
     )
 
     bin_fqn = "%s_bin" % fully_qualified_name
@@ -130,11 +147,13 @@ EOF
         testonly = testonly,
         tags = tags,
         use_r_package = True,
+        custom_package = custom_package,
     )
 
     sdk_deploy_jar = Label("%s_deploy.jar" % bin_fqn)
     _android_sandboxed_sdk(
         name = name,
+        java_package_name = package,
         sdk_modules_config = sdk_modules_config,
         visibility = visibility,
         testonly = testonly,

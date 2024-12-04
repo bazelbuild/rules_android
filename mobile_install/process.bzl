@@ -13,6 +13,7 @@
 # limitations under the License.
 """Processes the target or collected data."""
 
+load("//rules:utils.bzl", "get_android_toolchain", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":apks.bzl", "make_split_apks")
 load(":native_libs.bzl", "make_native_zip", "make_swigdeps_file")
@@ -80,6 +81,9 @@ def process(
         android_dex_info.transitive_dex_shards,
         sibling,
     )
+
+    if hasattr(get_android_toolchain(ctx), "desugar_globals_dex_archive"):
+        merged_dex_shards.append(utils.only(get_android_toolchain(ctx).desugar_globals_dex_archive.files.to_list()))
 
     # Creates the custom R.
     r_dex = make_r(

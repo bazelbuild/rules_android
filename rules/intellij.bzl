@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Common methods for use by the IntelliJ Aspect."""
 
+load("//providers:providers.bzl", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
 load(":utils.bzl", _utils = "utils")
@@ -113,21 +113,21 @@ def _make_android_ide_info(
             )
 
     return AndroidIdeInfo(
-        java_package,
-        manifest,
-        merged_manifest,
-        idl_import_root,
-        idl_srcs,
-        idl_java_srcs,
-        idl_srcjar,
-        idl_jar,
-        defines_resources,
-        r_jar,
-        resources_apk,
-        signed_apk,
-        aar,
-        apks_under_test,
-        native_libs,
+        java_package = java_package,
+        manifest = manifest,
+        generated_manifest = merged_manifest,
+        idl_import_root = idl_import_root,
+        idl_srcs = idl_srcs,
+        idl_generated_java_files = idl_java_srcs,
+        idl_source_jar = idl_srcjar,
+        idl_class_jar = idl_jar,
+        defines_android_resources = defines_resources,
+        resource_jar = r_jar,
+        resource_apk = resources_apk,
+        signed_apk = signed_apk,
+        aar = aar,
+        apks_under_test = apks_under_test,
+        native_libs = native_libs,
     )
 
 def _make_legacy_android_provider(android_ide_info):

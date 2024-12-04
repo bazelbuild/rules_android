@@ -33,39 +33,67 @@ function set_up() {
   rm -rf *
   touch WORKSPACE
 
+  cat > .bazelrc <<EOF
+# Re-enable workspace after https://github.com/bazelbuild/bazel/commit/5881c38c54416add9faec35b7731954f4baf12d8
+common --enable_workspace=true
+
+common --experimental_google_legacy_api
+EOF
+
   # Clean out the test android SDK if any
   rm -rf "${TEST_TMPDIR}/android_sdk"
 
   # Make sure the rules exist and seed the WORKSPACE.
-  rm -rf "${TEST_TMPDIR}/android_sdk_repository_src"
+  rm -rf "${TEST_TMPDIR}/rules_android"
   set_up_rules
 }
 
 function set_up_rules() {
-  local android_revision_rule="$(rlocation rules_android/rules/android_revision.bzl)"
+  local rules_android="$(dirname $(dirname $(rlocation rules_android/rules/android_sdk.bzl)))"
+  if [[ -z "${rules_android}" ]]; then
+    fail "Failed to locate rules_android"
+  fi
+  local dest_dir="${TEST_TMPDIR}/rules_android"
+  mkdir -p "${dest_dir}"
 
-  local repo_rule="$(rlocation rules_android/rules/android_sdk_repository/rule.bzl)"
-  local repo_rule_dir="$(dirname "${repo_rule}")"
-  local dest_dir="${TEST_TMPDIR}/android_sdk_repository_src"
-  mkdir -p "${dest_dir}/rules/android_sdk_repository"
-  cp -r "${repo_rule_dir}"/* "${dest_dir}/rules/android_sdk_repository"
+  cp -r -L "${rules_android}"/* "${dest_dir}"
+  chmod +r "${dest_dir}/rules/rules.bzl"
+
+  cat > "${dest_dir}/rules/rules.bzl" <<EOF
+load("//rules:android_sdk.bzl", _android_sdk = "android_sdk")
+android_sdk = _android_sdk
+EOF
+
+touch "${dest_dir}/providers/BUILD"
+
   cat > "${dest_dir}/WORKSPACE" <<EOF
 workspace(name = "android_sdk_repository_src")
 EOF
+
   cat > "${dest_dir}/rules/BUILD" <<EOF
 exports_files(["*.bzl"])
 EOF
-  cp "${android_revision_rule}" "${dest_dir}/rules/"
+
   cat > "${dest_dir}/rules/android_sdk_repository/BUILD" <<EOF
 exports_files(["*.bzl"])
 EOF
 
+  mkdir -p ${dest_dir}/src/tools/java/com/google/devtools/build/android/r8
+  cat > "${dest_dir}/src/tools/java/com/google/devtools/build/android/r8/BUILD" <<EOF
+genrule(
+    name = "r8",
+    outs = ["r8.txt"],
+    cmd = "echo -n > \$@",
+    visibility = ["//visibility:public"],
+)
+EOF
+
   cat >> WORKSPACE <<EOF
 local_repository(
-    name = "android_sdk_repository_src",
+    name = "rules_android",
     path = "${dest_dir}",
 )
-load("@android_sdk_repository_src//rules/android_sdk_repository:rule.bzl", "android_sdk_repository")
+load("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository")
 EOF
 }
 
@@ -166,6 +194,7 @@ EOF
 function write_android_sdk_provider() {
   mkdir -p sdk_check
   cat > sdk_check/check.bzl <<EOF
+load("//third_party/bazel_rules/rules_android/rules:utils.bzl", "get_android_sdk")
 def _find_api_level(android_jar):
     # expected format: external/androidsdk/platforms/android-LEVEL/android.jar
     if not android_jar.startswith("external/androidsdk/platforms/android-"):
@@ -177,9 +206,9 @@ def _find_api_level(android_jar):
     return level
 def _show_sdk_info_impl(ctx):
     print("SDK check results:")
-    provider = ctx.attr._android_sdk[AndroidSdkInfo]
-    print("build_tools_version: %s" % provider.build_tools_version)
-    print("api_level: %s" % _find_api_level(provider.android_jar.path))
+    android_sdk = get_android_sdk(ctx)
+    print("build_tools_version: %s" % android_sdk.build_tools_version)
+    print("api_level: %s" % _find_api_level(android_sdk.android_jar.path))
 show_sdk_info = rule(
     implementation = _show_sdk_info_impl,
     attrs = {
@@ -230,15 +259,11 @@ function check_android_sdk_provider() {
     "$@"
   )
 
-  if [[ ${ENABLE_PLATFORMS:-false} == "true" ]]; then
-    write_platforms
-    write_android_sdk_provider_platforms
-    extra_args+=(
-      "--platforms=//platforms:arm64-v8a"
-    )
-  else
-    write_android_sdk_provider
-  fi
+  write_platforms
+  write_android_sdk_provider_platforms
+  extra_args+=(
+    "--platforms=//platforms:arm64-v8a"
+  )
 
   cat > sdk_check/BUILD <<EOF
 load(":check.bzl", "show_sdk_info")

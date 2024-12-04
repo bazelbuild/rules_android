@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel ResourcesBusyBox Commands."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -20,6 +19,10 @@ load(":java.bzl", _java = "java")
 visibility(PROJECT_VISIBILITY)
 
 _ANDROID_RESOURCES_STRICT_DEPS = "android_resources_strict_deps"
+
+# Feature which would cause AndroidCompiledResourceMerger actions to pass a flag with the same
+# name to ResourceProcessorBusyBox.
+_FEATURE_ANNOTATE_R_FIELDS_FROM_TRANSITIVE_DEPS = "annotate_r_fields_from_transitive_deps"
 
 def _sanitize_assets_dir(assets_dir):
     sanitized_assets_dir = "/".join(
@@ -789,6 +792,9 @@ def _merge_compiled(
         )
         transitive_input_files.append(transitive_compiled_resources)
 
+    if _FEATURE_ANNOTATE_R_FIELDS_FROM_TRANSITIVE_DEPS in ctx.features:
+        args.add("--annotate_r_fields_from_transitive_deps")
+
     _set_warning_level(ctx, args)
 
     _java_run(
@@ -1219,6 +1225,65 @@ def _shrink(
         use_default_shell_env = True,
     )
 
+def _convert_resources_to_apk(
+        ctx,
+        out_apk,
+        resources_zip = None,
+        aapt = None,
+        android_jar = None,
+        debug = True,
+        busybox = None,
+        host_javabase = None):
+    """Converts the resource proto APK into a compiled resource APK
+
+    Args:
+        ctx: The context.
+        out_apk: File. The output shrunk resource ap_ package.
+        resources_zip: File. The input resources file zip.
+        aapt: FilesToRunProvider. The AAPT executable.
+        android_jar: File. The Android Jar.
+        debug: Boolean. Whether to enable debug mode.
+        busybox: FilesToRunProvider. The ResourceBusyBox executable.
+        host_javabase: Target. The host javabase.
+    """
+
+    args = ctx.actions.args()
+    args.use_param_file("@%s")
+    _set_worker_mode_param_file(ctx, args)
+    args.add("--tool", "CONVERT_RESOURCE_ZIP_TO_APK")
+    args.add("--")
+    args.add("--aapt2", aapt.executable)
+    args.add("--androidJar", android_jar)
+    args.add("--resources", resources_zip)
+    args.add("--outputApk", out_apk)
+    args.add("--useDataBindingAndroidX")
+    if debug:
+        args.add("--debug")
+
+    input_files = [
+        android_jar,
+        resources_zip,
+    ]
+    output_files = [
+        out_apk,
+    ]
+
+    _set_warning_level(ctx, args)
+
+    _java_run(
+        ctx = ctx,
+        executable = busybox,
+        tools = [aapt],
+        outputs = output_files,
+        inputs = input_files,
+        arguments = [args],
+        mnemonic = "ResourceConverter",
+        progress_message =
+            "Converting resources for " + str(ctx.label),
+        host_javabase = host_javabase,
+        use_default_shell_env = True,
+    )
+
 def _optimize(
         ctx,
         out_apk,
@@ -1291,6 +1356,7 @@ busybox = struct(
     generate_binary_r = _generate_binary_r,
     make_aar = _make_aar,
     shrink = _shrink,
+    convert_resources_to_apk = _convert_resources_to_apk,
     optimize = _optimize,
 
     # Exposed for testing

@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allow and fallback lists for ATP Device Plugin rollout."""
+
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 # Targets for ATP Device Plugin Rollout
 ANDROID_DEVICE_PLUGIN_ROLLOUT = [

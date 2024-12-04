@@ -35,7 +35,7 @@ public class BasicActivity extends Activity {
       findViewById(R.id.button_id_fizz), findViewById(R.id.button_id_buzz),
     };
 
-    for (Button b : buttons) {
+    for (var b : buttons) {
       b.setOnClickListener(
           new View.OnClickListener() {
             public void onClick(View v) {

@@ -11,13 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """This file keeps track of the locations of binaries for Mobile-Install."""
 
 versioned_deps = struct(
-    mi_shell_app = struct(
-        head = "//tools/android:gen_fail",
-    ),
     android_kit = struct(
         head = "//src/tools/ak",
     ),

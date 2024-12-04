@@ -11,14 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """android_application rule.
 
 This file exists to inject the correct version of android_binary.
 """
 
-load("//rules:android_binary.bzl", _android_binary_macro = "android_binary_macro")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/android_binary:rule.bzl", _android_binary_macro = "android_binary_macro")
 load(":android_application_rule.bzl", _android_application_macro = "android_application_macro")
 
 visibility(PROJECT_VISIBILITY)
@@ -43,6 +42,7 @@ def android_application(**attrs):
     `feature_modules` | New. List of labels to `android_feature_module`s to include as feature splits. Note: must be fully qualified paths (//some:target), not relative.
     `bundle_config_file` | New. String path to .pb.json file containing the bundle config. See the [bundletool docs](https://developer.android.com/studio/build/building-cmdline#bundleconfig) for format and examples. Note: this attribute is subject to changes which may require teams to migrate their configurations to a build target.
     `app_integrity_config` | Optional. String path to .binarypb file containing the play integrity config. See https://github.com/google/bundletool/blob/master/src/main/proto/app_integrity_config.proto.
+    `device_group_config` | Optional. String path to .json file containing the device targeting definitions. See https://github.com/google/bundletool/blob/master/src/main/proto/device_targeting_config.proto.
     `rotation_config` | Optional. String path to .textproto file containing the V3 rotation config.
 
     Args:

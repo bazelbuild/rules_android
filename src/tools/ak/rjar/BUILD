@@ -1,8 +1,9 @@
+# Description:
+#   Package for R.jar module
+
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 
-# Description:
-#   Package for R.jar module
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = ["//visibility:public"],
@@ -33,6 +34,7 @@ go_test(
     name = "rjar_test",
     size = "small",
     srcs = ["rjar_test.go"],
+    args = ["--java_path=$(location @local_jdk//:bin/java:java)"],
     data = [
         "//src/tools/ak/rjar/testdata:R",
         "//src/tools/ak/rjar/testdata:pkgs",

@@ -11,8 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allow list for b/122039567."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 B122039567 = [
 ]

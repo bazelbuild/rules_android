@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allowlist for targets allowed to set proguard_apply_mapping."""
+
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 # keep sorted
 ALLOW_PROGUARD_APPLY_MAPPING = [

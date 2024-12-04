@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Common attributes for Android rules."""
 
+load("//providers:providers.bzl", "ApkInfo")
 load("//rules:android_split_transition.bzl", "android_transition")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
@@ -90,14 +90,6 @@ _JAVA_RUNTIME = dict(
 
 # Android SDK attribute.
 _ANDROID_SDK = dict(
-    _android_sdk = attr.label(
-        allow_rules = ["android_sdk"],
-        default = configuration_field(
-            fragment = "android",
-            name = "android_sdk_label",
-        ),
-        providers = [AndroidSdkInfo],
-    ),
     _dummy_android_sdk = attr.label(
         default = "//toolchains/android_sdk:dummy_sdk_tools",
     ),
@@ -209,12 +201,6 @@ _DATA_CONTEXT = _add(
             default = Label("//tools/android:merge_manifests"),
             executable = True,
         ),
-        # TODO(b/145617058) Switching back to head RPBB until the Android rules release process is improved
-        _android_resources_busybox = attr.label(
-            cfg = "exec",
-            default = Label("//rules:ResourceProcessorBusyBox"),
-            executable = True,
-        ),
         _xsltproc_tool = attr.label(
             cfg = "exec",
             default = Label("//tools/android/xslt:xslt"),
@@ -231,13 +217,13 @@ _DATA_CONTEXT = _add(
 
 ANDROID_SDK_ATTRS = dict(
     aapt = attr.label(
-        allow_single_file = True,
+        allow_files = True,
         cfg = "exec",
         executable = True,
         mandatory = True,
     ),
     aapt2 = attr.label(
-        allow_single_file = True,
+        allow_files = True,
         cfg = "exec",
         executable = True,
     ),
@@ -249,6 +235,7 @@ ANDROID_SDK_ATTRS = dict(
     ),
     aidl_lib = attr.label(
         allow_files = [".jar"],
+        doc = "Deprecated, only used for the soon to be deleted forked compiler.",
     ),
     android_jar = attr.label(
         allow_single_file = [".jar"],
@@ -325,7 +312,7 @@ ANDROID_SDK_ATTRS = dict(
         cfg = "exec",
     ),
     zipalign = attr.label(
-        allow_single_file = True,
+        allow_files = True,
         cfg = "exec",
         executable = True,
         mandatory = True,
@@ -336,9 +323,6 @@ ANDROID_SDK_ATTRS = dict(
             fragment = "java",
             name = "proguard_top",
         ),
-    ),
-    _system = attr.label(
-        default = Label("//tools/android:bootclasspath_android_only"),
     ),
 )
 

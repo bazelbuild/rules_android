@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Aspect to collect neverlink libraries in the transitive closure.
 
 Used for determining the -libraryjars argument for Proguard. The compile-time classpath is
 unsufficient here as those are ijars.
 """
 
+load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider")
 load(
     "//rules:utils.bzl",
     "utils",
@@ -38,7 +38,9 @@ _ATTRS = ["deps", "exports", "runtime_deps", "binary_under_test", "$instrumentat
 
 def _android_neverlink_aspect_impl(target, ctx):
     # Only run on Android targets
-    if "android" not in getattr(ctx.rule.attr, "constraints", "") and not ctx.rule.kind.startswith("android_"):
+    if ("android" not in getattr(ctx.rule.attr, "constraints", "") and
+        not ctx.rule.kind.startswith("android_") and
+        not ctx.rule.kind == "aar_import"):
         return []
 
     deps = []

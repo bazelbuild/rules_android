@@ -125,7 +125,7 @@ func minResChildParse(ctx context.Context, xe resxml.XMLEvent, t res.Type, child
 	}
 	if fqn.Type == res.Styleable {
 		md, ok := parseStyleableChildren(ctx, childC, resC, errC)
-		if !ok {
+		if !ok || md == nil {
 			return false
 		}
 		if err := fqn.SetMetaData(md); err != nil {

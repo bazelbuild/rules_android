@@ -2,6 +2,8 @@
 # Sandboxed SDKs are libraries that are released separately from Android apps and can run in the
 # Privacy Sandbox.
 
+load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = ["//:__subpackages__"],
@@ -18,6 +20,7 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig",
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest",
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/sdksplitproperties",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/validatemodulesconfig",
         "@rules_android_maven//:info_picocli_picocli",
     ],
 )

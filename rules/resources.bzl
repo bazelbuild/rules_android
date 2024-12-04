@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel Android Resources."""
 
+load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -22,15 +22,8 @@ load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
-load(":common.bzl", _common = "common")
-load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
 load(":proguard.bzl", _proguard = "proguard")
-load(
-    ":providers.bzl",
-    "ResourcesNodeInfo",
-    "StarlarkAndroidResourcesInfo",
-)
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils", _compilation_mode = "compilation_mode", _log = "log")
 
 visibility(PROJECT_VISIBILITY)
@@ -75,7 +68,6 @@ _VERSION_CODE = "versionCode"
 _MIN_SDK_VERSION = "minSdkVersion"
 
 # Resources context attributes.
-_ASSETS_PROVIDER = "assets_provider"
 _DATA_BINDING_LAYOUT_INFO = "data_binding_layout_info"
 _DEFINES_RESOURCES = "defines_resources"
 _DIRECT_ANDROID_RESOURCES = "direct_android_resources"
@@ -86,7 +78,6 @@ _R_JAVA = "r_java"
 _RESOURCES_APK = "resources_apk"
 _VALIDATION_RESULTS = "validation_results"
 _VALIDATION_OUTPUTS = "validation_outputs"
-_RESOURCES_PROVIDER = "resources_provider"
 _STARLARK_PROCESSED_MANIFEST = "starlark_processed_manifest"
 _STARLARK_R_TXT = "starlark_r_txt"
 _STARLARK_PROCESSED_RESOURCES = "starlark_processed_resources"
@@ -103,11 +94,6 @@ _ResourcesProcessContextInfo = provider(
         _RESOURCES_APK: "ResourcesApk.",
         _VALIDATION_RESULTS: "List of validation results.",
         _VALIDATION_OUTPUTS: "List of outputs given to OutputGroupInfo _validation group",
-
-        # TODO(djwhang): The android_library aar generation requires direct
-        # access to providers. Remove once aar is its own rule.
-        _ASSETS_PROVIDER: "AndroidAssetsInfo provider.",
-        _RESOURCES_PROVIDER: "AndroidResourcesInfo provider.",
         _STARLARK_PROCESSED_MANIFEST: "The processed manifest from the starlark resource processing pipeline.",
         _STARLARK_R_TXT: "The R.txt from the starlark resource processing pipeline.",
         _STARLARK_PROCESSED_RESOURCES: "The processed resources from the starlark processing pipeline.",
@@ -122,7 +108,6 @@ _PACKAGED_VALIDATION_RESULT = "validation_result"
 _PACKAGED_R_TXT = "r_txt"
 _RESOURCE_MINSDK_PROGUARD_CONFIG = "resource_minsdk_proguard_config"
 _RESOURCE_PROGUARD_CONFIG = "resource_proguard_config"
-_ANDROID_APPLICATION_RESOURCE = "android_application_resource"
 
 _ResourcesPackageContextInfo = provider(
     "Packaged resources context object",
@@ -138,7 +123,6 @@ _ResourcesPackageContextInfo = provider(
         _RESOURCE_PROGUARD_CONFIG: "Resource proguard config",
         _MAIN_DEX_PROGUARD_CONFIG: "Main dex proguard config",
         _PROVIDERS: "The list of all providers to propagate.",
-        _ANDROID_APPLICATION_RESOURCE: "The AndroidApplicationResourceInfo provider.",
     },
 )
 
@@ -190,6 +174,9 @@ _ResourcesOptimizeContextInfo = provider(
 # Feature which would enable AAPT2's resource name obfuscation optimization for android_binary
 # rules with resource shrinking and ProGuard enabled.
 _FEATURE_RESOURCE_NAME_OBFUSCATION = "resource_name_obfuscation"
+
+def _get_shrinker_log_name(ctx):
+    return ctx.label.name + "_files/resource_shrinker.log"
 
 def _generate_dummy_manifest(
         ctx,
@@ -253,20 +240,20 @@ def _add_g3itr(
     )
 
 def _get_legacy_mergee_manifests(resources_infos):
-    all_dependencies = depset(
+    all_dependency_nodes = depset(
         transitive = [
-            ri.direct_android_resources
+            ri.direct_resources_nodes
             for ri in resources_infos
         ] + [
-            ri.transitive_android_resources
+            ri.transitive_resources_nodes
             for ri in resources_infos
         ],
     )
 
     mergee_manifests = []
-    for dep in all_dependencies.to_list():
-        if dep.to_provider.manifest.exports_manifest:
-            mergee_manifests.append(dep.to_provider.manifest.manifest)
+    for node in all_dependency_nodes.to_list():
+        if node.exports_manifest:
+            mergee_manifests.append(node.manifest)
 
     return depset(mergee_manifests)
 
@@ -512,6 +499,7 @@ def _package(
         enable_manifest_merging = True,
         should_compile_java_srcs = True,
         generate_minsdk_proguard_config = False,
+        build_java_with_final_resources = False,
         aapt = None,
         has_local_proguard_specs = False,
         android_jar = None,
@@ -519,8 +507,7 @@ def _package(
         xsltproc = None,
         instrument_xslt = None,
         busybox = None,
-        host_javabase = None,
-        add_application_resource_info_to_providers = True):
+        host_javabase = None):
     """Package resources for top-level rules.
 
     Args:
@@ -575,6 +562,10 @@ def _package(
       should_compile_java_srcs: boolean. If native android_binary should perform java compilation.
       generate_minsdk_proguard_config: boolean. Whether to generate the Proguard specs for the
       minSdkVersion.
+      build_java_with_final_resources: boolean. If true, do not generate
+        non-final resources for linking against when building any srcs. This is
+        generally only desirable for test targets that aren't potentially
+        running compile-time optimizations.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       has_local_proguard_specs: If the target has proguard specs.
       android_jar: File. The Android jar.
@@ -586,9 +577,6 @@ def _package(
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
       host_javabase: A Target. The host javabase.
-      # TODO(b/308978693): Delete this after Starlark android_binary starlark migration is complete.
-      add_application_resource_info_to_providers: boolean. Whether to add the
-          AndroidApplicationResourceInfo provider to the list of providers for this processor.
 
     Returns:
       A ResourcesPackageContextInfo containing packaged resource artifacts and
@@ -802,33 +790,53 @@ def _package(
     packaged_resources_ctx[_MAIN_DEX_PROGUARD_CONFIG] = main_dex_proguard_cfg
     packaged_resources_ctx[_PACKAGED_R_TXT] = r_txt
 
-    # Fix class jar name because some tests depend on {label_name}_resources.jar being the suffix of
-    # the path, with _common.PACKAGED_RESOURCES_SUFFIX removed from the label name.
-    class_jar_name = ctx.label.name + "_migrated/_resources.jar"
-    if ctx.label.name.endswith(_common.PACKAGED_RESOURCES_SUFFIX) or acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        label_name = ctx.label.name.removesuffix(_common.PACKAGED_RESOURCES_SUFFIX)
-        class_jar_name = ctx.label.name + "_migrated/" + label_name + "_resources.jar"
+    nonfinal_class_jar_name = ctx.label.name + "_migrated/" + ctx.label.name + "_resources.jar"
+    final_class_jar_name = ctx.label.name + "_migrated/" + ctx.label.name + "_final_resources.jar"
 
-    class_jar = ctx.actions.declare_file(class_jar_name)
-    _busybox.generate_binary_r(
-        ctx,
-        out_class_jar = class_jar,
-        r_txt = r_txt,
-        manifest = processed_manifest,
-        package_for_r = java_package,
-        final_fields = not shrink_resource_cycles and not instruments and not use_r_package,
-        use_r_package = use_r_package,
-        resources_nodes = depset(transitive = direct_resources_nodes + transitive_resources_nodes),
-        transitive_r_txts = transitive_r_txts,
-        transitive_manifests = transitive_manifests,
-        busybox = busybox,
-        host_javabase = host_javabase,
-    )
-    packaged_resources_ctx[_PACKAGED_CLASS_JAR] = class_jar
+    compile_class_jar = ctx.actions.declare_file(nonfinal_class_jar_name)
+    use_final_fields = not shrink_resource_cycles and not instruments and not use_r_package
+    if use_final_fields:
+        if build_java_with_final_resources:
+            output_class_jar = compile_class_jar
+        else:
+            output_class_jar = ctx.actions.declare_file(final_class_jar_name)
+        _busybox.generate_binary_r(
+            ctx,
+            out_class_jar = output_class_jar,
+            r_txt = r_txt,
+            manifest = processed_manifest,
+            package_for_r = java_package,
+            final_fields = True,
+            use_r_package = use_r_package,
+            resources_nodes = depset(transitive = direct_resources_nodes + transitive_resources_nodes),
+            transitive_r_txts = transitive_r_txts,
+            transitive_manifests = transitive_manifests,
+            busybox = busybox,
+            host_javabase = host_javabase,
+        )
+    else:
+        output_class_jar = compile_class_jar
+
+    if not use_final_fields or not build_java_with_final_resources:
+        _busybox.generate_binary_r(
+            ctx,
+            out_class_jar = compile_class_jar,
+            r_txt = r_txt,
+            manifest = processed_manifest,
+            package_for_r = java_package,
+            final_fields = False,
+            use_r_package = use_r_package,
+            resources_nodes = depset(transitive = direct_resources_nodes + transitive_resources_nodes),
+            transitive_r_txts = transitive_r_txts,
+            transitive_manifests = transitive_manifests,
+            busybox = busybox,
+            host_javabase = host_javabase,
+        )
+    packaged_resources_ctx[_PACKAGED_CLASS_JAR] = output_class_jar
 
     java_info = JavaInfo(
-        output_jar = class_jar,
-        compile_jar = class_jar,
+        output_jar = output_class_jar,
+        compile_jar = compile_class_jar,
         source_jar = r_java,
     )
 
@@ -840,40 +848,6 @@ def _package(
     packages_to_r_txts = dict()
     for pkg, depsets in packages_to_r_txts_depset.items():
         packages_to_r_txts[pkg] = depset(transitive = depsets)
-
-    # Adding empty depsets to unused fields of StarlarkAndroidResourcesInfo.
-    # Some root targets may depends on other root targets and try to access those fields.
-    if not acls.in_android_binary_starlark_rollout(str(ctx.label)):
-        packaged_resources_ctx[_PROVIDERS].append(StarlarkAndroidResourcesInfo(
-            direct_resources_nodes = depset(),
-            transitive_resources_nodes = depset(),
-            transitive_assets = depset(),
-            transitive_assets_symbols = depset(),
-            transitive_compiled_assets = depset(),
-            transitive_resource_files = depset(),
-            direct_compiled_resources = depset(),
-            transitive_compiled_resources = depset(),
-            transitive_manifests = depset(),
-            transitive_r_txts = depset(),
-            packages_to_r_txts = packages_to_r_txts,
-            transitive_resource_apks = depset(),
-        ))
-
-    android_application_resource_info = AndroidApplicationResourceInfo(
-        resource_apk = resource_apk,
-        resource_java_src_jar = r_java,
-        resource_java_class_jar = class_jar,
-        manifest = processed_manifest,
-        resource_proguard_config = proguard_cfg,
-        main_dex_proguard_config = main_dex_proguard_cfg,
-        r_txt = r_txt,
-        resources_zip = resource_files_zip,
-        databinding_info = data_binding_layout_info,
-        should_compile_java_srcs = should_compile_java_srcs,
-    )
-    packaged_resources_ctx[_ANDROID_APPLICATION_RESOURCE] = android_application_resource_info
-    if add_application_resource_info_to_providers:
-        packaged_resources_ctx[_PROVIDERS].append(android_application_resource_info)
 
     return _ResourcesPackageContextInfo(**packaged_resources_ctx)
 
@@ -1026,82 +1000,6 @@ def _validate(ctx, manifest, defined_assets, defined_assets_dir):
     if not manifest:
         _log.error(_MANIFEST_MISSING_ERROR % ctx.label)
 
-def _make_direct_assets_transitive(assets_info):
-    return AndroidAssetsInfo(
-        assets_info.label,
-        assets_info.validation_result,
-        depset([]),  # direct_parsed_assets
-        depset(
-            transitive = [
-                assets_info.direct_parsed_assets,
-                assets_info.transitive_parsed_assets,
-            ],
-            order = "preorder",
-        ),
-        assets_info.assets,
-        assets_info.symbols,
-        assets_info.compiled_symbols,
-    )
-
-def _make_direct_resources_transitive(resources_info):
-    return AndroidResourcesInfo(
-        resources_info.label,
-        resources_info.manifest,
-        resources_info.compiletime_r_txt,
-        # NB: the ordering of "direct" and "transitive" is inconsistent with that used for
-        # AndroidAssetsInfo.
-        depset(
-            transitive = [
-                # Ordering is inconsistent here too:
-                # https://github.com/bazelbuild/bazel/blob/82c7f48b4628ebbec18123afdbed701bbaa605e2/src/tools/android/java/com/google/devtools/build/android/Aapt2ResourcePackagingAction.java#L158
-                resources_info.transitive_android_resources,
-                resources_info.direct_android_resources,
-            ],
-            order = "preorder",
-        ),
-        depset([]),  # direct_android_resources
-        resources_info.transitive_resources,
-        resources_info.transitive_manifests,
-        resources_info.transitive_aapt2_r_txt,
-        resources_info.transitive_symbols_bin,
-        resources_info.transitive_compiled_symbols,
-        resources_info.transitive_static_lib,
-        resources_info.transitive_r_txt,
-        validation_artifacts = resources_info.validation_artifacts,
-    )
-
-def _export_assets(assets_info, exports):
-    all_providers = [assets_info] + utils.collect_providers(AndroidAssetsInfo, exports)
-    return AndroidAssetsInfo(
-        assets_info.label,
-        assets_info.validation_result,
-        direct_parsed_assets = utils.join_depsets(all_providers, "direct_parsed_assets", order = "preorder"),
-        transitive_parsed_assets = utils.join_depsets(all_providers, "transitive_parsed_assets", order = "preorder"),
-        transitive_assets = utils.join_depsets(all_providers, "assets", order = "preorder"),
-        transitive_symbols = utils.join_depsets(all_providers, "symbols", order = "preorder"),
-        transitive_compiled_symbols = utils.join_depsets(all_providers, "compiled_symbols", order = "preorder"),
-    )
-
-def _export_resources(resources_info, exports):
-    all_providers = [resources_info] + utils.collect_providers(AndroidResourcesInfo, exports)
-    return AndroidResourcesInfo(
-        resources_info.label,
-        resources_info.manifest,
-        resources_info.compiletime_r_txt,
-        **{attr: utils.join_depsets(all_providers, attr, order = "preorder") for attr in [
-            "transitive_android_resources",
-            "direct_android_resources",
-            "transitive_resources",
-            "transitive_manifests",
-            "transitive_aapt2_r_txt",
-            "transitive_symbols_bin",
-            "transitive_compiled_symbols",
-            "transitive_static_lib",
-            "transitive_r_txt",
-            "validation_artifacts",
-        ]}
-    )
-
 def _validate_resources(resource_files = None):
     for resource_file in resource_files:
         path_segments = resource_file.path.split("/")
@@ -1163,14 +1061,14 @@ def _bump_min_sdk(
     args.add("-manifest", manifest)
     args.add("-min_sdk_floor", floor)
 
-    out_dir = "_migrated/_min_sdk_bumped/" + ctx.label.name + "/"
+    out_dir = "_min_sdk_bumped/" + ctx.label.name + "/"
     log = ctx.actions.declare_file(
         out_dir + "log.txt",
     )
     args.add("-log", log.path)
 
     out_manifest = ctx.actions.declare_file(
-        out_dir + "AndroidManifest.xml",
+        out_dir + manifest.path.split("/")[-1],
     )
     args.add("-output", out_manifest.path)
     ctx.actions.run(
@@ -1211,7 +1109,7 @@ def _set_default_min_sdk(
     args.add("-manifest", manifest)
     args.add("-default_min_sdk", default)
 
-    out_dir = "_migrated/_min_sdk_default_set/" + ctx.label.name + "/"
+    out_dir = "_min_sdk_default_set/" + ctx.label.name + "/"
     log = ctx.actions.declare_file(
         out_dir + "log.txt",
     )
@@ -1237,7 +1135,6 @@ def _set_default_min_sdk(
 def _validate_manifest(
         ctx,
         manifest,
-        should_validate_multidex = True,
         min_sdk_version = 0,
         manifest_validation_tool = None,
         toolchain_type = None):
@@ -1246,14 +1143,13 @@ def _validate_manifest(
     Args:
       ctx: The rules context.
       manifest: File. The AndroidManifest.xml file.
-      should_validate_multidex: Boolean. Whether to validate minSdkVersion for multidex.
       min_sdk_version: Int. The expected minSdkVersion value in the manifest.
       manifest_validation_tool: FilesToRunProvider. The manifest validation tool executable.
       toolchain_type: The Android Toolchain.
     Returns:
       A file containing the log of validation results, or None if validation not performed.
     """
-    if (not should_validate_multidex and min_sdk_version <= 0) or not manifest_validation_tool:
+    if (min_sdk_version <= 0) or not manifest_validation_tool:
         return None
 
     output = ctx.actions.declare_file(ctx.label.name + "_manifest_validation_output")
@@ -1261,7 +1157,6 @@ def _validate_manifest(
     args = ctx.actions.args()
     args.add("--manifest", manifest)
     args.add("--output", output)
-    args.add("--validate_multidex=%s" % should_validate_multidex)
     args.add("--expected_min_sdk_version", min_sdk_version)
 
     ctx.actions.run(
@@ -1475,7 +1370,7 @@ def _process_starlark(
         if aapt:
             # Generate an empty manifest with the right package
             generated_manifest = ctx.actions.declare_file(
-                "_migrated/_generated/" + ctx.label.name + "/AndroidManifest.xml",
+                "_generated/" + ctx.label.name + "/AndroidManifest.xml",
             )
             _generate_dummy_manifest(
                 ctx,
@@ -1483,17 +1378,13 @@ def _process_starlark(
                 java_package = java_package if java_package else ctx.label.package.replace("/", "."),
                 min_sdk_version = _min_sdk_version.DEPOT_FLOOR,
             )
-            r_txt = ctx.actions.declare_file(
-                "_migrated/" + ctx.label.name + "_symbols/R.txt",
-            )
+            r_txt = ctx.actions.declare_file(ctx.label.name + "_symbols/R.txt")
             out_manifest = ctx.actions.declare_file(
-                "_migrated/" + ctx.label.name + "_processed_manifest/AndroidManifest.xml",
+                ctx.label.name + "_processed_manifest/AndroidManifest.xml",
             )
             _busybox.package(
                 ctx,
-                out_r_src_jar = ctx.actions.declare_file(
-                    "_migrated/" + ctx.label.name + ".srcjar",
-                ),
+                out_r_src_jar = ctx.actions.declare_file(ctx.label.name + ".srcjar"),
                 out_r_txt = r_txt,
                 out_manifest = out_manifest,
                 manifest = generated_manifest,
@@ -1526,7 +1417,7 @@ def _process_starlark(
     else:
         if stamp_manifest:
             stamped_manifest = ctx.actions.declare_file(
-                "_migrated/_renamed/" + ctx.label.name + "/AndroidManifest.xml",
+                "_renamed/" + ctx.label.name + "/AndroidManifest.xml",
             )
             _busybox.merge_manifests(
                 ctx,
@@ -1541,7 +1432,7 @@ def _process_starlark(
 
         if instrument_xslt:
             g3itr_manifest = ctx.actions.declare_file(
-                "_migrated/" + ctx.label.name + "_g3itr_manifest/AndroidManifest.xml",
+                ctx.label.name + "_g3itr_manifest/AndroidManifest.xml",
             )
             _add_g3itr(
                 ctx,
@@ -1552,9 +1443,7 @@ def _process_starlark(
             )
             manifest = g3itr_manifest
 
-        parsed_assets = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + "_symbols/assets.bin",
-        )
+        parsed_assets = ctx.actions.declare_file(ctx.label.name + "_symbols/assets.bin")
         _busybox.parse(
             ctx,
             out_symbols = parsed_assets,
@@ -1563,9 +1452,7 @@ def _process_starlark(
             busybox = busybox,
             host_javabase = host_javabase,
         )
-        merged_assets = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + "_files/assets.zip",
-        )
+        merged_assets = ctx.actions.declare_file(ctx.label.name + "_files/assets.zip")
         _busybox.merge_assets(
             ctx,
             out_assets_zip = merged_assets,
@@ -1588,9 +1475,7 @@ def _process_starlark(
         resources_ctx[_VALIDATION_RESULTS].append(merged_assets)
 
         if assets:
-            compiled_assets = ctx.actions.declare_file(
-                "_migrated/" + ctx.label.name + "_symbols/assets.zip",
-            )
+            compiled_assets = ctx.actions.declare_file(ctx.label.name + "_symbols/assets.zip")
             _busybox.compile(
                 ctx,
                 out_file = compiled_assets,
@@ -1603,7 +1488,7 @@ def _process_starlark(
 
         if enable_data_binding:
             data_binding_layout_info = ctx.actions.declare_file(
-                "_migrated/databinding/" + ctx.label.name + "/layout-info.zip",
+                "databinding/" + ctx.label.name + "/layout-info.zip",
             )
             processed_resources, resources_dirname = _make_databinding_outputs(
                 ctx,
@@ -1620,9 +1505,7 @@ def _process_starlark(
                 host_javabase = host_javabase,
             )
 
-        compiled_resources = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + "_symbols/symbols.zip",
-        )
+        compiled_resources = ctx.actions.declare_file(ctx.label.name + "_symbols/symbols.zip")
         _busybox.compile(
             ctx,
             out_file = compiled_resources,
@@ -1635,7 +1518,7 @@ def _process_starlark(
         # TODO(b/160907203): Remove this fix once the native resource processing pipeline is turned off.
         if enable_data_binding:
             fixed_compiled_resources = ctx.actions.declare_file(
-                "_migrated/fixed/" + ctx.label.name + "_symbols/symbols.zip",
+                "fixed/" + ctx.label.name + "_symbols/symbols.zip",
             )
             _fix_databinding_compiled_resources(
                 ctx,
@@ -1645,14 +1528,12 @@ def _process_starlark(
             )
             compiled_resources = fixed_compiled_resources
 
-        out_class_jar = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + "_resources.jar",
-        )
+        out_class_jar = ctx.actions.declare_file(ctx.label.name + "_resources.jar")
         processed_manifest = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + "_processed_manifest/AndroidManifest.xml",
+            ctx.label.name + "_processed_manifest/AndroidManifest.xml",
         )
         out_aapt2_r_txt = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + "_symbols/R.aapt2.txt",
+            ctx.label.name + "_symbols/R.aapt2.txt",
         )
         _busybox.merge_compiled(
             ctx,
@@ -1682,15 +1563,9 @@ def _process_starlark(
         )
         resources_ctx[_MERGED_MANIFEST] = processed_manifest
 
-        apk = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + "_files/library.ap_",
-        )
-        r_java = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + ".srcjar",
-        )
-        r_txt = ctx.actions.declare_file(
-            "_migrated/" + ctx.label.name + "_symbols/R.txt",
-        )
+        apk = ctx.actions.declare_file(ctx.label.name + "_files/library.ap_")
+        r_java = ctx.actions.declare_file(ctx.label.name + ".srcjar")
+        r_txt = ctx.actions.declare_file(ctx.label.name + "_symbols/R.txt")
         _busybox.validate_and_link(
             ctx,
             out_r_src_jar = r_java,
@@ -1803,6 +1678,7 @@ def _process_starlark(
                 transitive = transitive_resource_apks,
                 order = "preorder",
             ),
+            package = java_package,
         ))
     else:
         # Depsets are ordered below to match the order in the legacy native rules.
@@ -1874,6 +1750,7 @@ def _process_starlark(
                 transitive = transitive_resource_apks,
                 order = "preorder",
             ),
+            package = java_package,
         ))
 
     # TODO(b/69552500): In the Starlark Android Rules, the R compile time
@@ -1881,7 +1758,7 @@ def _process_starlark(
     # adding the R.jar as a runtime dependency.
     resources_ctx[_PROVIDERS].append(
         AndroidLibraryResourceClassJarProvider(
-            depset(
+            jars = depset(
                 (resources_ctx[_R_JAVA].runtime_output_jars if resources_ctx[_R_JAVA] else []),
                 transitive = [
                     p.jars
@@ -1897,7 +1774,6 @@ def _process_starlark(
     )
 
     return resources_ctx
-
 
 def _process(
         ctx,
@@ -1960,7 +1836,6 @@ def _process(
         zip_tool = zip_tool,
     )
 
-
     if _VALIDATION_OUTPUTS not in out_ctx:
         out_ctx[_VALIDATION_OUTPUTS] = []
 
@@ -2001,7 +1876,7 @@ def _shrink(
 
     out_apk = ctx.actions.declare_file(ctx.label.name + "_shrunk.ap_")
     out_zip = ctx.actions.declare_file(ctx.label.name + "_files/resource_files_shrunk.zip")
-    out_log = ctx.actions.declare_file(ctx.label.name + "_files/resource_shrinker.log")
+    out_log = ctx.actions.declare_file(_get_shrinker_log_name(ctx))
     out_config = ctx.actions.declare_file(ctx.label.name + "_files/resource_optimization.cfg")
     _busybox.shrink(
         ctx,
@@ -2024,6 +1899,53 @@ def _shrink(
     shrunk_ctx[_SHRUNK_RESOURCE_ZIP] = out_zip
     shrunk_ctx[_RESOURCE_SHRINKER_LOG] = out_log
     shrunk_ctx[_RESOURCE_OPTIMIZATION_CONFIG] = out_config
+
+    return _ResourcesShrinkContextInfo(**shrunk_ctx)
+
+def _convert_resources_to_apk(
+        ctx,
+        resources_zip = None,
+        aapt = None,
+        android_jar = None,
+        busybox = None,
+        host_javabase = None):
+    """Converts the resource zip into a compiled resource APK
+
+    Args:
+        ctx: The context.
+        resources_zip: File. The input resources file zip containing the merged assets and resources to be shrunk.
+        aapt: FilesToRunProvider. The AAPT executable.
+        android_jar: File. The Android Jar.
+        busybox: FilesToRunProvider. The ResourceBusyBox executable.
+        host_javabase: Target. The host javabase.
+
+    Returns:
+        A dict containing all of the shrunk resource outputs.
+    """
+    shrunk_ctx = {
+        _SHRUNK_RESOURCE_APK: None,
+        _SHRUNK_RESOURCE_ZIP: None,
+        _RESOURCE_SHRINKER_LOG: None,
+        _RESOURCE_OPTIMIZATION_CONFIG: None,
+    }
+
+    out_apk = ctx.actions.declare_file(ctx.label.name + "_shrunk.ap_")
+    out_log = _get_shrinker_log_name(ctx)
+
+    _busybox.convert_resources_to_apk(
+        ctx,
+        out_apk,
+        resources_zip = resources_zip,
+        aapt = aapt,
+        android_jar = android_jar,
+        debug = _compilation_mode.get(ctx) != _compilation_mode.OPT,
+        busybox = busybox,
+        host_javabase = host_javabase,
+    )
+
+    shrunk_ctx[_SHRUNK_RESOURCE_APK] = out_apk
+    shrunk_ctx[_SHRUNK_RESOURCE_ZIP] = resources_zip
+    shrunk_ctx[_RESOURCE_SHRINKER_LOG] = out_log
 
     return _ResourcesShrinkContextInfo(**shrunk_ctx)
 
@@ -2115,9 +2037,12 @@ resources = struct(
 
     # Exposed for android_binary
     is_resource_shrinking_enabled = _is_resource_shrinking_enabled,
+    is_resource_name_obfuscation_enabled = _is_resource_name_obfuscation_enabled,
     validate_manifest = _validate_manifest,
     shrink = _shrink,
+    convert_resources_to_apk = _convert_resources_to_apk,
     optimize = _optimize,
+    get_shrinker_log_name = _get_shrinker_log_name,
 )
 
 testing = struct(

@@ -11,12 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allowlist for android_local_test targets allowed to depend on java_proto_library.
 
 See b/120162253 for context.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 LOCAL_TEST_MULTI_PROTO = [
 ]
 

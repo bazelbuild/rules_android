@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Implementation."""
 
+load("//providers:providers.bzl", "AndroidCcLinkParamsInfo", "AndroidIdlInfo", "AndroidLibraryAarInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "BaselineProfileProvider", "DataBindingV2Info", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:common.bzl", _common = "common")
@@ -27,13 +27,13 @@ load(
     "processing_pipeline",
 )
 load("//rules:proguard.bzl", _proguard = "proguard")
-load("//rules:providers.bzl", "AndroidLintRulesInfo", "StarlarkApkInfo")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -203,9 +203,8 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
     if resources_ctx.defines_resources:
         # Verify that srcs do no contain labels.
         for src in ctx.attr.srcs:
-            if AndroidResourcesInfo in src:
-                log.error(_SRCS_CONTAIN_RESOURCE_LABEL_ERROR %
-                          src[AndroidResourcesInfo].label)
+            if StarlarkAndroidResourcesInfo in src:
+                log.error(_SRCS_CONTAIN_RESOURCE_LABEL_ERROR % src.label)
 
     return ProviderInfo(
         name = "resources_ctx",
@@ -225,7 +224,7 @@ def _process_idl(ctx, **unused_sub_ctxs):
             deps = utils.collect_providers(AndroidIdlInfo, ctx.attr.deps),
             exports = utils.collect_providers(AndroidIdlInfo, ctx.attr.exports),
             aidl = get_android_sdk(ctx).aidl,
-            aidl_lib = get_android_sdk(ctx).aidl_lib,
+            aidl_lib = ctx.attr._aidl_lib,
             aidl_framework = get_android_sdk(ctx).framework_aidl,
             uses_aosp_compiler = ctx.attr.idl_uses_aosp_compiler,
             idlopts = ctx.attr.idlopts,
@@ -260,7 +259,7 @@ def _process_proguard(ctx, idl_ctx, **unused_sub_ctxs):
             ctx,
             proguard_configs = ctx.files.proguard_specs,
             proguard_spec_providers = utils.collect_providers(
-                ProguardSpecProvider,
+                ProguardSpecInfo,
                 ctx.attr.deps,
                 ctx.attr.exports,
                 idl_ctx.idl_deps,
@@ -339,19 +338,9 @@ def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
         host_javabase = _common.get_host_javabase(ctx),
     )
 
-    # TODO(b/170409221): Clean this up once Starlark migration is complete. Create and propagate
-    # a native aar info provider with the Starlark artifacts to avoid breaking downstream
-    # targets.
     if not ctx.attr.neverlink:
         aar_ctx[_PROVIDERS].append(AndroidLibraryAarInfo(
-            aar = starlark_aar,
-            manifest = resources_ctx.starlark_processed_manifest,
-            aars_from_deps = utils.collect_providers(
-                AndroidLibraryAarInfo,
-                ctx.attr.deps,
-                ctx.attr.exports,
-            ),
-            defines_local_resources = resources_ctx.defines_resources,
+            aar = starlark_aar if resources_ctx.defines_resources else None,
         ))
 
     return ProviderInfo(
@@ -365,7 +354,7 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
         value = struct(
             providers = [
                 AndroidNativeLibsInfo(
-                    depset(
+                    native_libs = depset(
                         transitive = [
                             p.native_libs
                             for p in utils.collect_providers(
@@ -378,7 +367,7 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
                     ),
                 ),
                 AndroidCcLinkParamsInfo(
-                    cc_common.merge_cc_infos(
+                    link_params = cc_common.merge_cc_infos(
                         cc_infos = [
                                        info.cc_link_params_info
                                        for info in utils.collect_providers(
@@ -445,7 +434,8 @@ def _process_coverage(ctx, **unused_ctx):
                 coverage_common.instrumented_files_info(
                     ctx,
                     source_attributes = ["srcs"],
-                    dependency_attributes = ["assets", "deps", "exports"],
+                    # NOTE: Associates is only applicable for OSS rules_kotlin.
+                    dependency_attributes = ["associates", "assets", "deps", "exports"],
                 ),
             ],
         ),
@@ -456,7 +446,7 @@ def _process_baseline_profiles(ctx, **unused_ctx):
         name = "bp_ctx",
         value = struct(
             providers = [
-                BaselineProfileProvider(depset(
+                BaselineProfileProvider(files = depset(
                     ctx.files.baseline_profiles,
                     transitive = [bp.files for bp in utils.collect_providers(BaselineProfileProvider, ctx.attr.deps, ctx.attr.exports)],
                 )),

@@ -9,6 +9,7 @@ android_binary(
 android_library(
     name = "basic_lib",
     srcs = ["BasicActivity.java"],
+    javacopts = ["-source 11 -target 11"],
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
 )

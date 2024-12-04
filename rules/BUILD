@@ -1,5 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
+load("@rules_java//java:defs.bzl", "java_library")
 
 exports_files([
     "data_binding_annotation_template.txt",
@@ -8,12 +9,6 @@ exports_files([
     "robolectric_properties_template.txt",
     "rules.bzl",
 ])
-
-alias(
-    name = "ResourceProcessorBusyBox",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ResourceProcessorBusyBox",
-    visibility = ["//visibility:public"],
-)
 
 bzl_library(
     name = "android_revision_bzl",
@@ -48,7 +43,6 @@ bzl_library(
         "path.bzl",
         "processing_pipeline.bzl",
         "proguard.bzl",
-        "providers.bzl",
         "resources.bzl",
         "sandboxed_sdk_toolbox.bzl",
         "utils.bzl",
@@ -56,23 +50,11 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":visibility_bzl",
+        "//providers:providers_bzl",
         "//rules/acls:bzl",
         "//rules/android_common:bzl",
         "//rules/flags:bzl",
         "@bazel_skylib//lib:paths",
-        "@rules_java//java/common",
-    ],
-)
-
-bzl_library(
-    name = "android_binary_bzl",
-    srcs = [
-        "android_binary.bzl",
-    ],
-    visibility = ["//:__subpackages__"],
-    deps = [
-        ":visibility_bzl",
-        "//rules/android_binary_internal:bzl",
         "@rules_java//java/common",
     ],
 )
@@ -111,19 +93,22 @@ bzl_library(
         "baseline_profiles.bzl",
         "dex.bzl",
         "dex_desugar_aspect.bzl",
+        "dex_toolchains.bzl",
         "rules.bzl",
     ],
     visibility = [
         "//mobile_install:__pkg__",
         "//stardoc:__pkg__",
+        "//test/rules/android_sdk_repository:__pkg__",
     ],
     deps = [
-        ":android_binary_bzl",
         ":common_bzl",
         ":min_sdk_version_bzl",
         ":visibility_bzl",
+        "//providers:providers_bzl",
         "//rules/aar_import:bzl",
         "//rules/android_application:bzl",
+        "//rules/android_binary:bzl",
         "//rules/android_library:bzl",
         "//rules/android_local_test:bzl",
         "//rules/android_sandboxed_sdk:bzl",
@@ -155,4 +140,11 @@ int_setting(
     visibility = [
         "//:__subpackages__",
     ],
+)
+
+# Empty AIDL Library for OSS.
+# TODO: Delete this once AOSP compiler is used everywhere.
+java_library(
+    name = "aidl_lib",
+    visibility = ["//visibility:public"],
 )

@@ -11,14 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """android_sandboxed_sdk rule.
 
 This file exists to inject the correct version of android_binary.
 """
 
-load("//rules:android_binary.bzl", _android_binary_macro = "android_binary_macro")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/android_binary:rule.bzl", _android_binary_macro = "android_binary_macro")
 load(":android_sandboxed_sdk_macro.bzl", _android_sandboxed_sdk_macro = "android_sandboxed_sdk_macro")
 
 visibility(PROJECT_VISIBILITY)
@@ -27,7 +26,8 @@ def android_sandboxed_sdk(
         name,
         sdk_modules_config,
         deps,
-        min_sdk_version = 21,
+        min_sdk_version,
+        target_sdk_version = 34,
         visibility = None,
         testonly = None,
         tags = [],
@@ -44,6 +44,7 @@ def android_sandboxed_sdk(
         https://github.com/google/bundletool/blob/master/src/main/proto/sdk_modules_config.proto
       deps: Set of android libraries that make up this SDK.
       min_sdk_version: Min SDK version for the SDK.
+      target_sdk_version: Target SDK version for the SDK.
       visibility: A list of targets allowed to depend on this rule.
       testonly: Whether this library is only for testing.
       tags: A list of string tags passed to generated targets.
@@ -58,6 +59,7 @@ def android_sandboxed_sdk(
         sdk_modules_config = sdk_modules_config,
         deps = deps,
         min_sdk_version = min_sdk_version,
+        target_sdk_version = target_sdk_version,
         visibility = visibility,
         testonly = testonly,
         tags = tags,

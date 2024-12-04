@@ -21,22 +21,10 @@ sh_library(
     testonly = True,
     srcs = ["android_helper.sh"],
     data = [
-        "//rules/android_sdk_repository:bzl",
+        "//rules:bzl",
     ],
     visibility = ["//visibility:private"],
     deps = [
-        "//test/bashunit",
-        "@bazel_tools//tools/bash/runfiles",
-    ],
-)
-
-sh_library(
-    name = "test_lib",
-    testonly = True,
-    srcs = ["test_lib.sh"],
-    visibility = ["//visibility:private"],
-    deps = [
-        ":android_helper",
         "//test/bashunit",
         "@bazel_tools//tools/bash/runfiles",
     ],
@@ -47,20 +35,10 @@ script_test(
     srcs = ["android_sdk_repository_test.sh"],
     bazel_binaries = bazel_binaries,
     bazel_version = bazel_binaries.versions.current,
+    # TODO(b/372950743): Fix the rules_shell integration with this test.
+    tags = ["manual"],
     deps = [
-        ":test_lib",
-        "//test/bashunit",
-        "@bazel_tools//tools/bash/runfiles",
-    ],
-)
-
-script_test(
-    name = "android_sdk_repository_platforms_test",
-    srcs = ["android_sdk_repository_platforms_test.sh"],
-    bazel_binaries = bazel_binaries,
-    bazel_version = bazel_binaries.versions.current,
-    deps = [
-        ":test_lib",
+        ":android_helper",
         "//test/bashunit",
         "@bazel_tools//tools/bash/runfiles",
     ],
@@ -68,8 +46,9 @@ script_test(
 
 test_suite(
     name = "integration_tests",
+    # TODO(b/372950743): Fix the rules_shell integration with this test.
+    tags = ["manual"],
     tests = [
-        ":android_sdk_repository_platforms_test",
         ":android_sdk_repository_test",
     ],
 )

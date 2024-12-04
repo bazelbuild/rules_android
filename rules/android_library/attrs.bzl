@@ -11,14 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Attributes."""
 
+load("//providers:providers.bzl", "StarlarkApkInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
-load("//rules:providers.bzl", "StarlarkApkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
@@ -236,6 +235,9 @@ ATTRS = _attrs.add(
         _package_name = attr.string(),  # for sending the package name to the outputs callback
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
+        ),
+        _aidl_lib = attr.label(
+            default = Label("//rules:aidl_lib"),
         ),
     ),
     _attrs.compilation_attributes(),

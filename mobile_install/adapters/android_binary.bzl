@@ -25,6 +25,7 @@ load(
 )
 load("//mobile_install:transform.bzl", "dex", "filter_jars")
 load("//mobile_install:utils.bzl", "utils")
+load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -55,6 +56,11 @@ def extract(target, ctx):
     else:
         transitive_native_libs = target[AndroidBinaryNativeLibsInfo].transitive_native_libs
 
+    java_package = target[AndroidIdeInfo].java_package
+    if java_package == None:
+        fail("Unable to infer Java package for %s. Try setting `custom_package` if " +
+             "it does not live under a java/ or javatests/ package." % str(target))
+
     return dict(
         debug_key = utils.only(ctx.rule.files.debug_key, allow_empty = True),
         debug_signing_keys = ctx.rule.files.debug_signing_keys,
@@ -62,7 +68,7 @@ def extract(target, ctx):
         key_rotation_min_sdk = ctx.rule.attr.key_rotation_min_sdk,
         merged_manifest = target[AndroidIdeInfo].generated_manifest,
         native_libs = target[AndroidIdeInfo].native_libs,
-        package = target[AndroidIdeInfo].java_package,
+        package = java_package,
         resource_apk = target[AndroidIdeInfo].resource_apk,
         resource_src_jar = target[AndroidIdeInfo].resource_jar.source_jar,  # This is the R with real ids.
         aar_native_libs_info = MIAndroidAarNativeLibsInfo(

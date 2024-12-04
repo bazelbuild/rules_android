@@ -186,7 +186,7 @@ func main() {
 
 	// Wait for the debugger if debug mode selected
 	if *start == "DEBUG" {
-		waitCmd := exec.Command(*adbPath, "shell", "am", "set-debug-app", "-w", appPackage)
+		waitCmd := exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "set-debug-app", "-w", appPackage)
 		if err := waitCmd.Run(); err != nil {
 			pprint.Error("Unable to wait for debugger: %s", err.Error())
 		}
@@ -195,15 +195,15 @@ func main() {
 	if *launchApp {
 		pprint.Info("Finished deploying changes. Launching app")
 
-		var stopCmd = exec.Command(*adbPath, "shell", "am", "force-stop", appPackage)
+		var stopCmd = exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "force-stop", appPackage)
 		if err := stopCmd.Run(); err != nil {
 			pprint.Error("Unable to stop app: %s", err.Error())
 		}
 		var launchCmd *exec.Cmd
 		if *launchActivity != "" {
-			launchCmd = exec.Command(*adbPath, "shell", "am", "start", "-a", "android.intent.action.MAIN", "-n", appPackage+"/"+*launchActivity)
+			launchCmd = exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "start", "-a", "android.intent.action.MAIN", "-n", appPackage+"/"+*launchActivity)
 		} else {
-			launchCmd = exec.Command(*adbPath, "shell", "monkey", "-p", appPackage, "1")
+			launchCmd = exec.Command(*adbPath, "-s", deviceSerial, "shell", "monkey", "-p", appPackage, "1")
 			pprint.Warning(
 				"No or multiple main activities found, falling back to Monkey launcher. Specify the activity you want with `-- --launch_activity` or `-- --nolaunch_app` to launch nothing.")
 		}
@@ -214,7 +214,7 @@ func main() {
 		}
 	} else {
 		// Always stop the app since classloader needs to be reloaded.
-		stopCmd := exec.Command(*adbPath, "shell", "am", "force-stop", appPackage)
+		stopCmd := exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "force-stop", appPackage)
 		if err := stopCmd.Run(); err != nil {
 			pprint.Error("Unable to stop app: %s", err.Error())
 		}

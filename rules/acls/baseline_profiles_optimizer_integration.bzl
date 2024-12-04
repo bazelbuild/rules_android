@@ -11,12 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allowlist for targets allowed to use baseline_profiles in optimizer tools."""
+
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 # keep sorted
 BASELINE_PROFILES_OPTIMIZER_INTEGRATION = [
-    "//test/rules/android_binary_internal:__subpackages__",
+    "//test/rules/android_binary:__subpackages__",
 ]
 
 # keep sorted

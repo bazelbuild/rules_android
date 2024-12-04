@@ -11,11 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel testing library asserts."""
 
 load(
-    "//rules:providers.bzl",
+    "//providers:providers.bzl",
     "ResourcesNodeInfo",
     "StarlarkAndroidIdeInfoForTesting",
     "StarlarkAndroidResourcesInfo",
@@ -343,26 +342,26 @@ def _assert_default_info(
     )
 
 def _assert_proguard_spec_provider(expected, actual):
-    """Asserts that expected matches actual ProguardSpecProvider.
+    """Asserts that expected matches actual ProguardSpecInfo.
 
     Args:
-      expected: A dict containing fields of a ProguardSpecProvider that are
-        compared against the actual given ProguardSpecProvider.
-      actual: A ProguardSpecProvider.
+      expected: A dict containing fields of a ProguardSpecInfo that are
+        compared against the actual given ProguardSpecInfo.
+      actual: A ProguardSpecInfo.
     """
     for key in expected.keys():
         if not hasattr(actual, key):
-            fail("Actual ProguardSpecProvider does not have attribute %s:\n%s" % (key, actual))
+            fail("Actual ProguardSpecInfo does not have attribute %s:\n%s" % (key, actual))
         actual_attr = getattr(actual, key)
         expected_attr = expected[key]
         if key in ["specs"]:
             _assert_files(
                 expected_attr,
                 actual_attr.to_list(),
-                "ProguardSpecProvider.%s" % key,
+                "ProguardSpecInfo.%s" % key,
             )
         else:
-            fail("Error validation of ProguardSpecProvider.%s not implemented." % key)
+            fail("Error validation of ProguardSpecInfo.%s not implemented." % key)
 
 def _assert_string(expected, actual, error_msg):
     if type(actual) != "string" and type(actual) != "NoneType":
@@ -556,7 +555,7 @@ def _assert_output_group_info(expected, actual):
 
 def _assert_generated_extension_registry_provider(expected, actual):
     if expected and not actual:
-        fail("GeneratedExtensionRegistryProvider was expected but not found!")
+        fail("GeneratedExtensionRegistryInfo was expected but not found!")
     for key in expected:
         actual_attr = getattr(actual, key, None)
         if actual_attr == None:  # both empty depset and list will fail.
@@ -565,7 +564,7 @@ def _assert_generated_extension_registry_provider(expected, actual):
         _assert_files(
             expected[key],
             [actual_attr] if type(actual_attr) != "depset" else actual_attr.to_list(),
-            "GeneratedExtensionRegistryProvider." + key,
+            "GeneratedExtensionRegistryInfo." + key,
         )
 
 def _assert_android_idl_info(expected, actual, label_under_test):
@@ -586,13 +585,6 @@ def _assert_android_idl_info(expected, actual, label_under_test):
         expected.transitive_idl_imports,
         actual.transitive_idl_imports,
         "AndroidIdlInfo.transitive_idl_imports",
-        ignore_label_prefix,
-    )
-
-    _assert_file_depset(
-        expected.transitive_idl_jars,
-        actual.transitive_idl_jars,
-        "AndroidIdlInfo.transitive_idl_jars",
         ignore_label_prefix,
     )
 

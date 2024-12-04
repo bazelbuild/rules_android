@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allow list of a_i_t targets allowed to use a prebuilt test apk."""
+
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 # keep sorted
 ANDROID_INSTRUMENTATION_TEST_PREBUILT_TEST_APK_ROLLOUT = [

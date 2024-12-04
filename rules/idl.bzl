@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel Android IDL library for the Android rules."""
 
+load("//providers:providers.bzl", "AndroidIdlInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
 load(":path.bzl", _path = "path")
@@ -70,7 +70,8 @@ def _gen_java_from_idl(
     args.add(idl_src)
     args.add(out_idl_java_src)
 
-    aidl_lib_files = [aidl_lib[DefaultInfo].files] if aidl_lib else []
+    # aidl_lib is not needed for AOSP compiler.
+    aidl_lib_files = [aidl_lib[DefaultInfo].files] if aidl_lib and not uses_aosp_compiler else []
 
     ctx.actions.run(
         executable = aidl,
@@ -193,8 +194,8 @@ def _process(
         Java code generation from *.idl source files. Optional, unless idl_srcs
         are supplied.
       aidl_lib: Target. A target pointing to the aidl_lib library required
-        during Java compilation when Java code is generated from idl sources.
-        Optional.
+        during Java compilation when Java code is generated from idl sources using the google aidl
+        compiler. Optional.
       aidl_framework: Target. A target pointing to the aidl framework. Optional,
         unless idl_srcs are supplied.
       uses_aosp_compiler: boolean. If True, the upstream AOSP AIDL compiler is
@@ -258,11 +259,10 @@ def _process(
         idl_srcs = idl_srcs,
         idl_import_root = idl_import_root,
         idl_java_srcs = idl_java_srcs,
-        idl_deps = [aidl_lib] if (idl_java_srcs and aidl_lib) else [],
+        idl_deps = [aidl_lib] if (idl_java_srcs and aidl_lib and not uses_aosp_compiler) else [],
         providers = [
-            # TODO(b/146216105): Make this a Starlark provider.
             AndroidIdlInfo(
-                depset(
+                transitive_idl_import_roots = depset(
                     _determine_idl_import_roots(
                         ctx.label.package,
                         idl_import_root,
@@ -271,13 +271,12 @@ def _process(
                     transitive = transitive_idl_import_roots,
                     order = "preorder",
                 ),
-                depset(
+                transitive_idl_imports = depset(
                     idl_parcelables + idl_srcs + idl_preprocessed,
                     transitive = transitive_idl_imports,
                     order = "preorder",
                 ),
-                depset(),  # TODO(b/146216105): Delete this field once in Starlark.
-                depset(idl_preprocessed, transitive = transitive_idl_preprocessed),
+                transitive_idl_preprocessed = depset(idl_preprocessed, transitive = transitive_idl_preprocessed),
             ),
         ],
     )

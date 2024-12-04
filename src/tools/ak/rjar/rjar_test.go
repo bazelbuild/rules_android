@@ -16,6 +16,7 @@ package rjar
 
 import (
 	"archive/zip"
+	"flag"
 	"io/ioutil"
 	"os"
 	"path"
@@ -25,10 +26,10 @@ import (
 
 var (
 	expectedClasses = []string{"R.class", "R$attr.class", "R$id.class", "R$layout.class", "R$string.class"}
+	javaPath        = flag.String("java_path", "", "java")
 )
 
 const (
-	java         = "local_jdk/bin/java"
 	testDataBase = "rules_android/src/tools/ak/rjar/testdata"
 )
 
@@ -46,7 +47,7 @@ func TestCreateRJar(t *testing.T) {
 	targetLabel := "//test:test"
 	jvmOpts := ""
 
-	if err := doWork(inJava, pkgs, out, path.Join(os.Getenv("TEST_SRCDIR"), java), jarDexer, targetLabel, jvmOpts); err != nil {
+	if err := doWork(inJava, pkgs, out, *javaPath, jarDexer, targetLabel, jvmOpts); err != nil {
 		t.Fatalf("Error creating R.jar: %v", err)
 	}
 

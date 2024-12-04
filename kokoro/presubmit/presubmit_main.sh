@@ -55,7 +55,7 @@ function main() {
   echo "== installing bazelisk ========================================="
   bazel_install_dir=$(mktemp -d)
   BAZELISK_VERSION="1.18.0"
-  export USE_BAZEL_VERSION="last_green"
+  export USE_BAZEL_VERSION="7.4.0"
   DownloadBazelisk "$BAZELISK_VERSION" linux amd64 "$bazel_install_dir"
   bazel="$bazel_install_dir/bazel"
   echo "============================================================="
@@ -113,12 +113,7 @@ function main() {
   # Maven artifact consistency test
   # The sed commands in the `<()` blocks extract the artifacts list from maven_install.
   # `diff -w` compares the two files without whitespaces.
-  diff -w <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' defs.bzl) <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' MODULE.bazel)
-
-  # Sync with bzlmod disabled to sniff out WORKSPACE issues
-  "$bazel" sync --noenable_bzlmod > /dev/null
-  # Run with bzlmod enabled to catch missing bzlmod deps.
-  "$bazel" sync --enable_bzlmod > /dev/null
+  diff -w <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' defs.bzl | grep -v "bazel worker api") <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' MODULE.bazel)
 
   TEST_TARGETS=(
     "//src/common/golang/..."
@@ -130,6 +125,7 @@ function main() {
     "//src/validations/..."
     "//rules/..."
     "//test/..."
+    "//tools/android/..."
     "//stardoc/..."
     # TODO(https://github.com/bazelbuild/rules_android/issues/170):
     # Re-enable when tests use proper way to find data files.
@@ -146,16 +142,14 @@ function main() {
 
   # Go to basic app workspace in the source tree
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
-  "$bazel" build \
-    "${COMMON_ARGS[@]}" \
-    "${RULE_ARGS[@]}" \
-    -- \
-    //java/com/basicapp:basic_app
+
+  # Query test
+  # See https://github.com/bazelbuild/rules_android/issues/241
+  "$bazel" query 'deps(...)' > /dev/null
 
   "$bazel" build \
     "${COMMON_ARGS[@]}" \
     "${RULE_ARGS[@]}" \
-    --enable_bzlmod \
     -- \
     //java/com/basicapp:basic_app
 

@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Whitelist for using host dex2oat with android_instrumentation_test."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 ANDROID_TEST_HOST_DEX2OAT_ROLLOUT = [
     "//...",
 ]

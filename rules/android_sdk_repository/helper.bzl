@@ -11,11 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Helpers for the build file used in android_sdk_repository."""
 
 load("@local_config_platform//:constraints.bzl", "HOST_CONSTRAINTS")
+load("@rules_android//rules:rules.bzl", "android_sdk")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 def _bool_flag_impl(_unused_ctx):
     pass
@@ -155,7 +156,7 @@ def create_android_sdk_rules(
                ] + [
             "platforms/android-%d/%s" % (api_level, filename)
             for api_level in api_levels
-            for filename in ["android.jar", "framework.aidl"]
+            for filename in ["android.jar", "core-for-system-modules.jar", "framework.aidl"]
         ] + select({
             ":windows": windows_only_files,
             "//conditions:default": linux_only_files,
@@ -191,8 +192,7 @@ def create_android_sdk_rules(
             },
         )
 
-        # TODO(katre): Use the Starlark android_sdk
-        native.android_sdk(
+        android_sdk(
             name = "sdk-%d" % api_level,
             aapt = select({
                 ":windows": "build-tools/%s/aapt.exe" % build_tools_directory,
@@ -221,6 +221,7 @@ def create_android_sdk_rules(
             framework_aidl = "platforms/android-%d/framework.aidl" % api_level,
             legacy_main_dex_list_generator = ":generate_main_dex_list",
             main_dex_classes = "build-tools/%s/mainDexClasses.rules" % build_tools_directory,
+            main_dex_list_creator = ":main_dex_list_creator",
             proguard = select({
                 ":disallow_proguard": ":fail",
                 "//conditions:default": "@bazel_tools//tools/jdk:proguard",
@@ -271,6 +272,11 @@ def create_android_sdk_rules(
         actual = ":sdk-%d-toolchain" % default_api_level,
     )
 
+    java_import(
+        name = "core-for-system-modules-jar",
+        jars = ["platforms/android-%d/core-for-system-modules.jar" % default_api_level],
+    )
+
     java_binary(
         name = "apksigner",
         main_class = "com.android.apksigner.ApkSignerTool",
@@ -315,7 +321,7 @@ def create_android_sdk_rules(
             ]),
         )
 
-        native.sh_binary(
+        sh_binary(
             name = tool + "_binary",
             srcs = [tool + "_runner.sh"],
             data = [
@@ -341,7 +347,7 @@ def create_android_sdk_rules(
         }),
     )
 
-    native.sh_binary(
+    sh_binary(
         name = "bash_fail",
         srcs = [":generate_fail_sh"],
     )
@@ -353,7 +359,7 @@ def create_android_sdk_rules(
         executable = 1,
     )
 
-    native.sh_binary(
+    sh_binary(
         name = "windows_fail.cmd",
         srcs = [":generate_fail_cmd"],
     )
@@ -385,7 +391,7 @@ def create_android_sdk_rules(
         ]),
     )
 
-    native.sh_binary(
+    sh_binary(
         name = "main_dex_list_creator",
         srcs = ["main_dex_list_creator.sh"],
         data = [":main_dex_list_creator_java"],
@@ -414,13 +420,13 @@ def create_android_sdk_rules(
             "-Xmx8g",
         ],
         main_class = "com.android.tools.r8.GenerateMainDexList",
-        runtime_deps = ["@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8"],
+        runtime_deps = ["@rules_android//src/tools/java/com/google/devtools/build/android/r8"],
     )
     java_binary(
         name = "d8_compat_dx",
         main_class = "com.google.devtools.build.android.r8.CompatDx",
         runtime_deps = [
-            "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8",
+            "@rules_android//src/tools/java/com/google/devtools/build/android/r8",
         ],
     )
     native.alias(
@@ -563,9 +569,9 @@ def create_dummy_sdk_toolchain():
         executable = 1,
     )
 
-    native.sh_binary(name = "empty-binary", srcs = [":genrule"])
+    sh_binary(name = "empty-binary", srcs = [":genrule"])
 
-    native.android_sdk(
+    android_sdk(
         name = "sdk-dummy",
         aapt = ":empty-binary",
         adb = ":empty-binary",

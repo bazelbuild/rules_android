@@ -11,16 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel Dex Commands."""
 
+load("//providers:providers.bzl", "StarlarkAndroidDexInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@bazel_skylib//lib:collections.bzl", "collections")
-load(":providers.bzl", "StarlarkAndroidDexInfo")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
 
 visibility(PROJECT_VISIBILITY)
@@ -28,6 +27,10 @@ visibility(PROJECT_VISIBILITY)
 _DEX_MEMORY = 4096
 _DEX_THREADS = 5
 _DEXOPTS_SUPPORTED_IN_DEXBUILDER = ["--no-locals", "--no-optimize", "--no-warnings", "--positions"]
+
+# These dexopts only make sense in optimized dexing. This list is added to the
+# allowlist only when optimized dexing is enabled.
+_EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX = ["--disable_outlining"]
 
 _tristate = _attrs.tristate
 
@@ -61,14 +64,20 @@ def _process_incremental_dexing(
         toolchain_type = None):
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
     should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
+    incremental_dexopt_filter = list(ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    if should_optimize_dex:
+        incremental_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
     incremental_dexopts = _filter_dexopts(
         tokenized_dexopts = dexopts,
-        includes = ctx.fragments.android.get_dexopts_supported_in_incremental_dexing,
+        includes = incremental_dexopt_filter,
         needs_normalization = not should_optimize_dex,
     )
+    merger_dexopt_filter = list(ctx.fragments.android.get_dexopts_supported_in_dex_merger)
+    if should_optimize_dex:
+        merger_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
     merger_dexopts = _filter_dexopts(
         tokenized_dexopts = dexopts,
-        includes = ctx.fragments.android.get_dexopts_supported_in_dex_merger,
+        includes = merger_dexopt_filter,
         needs_normalization = not should_optimize_dex,
     )
     dex_archives = []
@@ -95,9 +104,12 @@ def _process_incremental_dexing(
             runtime_jars_dict = runtime_jars_dict,
         )
     else:
+        toplevel_dexopt_filter = list(_DEXOPTS_SUPPORTED_IN_DEXBUILDER)
+        if should_optimize_dex:
+            toplevel_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
         toplevel_dexbuilder_dexopts = _filter_dexopts(
             tokenized_dexopts = dexopts,
-            includes = _DEXOPTS_SUPPORTED_IN_DEXBUILDER,
+            includes = toplevel_dexopt_filter,
             needs_normalization = not should_optimize_dex,
         )
         java_resource_jar = ctx.actions.declare_file(ctx.label.name + "_files/java_resources.jar")
@@ -186,6 +198,7 @@ def _process_incremental_dexing(
             dexmerger = dexmerger,
             min_sdk_version = min_sdk_version,
         )
+
         _java.singlejar(
             ctx,
             output = output,
@@ -360,27 +373,22 @@ def _shard_dexes(
 
     return output
 
-def _append_java8_legacy_dex(
-        ctx,
-        output = None,
-        input = None,
-        java8_legacy_dex = None,
-        dex_zips_merger = None):
+def _append_desugar_dexes(ctx, output = None, input = None, dexes = None, dex_zips_merger = None):
     args = ctx.actions.args()
 
-    # Order matters here: we want java8_legacy_dex to be the highest-numbered classesN.dex
+    # Order matters here: we want the additional dex(s) to be the highest-numbered classesN.dex
     args.add("--input_zip", input)
-    args.add("--input_zip", java8_legacy_dex)
+    args.add_all(dexes, before_each = "--input_zip")
     args.add("--output_zip", output)
 
     ctx.actions.run(
         executable = dex_zips_merger,
-        inputs = [input, java8_legacy_dex],
+        inputs = [input] + dexes,
         outputs = [output],
         arguments = [args],
-        mnemonic = "AppendJava8LegacyDex",
         use_default_shell_env = True,
-        progress_message = "Adding Java8 legacy library for %s" % ctx.label,
+        mnemonic = "AppendDesugarDexes",
+        progress_message = "Adding Desugar dex file(s) for %s" % ctx.label,
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -532,7 +540,7 @@ def _get_effective_incremental_dexing(
     # use_incremental_dexing config flag will take effect if incremental_dexing attr is not set
     return use_incremental_dexing
 
-def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_jar = None, android_jar = None, min_sdk_version = 0):
+def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_jar = None, bootclasspath_jar = None, min_sdk_version = 0):
     if not build_customized_files:
         # TODO(b/329432231): Can we build this for each Android binary or generate one per minSdkVersion at least?
         return utils.only(get_android_toolchain(ctx).java8_legacy_dex.files.to_list()), None
@@ -544,7 +552,7 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
         args = ctx.actions.args()
         args.add("--rules", java8_legacy_dex_rules)
         args.add("--binary", binary_jar)
-        args.add("--android_jar", android_jar)
+        args.add("--android_jar", bootclasspath_jar)
         args.add("--output", java8_legacy_dex)
         args.add("--output_map", java8_legacy_dex_map)
         if min_sdk_version:
@@ -552,7 +560,7 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
 
         ctx.actions.run(
             executable = get_android_toolchain(ctx).build_java8_legacy_dex.files_to_run,
-            inputs = [binary_jar, android_jar],
+            inputs = [binary_jar, bootclasspath_jar],
             outputs = [java8_legacy_dex_rules, java8_legacy_dex_map, java8_legacy_dex],
             arguments = [args],
             mnemonic = "BuildLegacyDex",
@@ -823,7 +831,7 @@ def _transform_dex_list_through_proguard_map(
     return obfuscated_main_dex_list
 
 dex = struct(
-    append_java8_legacy_dex = _append_java8_legacy_dex,
+    append_desugar_dexes = _append_desugar_dexes,
     dex = _dex,
     dex_merge = _dex_merge,
     generate_main_dex_list = _generate_main_dex_list,

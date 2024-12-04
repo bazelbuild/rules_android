@@ -11,9 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """android_application rule."""
 
+load(
+    "//providers:providers.bzl",
+    "AndroidArchivedSandboxedSdkInfo",
+    "AndroidBundleInfo",
+    "AndroidFeatureModuleInfo",
+    "AndroidIdeInfo",
+    "AndroidPreDexJarInfo",
+    "AndroidSandboxedSdkBundleInfo",
+    "ApkInfo",
+    "ProguardMappingInfo",
+    "StarlarkAndroidResourcesInfo",
+)
 load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
@@ -37,12 +48,6 @@ load(
     _java = "java",
 )
 load(
-    "//rules:providers.bzl",
-    "AndroidBundleInfo",
-    "AndroidFeatureModuleInfo",
-    "StarlarkAndroidResourcesInfo",
-)
-load(
     "//rules:sandboxed_sdk_toolbox.bzl",
     _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
 )
@@ -54,11 +59,6 @@ load(
     _log = "log",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(
-    "//rules/android_sandboxed_sdk:providers.bzl",
-    "AndroidArchivedSandboxedSdkInfo",
-    "AndroidSandboxedSdkBundleInfo",
-)
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
 load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
@@ -96,12 +96,25 @@ def _process_feature_module(
         get_android_toolchain(ctx).android_resources_busybox,
         _common.get_host_javabase(ctx),
     )
-    res = feature_target[AndroidFeatureModuleInfo].library[StarlarkAndroidResourcesInfo]
-    binary = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk
-    has_native_libs = bool(feature_target[AndroidFeatureModuleInfo].binary[AndroidIdeInfo].native_libs)
 
-    # Create res .proto-apk_, output depending on whether this split has native libs.
-    if has_native_libs:
+    # Remove all dexes from the feature module apk. jvm / resources are not
+    # supported in feature modules. The android_feature_module rule has
+    # already validated that there are no transitive sources / resources, but
+    # we may get dexes via e.g. the legacy dex or the record globals.
+    binary = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "_filtered.apk")
+    _common.filter_zip_exclude(
+        ctx,
+        output = binary,
+        input = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk,
+        filter_types = [".dex"],
+    )
+    res = feature_target[AndroidFeatureModuleInfo].library[StarlarkAndroidResourcesInfo]
+    has_native_libs = bool(feature_target[AndroidFeatureModuleInfo].binary[AndroidIdeInfo].native_libs)
+    is_asset_pack = bool(feature_target[AndroidFeatureModuleInfo].is_asset_pack)
+
+    # Create res .proto-apk_, output depending on whether further manipulations
+    # are required after busybox. This prevents action conflicts.
+    if has_native_libs or is_asset_pack:
         res_apk = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/res.proto-ap_")
     else:
         res_apk = out
@@ -138,24 +151,28 @@ def _process_feature_module(
         application_id = application_id,
     )
 
-    if not has_native_libs:
+    if not is_asset_pack and not has_native_libs:
         return
 
-    # Extract libs/ from split binary
-    native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
-    _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
+    if is_asset_pack:
+        # Return AndroidManifest.xml and assets from res-ap_
+        _common.filter_zip_include(ctx, res_apk, out, ["AndroidManifest.xml", "assets/*"])
+    else:
+        # Extract libs/ from split binary
+        native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
+        _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
 
-    # Extract AndroidManifest.xml and assets from res-ap_
-    filtered_res = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/filtered_res.zip")
-    _common.filter_zip_include(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
+        # Extract AndroidManifest.xml and assets from res-ap_
+        filtered_res = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/filtered_res.zip")
+        _common.filter_zip_include(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
 
-    # Merge into output
-    _java.singlejar(
-        ctx,
-        inputs = [filtered_res, native_libs],
-        output = out,
-        java_toolchain = _common.get_java_toolchain(ctx),
-    )
+        # Merge into output
+        _java.singlejar(
+            ctx,
+            inputs = [filtered_res, native_libs],
+            output = out,
+            java_toolchain = _common.get_java_toolchain(ctx),
+        )
 
 def _create_feature_manifest(
         ctx,
@@ -197,8 +214,9 @@ def _create_feature_manifest(
 
     # Rule has a manifest (already validated by android_feature_module).
     # Generate a priority manifest and then merge the user supplied manifest.
+    is_asset_pack = feature_target[AndroidFeatureModuleInfo].is_asset_pack
     priority_manifest = ctx.actions.declare_file(
-        ctx.label.name + "/" + feature_target.label.name + "/Prioriy_AndroidManifest.xml",
+        ctx.label.name + "/" + feature_target.label.name + "/Priority_AndroidManifest.xml",
     )
     args = ctx.actions.args()
     args.add(priority_manifest.path)
@@ -206,9 +224,12 @@ def _create_feature_manifest(
     args.add(java_package)
     args.add(info.feature_name)
     args.add(aapt2.executable)
+    args.add(info.manifest)
+    args.add(is_asset_pack)
+
     ctx.actions.run(
         executable = priority_feature_manifest_script,
-        inputs = [base_apk],
+        inputs = [base_apk, info.manifest],
         outputs = [priority_manifest],
         arguments = [args],
         tools = [
@@ -224,6 +245,8 @@ def _create_feature_manifest(
     args.add("--feature_manifest", info.manifest.path)
     args.add("--feature_title", "@string/" + info.title_id)
     args.add("--out", manifest.path)
+    if is_asset_pack:
+        args.add("--is_asset_pack")
     ctx.actions.run(
         executable = ctx.attr._merge_manifests.files_to_run,
         inputs = [priority_manifest, info.manifest],
@@ -333,6 +356,9 @@ def _impl(ctx):
     if ProguardMappingInfo in ctx.attr.base_module:
         metadata["com.android.tools.build.obfuscation/proguard.map"] = ctx.attr.base_module[ProguardMappingInfo].proguard_mapping
 
+    if ctx.file.device_group_config:
+        metadata["com.android.tools.build.bundletool/DeviceGroupConfig.pb"] = ctx.file.device_group_config
+
     if ctx.file.rotation_config:
         metadata["com.google.play.apps.signing/RotationConfig.textproto"] = ctx.file.rotation_config
 
@@ -426,6 +452,7 @@ def android_application_macro(_android_binary, **attrs):
 
     # Must pop these because android_binary does not have these attributes.
     app_integrity_config = attrs.pop("app_integrity_config", None)
+    device_group_config = attrs.pop("device_group_config", None)
     rotation_config = attrs.pop("rotation_config", None)
 
     # default to [] if feature_modules = None is passed
@@ -479,6 +506,7 @@ def android_application_macro(_android_binary, **attrs):
         base_module = ":%s" % base_split_name,
         bundle_config_file = bundle_config_file,
         app_integrity_config = app_integrity_config,
+        device_group_config = device_group_config,
         rotation_config = rotation_config,
         custom_package = attrs.get("custom_package", None),
         testonly = attrs.get("testonly"),
@@ -488,4 +516,5 @@ def android_application_macro(_android_binary, **attrs):
         sdk_bundles = sdk_bundles,
         manifest_values = attrs.get("manifest_values"),
         visibility = attrs.get("visibility", None),
+        tags = attrs.get("tags", []),
     )

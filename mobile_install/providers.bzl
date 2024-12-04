@@ -24,7 +24,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel mobile-install providers."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -97,13 +96,6 @@ MIAndroidResourcesInfo = provider(
         ),
         r_java_info = "The JavaInfo for an R.jar",
         transitive_r_pbs = "The transitive R.pb files.",
-    ),
-)
-
-MIAndroidSdkInfo = provider(
-    doc = "Provides android_sdk rule information",
-    fields = dict(
-        aidl_lib = "The aidl_lib attribute of an android_sdk rule.",
     ),
 )
 

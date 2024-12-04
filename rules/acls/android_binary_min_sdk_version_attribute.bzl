@@ -11,11 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Allowlist for setting new min_sdk_version on android_binary targets."""
+
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+
+visibility(PROJECT_VISIBILITY)
 
 # keep sorted.
 ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST = [
-    "//test/rules/android_binary_internal:__subpackages__",
+    "//test/rules/android_binary:__subpackages__",
     "//tools/build_defs/android/test:__subpackages__",
 ]

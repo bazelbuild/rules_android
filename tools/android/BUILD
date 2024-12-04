@@ -1,5 +1,13 @@
-load("@rules_java//java:defs.bzl", "java_binary")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library", "java_plugin")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(":defs.bzl", "android_jar", "run_ijar", "run_singlejar")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    default_visibility = ["//visibility:public"],
+)
 
 config_setting(
     name = "minimal_desugaring",
@@ -53,13 +61,19 @@ java_plugin(
     processor_class = "android.databinding.annotationprocessor.ProcessDataBinding",
     visibility = ["//visibility:public"],
     deps = [
-        "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:all_android_tools",
+        "//src/tools/java/com/google/devtools/build/android:databinding_exec_jar",
     ],
 )
 
 alias(
     name = "zip",
     actual = "//toolchains/android:zip",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "unzip",
+    actual = "//toolchains/android:unzip",
     visibility = ["//visibility:public"],
 )
 
@@ -174,7 +188,7 @@ sh_binary(
     data = [
         ":d8_desugar_params",
         ":full_desugar_jdk_libs_config_json",
-        "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8:desugar",
+        "//src/tools/java/com/google/devtools/build/android/r8:desugar",
         "@bazel_tools//tools/bash/runfiles",
     ],
     visibility = ["//visibility:public"],
@@ -198,21 +212,21 @@ java_binary(
     name = "d8",
     main_class = "com.android.tools.r8.D8",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@android_gmaven_r8//jar"],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
 )
 
 java_binary(
     name = "r8",
     main_class = "com.android.tools.r8.R8",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@android_gmaven_r8//jar"],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
 )
 
 java_binary(
     name = "tracereferences",
     main_class = "com.android.tools.r8.tracereferences.TraceReferences",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@android_gmaven_r8//jar"],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
 )
 
 java_binary(
@@ -224,19 +238,19 @@ java_binary(
 
 alias(
     name = "merge_dexzips",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/ziputils:reducer",
+    actual = "//src/tools/java/com/google/devtools/build/android/ziputils:reducer",
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "shuffle_jars",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/ziputils:mapper",
+    actual = "//src/tools/java/com/google/devtools/build/android/ziputils:mapper",
     visibility = ["//visibility:public"],
 )
 
 alias(
     name = "zip_filter",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:ZipFilterAction",
+    actual = "//src/tools/java/com/google/devtools/build/android:ZipFilterAction",
     visibility = ["//visibility:public"],
 )
 
@@ -245,7 +259,7 @@ java_binary(
     main_class = "android.databinding.AndroidDataBinding",
     visibility = ["//visibility:public"],
     runtime_deps = [
-        "@bazel_tools//src/tools/android/java/com/google/devtools/build/android:all_android_tools",
+        "//src/tools/java/com/google/devtools/build/android:databinding_exec_jar",
     ],
 )
 
@@ -255,7 +269,7 @@ java_binary(
     name = "d8_dexbuilder",
     main_class = "com.google.devtools.build.android.r8.CompatDexBuilder",
     visibility = ["//visibility:private"],
-    runtime_deps = ["@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8"],
+    runtime_deps = ["//src/tools/java/com/google/devtools/build/android/r8"],
 )
 
 alias(
@@ -272,7 +286,7 @@ alias(
 
 alias(
     name = "dexsharder",
-    actual = "@bazel_tools//src/tools/android/java/com/google/devtools/build/android/dexer:DexFileSplitter",
+    actual = "//src/tools/java/com/google/devtools/build/android/dexer:DexFileSplitter",
     visibility = ["//visibility:public"],
 )
 
@@ -280,7 +294,20 @@ java_binary(
     name = "d8_dexmerger",
     main_class = "com.google.devtools.build.android.r8.DexFileMerger",
     visibility = ["//visibility:private"],
-    runtime_deps = ["@bazel_tools//src/tools/android/java/com/google/devtools/build/android/r8"],
+    runtime_deps = ["//src/tools/java/com/google/devtools/build/android/r8"],
+)
+
+java_binary(
+    name = "global_synthetics_generator",
+    jvm_flags = [
+        "-XX:+TieredCompilation",
+        "-XX:TieredStopAtLevel=1",
+        # Consistent with what we use for desugar.
+        "-Xms8g",
+        "-Xmx8g",
+    ],
+    main_class = "com.android.tools.r8.GlobalSyntheticsGenerator",
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
 )
 
 alias(
@@ -302,7 +329,7 @@ filegroup(
 run_singlejar(
     name = "gen_java_base_extras_jar",
     srcs = [
-        "@bazel_tools//tools/jdk:platformclasspath",
+        "@rules_java//toolchains:platformclasspath",
     ],
     out = "java_base_extras.jar",
     include_prefixes = [
@@ -328,5 +355,219 @@ sh_binary(
 filegroup(
     name = "debug_keystore",
     srcs = ["bazel_debug.keystore"],
+    visibility = ["//visibility:public"],
+)
+
+py_library(
+    name = "junction_lib",
+    srcs = ["junction.py"],
+    visibility = ["//visibility:private"],
+)
+
+py_library(
+    name = "json_worker_wrapper",
+    srcs = ["json_worker_wrapper.py"],
+    visibility = ["//visibility:private"],
+)
+
+py_binary(
+    name = "aar_embedded_jars_extractor",
+    srcs = ["aar_embedded_jars_extractor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_binary(
+    name = "aar_embedded_proguard_extractor",
+    srcs = ["aar_embedded_proguard_extractor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_binary(
+    name = "aar_native_libs_zip_creator",
+    srcs = [
+        "aar_native_libs_zip_creator.py",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_binary(
+    name = "aar_resources_extractor",
+    srcs = ["aar_resources_extractor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_test(
+    name = "aar_native_libs_zip_creator_test",
+    srcs = ["aar_native_libs_zip_creator_test.py"],
+    deps = [":aar_native_libs_zip_creator"],
+)
+
+py_test(
+    name = "aar_embedded_jars_extractor_test",
+    srcs = ["aar_embedded_jars_extractor_test.py"],
+    deps = [":aar_embedded_jars_extractor"],
+)
+
+py_test(
+    name = "aar_embedded_proguard_extractor_test",
+    srcs = ["aar_embedded_proguard_extractor_test.py"],
+    deps = [":aar_embedded_proguard_extractor"],
+)
+
+py_test(
+    name = "aar_resources_extractor_test",
+    srcs = ["aar_resources_extractor_test.py"],
+    deps = [":aar_resources_extractor"],
+)
+
+java_binary(
+    name = "apkdeployer",
+    main_class = "com.android.tools.deployer.DeployerRunner",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        "@rules_android_maven//:com_android_tools_apkdeployer_apkdeployer",
+    ],
+)
+
+java_library(
+    name = "auto_service_lib",
+    exports = [
+        "@rules_android_maven//:com_google_auto_service_auto_service",
+        "@rules_android_maven//:com_google_auto_service_auto_service_annotations",
+    ],
+)
+
+java_library(
+    name = "autovalue_lib",
+    exports = [
+        ":auto_service_lib",
+        "@rules_android_maven//:com_google_auto_auto_common",
+    ],
+)
+
+java_plugin(
+    name = "autovalue_plugin",
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = [
+        "@android_tools//:all_android_tools_deploy.jar",
+    ],
+)
+
+java_plugin(
+    name = "auto_annotation_plugin",
+    processor_class = "com.google.auto.value.processor.AutoAnnotationProcessor",
+    deps = ["@android_tools//:all_android_tools_deploy.jar"],
+)
+
+java_plugin(
+    name = "auto_builder_plugin",
+    processor_class = "com.google.auto.value.processor.AutoBuilderProcessor",
+    deps = ["@android_tools//:all_android_tools_deploy.jar"],
+)
+
+java_library(
+    name = "auto_value_api",
+    exports = [
+        "@rules_android_maven//:com_google_auto_value_auto_value_annotations",
+    ],
+)
+
+java_library(
+    name = "autovalue",
+    exported_plugins = [
+        ":autovalue_plugin",
+        ":auto_annotation_plugin",
+        ":auto_builder_plugin",
+    ],
+    visibility = ["//src/tools/java/com/google/devtools/build/android:__subpackages__"],
+    exports = [
+        ":auto_value_api",
+    ],
+)
+
+java_library(
+    name = "error_prone_annotations",
+    exports = [
+        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
+        "@rules_android_maven//:com_google_errorprone_error_prone_type_annotations",
+    ],
+)
+
+java_library(
+    name = "error_prone",
+    exports = [
+        ":error_prone_annotations",
+        "@rules_android_maven//:com_google_errorprone_error_prone_check_api",
+        "@rules_android_maven//:com_google_errorprone_error_prone_core",
+    ],
+)
+
+genrule(
+    name = "desugar_globals",
+    outs = ["desugar.globals"],
+    cmd = "$(JAVA) -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --output $@".format(min_sdk_version.DEPOT_FLOOR),
+    toolchains = ["//tools/jdk:current_host_java_runtime"],
+    tools = [":global_synthetics_generator_deploy.jar"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "desugar_globals_dex_archive",
+    srcs = [":desugar.globals"],
+    outs = ["desugar_globals.zip"],
+    cmd = """
+      $(JAVA) -jar $(location :d8_deploy.jar) --no-desugaring --globals $(location :desugar.globals) --output $(@)
+    """,
+    toolchains = ["//tools/jdk:current_host_java_runtime"],
+    tools = [":d8_deploy.jar"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "desugar_globals_classes",
+    outs = ["desugar_globals_classes.zip"],
+    cmd = "$(JAVA) -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --classfile --output $@".format(min_sdk_version.DEPOT_FLOOR),
+    toolchains = ["//tools/jdk:current_host_java_runtime"],
+    tools = [":global_synthetics_generator_deploy.jar"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "desugar_globals_jar",
+    srcs = [":desugar_globals_classes.zip"],
+    outs = ["desugar_globals.jar"],
+    cmd = """
+    tmp=$$(mktemp -d)
+    unzip $(location :desugar_globals_classes.zip) -d $${tmp}
+    rm $${tmp}/kind
+    rm $${tmp}/compilerinfo
+    mv $${tmp}/com/android/tools/r8/RecordTag.global $${tmp}/com/android/tools/r8/RecordTag.class
+    mv $${tmp}/com/android/tools/r8/DesugarMethodHandlesLookup.global $${tmp}/com/android/tools/r8/DesugarMethodHandlesLookup.class
+    mv $${tmp}/com/android/tools/r8/DesugarVarHandle.global $${tmp}/com/android/tools/r8/DesugarVarHandle.class
+    mv $${tmp}'/com/android/tools/r8/DesugarVarHandle$$$$ExternalSyntheticBackportWithForwarding0.global' $${tmp}'/com/android/tools/r8/DesugarVarHandle$$$$ExternalSyntheticBackportWithForwarding0.class'
+    out=$$(pwd)/$(@)
+    cd $${tmp}
+    zip -r $${out} .
+""",
     visibility = ["//visibility:public"],
 )

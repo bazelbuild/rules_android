@@ -1,4 +1,1 @@
-load("@rules_android//rules:rules.bzl", "android_sdk_repository")
-android_sdk_repository(
-    name = "androidsdk",
-)
+workspace(name = "basicapp")

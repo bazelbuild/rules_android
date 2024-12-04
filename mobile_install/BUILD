@@ -31,16 +31,14 @@ bzl_library(
         ],
     ),
     deps = [
-        ":constants",
-        ":launcher_direct",
         ":providers",
-        ":resources",
         ":transform",
         ":utils",
         "//mobile_install/adapters:bzl",
-        "//rules:bzl",
         "//rules:min_sdk_version_bzl",
+        "//rules:utils_bzl",
         "//rules:visibility_bzl",
+        "//rules/flags:bzl",
         "@rules_java//java/common",
     ],
 )

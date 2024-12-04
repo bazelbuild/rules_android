@@ -11,13 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Bazel rules that test the Android Local Test rule.
 
 rule_test: Inspect and assert on rule providers.
 """
 
-load("//rules:providers.bzl", "AndroidFilteredJdepsInfo")
+load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//test/utils:asserts.bzl", "asserts")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")

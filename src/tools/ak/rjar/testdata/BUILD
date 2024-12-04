@@ -15,10 +15,10 @@ genrule(
 
 genrule(
     name = "R",
-    srcs = ["//src/java/com/example/sampleapp:_migrated/lib.srcjar"],
+    srcs = ["//src/java/com/example/sampleapp:lib.srcjar"],
     outs = ["R.java"],
     cmd = """
-    unzip -p $(location //src/java/com/example/sampleapp:_migrated/lib.srcjar) com/example/sampleapp/R.java > '$@'
+    unzip -p $(location //src/java/com/example/sampleapp:lib.srcjar) com/example/sampleapp/R.java > '$@'
     sed -i -- '/public final class R/,$$!d' '$@'
     sed -i -- 's/@Deprecated//g' '$@'
     sed -i -- 's/ final / /g' '$@'

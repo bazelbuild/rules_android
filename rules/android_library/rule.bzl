@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """android_library rule."""
 
-load("//rules:acls.bzl", "acls")
+load("//providers:providers.bzl", "AndroidCcLinkParamsInfo", "AndroidIdeInfo", "AndroidIdlInfo", "AndroidLibraryResourceClassJarProvider", "AndroidNativeLibsInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -124,18 +123,11 @@ def _outputs(name, _package_name, _defined_local_resources):
     )
 
     if _defined_local_resources:
-        # TODO(b/177261846): resource-related predeclared outputs need to be re-pointed at the
-        # corresponding artifacts in the Starlark pipeline.
-        label = "//" + _package_name + ":" + name
-        if acls.in_android_library_starlark_resource_outputs_rollout(label):
-            path_prefix = "_migrated/"
-        else:
-            path_prefix = ""
         outputs.update(
             dict(
-                resources_src_jar = path_prefix + "%{name}.srcjar",
-                resources_txt = path_prefix + "%{name}_symbols/R.txt",
-                resources_jar = path_prefix + "%{name}_resources.jar",
+                resources_src_jar = "%{name}.srcjar",
+                resources_txt = "%{name}_symbols/R.txt",
+                resources_jar = "%{name}_resources.jar",
             ),
         )
 

@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A rule that returns android.jar from the current android sdk."""
 
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "get_android_sdk")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@rules_java//java/common:java_common.bzl", "java_common")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -28,16 +28,6 @@ def _android_jar_impl(ctx):
 
 android_jar = rule(
     implementation = _android_jar_impl,
-    attrs = {
-        "_sdk": attr.label(
-            allow_rules = ["android_sdk"],
-            default = configuration_field(
-                fragment = "android",
-                name = "android_sdk_label",
-            ),
-            providers = [AndroidSdkInfo],
-        ),
-    },
     toolchains = [
         ANDROID_SDK_TOOLCHAIN_TYPE,
     ],
@@ -56,7 +46,7 @@ run_singlejar = rule(
     implementation = _run_singlejar_impl,
     doc = "Runs singlejar over the given files.",
     attrs = {
-        "srcs": attr.label_list(mandatory = True),
+        "srcs": attr.label_list(mandatory = True, allow_files = True),
         "out": attr.output(mandatory = True),
         "include_prefixes": attr.string_list(),
         "_java_toolchain": attr.label(default = Label("//tools/jdk:toolchain")),

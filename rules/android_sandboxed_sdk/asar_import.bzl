@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Rule for importing an Android Sandboxed SDK archive for further processing."""
 
+load("//providers:providers.bzl", "AndroidArchivedSandboxedSdkInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -31,7 +31,6 @@ load(
     _get_android_toolchain = "get_android_toolchain",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(":providers.bzl", "AndroidArchivedSandboxedSdkInfo")
 
 visibility(PROJECT_VISIBILITY)
 

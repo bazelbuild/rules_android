@@ -11,15 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """android_feature_module rule."""
 
+load(
+    "//providers:providers.bzl",
+    "AndroidFeatureModuleInfo",
+    "AndroidIdeInfo",
+    "ApkInfo",
+)
 load("//rules:acls.bzl", "acls")
 load("//rules:java.bzl", _java = "java")
-load(
-    "//rules:providers.bzl",
-    "AndroidFeatureModuleInfo",
-)
 load(
     "//rules:utils.bzl",
     "get_android_toolchain",
@@ -32,6 +33,8 @@ visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
     validation = ctx.actions.declare_file(ctx.label.name + "_validation")
+    if ctx.attr.binary[AndroidIdeInfo].native_libs and ctx.attr.is_asset_pack:
+        fail("Feature module %s is marked as an asset pack but contains native libraries" % ctx.label.name)
     inputs = [ctx.attr.binary[ApkInfo].unsigned_apk]
     args = ctx.actions.args()
     args.add(validation.path)
@@ -41,11 +44,10 @@ def _impl(ctx):
     else:
         args.add("")
     args.add(ctx.attr.binary[ApkInfo].unsigned_apk.path)
-    args.add(ctx.configuration.coverage_enabled)
-    args.add(ctx.fragments.android.desugar_java8_libs)
     args.add(utils.dedupe_split_attr(ctx.split_attr.library).label)
     args.add(get_android_toolchain(ctx).xmllint_tool.files_to_run.executable)
     args.add(get_android_toolchain(ctx).unzip_tool.files_to_run.executable)
+    args.add(ctx.attr.is_asset_pack)
 
     ctx.actions.run(
         executable = ctx.executable._feature_module_validation_script,
@@ -70,6 +72,7 @@ def _impl(ctx):
             feature_name = ctx.attr.feature_name,
             fused = ctx.attr.fused,
             manifest = ctx.file.manifest,
+            is_asset_pack = ctx.attr.is_asset_pack,
         ),
         OutputGroupInfo(_validation = depset([validation])),
     ]
@@ -203,4 +206,5 @@ EOF
         transitive_configs = transitive_configs,
         visibility = visibility,
         testonly = testonly,
+        is_asset_pack = getattr(attrs, "is_asset_pack", False),
     )

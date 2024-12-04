@@ -11,38 +11,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Aspect that transitively build .dex archives and desugar jars."""
 
+load("//providers:providers.bzl", "AndroidIdeInfo", "StarlarkAndroidDexInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
+load(":dex_toolchains.bzl", "dex_toolchains")
 load(":min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
-load(":providers.bzl", "StarlarkAndroidDexInfo")
 load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", _get_android_sdk = "get_android_sdk", _utils = "utils")
 
 visibility(PROJECT_VISIBILITY)
 
 _tristate = _attrs.tristate
 
-def _aspect_attrs():
-    """Attrs of the rule requiring traversal by the aspect."""
-    return [
-        "aidl_lib",  # for the aidl runtime in the android_sdk rule
-        "deps",
-        "exports",
-        "runtime",
-        "runtime_deps",
-        "_android_sdk",
-        "_aspect_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
-        "_build_stamp_deps",  # for build stamp runtime class deps
-        "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
-        "_toolchain",  # to get Kotlin toolchain component in android_library
-    ]
+# Keep sorted
+_ATTR_ASPECTS = [
+    "_aidl_lib",  # for the aidl runtime on android_library
+    "_aspect_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
+    "_build_stamp_deps",  # for build stamp runtime class deps
+    "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
+    "_toolchain",  # For _java_lite_grpc_library
+    "deps",
+    "exports",
+    "runtime",
+    "runtime_deps",
+]
 
-# Also used by the android_binary_internal rule
+# Also used by the android_binary rule
 def get_aspect_deps(ctx):
     """Get all the deps of the dex_desugar_aspect that requires traversal.
 
@@ -53,11 +51,31 @@ def get_aspect_deps(ctx):
         deps_list: List of all deps of the dex_desugar_aspect that requires traversal.
     """
     deps_list = []
-    for deps in [getattr(ctx.attr, attr, []) for attr in _aspect_attrs()]:
+    for attr in _ATTR_ASPECTS:
+        # android_binary's deps attr has a split transition, so when
+        # this is called from android_binary, deps should be accessed
+        # via ctx.split_attr instead of ctx.attr to ensure that the same
+        # branch of the split is used throughout the build. An aspect's
+        # ctx doesn't have split_attr, so access that via ctx.attr when
+        # this is called from the aspect impl.
+        if attr == "deps" and hasattr(ctx, "split_attr"):
+            deps = _utils.dedupe_split_attr(ctx.split_attr.deps)
+        elif attr == "_toolchain" and getattr(ctx, "kind", "") == "kt_jvm_toolchain":
+            pass  # TODO(b/370300302): Prevent double-deps on Kotlin toolchain. Delete when fixed.
+        else:
+            deps = getattr(ctx.attr, attr, [])
+
         if str(type(deps)) == "list":
             deps_list += deps
         elif str(type(deps)) == "Target":
             deps_list.append(deps)
+
+    deps_list.extend([
+        ctx.toolchains[toolchain_type]
+        for toolchain_type in dex_toolchains
+        if (toolchain_type in ctx.toolchains)
+    ])
+
     return deps_list
 
 def _aspect_impl(target, ctx):
@@ -80,9 +98,6 @@ def _aspect_impl(target, ctx):
         incremental_dexing == _tristate.auto):
         return []
 
-    # TODO(b/33557068): Desugar protos if needed instead of assuming they don't need desugaring
-    ignore_desugar = not ctx.fragments.android.desugar_java8 or ctx.rule.kind == "proto_library"
-
     extra_toolchain_jars = _get_platform_based_toolchain_jars(ctx)
 
     if hasattr(ctx.rule.attr, "neverlink") and ctx.rule.attr.neverlink:
@@ -96,7 +111,7 @@ def _aspect_impl(target, ctx):
         basename_clash = _check_basename_clash(runtime_jars)
         aspect_dexopts = _get_aspect_dexopts(ctx)
         for jar in runtime_jars:
-            if not ignore_desugar:
+            if ctx.fragments.android.desugar_java8:
                 unique_desugar_filename = (jar.path if basename_clash else jar.basename) + "_desugared.jar"
                 desugared_jar = _dex.get_dx_artifact(ctx, unique_desugar_filename, min_sdk_version)
                 _desugar.desugar(
@@ -166,18 +181,12 @@ def _get_produced_runtime_jars(target, ctx, extra_toolchain_jars):
         if AndroidIdeInfo in target and target[AndroidIdeInfo].resource_jar:
             jars.append(target[AndroidIdeInfo].resource_jar.class_jar)
 
-        if AndroidApplicationResourceInfo in target and target[AndroidApplicationResourceInfo].build_stamp_jar:
-            jars.append(target[AndroidApplicationResourceInfo].build_stamp_jar)
-
         jars.extend(extra_toolchain_jars)
         return jars
 
 def _get_platform_based_toolchain_jars(ctx):
-    android_sdk = _get_android_sdk(ctx)
-
-    if android_sdk.aidl_lib:
-        return android_sdk.aidl_lib[JavaInfo].runtime_output_jars
-
+    if hasattr(ctx.rule.attr, "_aidl_lib"):
+        return ctx.rule.attr._aidl_lib[JavaInfo].runtime_output_jars
     return []
 
 def _get_aspect_dexopts(ctx):
@@ -226,13 +235,20 @@ def _power_set(items):
 
     return power_set
 
+def _opt_kwargs():
+    """Optional args to pass to the aspect definition if Bazel supports them."""
+    result = {}
+    if dex_toolchains:
+        result["toolchains_aspects"] = dex_toolchains
+    return result
+
 dex_desugar_aspect = aspect(
     implementation = _aspect_impl,
-    attr_aspects = _aspect_attrs(),
+    attr_aspects = _ATTR_ASPECTS,
     attrs = _attrs.add(
         {
             "_desugar_java8": attr.label(
-                default = Label("@bazel_tools//tools/android:desugar_java8"),
+                default = Label("//tools/android:desugar_java8"),
                 allow_files = True,
                 cfg = "exec",
                 executable = True,
@@ -252,4 +268,5 @@ dex_desugar_aspect = aspect(
         ANDROID_SDK_TOOLCHAIN_TYPE,
     ],
     required_aspect_providers = [[JavaInfo]],
+    **_opt_kwargs()
 )

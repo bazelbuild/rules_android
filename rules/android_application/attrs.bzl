@@ -11,19 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Attributes for android_application."""
 
+load(
+    "//providers:providers.bzl",
+    "AndroidArchivedSandboxedSdkInfo",
+    "AndroidSandboxedSdkBundleInfo",
+)
+load("//rules:android_split_transition.bzl", "android_split_transition")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load(
-    "//rules/android_sandboxed_sdk:providers.bzl",
-    "AndroidArchivedSandboxedSdkInfo",
-    "AndroidSandboxedSdkBundleInfo",
-)
+load(":android_feature_module_validation_aspect.bzl", "android_feature_module_validation_aspect")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -43,6 +44,12 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
             doc = "Configuration of the integrity protection options. " +
                   "Provide a path to a binary .binarypb instance of " +
                   "https://github.com/google/bundletool/blob/master/src/main/proto/app_integrity_config.proto",
+        ),
+        device_group_config = attr.label(
+            allow_single_file = [".json"],
+            doc = "Path to the device targeting configuration json file. " +
+                  "See " +
+                  "https://github.com/google/bundletool/blob/master/src/main/proto/device_targeting_config.proto",
         ),
         rotation_config = attr.label(
             allow_single_file = [".textproto"],
@@ -102,11 +109,11 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
 )
 
 ANDROID_FEATURE_MODULE_ATTRS = dict(
-    binary = attr.label(),
+    binary = attr.label(aspects = [android_feature_module_validation_aspect]),
     feature_name = attr.string(),
     library = attr.label(
         allow_rules = ["android_library"],
-        cfg = android_common.multi_cpu_configuration,
+        cfg = android_split_transition,
         mandatory = True,
         doc = "android_library target to include as a feature split.",
     ),
@@ -118,5 +125,9 @@ ANDROID_FEATURE_MODULE_ATTRS = dict(
         cfg = "exec",
         executable = True,
         default = ":feature_module_validation.sh",
+    ),
+    is_asset_pack = attr.bool(
+        default = False,
+        doc = "Marks the feature module as an asset module. This enables the module to be distributed as archive files rather than just as APKs. Cannot contain any dex or native code.",
     ),
 )

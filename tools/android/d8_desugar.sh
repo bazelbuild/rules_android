@@ -40,7 +40,7 @@ read -ra ARGS_FROM_PARAMS_FILE <<< "$(cat $PARAMS_TXT)"
 DESUGAR_JDK_LIBS_JSON="$(rlocation rules_android/tools/android/full_desugar_jdk_libs_config.json)"
 readonly DESUGAR_CONFIG=("${ARGS_FROM_PARAMS_FILE[@]}" --desugared_lib_config "$DESUGAR_JDK_LIBS_JSON")
 
-DESUGAR_BINARY_RLOCATION="bazel_tools/src/tools/android/java/com/google/devtools/build/android/r8/desugar"
+DESUGAR_BINARY_RLOCATION="rules_android/src/tools/java/com/google/devtools/build/android/r8/desugar"
 DESUGAR_BINARY="$(rlocation $DESUGAR_BINARY_RLOCATION)"
 if [[ ! -f "$DESUGAR_BINARY" ]]; then
   # Try windows exe
