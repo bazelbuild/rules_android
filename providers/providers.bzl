@@ -205,7 +205,9 @@ AndroidBinaryNativeLibsInfo = provider(
     fields = dict(
         native_libs = "",
         native_libs_name = "",
+        # TODO(asinclair): Remove this field once transitive_native_libs_by_cpu_architecture is used in the released rules.
         transitive_native_libs = "",
+        transitive_native_libs_by_cpu_architecture = "Dictionary of CPU architecture to depset of native libs built for that architecture.",
     ),
 )
 
