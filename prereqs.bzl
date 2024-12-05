@@ -104,11 +104,9 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "robolectric",
-        urls = ["https://github.com/robolectric/robolectric-bazel/archive/4.11.1.tar.gz"],
-        strip_prefix = "robolectric-bazel-4.11.1",
-        sha256 = "1ea1cfe67848decf959316e80dd69af2bbaa359ae2195efe1366cbdf3e968356",
-        patch_args = ["-p1"],
-        patches = [Label("//:robolectric-bazel.patch")],
+        sha256 = "b2d2164bae80fcfbdd078eb2f0935ba06557402b8c814928d9e3bec7358e2b7b",
+        strip_prefix = "robolectric-bazel-4.14.1.2",
+        urls = ["https://github.com/robolectric/robolectric-bazel/releases/download/4.14.1.2/robolectric-bazel-4.14.1.2.tar.gz"],
     )
 
     http_archive(

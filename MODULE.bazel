@@ -24,7 +24,13 @@ use_repo(rules_java_toolchains, "remote_java_tools")
 bazel_dep(name = "protobuf", repo_name = "com_google_protobuf", version = "29.0")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
-bazel_dep(name = "rules_robolectric", version = "4.13", repo_name = "robolectric")
+bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
+# To include PR #123
+git_override(
+  module_name = "rules_robolectric",
+  remote = "https://github.com/robolectric/robolectric-bazel",
+  commit = "f38b7365361f382ecdad255af69b37413dd48ead",
+)
 
 register_toolchains("//toolchains/android:all")
 
@@ -166,13 +172,6 @@ use_repo(bazel_binaries, "bazel_binaries")
 # extension for apksignerextensions
 apksig_extension = use_extension("//bzlmod_extensions:apksig.bzl", "apksig_extension")
 use_repo(apksig_extension, "apksig")
-
-# To include PR #92
-git_override(
-  module_name = "rules_robolectric",
-  remote = "https://github.com/robolectric/robolectric-bazel",
-  commit = "a5b25a8c27cc6add74bb01e62cd0dc72df8933ff",
-)
 
 android_sdk_repository_extension = use_extension("//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
 use_repo(android_sdk_repository_extension, "androidsdk")
