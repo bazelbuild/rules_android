@@ -42,7 +42,7 @@ def _process(
         final_classes_dex_zip,
         deploy_jar,
         native_libs = dict(),
-        native_libs_aars = depset(),
+        native_libs_aars = dict(),
         native_libs_name = None,
         coverage_metadata = None,
         merged_manifest = None,
@@ -182,7 +182,7 @@ def _build_apk(
         resources_apk = None,
         final_classes_dex_zip = None,
         native_libs = dict(),
-        native_libs_aars = depset(),
+        native_libs_aars = dict(),
         native_libs_name = None,
         art_profile_zip = None,
         java_resources_zip = None,
@@ -252,7 +252,7 @@ def _build_apk(
 
     java.singlejar(
         ctx,
-        inputs = depset(inputs, transitive = [native_libs_aars]),
+        inputs = depset(inputs, transitive = native_libs_aars.values()),
         output = out_apk,
         mnemonic = "ApkBuilder",
         progress_message = "Generating unsigned apk",

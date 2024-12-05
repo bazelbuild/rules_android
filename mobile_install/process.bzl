@@ -16,7 +16,7 @@
 load("//rules:utils.bzl", "get_android_toolchain", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":apks.bzl", "make_split_apks")
-load(":native_libs.bzl", "make_native_zip", "make_swigdeps_file")
+load(":native_libs.bzl", "make_native_zips", "make_swigdeps_file")
 load(":providers.bzl", "MIAppInfo")
 load(":r_java.bzl", "make_r")
 load(":transform.bzl", "merge_dex_shards")
@@ -30,7 +30,7 @@ def process(
         package,
         resource_apk,
         resource_src_jar,
-        aar_native_libs_info,
+        aar_native_libs,
         android_dex_info,
         android_resources_info,
         java_resources_info,
@@ -49,7 +49,7 @@ def process(
       package: A string representing the package name of the dep.
       resource_apk: The resource apk.
       resource_src_jar: The resource source jar.
-      aar_native_libs_info: The information about collected native libs provided by an aar.
+      aar_native_libs: The information about collected native libs provided by an aar.
       android_dex_info: The collected Android Dex shards.
       android_resources_info: The collected Android compiled resourses.
       java_resources_info: Java resources info.
@@ -64,15 +64,15 @@ def process(
       A struct to pass up the build graph. The struct will contain outputs_groups
       when rule kind of the current context is a "root node".
     """
-    native_zip = make_native_zip(
+    native_zips = make_native_zips(
         ctx,
         native_libs,
-        aar_native_libs_info.transitive_native_libs,
+        aar_native_libs,
         sibling = sibling,
     )
 
     swigdeps_file = None
-    if native_zip:
+    if native_zips:
         swigdeps_file = make_swigdeps_file(ctx, sibling)
 
     # Merges the dex shards, to create a final set of dexes for the app.
@@ -104,7 +104,7 @@ def process(
         merged_dex_shards,
         resource_apk,
         java_resources_info.transitive_java_resources.to_list(),
-        native_zip,
+        native_zips,
         swigdeps_file,
         debug_signing_keys,
         debug_signing_lineage_file,
@@ -117,7 +117,7 @@ def process(
         merged_manifest = merged_manifest,
         r_dex = r_dex,
         merged_dex_shards = merged_dex_shards,
-        native_zip = native_zip,
+        native_zip = native_zips,
         splits = splits,
         apk = apk,
     )

@@ -96,7 +96,7 @@ def make_split_apks(
         dexes,
         resource_apk,
         jar_resources,
-        native_zip,
+        native_zips,
         swigdeps_file,
         debug_signing_keys,
         debug_signing_lineage_file,
@@ -109,8 +109,8 @@ def make_split_apks(
     dirs = {}
     splits = []
     to_pack = dexes + [r_dex]
-    if native_zip:
-        to_pack.append(native_zip)
+    if native_zips:
+        to_pack.extend(native_zips)
     for i, artifact in enumerate(to_pack):
         # the split attr in the manifest will be used to name the file on the device like
         # split_${SPLIT_ID}.apk. We need to follow the same pattern so that we can compare

@@ -961,7 +961,7 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
         final_classes_dex_zip = dex_info.final_classes_dex_zip,
         deploy_jar = dex_info.deploy_jar,
         native_libs = native_libs_ctx.native_libs_info.native_libs,
-        native_libs_aars = native_libs_ctx.native_libs_info.transitive_native_libs,
+        native_libs_aars = native_libs_ctx.native_libs_info.transitive_native_libs_by_cpu_architecture,
         native_libs_name = native_libs_ctx.native_libs_info.native_libs_name,
         coverage_metadata = dex_info.deploy_jar if ctx.configuration.coverage_enabled else None,
         merged_manifest = packaged_resources_ctx.processed_manifest,

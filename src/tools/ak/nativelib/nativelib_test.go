@@ -64,8 +64,8 @@ func TestCreateNativeLibZip(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error finding dummy lib runfile: %v", err)
 	}
-	in := []string{"x86:" + dummyLibPath}
-	if err := doWork(in, out); err != nil {
+	in := []string{dummyLibPath}
+	if err := doWork(in, "x86", out); err != nil {
 		t.Errorf("Error creating native lib zip: %v", err)
 	}
 
@@ -115,7 +115,7 @@ func TestExtractLibs(t *testing.T) {
 	if len(libs) != 1 {
 		t.Fatalf("Got %d files in zip, expected 1", len(libs))
 	}
-	expected := fmt.Sprintf("x86:%s", filepath.Join(dstDir, "lib/x86/dummy.so"))
+	expected := fmt.Sprintf("%s", filepath.Join(dstDir, "lib/x86/dummy.so"))
 	if libs[0] != expected {
 		t.Fatalf("Got %s lib, expected %s", libs[0], expected)
 	}
