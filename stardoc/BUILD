@@ -13,11 +13,11 @@ bzl_library(
 stardoc(
     name = "stardoc",
     out = "stardoc.md",
-    input = "doc_rules.bzl",
-    header_template = "header_template.vm",
-    table_of_contents_template = "table_of_contents_template.vm",
     footer_template = "footer_template.vm",
-    stamp = True,
+    header_template = "header_template.vm",
+    input = "doc_rules.bzl",
+    stamp = 1,
+    table_of_contents_template = "table_of_contents_template.vm",
     deps = [":doc_rules"],
 )
 

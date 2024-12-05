@@ -1,7 +1,10 @@
+---
+
 matrix:
   bazel: [
     7.4.1,
-    # last_green, # Enable this once WORKSPACE builds with Bazel 8 work.
+    8.0.0rc7,
+    last_green,
   ]
 
 tools_flags: &tools_flags

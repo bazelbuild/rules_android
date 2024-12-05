@@ -1,4 +1,5 @@
 load("@rules_python//python:py_test.bzl", "py_test")
+load("@rules_shell//shell:sh_library.bzl", "sh_library")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -37,7 +38,6 @@ py_test(
     python_version = "PY3",
     srcs_version = "PY3",
     tags = [
-        "manual",  # TODO(b/266084774): Re-enable this.
         "no_windows",  # test runs bash scripts in a subprocess
     ],
 )
