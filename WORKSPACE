@@ -1,31 +1,41 @@
 workspace(name = "rules_android")
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 load("prereqs.bzl", "rules_android_prereqs")
 
-# Required by protobuf and rules_proto
-BAZEL_FEATURES_VERSION = "1.20.0"
-BAZEL_FEATURES_HASH = "c2596994cf63513bd44180411a4ac3ae95d32bf59148fcb6087a4642b3ffef11"
-maybe(
-    http_archive,
-    name = "bazel_features",
-    sha256 = BAZEL_FEATURES_HASH,
-    strip_prefix = "bazel_features-" + BAZEL_FEATURES_VERSION,
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v" + BAZEL_FEATURES_VERSION + "/bazel_features-v" + BAZEL_FEATURES_VERSION + ".tar.gz",
-)
-maybe(
-    http_archive,
-    name = "proto_bazel_features",
-    sha256 = BAZEL_FEATURES_HASH,
-    strip_prefix = "bazel_features-" + BAZEL_FEATURES_VERSION,
-    url = "https://github.com/bazel-contrib/bazel_features/releases/download/v" + BAZEL_FEATURES_VERSION + "/bazel_features-v" + BAZEL_FEATURES_VERSION + ".tar.gz",
-)
-load("@bazel_features//:deps.bzl", "bazel_features_deps")
-bazel_features_deps()
-
 rules_android_prereqs(dev_mode = True)
+
+load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+
+rules_java_dependencies()
+
+# note that the following line is what is minimally required from protobuf for the java rules
+# consider using the protobuf_deps() public API from @com_google_protobuf//:protobuf_deps.bzl
+load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
+
+proto_bazel_features(name = "proto_bazel_features")
+
+# register toolchains
+load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+
+rules_java_toolchains()
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
+load("@rules_jvm_external//:repositories.bzl", "rules_jvm_external_deps")
+
+rules_jvm_external_deps()
+
+load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
+
+rules_jvm_external_setup()
+
+load("defs_dev.bzl", "rules_android_workspace")
+
+rules_android_workspace()
 
 load("//rules:rules.bzl", "android_sdk_repository")
 
@@ -33,10 +43,6 @@ maybe(
     android_sdk_repository,
     name = "androidsdk",
 )
-
-load("defs_dev.bzl", "rules_android_workspace")
-
-rules_android_workspace()
 
 register_toolchains("//toolchains/android:all")
 

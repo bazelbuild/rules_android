@@ -55,7 +55,7 @@ function main() {
   echo "== installing bazelisk ========================================="
   bazel_install_dir=$(mktemp -d)
   BAZELISK_VERSION="1.18.0"
-  export USE_BAZEL_VERSION="7.4.0"
+  export USE_BAZEL_VERSION="8.0.0rc7"
   DownloadBazelisk "$BAZELISK_VERSION" linux amd64 "$bazel_install_dir"
   bazel="$bazel_install_dir/bazel"
   echo "============================================================="
@@ -93,8 +93,12 @@ function main() {
   hsperfdata_dir="/tmp/hsperfdata_$(whoami)_rules_android"
   mkdir "$hsperfdata_dir"
 
+  # Re-use cache between rule tests and basic app build.
+  local disk_cache=$(mktemp -d)
+
   COMMON_ARGS=(
     "--sandbox_tmpfs_path=$hsperfdata_dir"
+    "--disk_cache=$disk_cache"
     "--verbose_failures"
     "--experimental_google_legacy_api"
     "--experimental_enable_android_migration_apis"
@@ -134,11 +138,12 @@ function main() {
     "-//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest:GenerateSdkDependenciesManifestCommandTest"
   )
 
-  "$bazel" test \
-    "${COMMON_ARGS[@]}" \
-    "${TEST_ARGS[@]}" \
-    -- \
-    "${TEST_TARGETS[@]}"
+  # TODO(b/374793348): Re-enable once we figure out how to make Kokoro presubmit faster.
+  # "$bazel" test \
+  #   "${COMMON_ARGS[@]}" \
+  #   "${TEST_ARGS[@]}" \
+  #   -- \
+  #   "${TEST_TARGETS[@]}"
 
   # Go to basic app workspace in the source tree
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"

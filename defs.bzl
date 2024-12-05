@@ -13,9 +13,10 @@
 # limitations under the License.
 """Workspace setup macro for rules_android."""
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("@protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load(
     "@io_bazel_rules_go//go:deps.bzl",
     "go_download_sdk",
@@ -23,18 +24,21 @@ load(
     "go_rules_dependencies",
 )
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
-load("@rules_java//java:repositories.bzl", "rules_java_dependencies", "rules_java_toolchains")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
+load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
 load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
 load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
-    bazel_skylib_workspace()
+
+    bazel_features_deps()
 
     protobuf_deps()
+
+    bazel_skylib_workspace()
 
     maven_install(
         name = "rules_android_maven",
@@ -52,10 +56,10 @@ def rules_android_workspace():
             "com.android.tools:desugar_jdk_libs_nio:2.0.4",
             "com.android.tools:desugar_jdk_libs_configuration_nio:2.0.4",
             "com.android.tools.build:gradle:8.7.0",
-            "com.android.tools:r8:8.3.37",
+            "com.android.tools:r8:8.5.35",
             "org.bouncycastle:bcprov-jdk18on:1.77",
             "org.hamcrest:hamcrest-core:2.2",
-            "org.robolectric:robolectric:4.10.3",
+            "org.robolectric:robolectric:4.14.1",
             "com.google.flogger:flogger:0.8",
             "com.google.guava:guava:32.1.2-jre",
             "com.google.truth:truth:1.1.5",
@@ -63,8 +67,8 @@ def rules_android_workspace():
             "jakarta.inject:jakarta.inject-api:2.0.1",
             "junit:junit:4.13.2",
             "com.beust:jcommander:1.82",
-            "com.google.protobuf:protobuf-java:4.29.0-RC2",
-            "com.google.protobuf:protobuf-java-util:4.29.0-RC2",
+            "com.google.protobuf:protobuf-java:4.29.0",
+            "com.google.protobuf:protobuf-java-util:4.29.0",
             "com.google.code.findbugs:jsr305:3.0.2",
             "androidx.databinding:databinding-compiler:8.7.0",
             "org.ow2.asm:asm:9.6",
@@ -113,15 +117,15 @@ def rules_android_workspace():
         # the presubmit maven artifact consistency checker to pass.
         name = "maven",
         artifacts = [ # bazel worker api
-            "com.google.code.gson:gson:2.10.1", # bazel worker api
-            "com.google.errorprone:error_prone_annotations:2.23.0", # bazel worker api
-            "com.google.guava:guava:33.0.0-jre", # bazel worker api
-            "com.google.protobuf:protobuf-java:4.27.2", # bazel worker api
-            "com.google.protobuf:protobuf-java-util:4.27.2", # bazel worker api
-            "junit:junit:4.13.2", # bazel worker api
-            "org.mockito:mockito-core:5.4.0", # bazel worker api
-            "com.google.truth:truth:1.4.0", # bazel worker api
-        ], # bazel worker api
+            "com.google.code.gson:gson:2.10.1",  # bazel worker api
+            "com.google.errorprone:error_prone_annotations:2.23.0",  # bazel worker api
+            "com.google.guava:guava:33.0.0-jre",  # bazel worker api
+            "com.google.protobuf:protobuf-java:4.27.2",  # bazel worker api
+            "com.google.protobuf:protobuf-java-util:4.27.2",  # bazel worker api
+            "junit:junit:4.13.2",  # bazel worker api
+            "org.mockito:mockito-core:5.4.0",  # bazel worker api
+            "com.google.truth:truth:1.4.0",  # bazel worker api
+        ],  # bazel worker api
         aar_import_bzl_label = "@rules_android//rules:rules.bzl",
         repositories = [
             "https://repo1.maven.org/maven2",
@@ -174,11 +178,9 @@ def rules_android_workspace():
 
     robolectric_repositories()
 
-    rules_java_dependencies()
-    rules_java_toolchains()
-
     rules_proto_dependencies()
     rules_proto_toolchains()
+    rules_proto_setup()
 
     py_repositories()
 
