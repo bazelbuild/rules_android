@@ -24,7 +24,7 @@ use_repo(rules_java_toolchains, "remote_java_tools")
 bazel_dep(name = "protobuf", repo_name = "com_google_protobuf", version = "29.0")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
-bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
+bazel_dep(name = "rules_robolectric", version = "4.14.1", repo_name = "robolectric")
 # To include PR #123
 git_override(
   module_name = "rules_robolectric",
