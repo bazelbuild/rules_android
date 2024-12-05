@@ -183,7 +183,7 @@ tasks:
     build_flags:
       <<: *rules_flags
     build_targets:
-      - "//app:assests"
+      - "//app:assets"
   ubuntu2004_bundle_bzlmod:
     name: "Bundle app ubuntu bzlmod"
     platform: ubuntu2004
@@ -194,4 +194,4 @@ tasks:
       ? "--enable_bzlmod"
       ? "--enable_workspace=false"
     build_targets:
-      - "//app:assests"
+      - "//app:assets"
