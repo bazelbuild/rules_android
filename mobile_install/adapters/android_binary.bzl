@@ -17,7 +17,6 @@ load("//mobile_install:launcher_direct.bzl", "make_direct_launcher")
 load("//mobile_install:process.bzl", "process")
 load(
     "//mobile_install:providers.bzl",
-    "MIAndroidAarNativeLibsInfo",
     "MIAndroidDexInfo",
     "MIAndroidResourcesInfo",
     "MIJavaResourcesInfo",
@@ -50,12 +49,6 @@ def extract(target, ctx):
     """
     extension_registry_class_jar = utils.get_extension_registry_class_jar(target)
 
-    # TODO(b/308978693): Remove this check once the android_binary starlark migration is complete.
-    if getattr(ctx.rule.attr, "application_resources", None):
-        transitive_native_libs = ctx.rule.attr.application_resources[AndroidBinaryNativeLibsInfo].transitive_native_libs
-    else:
-        transitive_native_libs = target[AndroidBinaryNativeLibsInfo].transitive_native_libs
-
     java_package = target[AndroidIdeInfo].java_package
     if java_package == None:
         fail("Unable to infer Java package for %s. Try setting `custom_package` if " +
@@ -71,9 +64,7 @@ def extract(target, ctx):
         package = java_package,
         resource_apk = target[AndroidIdeInfo].resource_apk,
         resource_src_jar = target[AndroidIdeInfo].resource_jar.source_jar,  # This is the R with real ids.
-        aar_native_libs_info = MIAndroidAarNativeLibsInfo(
-            transitive_native_libs = transitive_native_libs,
-        ),
+        aar_native_libs = target[AndroidBinaryNativeLibsInfo].transitive_native_libs_by_cpu_architecture,
         android_dex_info = providers.make_mi_android_dex_info(
             dex_shards = dex(
                 ctx,

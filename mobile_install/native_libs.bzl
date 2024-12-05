@@ -18,36 +18,71 @@ load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
 
-def make_native_zip(ctx, native_libs, aar_native_libs, sibling):
-    """Creates a zip file containing all of the application native libraries."""
-    input = []
-    lib_flag = []
-    for cpu, files in native_libs.items():
-        input.extend(files.to_list())
-        lib_flag.extend([cpu + ":" + f.path for f in files.to_list()])
+def make_native_zips(ctx, native_libs, aar_native_libs, sibling):
+    """Creates zip files containing all of the application native libraries.
 
-    native_zip = None
-    if input or aar_native_libs:
-        native_zip = utils.isolated_declare_file(ctx, "native_libs/native_libs.zip", sibling = sibling)
+    Each zip has all of the native libraries for a single CPU architecture.
 
-        args = ctx.actions.args()
-        args.use_param_file(param_file_arg = "-flagfile=%s", use_always = True)
-        args.set_param_file_format("multiline")
-        args.add_joined("-lib", lib_flag, join_with = ",")
-        args.add("-out", native_zip)
-        if aar_native_libs:
-            args.add_joined("-native_libs_zip", aar_native_libs, join_with = ",")
-            input = depset(input, transitive = [aar_native_libs])
+    Args:
+        ctx: The aspect context.
+        native_libs: A dictionary of depsets of native libraries, keyed by CPU architecture.
+        aar_native_libs: A dictionary of depsets of native libraries from aar_import targets, keyed by CPU architecture.
+        sibling: Used to ensure output files have unique names.
 
-        ctx.actions.run(
-            executable = ctx.executable._android_kit,
-            arguments = ["nativelib", args],
-            inputs = input,
-            outputs = [native_zip],
-            mnemonic = "ZipNativeLibs",
-            progress_message = "MI Zipping native libs",
-        )
+    Returns:
+        A list of zips containing the native libraries.
+    """
 
+    if not native_libs and not aar_native_libs:
+        return []
+
+    native_zips = []
+    cpus = native_libs.keys() if native_libs else aar_native_libs.keys()
+    for cpu in cpus:
+        native_libs_for_cpu = native_libs[cpu] if cpu in native_libs else depset()
+        aar_native_libs_for_cpu = aar_native_libs[cpu] if cpu in aar_native_libs else depset()
+        native_zip = make_native_libs_zip(ctx, native_libs_for_cpu, aar_native_libs_for_cpu, sibling, arch = cpu)
+        native_zips.append(native_zip)
+
+    return native_zips
+
+def make_native_libs_zip(ctx, native_libs, aar_native_libs, sibling, arch = None):
+    """Creates a zip file containing all of the application native libraries for a single CPU architecture.
+
+    Args:
+        ctx: The aspect context.
+        native_libs: A depset of native libraries.
+        aar_native_libs: A depset of native libraries from aar_import targets.
+        sibling: Used to ensure output files have unique names.
+        arch: The CPU architecture of the native libraries.
+
+    Returns:
+        A single zip file containing the native libraries.
+    """
+    zip_name = "native_libs/native_libs_%s.zip" % arch
+    native_zip = utils.isolated_declare_file(ctx, zip_name, sibling = sibling)
+
+    inputs = []
+    if native_libs:
+        inputs.append(native_libs)
+    if aar_native_libs:
+        inputs.append(aar_native_libs)
+
+    args = ctx.actions.args()
+    args.use_param_file(param_file_arg = "-flagfile=%s", use_always = True)
+    args.set_param_file_format("multiline")
+    args.add_joined("-lib", native_libs, join_with = ",")
+    args.add_joined("-native_libs_zip", aar_native_libs, join_with = ",")
+    args.add("-out", native_zip)
+    args.add("-architecture", arch)
+    ctx.actions.run(
+        executable = ctx.executable._android_kit,
+        arguments = ["nativelib", args],
+        inputs = depset(transitive = inputs),
+        outputs = [native_zip],
+        mnemonic = "ZipNativeLibs",
+        progress_message = "MI Zipping native libs",
+    )
     return native_zip
 
 def make_swigdeps_file(ctx, sibling):

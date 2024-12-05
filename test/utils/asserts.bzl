@@ -157,7 +157,7 @@ def _build_expected_resources_node_info(string):
 
 def _expected_android_binary_native_libs_info_impl(ctx):
     return _ExpectedAndroidBinaryNativeInfo(
-        transitive_native_libs = ctx.attr.transitive_native_libs,
+        transitive_native_libs_by_cpu_architecture = ctx.attr.transitive_native_libs_by_cpu_architecture,
         native_libs_name = ctx.attr.native_libs_name,
         native_libs = ctx.attr.native_libs,
     )
@@ -165,7 +165,7 @@ def _expected_android_binary_native_libs_info_impl(ctx):
 _expected_android_binary_native_libs_info = rule(
     implementation = _expected_android_binary_native_libs_info_impl,
     attrs = {
-        "transitive_native_libs": attr.string_list(),
+        "transitive_native_libs_by_cpu_architecture": attr.string_list_dict(),
         "native_libs_name": attr.string(),
         "native_libs": attr.string_list_dict(),
     },
@@ -179,7 +179,7 @@ def ExpectedAndroidBinaryNativeLibsInfo(**kwargs):
 
 _ExpectedAndroidBinaryNativeInfo = provider(
     "Test provider to compare native deps info",
-    fields = ["native_libs", "native_libs_name", "transitive_native_libs"],
+    fields = ["native_libs", "native_libs_name", "transitive_native_libs_by_cpu_architecture"],
 )
 
 def _assert_native_libs_info(expected, actual):
@@ -198,11 +198,12 @@ def _assert_native_libs_info(expected, actual):
             actual.native_libs[config].to_list(),
             "AndroidBinaryNativeInfo.native_libs." + config,
         )
-    _assert_files(
-        expected.transitive_native_libs,
-        actual.transitive_native_libs.to_list(),
-        "AndroidBinaryNativeInfo.transitive_native_libs",
-    )
+    for config in expected.transitive_native_libs_by_cpu_architecture:
+        _assert_files(
+            expected.transitive_native_libs_by_cpu_architecture[config],
+            actual.transitive_native_libs_by_cpu_architecture[config].to_list(),
+            "AndroidBinaryNativeInfo.transitive_native_libs_by_cpu_architecture",
+        )
 
 def _assert_files(expected_file_names, actual_files, error_msg_field_name):
     """Asserts that expected file names and actual list of files is equal.
@@ -729,7 +730,7 @@ def _check_actions(inspect, actions):
 
             if _is_suffix_sublist(value.argv, expected_argvs):
                 # When there is a match, clear the actions stored for displaying
-                # an error messaage.
+                # an error message.
                 mnemonic_matching_actions = []
                 break
             else:
