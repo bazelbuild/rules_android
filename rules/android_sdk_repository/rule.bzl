@@ -99,6 +99,8 @@ def _android_sdk_repository_impl(repo_ctx):
         # Create an empty repository that allows non-Android code to build.
         repo_ctx.template("BUILD.bazel", _EMPTY_SDK_REPO_TEMPLATE)
         return None
+    if android_sdk_path.startswith("$WORKSPACE_ROOT"):
+        android_sdk_path = str(repo_ctx.workspace_root) + android_sdk_path.removeprefix("$WORKSPACE_ROOT")
 
     # Symlink the needed contents to this repository.
     for dir_to_link in _DIRS_TO_LINK:
