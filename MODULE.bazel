@@ -91,7 +91,7 @@ maven.install(
         "com.android.tools:r8:8.3.37",
         "org.bouncycastle:bcprov-jdk18on:1.77",
         "org.hamcrest:hamcrest-core:2.2",
-        "org.robolectric:robolectric:4.10.3",
+        "org.robolectric:robolectric:4.14.1",
         "com.google.flogger:flogger:0.8",
         "com.google.guava:guava:32.1.2-jre",
         "com.google.truth:truth:1.1.5",
