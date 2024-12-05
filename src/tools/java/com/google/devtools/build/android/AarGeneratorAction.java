@@ -123,6 +123,13 @@ public class AarGeneratorAction {
         description =
             "If passed, resource merge conflicts will be treated as errors instead of warnings")
     public boolean throwOnResourceConflict;
+
+    @Parameter(
+        names = "--logWarningOnResourceConflict",
+        arity = 1,
+        description =
+            "If passed, resource merge conflicts will be treated as errors instead of warnings")
+    public boolean logWarningOnResourceConflict;
   }
 
   public static void main(String[] args) throws ParameterException, IOException {
@@ -157,7 +164,8 @@ public class AarGeneratorAction {
               VariantTypeImpl.LIBRARY,
               null,
               /* filteredResources= */ ImmutableList.<String>of(),
-              options.throwOnResourceConflict);
+              options.throwOnResourceConflict,
+              options.logWarningOnResourceConflict);
       logger.fine(String.format("Merging finished at %dms", timer.elapsed(TimeUnit.MILLISECONDS)));
 
       writeAar(

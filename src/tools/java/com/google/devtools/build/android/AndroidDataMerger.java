@@ -155,7 +155,8 @@ class AndroidDataMerger {
       ParsedAndroidData primary,
       Path primaryManifest,
       boolean allowPrimaryOverrideAll,
-      boolean throwOnResourceConflict) {
+      boolean throwOnResourceConflict,
+      boolean logWarningOnResourceConflict) {
     Stopwatch timer = Stopwatch.createStarted();
     try {
       logger.fine(
@@ -169,7 +170,8 @@ class AndroidDataMerger {
           primary,
           primaryManifest,
           allowPrimaryOverrideAll,
-          throwOnResourceConflict);
+          throwOnResourceConflict,
+          logWarningOnResourceConflict);
     } finally {
       logger.fine(String.format("Resources merged in %sms", timer.elapsed(TimeUnit.MILLISECONDS)));
     }
@@ -245,7 +247,8 @@ class AndroidDataMerger {
       ParsedAndroidData direct,
       UnvalidatedAndroidData primaryData,
       boolean allowPrimaryOverrideAll,
-      boolean throwOnResourceConflict) {
+      boolean throwOnResourceConflict,
+      boolean logWarningOnResourceConflict) {
     try {
       // Extract the primary resources.
       ParsedAndroidData parsedPrimary = ParsedAndroidData.from(primaryData);
@@ -255,7 +258,8 @@ class AndroidDataMerger {
           parsedPrimary,
           primaryData.getManifest(),
           allowPrimaryOverrideAll,
-          throwOnResourceConflict);
+          throwOnResourceConflict,
+          logWarningOnResourceConflict);
     } catch (IOException e) {
       throw MergingException.wrapException(e);
     }
@@ -267,7 +271,8 @@ class AndroidDataMerger {
       ParsedAndroidData parsedPrimary,
       Path primaryManifest,
       boolean allowPrimaryOverrideAll,
-      boolean throwOnResourceConflict) {
+      boolean throwOnResourceConflict,
+      boolean logWarningOnResourceConflict) {
 
     // Create the builders for the final parsed data.
     final ParsedAndroidData.Builder primaryBuilder = ParsedAndroidData.Builder.newBuilder();
@@ -392,7 +397,9 @@ class AndroidDataMerger {
         if (throwOnResourceConflict) {
           throw MergeConflictException.withMessage(Joiner.on("\n").join(messages));
         } else {
-          logger.warning(Joiner.on("\n").join(messages));
+          if (logWarningOnResourceConflict) {
+            logger.warning(Joiner.on("\n").join(messages));
+          }
         }
       }
     } catch (IOException e) {

@@ -251,6 +251,13 @@ public class Aapt2ResourcePackagingAction {
         splitter = ColonSplitter.class,
         description = "List of reource only APK files to link against.")
     public List<Path> resourceApks = ImmutableList.of();
+
+    @Parameter(
+        names = "--logWarningOnResourceConflict",
+        arity = 1,
+        description =
+            "If passed, resource merge conflicts will be treated as errors instead of warnings")
+    public boolean logWarningOnResourceConflict;
   }
 
   public static void main(String[] args) throws Exception {
@@ -342,6 +349,7 @@ public class Aapt2ResourcePackagingAction {
                 symbols,
                 dataDeserializer,
                 options.throwOnResourceConflict,
+                options.logWarningOnResourceConflict,
                 executorService);
         if (options.symbolsOut != null) {
           Files.copy(symbolsBin, options.symbolsOut);

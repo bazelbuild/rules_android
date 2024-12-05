@@ -139,6 +139,13 @@ public class AndroidCompiledResourceMergingAction {
         description =
             "Path to where an R.txt file declaring potentially-used resources should be written.")
     public Path rTxtOut;
+
+    @Parameter(
+        names = "--logWarningOnResourceConflict",
+        arity = 1,
+        description =
+            "If passed, resource merge conflicts will be treated as errors instead of warnings")
+    public boolean logWarningOnResourceConflict;
   }
 
   public static void main(String[] args) throws Exception {
@@ -197,6 +204,7 @@ public class AndroidCompiledResourceMergingAction {
           resourceClassWriter,
           rTxtWriter,
           options.throwOnResourceConflict,
+          options.logWarningOnResourceConflict,
           executorService);
       logger.fine(String.format("Merging finished at %sms", timer.elapsed(TimeUnit.MILLISECONDS)));
 
