@@ -47,6 +47,15 @@ def _get_libs_dir_name(target_platform):
     name = target_platform.name
     return name
 
+def _get_cc_link_params_infos(deps):
+    infos = []
+    for dep in deps:
+        if JavaInfo in deps:
+            if getattr(deps[JavaInfo], "cc_link_params_info", None):
+                infos.append(deps[JavaInfo].cc_link_params_info)
+
+    return infos
+
 def process(ctx, filename, merged_libraries_map = {}):
     """Links native deps into a shared library
 
@@ -88,7 +97,7 @@ def process(ctx, filename, merged_libraries_map = {}):
                 [CcInfo(linking_context = cc_common.create_linking_context(
                     linker_inputs = depset([linker_input]),
                 ))],
-                [dep[JavaInfo].cc_link_params_info for dep in deps if JavaInfo in dep],
+                _get_cc_link_params_infos(deps),
                 [dep[AndroidCcLinkParamsInfo].link_params for dep in deps if AndroidCcLinkParamsInfo in dep],
                 [dep[CcInfo] for dep in deps if CcInfo in dep],
             ),
