@@ -16,10 +16,6 @@
 # Don't use relative paths since this file is coppied to //android/rules.bzl.
 
 load(
-    "//rules:android_ndk_repository.bzl",
-    _android_ndk_repository = "android_ndk_repository",
-)
-load(
     "//rules:android_sdk.bzl",
     _android_sdk = "android_sdk",
 )
@@ -82,7 +78,6 @@ android_application = _android_application
 android_binary = _android_binary
 android_library = _android_library
 android_local_test = _android_local_test
-android_ndk_repository = _android_ndk_repository
 android_sandboxed_sdk = _android_sandboxed_sdk
 android_sandboxed_sdk_bundle = _android_sandboxed_sdk_bundle
 android_sdk = _android_sdk

@@ -87,7 +87,6 @@ bzl_library(
 bzl_library(
     name = "bzl",
     srcs = [
-        "android_ndk_repository.bzl",
         "android_sdk.bzl",
         "android_tools_defaults_jar.bzl",
         "baseline_profiles.bzl",
