@@ -51,8 +51,8 @@ def _get_cc_link_params_infos(deps):
     infos = []
     for dep in deps:
         if JavaInfo in deps:
-            if getattr(deps[JavaInfo], "cc_link_params_info", None):
-                infos.append(deps[JavaInfo].cc_link_params_info)
+            if getattr(dep[JavaInfo], "cc_link_params_info", None):
+                infos.append(dep[JavaInfo].cc_link_params_info)
 
     return infos
 
