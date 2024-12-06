@@ -43,7 +43,8 @@ public class AndroidAssetMergingAction extends AbstractBusyBoxAction {
 
   private static AndroidAssetMergingAction create() {
     Options options = new Options();
-    JCommander jc = new JCommander(options);
+    Object[] allOptions = new Object[] {options, new ResourceProcessorCommonOptions()};
+    JCommander jc = new JCommander(allOptions);
     return new AndroidAssetMergingAction(jc);
   }
 
