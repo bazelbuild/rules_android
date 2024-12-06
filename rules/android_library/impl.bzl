@@ -348,6 +348,14 @@ def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
         value = _AARContextInfo(**aar_ctx),
     )
 
+def _get_cc_link_params_infos(ctx, idl_ctx):
+    infos = []
+    for info in utils.collect_providers(JavaInfo, ctx.attr.deps, ctx.attr.exports, idl_ctx.idl_deps):
+        if getattr(info, "cc_link_params_info", None):
+            infos.append(info)
+
+    return infos
+
 def _process_native(ctx, idl_ctx, **unused_ctx):
     return ProviderInfo(
         name = "native_ctx",
@@ -368,15 +376,7 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
                 ),
                 AndroidCcLinkParamsInfo(
                     link_params = cc_common.merge_cc_infos(
-                        cc_infos = [
-                                       info.cc_link_params_info
-                                       for info in utils.collect_providers(
-                                           JavaInfo,
-                                           ctx.attr.deps,
-                                           ctx.attr.exports,
-                                           idl_ctx.idl_deps,
-                                       )
-                                   ] +
+                        cc_infos = _get_cc_link_params_infos(ctx, idl_ctx) +
                                    [
                                        info.link_params
                                        for info in utils.collect_providers(
