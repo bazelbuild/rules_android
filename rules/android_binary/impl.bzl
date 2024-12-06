@@ -228,10 +228,11 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
         strict_deps = "DEFAULT",
         java_toolchain = common.get_java_toolchain(ctx),
     )
-    java_info = java_common.add_constraints(
-        java_info,
-        constraints = ["android"],
-    )
+    if getattr(java_common, "add_constraints", None):
+        java_info = java_common.add_constraints(
+            java_info,
+            constraints = ["android"],
+        )
 
     java_infos = [packaged_resources_ctx.r_java]
     if proto_ctx.java_info:
