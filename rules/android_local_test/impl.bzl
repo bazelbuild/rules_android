@@ -135,32 +135,34 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         java_start_class = TEST_RUNNER_CLASS
         coverage_start_class = None
 
-    java_info = java_common.add_constraints(
-        java.compile_android(
-            ctx,
-            ctx.outputs.jar,
-            ctx.actions.declare_file(ctx.label.name + "-src.jar"),
-            srcs = ctx.files.srcs,
-            resources = ctx.files.resources,
-            javac_opts = ctx.attr.javacopts,
-            r_java = resources_ctx.r_java,
-            deps = (
-                utils.collect_providers(JavaInfo, deps) +
-                [
-                    JavaInfo(
-                        output_jar = get_android_sdk(ctx).android_jar,
-                        compile_jar = get_android_sdk(ctx).android_jar,
-                        # The android_jar must not be compiled into the test, it
-                        # will bloat the Jar with no benefit.
-                        neverlink = True,
-                    ),
-                ]
-            ),
-            plugins = utils.collect_providers(JavaPluginInfo, ctx.attr.plugins),
-            java_toolchain = common.get_java_toolchain(ctx),
+    java_info = java.compile_android(
+        ctx,
+        ctx.outputs.jar,
+        ctx.actions.declare_file(ctx.label.name + "-src.jar"),
+        srcs = ctx.files.srcs,
+        resources = ctx.files.resources,
+        javac_opts = ctx.attr.javacopts,
+        r_java = resources_ctx.r_java,
+        deps = (
+            utils.collect_providers(JavaInfo, deps) +
+            [
+                JavaInfo(
+                    output_jar = get_android_sdk(ctx).android_jar,
+                    compile_jar = get_android_sdk(ctx).android_jar,
+                    # The android_jar must not be compiled into the test, it
+                    # will bloat the Jar with no benefit.
+                    neverlink = True,
+                ),
+            ]
         ),
-        constraints = ["android"],
+        plugins = utils.collect_providers(JavaPluginInfo, ctx.attr.plugins),
+        java_toolchain = common.get_java_toolchain(ctx),
     )
+    if getattr(java_common, "add_constraints", None):
+        java_info = java_common.add_constraints(
+            java_info,
+            constraints = ["android"],
+        )
 
     # TODO(timpeut): some conformance tests require a filtered JavaInfo
     # with no transitive_ deps.
