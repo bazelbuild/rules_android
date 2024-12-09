@@ -52,6 +52,12 @@ genrule(
 cc_library(
     name = "native_lib",
     srcs = ["native.cc"],
+    target_compatible_with = [
+        # Somehow this doesn't work with MacOS.
+        # The functionality tested by this library/descendants is
+        # OS-agnostic and occurs at the rule level.
+        "@platforms//os:linux",
+    ],
 )
 
 genrule(
