@@ -52,10 +52,6 @@ genrule(
 cc_library(
     name = "native_lib",
     srcs = ["native.cc"],
-    toolchains = [
-        ":fake_arm64-v8a_toolchain",
-        ":fake_armeabi-v7a_toolchain",
-    ],
 )
 
 genrule(
@@ -93,7 +89,6 @@ android_library(
     name = "basiclib_with_native_dep",
     srcs = [
         "java/com/foo/AJavaClass.java",
-        "java/com/foo/AndroidManifest.xml",
     ],
     deps = [":native_lib"],
 )
