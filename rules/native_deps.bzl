@@ -47,12 +47,25 @@ def _get_libs_dir_name(target_platform):
     name = target_platform.name
     return name
 
-def _get_cc_link_params_infos(deps):
+def _get_cc_link_params_infos(ctx, deps):
     infos = []
     for dep in deps:
-        if JavaInfo in deps:
+        if JavaInfo in dep:
             if getattr(dep[JavaInfo], "cc_link_params_info", None):
                 infos.append(dep[JavaInfo].cc_link_params_info)
+            else:
+                # cc_link_params_info attr not available without --experimental_google_legacy_api
+                infos.append(
+                    CcInfo(
+                        compilation_context = None,
+                        linking_context = cc_common.create_linking_context(
+                            linker_inputs = depset([cc_common.create_linker_input(
+                                owner = ctx.label,
+                                libraries = dep[JavaInfo].transitive_native_libraries,
+                            )
+                        ]))
+                    )
+                )
 
     return infos
 
@@ -97,7 +110,7 @@ def process(ctx, filename, merged_libraries_map = {}):
                 [CcInfo(linking_context = cc_common.create_linking_context(
                     linker_inputs = depset([linker_input]),
                 ))],
-                _get_cc_link_params_infos(deps),
+                _get_cc_link_params_infos(ctx, deps),
                 [dep[AndroidCcLinkParamsInfo].link_params for dep in deps if AndroidCcLinkParamsInfo in dep],
                 [dep[CcInfo] for dep in deps if CcInfo in dep],
             ),
