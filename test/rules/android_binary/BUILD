@@ -52,9 +52,11 @@ genrule(
 cc_library(
     name = "native_lib",
     srcs = ["native.cc"],
-    toolchains = [
-        ":fake_arm64-v8a_toolchain",
-        ":fake_armeabi-v7a_toolchain",
+    target_compatible_with = [
+        # Somehow this doesn't work with MacOS.
+        # The functionality tested by this library/descendants is
+        # OS-agnostic and occurs at the rule level.
+        "@platforms//os:linux",
     ],
 )
 
@@ -93,7 +95,6 @@ android_library(
     name = "basiclib_with_native_dep",
     srcs = [
         "java/com/foo/AJavaClass.java",
-        "java/com/foo/AndroidManifest.xml",
     ],
     deps = [":native_lib"],
 )
