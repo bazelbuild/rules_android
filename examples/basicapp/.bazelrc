@@ -1,7 +1,4 @@
-# Flags needed while the Android rules are being migrated to Starlark.
-common --experimental_google_legacy_api
-common --experimental_enable_android_migration_apis
-common --android_sdk=@androidsdk//:sdk
+# Config for library desugaring
 common:core_library_desugaring --desugar_java8_libs
 
 # Flags to enable mobile-install v3

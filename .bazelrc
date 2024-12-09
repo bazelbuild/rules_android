@@ -1,10 +1,1 @@
-common --experimental_google_legacy_api
-common --experimental_enable_android_migration_apis
 common --java_runtime_version=17
-common --android_sdk=@androidsdk//:sdk
-
-# Autoloads are disabled for rule repositories (and their deps).
-# These autoloads are still helpful for rules_android to load rules in
-# non-rule repositories such as gazelle, though.
-# See https://github.com/bazelbuild/bazel/blob/14538435c8e96d1ed8cb9557209a35ebd2683356/src/main/java/com/google/devtools/build/lib/packages/AutoloadSymbols.java#L598
-common --incompatible_autoload_externally=+@rules_shell,+@rules_java,+@rules_cc,+@rules_python,+@protobuf
