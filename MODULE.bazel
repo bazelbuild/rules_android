@@ -143,6 +143,11 @@ use_repo(remote_android_extensions, "android_gmaven_r8", "android_tools")
 
 # integration test setup
 bazel_dep(
+    name = "rules_cc",
+    version = "0.0.16",
+    dev_dependency = True,
+)
+bazel_dep(
     name = "rules_bazel_integration_test",
     version = "0.27.0",
     dev_dependency = True,
