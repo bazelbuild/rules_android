@@ -1,6 +1,6 @@
 module(
     name = "rules_android",
-    version = "0.6.0",
+    version = "0.6.0-alpha1",
     compatibility_level = 1,
 )
 
