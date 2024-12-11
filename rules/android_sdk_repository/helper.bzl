@@ -226,7 +226,6 @@ def create_android_sdk_rules(
                 ":disallow_proguard": ":fail",
                 "//conditions:default": "@bazel_tools//tools/jdk:proguard",
             }),
-            shrinked_android_jar = "platforms/android-%d/android.jar" % api_level,
             # See https://github.com/bazelbuild/bazel/issues/8757
             tags = ["__ANDROID_RULES_MIGRATION__"],
             zipalign = select({
@@ -583,7 +582,6 @@ def create_dummy_sdk_toolchain():
         main_dex_classes = "dummy.jar",
         main_dex_list_creator = ":empty-binary",
         proguard = ":empty-binary",
-        shrinked_android_jar = "dummy.jar",
         tags = ["__ANDROID_RULES_MIGRATION__"],
         zipalign = ":empty-binary",
     )

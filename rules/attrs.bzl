@@ -303,10 +303,6 @@ ANDROID_SDK_ATTRS = dict(
         executable = True,
         mandatory = True,
     ),
-    shrinked_android_jar = attr.label(
-        allow_single_file = True,
-        cfg = "exec",
-    ),
     source_properties = attr.label(
         allow_single_file = True,
         cfg = "exec",
