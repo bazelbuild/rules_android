@@ -27,7 +27,7 @@ def _impl(ctx):
         aidl_lib = None,
         android_jar = ctx.file.android_jar,
         source_properties = ctx.file.source_properties,
-        shrinked_android_jar = ctx.file.shrinked_android_jar,
+        shrinked_android_jar = None,
         main_dex_classes = ctx.file.main_dex_classes,
         adb = ctx.attr.adb.files_to_run,
         dx = ctx.attr.dx.files_to_run,
