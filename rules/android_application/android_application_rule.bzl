@@ -357,7 +357,7 @@ def _impl(ctx):
         metadata["com.android.tools.build.obfuscation/proguard.map"] = ctx.attr.base_module[ProguardMappingInfo].proguard_mapping
 
     if ctx.file.device_group_config:
-        metadata["com.android.tools.build.bundletool/DeviceGroupConfig.pb"] = ctx.file.device_group_config
+        metadata["com.android.tools.build.bundletool/DeviceGroupConfig.json"] = ctx.file.device_group_config
 
     if ctx.file.rotation_config:
         metadata["com.google.play.apps.signing/RotationConfig.textproto"] = ctx.file.rotation_config
