@@ -59,7 +59,7 @@ if [[ "$#" -gt 0 ]]; then
 
       # If --desugared_lib_config already in params file, don't add it again.
       set +e
-      has_desugared_lib_config=$(grep -c "\-\-desugared_lib_config" "$params")
+      has_desugared_lib_config=$(grep -ce "--desugared_lib_config" "$params")
       set -e
       if [[ "$has_desugared_lib_config" == 0 ]]; then
         for o in "${DESUGAR_CONFIG[@]}"; do
