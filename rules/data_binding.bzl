@@ -54,7 +54,7 @@ def _copy_annotation_file(ctx, output_dir, annotation_template):
     annotation_out = ctx.actions.declare_file(
         output_dir + "/android/databinding/layouts/DataBindingInfo.java",
     )
-    _utils.copy_file(ctx, annotation_template, annotation_out)
+    ctx.actions.symlink(output = annotation_out, target_file = annotation_template)
     return annotation_out
 
 def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_exec):
@@ -117,9 +117,15 @@ def _setup_dependent_lib_artifacts(ctx, output_dir, deps):
             path = artifact.short_path
             if path.startswith("../"):
                 path = path[3:]
-            dep_lib_artifact = ctx.actions.declare_file(
-                output_dir + "dependent-lib-artifacts/" + path,
-            )
+            dep_lib_artifact_path = output_dir + "dependent-lib-artifacts/" + path
+            if artifact.is_directory:
+                dep_lib_artifact = ctx.actions.declare_directory(
+                    output_dir + "dependent-lib-artifacts/" + path,
+                )
+            else:
+                dep_lib_artifact = ctx.actions.declare_file(
+                    output_dir + "dependent-lib-artifacts/" + path,
+                )
 
             # Copy file to a location required by the DataBinding annotation
             # processor.
