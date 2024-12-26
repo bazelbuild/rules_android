@@ -208,30 +208,6 @@ def _list_or_depset_to_list(list_or_depset):
     else:
         return _error("Expected a list or a depset. Got %s" % type(list_or_depset))
 
-def _copy_file(ctx, src, dest):
-    if src.is_directory or dest.is_directory:
-        fail("Cannot use copy_file with directories")
-    ctx.actions.run_shell(
-        command = "cp --reflink=auto $1 $2",
-        arguments = [src.path, dest.path],
-        inputs = [src],
-        outputs = [dest],
-        mnemonic = "CopyFile",
-        progress_message = "Copy %s to %s" % (src.short_path, dest.short_path),
-    )
-
-def _copy_dir(ctx, src, dest):
-    if not src.is_directory:
-        fail("copy_dir src must be a directory")
-    ctx.actions.run_shell(
-        command = "cp -r --reflink=auto $1 $2",
-        arguments = [src.path, dest.path],
-        inputs = [src],
-        outputs = [dest],
-        mnemonic = "CopyDir",
-        progress_message = "Copy %s to %s" % (src.short_path, dest.short_path),
-    )
-
 def _info(msg):
     """Print info."""
     print(_INFO % msg)
@@ -450,8 +426,6 @@ compilation_mode = struct(
 utils = struct(
     check_for_failures = _check_for_failures,
     collect_providers = _collect_providers,
-    copy_file = _copy_file,
-    copy_dir = _copy_dir,
     expand_make_vars = _expand_make_vars,
     first = _first,
     dedupe_split_attr = _dedupe_split_attr,
