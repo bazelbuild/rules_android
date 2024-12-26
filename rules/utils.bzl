@@ -212,7 +212,7 @@ def _copy_file(ctx, src, dest):
     if src.is_directory or dest.is_directory:
         fail("Cannot use copy_file with directories")
     ctx.actions.run_shell(
-        command = "cp --reflink=auto $1 $2",
+        command = "cp $1 $2",
         arguments = [src.path, dest.path],
         inputs = [src],
         outputs = [dest],
@@ -224,7 +224,7 @@ def _copy_dir(ctx, src, dest):
     if not src.is_directory:
         fail("copy_dir src must be a directory")
     ctx.actions.run_shell(
-        command = "cp -r --reflink=auto $1 $2",
+        command = "cp -r $1 $2",
         arguments = [src.path, dest.path],
         inputs = [src],
         outputs = [dest],
