@@ -35,6 +35,8 @@ flags.DEFINE_string("input_aar", None, "Input AAR")
 flags.mark_flag_as_required("input_aar")
 flags.DEFINE_string("output_singlejar_param_file", None,
                     "Output parameter file for singlejar")
+flags.DEFINE_string("build_target", None,
+                    "Build target label to pass to singlejar")
 flags.mark_flag_as_required("output_singlejar_param_file")
 flags.DEFINE_string("output_dir", None, "Output directory to extract jars in")
 flags.mark_flag_as_required("output_dir")
@@ -43,6 +45,7 @@ flags.mark_flag_as_required("output_dir")
 def ExtractEmbeddedJars(aar,
                         singlejar_param_file,
                         output_dir,
+                        build_target=None,
                         output_dir_orig=None):
   """Extracts all embedded jars from an AAR.
 
@@ -56,6 +59,9 @@ def ExtractEmbeddedJars(aar,
     output_dir_orig = output_dir
   jar_pattern = re.compile("^(classes|libs/.+)\\.jar$")
   singlejar_param_file.write(b"--exclude_build_data\n")
+  if build_target:
+    singlejar_param_file.write(b"--build_target\n")
+    singlejar_param_file.write(f"{build_target}\n".encode("utf-8"))
   for name in aar.namelist():
     if jar_pattern.match(name):
       singlejar_param_file.write(b"--sources\n")
@@ -69,12 +75,13 @@ def ExtractEmbeddedJars(aar,
 def _Main(input_aar,
           output_singlejar_param_file,
           output_dir,
+          build_target=None,
           output_dir_orig=None):
   if not output_dir_orig:
     output_dir_orig = output_dir
   with zipfile.ZipFile(input_aar, "r") as aar:
     with open(output_singlejar_param_file, "wb") as singlejar_param_file:
-      ExtractEmbeddedJars(aar, singlejar_param_file, output_dir,
+      ExtractEmbeddedJars(aar, singlejar_param_file, output_dir, build_target,
                           output_dir_orig)
 
 
@@ -93,9 +100,9 @@ def main(unused_argv):
               os.path.join(aar_junc, os.path.basename(aar_long)),
               os.path.join(params_junc, os.path.basename(params_long)),
               os.path.join(out_junc, os.path.basename(out_long)),
-              FLAGS.output_dir)
+              FLAGS.output_dir, FLAGS.build_target)
   else:
-    _Main(FLAGS.input_aar, FLAGS.output_singlejar_param_file, FLAGS.output_dir)
+    _Main(FLAGS.input_aar, FLAGS.output_singlejar_param_file, FLAGS.output_dir, FLAGS.build_target)
 
 
 if __name__ == "__main__":

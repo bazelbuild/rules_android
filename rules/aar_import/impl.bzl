@@ -192,6 +192,7 @@ def _extract_jars(
     args = ctx.actions.args()
     args.add("--input_aar", aar)
     args.add("--output_dir", out_jars_tree_artifact.path)
+    args.add("--build_target", ctx.label)
     args.add("--output_singlejar_param_file", out_jars_params_file)
     ctx.actions.run(
         executable = aar_embedded_jars_extractor_tool,

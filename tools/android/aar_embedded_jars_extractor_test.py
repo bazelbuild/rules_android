@@ -54,12 +54,14 @@ class AarEmbeddedJarsExtractor(unittest.TestCase):
     aar.writestr("libs/b.jar", "")
     param_file = io.BytesIO()
     os.makedirs("out_dir")
-    aar_embedded_jars_extractor.ExtractEmbeddedJars(aar, param_file, "out_dir")
+    aar_embedded_jars_extractor.ExtractEmbeddedJars(aar, param_file, "out_dir", "//foo:bar")
     self.assertCountEqual(["classes.jar", "libs"], os.listdir("out_dir"))
     self.assertCountEqual(["a.jar", "b.jar"], os.listdir("out_dir/libs"))
     param_file.seek(0)
     self.assertEqual(
         [b"--exclude_build_data\n",
+         b"--build_target\n",
+         b"//foo:bar\n",
          b"--sources\n",
          b"out_dir/classes.jar\n",
          b"--sources\n",
@@ -73,11 +75,13 @@ class AarEmbeddedJarsExtractor(unittest.TestCase):
     aar.writestr("classes.jar", "")
     param_file = io.BytesIO()
     os.makedirs("out_dir")
-    aar_embedded_jars_extractor.ExtractEmbeddedJars(aar, param_file, "out_dir")
+    aar_embedded_jars_extractor.ExtractEmbeddedJars(aar, param_file, "out_dir", "//foo:bar")
     self.assertEqual(["classes.jar"], os.listdir("out_dir"))
     param_file.seek(0)
     self.assertEqual(
         [b"--exclude_build_data\n",
+         b"--build_target\n",
+         b"//foo:bar\n",
          b"--sources\n",
          b"out_dir/classes.jar\n"],
         param_file.readlines())
