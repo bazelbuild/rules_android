@@ -298,12 +298,12 @@ def _dedupe_split_attr(attr):
     return attr[arch]
 
 def _get_runfiles(ctx, attrs):
-    runfiles = ctx.runfiles()
+    all_runfiles = []
     for attr in attrs:
         executable = attr[DefaultInfo].files_to_run.executable
         if executable:
-            runfiles = runfiles.merge(ctx.runfiles([executable]))
-        runfiles = runfiles.merge(
+            all_runfiles.append(ctx.runfiles([executable]))
+        all_runfiles.append(
             ctx.runfiles(
                 # Wrap DefaultInfo.files in depset to strip ordering.
                 transitive_files = depset(
@@ -311,8 +311,8 @@ def _get_runfiles(ctx, attrs):
                 ),
             ),
         )
-        runfiles = runfiles.merge(attr[DefaultInfo].default_runfiles)
-    return runfiles
+        all_runfiles.append(attr[DefaultInfo].default_runfiles)
+    return ctx.runfiles().merge_all(all_runfiles)
 
 def _sanitize_string(s, replacement = ""):
     """Sanitizes a string by replacing all non-word characters.
