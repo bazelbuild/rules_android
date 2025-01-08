@@ -15,6 +15,7 @@
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/private:android_support.bzl", "android_support")  # buildifier: disable=bzl-visibility
 load(":path.bzl", _path = "path")
 load(":utils.bzl", "log")
 
@@ -229,7 +230,7 @@ def _compile_android(
             # not the plugins. To reproduce the "deps without srcs" bug,
             # b/14473160, behavior in Starlark.
             exports = exports + [
-                android_common.enable_implicit_sourceless_deps_exports_compatibility(dep)
+                android_support.enable_implicit_sourceless_deps_exports_compatibility(dep)
                 for dep in deps
             ]
         if not exports:
