@@ -565,15 +565,7 @@ def use_legacy_manifest_merger(ctx):
     Returns:
       Boolean indicating whether legacy manifest merging is enabled.
     """
-    manifest_merger = ctx.attr.manifest_merger
-    android_manifest_merger = ctx.fragments.android.manifest_merger
-
-    if android_manifest_merger == "force_android":
-        return False
-    if manifest_merger == "auto":
-        manifest_merger = android_manifest_merger
-
-    return manifest_merger == "legacy"
+    return ctx.attr.manifest_merger == "legacy"
 
 def finalize(
         ctx,

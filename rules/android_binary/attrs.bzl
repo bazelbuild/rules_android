@@ -71,7 +71,7 @@ ATTRS = _attrs.replace(
             instruments = attr.label(),
             manifest_values = attr.string_dict(),
             manifest_merger = attr.string(
-                default = "auto",
+                default = "android",
                 values = ["auto", "legacy", "android", "force_android"],
             ),
             native_target = attr.label(
