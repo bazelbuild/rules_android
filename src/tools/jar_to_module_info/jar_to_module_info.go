@@ -18,26 +18,20 @@ package main
 import (
 	"archive/zip"
 	"bytes"
-	"context"
 	"fmt"
 	"strings"
 
-	"bitbucket.org/creachadair/stringset"
 	"flag"
 	"log"
 	"os"
+
+	"bitbucket.org/creachadair/stringset"
 )
 
 var (
 	inputPath  = flag.String("input", "", "input jar path")
 	outputPath = flag.String("output", "", "output modile-info path")
 )
-
-func writeFilePortable(ctx context.Context, filename string, data []byte) error {
-	// A portable shim around the google-internal WriteFile() and the more commonly-used public version.
-	// The Google-internal WriteFile() takes an additional Context object.
-	return os.WriteFile(filename, data, 0o400)
-}
 
 func portableInit() {
 	flag.Parse()
@@ -67,7 +61,7 @@ func main() {
 		fmt.Fprintf(&output, "  exports %s;\n", strings.Replace(p, "/", ".", -1))
 	}
 	fmt.Fprintln(&output, "}")
-	err = writeFilePortable(context.Background(), *outputPath, output.Bytes())
+	err = os.WriteFile(*outputPath, output.Bytes(), 0o400)
 	if err != nil {
 		log.Fatal(err)
 	}
