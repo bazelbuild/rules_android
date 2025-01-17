@@ -90,12 +90,7 @@ def native_bool_flag_macro(name, description):
     )
 
 def _get_bool(v):
-    v = v.lower()
-    if v == "true":
-        return True
-    if v == "false":
-        return False
-    fail("Unknown bool: " + v)
+    return utils.get_bool(v)
 
 def _bool_impl(ctx):
     if ctx.label.name in ctx.var:

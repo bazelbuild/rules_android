@@ -735,6 +735,7 @@ def _package(
     resource_files_zip = ctx.actions.declare_file(
         "_migrated/" + ctx.label.name + "_files/resource_files.zip",
     )
+    debug = utils.get_bool(manifest_values["debuggable"]) if "debuggable" in manifest_values else None
     _busybox.package(
         ctx,
         out_file = resource_apk,
@@ -773,7 +774,7 @@ def _package(
         aapt = aapt,
         busybox = busybox,
         host_javabase = host_javabase,
-        debug = compilation_mode != _compilation_mode.OPT,
+        debug = compilation_mode != _compilation_mode.OPT if debug == None else debug,
         should_throw_on_conflict = should_throw_on_conflict,
     )
 
