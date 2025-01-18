@@ -41,10 +41,3 @@ py_binary(
         "@py_absl//absl/flags",
     ],
 )
-
-filegroup(
-    name = "merge_feature_manifests.par",
-    srcs = [":merge_feature_manifests"],
-    output_group = "python_zip_file",
-    visibility = ["//visibility:public"],
-)
