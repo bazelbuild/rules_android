@@ -298,7 +298,7 @@ def create_android_sdk_rules(
             outs = [tool + "_runner.sh"],
             cmd = "\n".join([
                 "cat > $@ << 'EOF'",
-                "#!/bin/bash",
+                "#!/usr/bin/env bash",
                 "set -eu",
                 # The tools under build-tools/VERSION require the libraries under
                 # build-tools/VERSION/lib, so we can't simply depend on them as a
