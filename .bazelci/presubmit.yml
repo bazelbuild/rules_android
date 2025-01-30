@@ -4,8 +4,7 @@ matrix:
   bazel: [
     7.4.1,
     8.0.0rc7,
-# Temporarily disabled until java_stub_template.txt is public
-#    last_green,
+    last_green,
   ]
 
 tools_flags: &tools_flags

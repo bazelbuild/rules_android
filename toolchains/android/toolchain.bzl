@@ -179,7 +179,7 @@ _ATTRS = dict(
     java_stub = attr.label(
         allow_files = True,
         # used in android_local_test
-        default = "@bazel_tools//tools/java:java_stub_template.txt",
+        default = "//tools/jdk:java_stub_template.txt",
     ),
     jdeps_tool = attr.label(
         allow_files = True,
