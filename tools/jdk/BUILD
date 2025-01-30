@@ -86,3 +86,5 @@ alias(
     actual = "@rules_java//toolchains:current_host_java_runtime",
     visibility = ["//visibility:public"],
 )
+
+exports_files(["java_stub_template.txt"])
