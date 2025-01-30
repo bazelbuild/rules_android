@@ -469,20 +469,24 @@ java_plugin(
     name = "autovalue_plugin",
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
     deps = [
-        "@android_tools//:all_android_tools_deploy.jar",
+        "@rules_android_maven//:com_google_auto_value_auto_value",
     ],
 )
 
 java_plugin(
     name = "auto_annotation_plugin",
     processor_class = "com.google.auto.value.processor.AutoAnnotationProcessor",
-    deps = ["@android_tools//:all_android_tools_deploy.jar"],
+    deps = [
+        "@rules_android_maven//:com_google_auto_value_auto_value",
+    ],
 )
 
 java_plugin(
     name = "auto_builder_plugin",
     processor_class = "com.google.auto.value.processor.AutoBuilderProcessor",
-    deps = ["@android_tools//:all_android_tools_deploy.jar"],
+    deps = [
+        "@rules_android_maven//:com_google_auto_value_auto_value",
+    ],
 )
 
 java_library(
