@@ -31,6 +31,7 @@ class DexLimitTracker {
 
   private final LinkedHashSet<FieldDescriptor> fieldsSeen = new LinkedHashSet<>();
   private final LinkedHashSet<MethodDescriptor> methodsSeen = new LinkedHashSet<>();
+  private final LinkedHashSet<String> typesSeen = new LinkedHashSet<>();
   private final int maxNumberOfIdxPerDex;
 
   public DexLimitTracker(int maxNumberOfIdxPerDex) {
@@ -40,17 +41,19 @@ class DexLimitTracker {
   /**
    * Returns whether we're within limits.
    *
-   * @return {@code true} if method or field references are outside limits, {@code false} both are
-   *     within limits.
+   * @return {@code true} if method, field or type references are outside limits, {@code false} if
+   *     all are within limits.
    */
   public boolean outsideLimits() {
     return fieldsSeen.size() > maxNumberOfIdxPerDex
-        || methodsSeen.size() > maxNumberOfIdxPerDex;
+        || methodsSeen.size() > maxNumberOfIdxPerDex
+        || typesSeen.size() > maxNumberOfIdxPerDex;
   }
 
   public void clear() {
     fieldsSeen.clear();
     methodsSeen.clear();
+    typesSeen.clear();
   }
 
   public void track(Dex dexFile) {
@@ -61,6 +64,10 @@ class DexLimitTracker {
     int methodCount = dexFile.methodIds().size();
     for (int methodIndex = 0; methodIndex < methodCount; ++methodIndex) {
       methodsSeen.add(MethodDescriptor.fromDex(dexFile, methodIndex));
+    }
+    int typeCount = dexFile.typeIds().size();
+    for (int typeIndex = 0; typeIndex < typeCount; ++typeIndex) {
+      typesSeen.add(typeName(dexFile, typeIndex));
     }
   }
 
