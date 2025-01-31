@@ -21,6 +21,7 @@ filegroup(
 bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
+    visibility = ["//rules:__pkg__"],
     deps = [
         "//rules:android_platforms_transition_bzl",
         "//rules:common_bzl",
@@ -28,13 +29,11 @@ bzl_library(
         "//rules/flags:bzl",
         "@rules_java//java/common",
     ],
-    visibility = ["//rules:__pkg__"],
 )
 
 py_binary(
     name = "merge_feature_manifests",
     srcs = ["merge_feature_manifests.py"],
-    python_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
         "@py_absl//absl:app",
