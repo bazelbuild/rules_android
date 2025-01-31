@@ -26,6 +26,10 @@ visibility(PROJECT_VISIBILITY)
 
 ATTRS = _attrs.add(
     dict(
+        aar_metadata = attr.label(
+            allow_single_file = [".properties"],
+            doc = ("The name of the AAR metadata file, optional"),
+        ),
         baseline_profiles = attr.label_list(
             allow_files = [".txt"],
             doc = (

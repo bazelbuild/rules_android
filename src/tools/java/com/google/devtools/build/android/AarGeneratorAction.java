@@ -23,6 +23,7 @@ import com.beust.jcommander.Parameters;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.devtools.build.android.AndroidDataMerger.MergeConflictException;
@@ -104,6 +105,12 @@ public class AarGeneratorAction {
     public Path classes;
 
     @Parameter(
+        names = "--aarMetadata",
+        converter = CompatExistingPathConverter.class,
+        description = "Path to aar-metadata.properties file. Optional.")
+    public Path aarMetadata;
+
+    @Parameter(
         names = "--proguardSpec",
         converter = CompatExistingPathConverter.class,
         description = "Path to proguard spec file.")
@@ -164,6 +171,7 @@ public class AarGeneratorAction {
           options.manifest,
           options.rtxt,
           options.classes,
+          options.aarMetadata,
           options.proguardSpecs);
       logger.fine(
           String.format("Packaging finished at %dms", timer.elapsed(TimeUnit.MILLISECONDS)));
@@ -203,6 +211,7 @@ public class AarGeneratorAction {
       Path manifest,
       Path rtxt,
       Path classes,
+      Path aarMetadata,
       List<Path> proguardSpecs)
       throws IOException {
     try (final ZipOutputStream zipOut =
@@ -212,6 +221,20 @@ public class AarGeneratorAction {
       zipOut.putNextEntry(manifestEntry);
       zipOut.write(Files.readAllBytes(manifest));
       zipOut.closeEntry();
+
+      if (aarMetadata != null && !Strings.isNullOrEmpty(aarMetadata.toString())) {
+        if (Files.notExists(aarMetadata)) {
+          throw new ParameterException(
+              String.format("AAR metadata file %s does not exist.", aarMetadata));
+        }
+
+        ZipEntry aarMetadataEntry =
+            new ZipEntry("META-INF/com/android/build/gradle/aar-metadata.properties");
+        aarMetadataEntry.setTime(DEFAULT_TIMESTAMP.toEpochMilli());
+        zipOut.putNextEntry(aarMetadataEntry);
+        zipOut.write(Files.readAllBytes(aarMetadata));
+        zipOut.closeEntry();
+      }
 
       ZipEntry classJar = new ZipEntry("classes.jar");
       classJar.setTime(DEFAULT_TIMESTAMP.toEpochMilli());
