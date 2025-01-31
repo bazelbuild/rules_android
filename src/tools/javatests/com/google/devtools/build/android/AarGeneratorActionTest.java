@@ -17,6 +17,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import com.android.builder.core.VariantTypeImpl;
 import com.beust.jcommander.JCommander;
@@ -89,6 +90,7 @@ public class AarGeneratorActionTest {
       private final Path assetDir;
       private final Path resourceDir;
       private Path manifest;
+      private Path aarMetadata;
       private Path rtxt;
       private Path classes;
       private Map<Path, String> filesToWrite = new HashMap<>();
@@ -108,6 +110,7 @@ public class AarGeneratorActionTest {
         manifest = root.resolve("fake-manifest-path");
         rtxt = root.resolve("fake-rtxt-path");
         classes = root.resolve("fake-classes-path");
+        aarMetadata = root.resolve("fake-aar-metadata-path");
       }
 
       @CanIgnoreReturnValue
@@ -144,6 +147,35 @@ public class AarGeneratorActionTest {
       }
 
       @CanIgnoreReturnValue
+      public Builder addNullAarMetadata() {
+        this.aarMetadata = null;
+        return this;
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addNonExistentAarMetadata() {
+        this.aarMetadata = root.resolve("/nonexistent/aar-metadata.properties");
+        return this;
+      }
+
+      @CanIgnoreReturnValue
+      public Builder addAarMetadata(String path) {
+        this.aarMetadata = root.resolve(path);
+        filesToWrite.put(
+            aarMetadata,
+            """
+            aarFormatVersion=1.0
+            aarMetadataVersion=1.0
+            minCompileSdk=1
+            minCompileSdkExtension=0
+            minAndroidGradlePluginVersion=8.2.0
+            coreLibraryDesugaringEnabled=true
+            desugarJdkLib=com.android.tools:desugar_jdk_libs:2.1.3\
+            """);
+        return this;
+      }
+
+      @CanIgnoreReturnValue
       public Builder createRtxt(String path, String... lines) {
         this.rtxt = root.resolve(path);
         filesToWrite.put(rtxt, String.format("%s", Joiner.on("\n").join(lines)));
@@ -174,7 +206,8 @@ public class AarGeneratorActionTest {
 
       public AarData build() throws IOException {
         writeFiles();
-        return new AarData(buildMerged(), manifest, rtxt, classes, proguardSpecs.build());
+        return new AarData(
+            buildMerged(), manifest, rtxt, classes, aarMetadata, proguardSpecs.build());
       }
 
       private MergedAndroidData buildMerged() {
@@ -229,6 +262,7 @@ public class AarGeneratorActionTest {
     final Path manifest;
     final Path rtxt;
     final Path classes;
+    final Path aarMetadata;
     final ImmutableList<Path> proguardSpecs;
 
     private AarData(
@@ -236,11 +270,13 @@ public class AarGeneratorActionTest {
         Path manifest,
         Path rtxt,
         Path classes,
+        Path aarMetadata,
         ImmutableList<Path> proguardSpecs) {
       this.data = data;
       this.manifest = manifest;
       this.rtxt = rtxt;
       this.classes = classes;
+      this.aarMetadata = aarMetadata;
       this.proguardSpecs = proguardSpecs;
     }
   }
@@ -361,49 +397,175 @@ public class AarGeneratorActionTest {
     AarGeneratorAction.checkFlags(options);
   }
 
-  @Test public void testWriteAar() throws Exception {
+  @Test
+  public void testWriteAar() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .addAsset("some/other/ft/data.txt", "bar")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addAarMetadata("foo.properties")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
+  }
+
+  @Test
+  public void testNullAarMetadata() throws Exception {
+    Path aar = tempDir.resolve("foo.aar");
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addNullAarMetadata()
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
+
+    AarGeneratorAction.writeAar(
+        aar,
+        aarData.data,
+        aarData.manifest,
+        aarData.rtxt,
+        aarData.classes,
+        aarData.aarMetadata,
+        aarData.proguardSpecs);
+
+    assertThat(getZipEntries(aar))
+        .doesNotContain("META-INF/com/android/build/gradle/aar-metadata.properties");
+  }
+
+  @Test
+  public void testNonexistentAarMetadataPath() throws Exception {
+    Path aar = tempDir.resolve("foo.aar");
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addNonExistentAarMetadata()
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
+
+    ParameterException thrown =
+        assertThrows(
+            ParameterException.class,
+            () ->
+                AarGeneratorAction.writeAar(
+                    aar,
+                    aarData.data,
+                    aarData.manifest,
+                    aarData.rtxt,
+                    aarData.classes,
+                    aarData.aarMetadata,
+                    aarData.proguardSpecs));
+
+    assertThat(thrown).hasMessageThat().contains("/nonexistent/aar-metadata.properties");
+  }
+
+  @Test
+  public void testExistentAarMetadataPath() throws Exception {
+    Path aar = tempDir.resolve("foo.aar");
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addAarMetadata("foo.properties")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
+
+    AarGeneratorAction.writeAar(
+        aar,
+        aarData.data,
+        aarData.manifest,
+        aarData.rtxt,
+        aarData.classes,
+        aarData.aarMetadata,
+        aarData.proguardSpecs);
+
+    assertThat(getZipEntries(aar))
+        .contains("META-INF/com/android/build/gradle/aar-metadata.properties");
+    String aarMetadataContents = "";
+    try (ZipReader aarReader = new ZipReader(aar.toFile());
+        BufferedReader entryReader =
+            new BufferedReader(
+                new InputStreamReader(
+                    aarReader.getInputStream(
+                        aarReader.getEntry(
+                            "META-INF/com/android/build/gradle/aar-metadata.properties")),
+                    StandardCharsets.UTF_8))) {
+      for (String line = entryReader.readLine(); line != null; line = entryReader.readLine()) {
+        aarMetadataContents += line + "\n";
+      }
+    }
+    assertThat(aarMetadataContents).contains("aarFormatVersion=1.0");
+    assertThat(aarMetadataContents).contains("aarMetadataVersion=1.0");
+    assertThat(aarMetadataContents).contains("minCompileSdk=1");
+    assertThat(aarMetadataContents).contains("minCompileSdkExtension=0");
+    assertThat(aarMetadataContents).contains("minAndroidGradlePluginVersion=8.2.0");
+    assertThat(aarMetadataContents).contains("coreLibraryDesugaringEnabled=true");
+    assertThat(aarMetadataContents)
+        .contains("desugarJdkLib=com.android.tools:desugar_jdk_libs:2.1.3");
   }
 
   @Test public void testWriteAar_DefaultTimestamps() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .addAsset("some/other/ft/data.txt", "bar")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addAarMetadata("aar-metadata.properties")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
 
     assertThat(getZipEntryTimestamps(aar))
@@ -414,24 +576,28 @@ public class AarGeneratorActionTest {
 
   @Test public void testAssetResourceSubdirs() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"), "xyz", "assets")
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .addAsset("some/other/ft/data.txt", "bar")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"), "xyz", "assets")
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addAarMetadata("aar-metadata.properties")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
 
     // verify aar archive
@@ -442,185 +608,213 @@ public class AarGeneratorActionTest {
 
   @Test public void testMissingManifest() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .addAsset("some/other/ft/data.txt", "bar")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addAarMetadata("aar-metadata.properties")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
     thrown.expect(IOException.class);
     thrown.expectMessage(containsString("fake-manifest-path"));
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
   }
 
   @Test public void testMissingRtxt() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .addAsset("some/other/ft/data.txt", "bar")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .addAarMetadata("aar-metadata.properties")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
     thrown.expect(IOException.class);
     thrown.expectMessage(containsString("fake-rtxt-path"));
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
   }
 
   @Test public void testMissingClasses() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .addAsset("some/other/ft/data.txt", "bar")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .addAarMetadata("aar-metadata.properties")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .build();
 
     thrown.expect(IOException.class);
     thrown.expectMessage(containsString("fake-classes-path"));
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
   }
 
   @Test public void testMissingResources() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addAsset("some/other/ft/data.txt", "bar")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .addAarMetadata("aar-metadata.properties")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
     thrown.expect(IOException.class);
     thrown.expectMessage(containsString("res"));
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
   }
 
   @Test public void testEmptyResources() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .withEmptyResources(true)
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .addAsset("some/other/ft/data.txt", "bar")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .addAarMetadata("aar-metadata.properties")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .withEmptyResources(true)
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .addAsset("some/other/ft/data.txt", "bar")
+            .createClassesJar("classes.jar")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
   }
 
   @Test public void testMissingAssets() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .addAarMetadata("aar-metadata.properties")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .createClassesJar("classes.jar")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
   }
 
   @Test public void testEmptyAssets() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id_name\" type=\"id\"/>")
-        .withEmptyAssets(true)
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
+            .addAarMetadata("aar-metadata.properties")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addResource(
+                "values/ids.xml",
+                AarData.ResourceType.VALUE,
+                "<item name=\"id_name\" type=\"id\"/>")
+            .withEmptyAssets(true)
+            .createClassesJar("classes.jar")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
-    AarGeneratorAction.writeAar(aar,
+    AarGeneratorAction.writeAar(
+        aar,
         aarData.data,
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
   }
 
   @Test public void testFullIntegration() throws Exception {
     Path aar = tempDir.resolve("foo.aar");
-    AarData aarData = new AarData.Builder(tempDir.resolve("data"))
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo", "")
-        .createRtxt("R.txt",
-            "int string app_name 0x7f050001",
-            "int string hello_world 0x7f050002")
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id\" type=\"id\"/>")
-        .addResource("layout/layout.xml",
-            AarData.ResourceType.LAYOUT,
-            "<TextView android:id=\"@+id/text2\""
-                + " android:layout_width=\"wrap_content\""
-                + " android:layout_height=\"wrap_content\""
-                + " android:text=\"Hello, I am a TextView\" />")
-        .addAsset("some/other/ft/data.txt",
-            "foo")
-        .createClassesJar("classes.jar")
-        .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
-        .build();
+    AarData aarData =
+        new AarData.Builder(tempDir.resolve("data"))
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo", "")
+            .createRtxt(
+                "R.txt", "int string app_name 0x7f050001", "int string hello_world 0x7f050002")
+            .addAarMetadata("aar-metadata.properties")
+            .addResource(
+                "values/ids.xml", AarData.ResourceType.VALUE, "<item name=\"id\" type=\"id\"/>")
+            .addResource(
+                "layout/layout.xml",
+                AarData.ResourceType.LAYOUT,
+                "<TextView android:id=\"@+id/text2\""
+                    + " android:layout_width=\"wrap_content\""
+                    + " android:layout_height=\"wrap_content\""
+                    + " android:text=\"Hello, I am a TextView\" />")
+            .addAsset("some/other/ft/data.txt", "foo")
+            .createClassesJar("classes.jar")
+            .addClassesFile("com.google.android.apps.foo", "Test.class", "test file contents")
+            .build();
 
     MergedAndroidData md1 = new AarData.Builder(tempDir.resolve("d1"))
         .addResource("values/ids.xml",
@@ -637,26 +831,25 @@ public class AarGeneratorActionTest {
         .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d1", "")
         .build().data;
 
-    MergedAndroidData md2 = new AarData.Builder(tempDir.resolve("d2"))
-        .addResource("values/ids.xml",
-            AarData.ResourceType.VALUE,
-            "<item name=\"id2\" type=\"id\"/>")
-        .addResource("layout/bar.xml",
-            AarData.ResourceType.LAYOUT,
-            "<TextView android:id=\"@+id/textbar\""
-                + " android:layout_width=\"wrap_content\""
-                + " android:layout_height=\"wrap_content\""
-                + " android:text=\"Hello, I am a TextView\" />")
-        .addResource("drawable-mdpi/icon.png",
-            AarData.ResourceType.UNFORMATTED,
-            "Thttpt.")
-        .addResource("drawable-xxxhdpi/icon.png",
-            AarData.ResourceType.UNFORMATTED,
-            "Double Thttpt.")
-        .addAsset("some/other/ft/data2.txt",
-            "foo")
-        .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d2", "")
-        .build().data;
+    MergedAndroidData md2 =
+        new AarData.Builder(tempDir.resolve("d2"))
+            .addResource(
+                "values/ids.xml", AarData.ResourceType.VALUE, "<item name=\"id2\" type=\"id\"/>")
+            .addResource(
+                "layout/bar.xml",
+                AarData.ResourceType.LAYOUT,
+                "<TextView android:id=\"@+id/textbar\""
+                    + " android:layout_width=\"wrap_content\""
+                    + " android:layout_height=\"wrap_content\""
+                    + " android:text=\"Hello, I am a TextView\" />")
+            .addResource("drawable-mdpi/icon.png", AarData.ResourceType.UNFORMATTED, "Thttpt.")
+            .addResource(
+                "drawable-xxxhdpi/icon.png", AarData.ResourceType.UNFORMATTED, "Double Thttpt.")
+            .addAsset("some/other/ft/data2.txt", "foo")
+            .createManifest("AndroidManifest.xml", "com.google.android.apps.foo.d2", "")
+            .addAarMetadata("aar-metadata.properties")
+            .build()
+            .data;
 
     UnvalidatedAndroidData primary = new UnvalidatedAndroidData(
         ImmutableList.of(aarData.data.getResourceDir()),
@@ -699,32 +892,40 @@ public class AarGeneratorActionTest {
             true);
 
     AarGeneratorAction.writeAar(
-        aar, mergedData, aarData.manifest, aarData.rtxt, aarData.classes, aarData.proguardSpecs);
+        aar,
+        mergedData,
+        aarData.manifest,
+        aarData.rtxt,
+        aarData.classes,
+        aarData.aarMetadata,
+        aarData.proguardSpecs);
 
     // verify aar archive
     Set<String> zipEntries = getZipEntries(aar);
-    assertThat(zipEntries).containsExactly(
-        "AndroidManifest.xml",
-        "R.txt",
-        "classes.jar",
-        "res/",
-        "res/values/",
-        "res/values/values.xml",
-        "res/layout/",
-        "res/layout/layout.xml",
-        "res/layout/foo.xml",
-        "res/layout/bar.xml",
-        "res/drawable-mdpi-v4/",
-        "res/drawable-mdpi-v4/icon.png",
-        "res/drawable-xxxhdpi-v4/",
-        "res/drawable-xxxhdpi-v4/icon.png",
-        "assets/",
-        "assets/some/",
-        "assets/some/other/",
-        "assets/some/other/ft/",
-        "assets/some/other/ft/data.txt",
-        "assets/some/other/ft/data1.txt",
-        "assets/some/other/ft/data2.txt");
+    assertThat(zipEntries)
+        .containsExactly(
+            "AndroidManifest.xml",
+            "R.txt",
+            "classes.jar",
+            "META-INF/com/android/build/gradle/aar-metadata.properties",
+            "res/",
+            "res/values/",
+            "res/values/values.xml",
+            "res/layout/",
+            "res/layout/layout.xml",
+            "res/layout/foo.xml",
+            "res/layout/bar.xml",
+            "res/drawable-mdpi-v4/",
+            "res/drawable-mdpi-v4/icon.png",
+            "res/drawable-xxxhdpi-v4/",
+            "res/drawable-xxxhdpi-v4/icon.png",
+            "assets/",
+            "assets/some/",
+            "assets/some/other/",
+            "assets/some/other/ft/",
+            "assets/some/other/ft/data.txt",
+            "assets/some/other/ft/data1.txt",
+            "assets/some/other/ft/data2.txt");
   }
 
   @Test public void testProguardSpecs() throws Exception {
@@ -736,6 +937,7 @@ public class AarGeneratorActionTest {
             .withEmptyResources(true)
             .withEmptyAssets(true)
             .createClassesJar("classes.jar")
+            .addAarMetadata("aar-metadata.properties")
             .addProguardSpec("spec1", "foo", "bar")
             .addProguardSpec("spec2", "baz")
             .build();
@@ -746,6 +948,7 @@ public class AarGeneratorActionTest {
         aarData.manifest,
         aarData.rtxt,
         aarData.classes,
+        aarData.aarMetadata,
         aarData.proguardSpecs);
     Set<String> zipEntries = getZipEntries(aar);
     assertThat(zipEntries).contains("proguard.txt");

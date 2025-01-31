@@ -333,6 +333,7 @@ def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
         resource_files = resources_ctx.starlark_processed_resources if not ctx.attr.neverlink else [],
         class_jar = ctx.outputs.lib_jar,
         r_txt = resources_ctx.starlark_r_txt,
+        aar_metadata = ctx.file.aar_metadata,
         proguard_specs = proguard_ctx.proguard_configs,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = _common.get_host_javabase(ctx),

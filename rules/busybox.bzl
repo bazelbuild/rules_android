@@ -1078,6 +1078,7 @@ def _make_aar(
         class_jar = None,
         r_txt = None,
         manifest = None,
+        aar_metadata = None,
         proguard_specs = [],
         should_throw_on_conflict = False,
         busybox = None,
@@ -1093,6 +1094,7 @@ def _make_aar(
       class_jar: File. The class jar file.
       r_txt: File. The resource IDs outputted by linking resources in text.
       manifest: File. The primary AndroidManifest.xml.
+      aar_metadata: File. Optional metadata file to be included in the output AAR file.
       proguard_specs: List of File. The proguard spec files.
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
@@ -1119,6 +1121,12 @@ def _make_aar(
     args.add("--classes", class_jar)
     args.add("--aarOutput", out_aar)
     args.add_all(proguard_specs, before_each = "--proguardSpec")
+
+    input_files = [r_txt, manifest, class_jar]
+    if aar_metadata != None:
+        args.add("--aarMetadata", aar_metadata)
+        input_files.append(aar_metadata)
+
     if should_throw_on_conflict:
         args.add("--throwOnResourceConflict")
 
@@ -1134,7 +1142,7 @@ def _make_aar(
             resource_files +
             assets +
             proguard_specs +
-            [r_txt, manifest, class_jar]
+            input_files
         ),
         outputs = [out_aar],
         mnemonic = "StarlarkAARGenerator",

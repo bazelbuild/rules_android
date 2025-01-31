@@ -954,6 +954,7 @@ def _make_aar(
         class_jar = None,
         r_txt = None,
         manifest = None,
+        aar_metadata = None,
         proguard_specs = [],
         busybox = None,
         host_javabase = None):
@@ -967,6 +968,7 @@ def _make_aar(
       class_jar: File. The class jar file.
       r_txt: File. The resource IDs outputted by linking resources in text.
       manifest: File. The primary AndroidManifest.xml.
+      aar_metadata: File. Optional metadata file to be included in the `.aar` file.
       proguard_specs: List of File. The proguard spec files.
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
@@ -985,6 +987,7 @@ def _make_aar(
         class_jar = class_jar,
         r_txt = r_txt,
         manifest = manifest,
+        aar_metadata = aar_metadata,
         proguard_specs = proguard_specs,
         busybox = busybox,
         host_javabase = host_javabase,
