@@ -190,7 +190,7 @@ public class IdlClass {
         entry.setTime(DEFAULT_TIMESTAMP.toEpochMilli());
         entry.setSize(Files.size(path));
         entry.setCompressedSize(Files.size(path));
-        entry.setCrc(Hashing.crc32().hashBytes(Files.readAllBytes(path)).asInt());
+        entry.setCrc(Hashing.crc32().hashBytes(Files.readAllBytes(path)).padToLong());
         zip.putNextEntry(entry);
         zip.write(Files.readAllBytes(path));
         zip.closeEntry();
