@@ -14,26 +14,37 @@
 
 package com.google.devtools.build.android.idlclass;
 
+import static java.util.stream.Collectors.toCollection;
+
 import com.beust.jcommander.JCommander;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
 import com.google.devtools.build.android.AndroidOptionsUtils;
-import com.google.devtools.build.buildjar.jarhelper.JarCreator;
 import com.google.devtools.build.buildjar.proto.JavaCompilation.CompilationUnit;
 import com.google.devtools.build.buildjar.proto.JavaCompilation.Manifest;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * IdlClass post-processes the output of a Java compilation, and produces
@@ -41,6 +52,9 @@ import java.util.jar.JarFile;
  * from idl processing.
  */
 public class IdlClass {
+  // Cribbed from AarGeneratorAction.java
+  private static final Instant DEFAULT_TIMESTAMP =
+      LocalDateTime.of(2010, 1, 1, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant();
 
   public static void main(String[] args) throws IOException {
     IdlClassOptions idlClassOptions = new IdlClassOptions();
@@ -160,10 +174,31 @@ public class IdlClass {
 
   /** Writes the generated class files to the output jar. */
   private static void writeOutputJar(Path outputJar, Path tempDir) throws IOException {
-    JarCreator output = new JarCreator(outputJar.toString());
-    output.setCompression(true);
-    output.setNormalize(true);
-    output.addDirectory(tempDir.toString());
-    output.execute();
+    // Zip up the contents of tempDir into outputJar.
+
+    try (final ZipOutputStream zip =
+        new ZipOutputStream(new BufferedOutputStream(Files.newOutputStream(outputJar)))) {
+      zip.setMethod(ZipOutputStream.STORED);
+
+      List<Path> files;
+      try (Stream<Path> stream = Files.walk(tempDir).filter(Files::isRegularFile)) {
+        files = stream.collect(toCollection(ArrayList::new));
+      }
+
+      for (Path path : files) {
+        ZipEntry entry = new ZipEntry(tempDir.relativize(path).toString());
+        entry.setTime(DEFAULT_TIMESTAMP.toEpochMilli());
+        entry.setSize(Files.size(path));
+        entry.setCompressedSize(Files.size(path));
+        entry.setCrc(Hashing.crc32().hashBytes(Files.readAllBytes(path)).asInt());
+        zip.putNextEntry(entry);
+        zip.write(Files.readAllBytes(path));
+        zip.closeEntry();
+      }
+      zip.close();
+    } catch (IOException e) {
+      throw new IOException("Failed to write output jar: " + outputJar, e);
+    }
+    Files.setLastModifiedTime(outputJar, FileTime.from(DEFAULT_TIMESTAMP));
   }
 }
