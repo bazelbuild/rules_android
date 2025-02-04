@@ -86,6 +86,7 @@ genrule(
     cmd = "unzip -q -c " +
           "$(location @rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio) " +
           "META-INF/desugar/d8/desugar.json > $@",
+    visibility = ["//visibility:public"],
 )
 
 genrule(
@@ -108,6 +109,7 @@ genrule(
     }),
     outs = ["desugar_jdk_libs.json"],
     cmd = "cp $< $@",
+    visibility = ["//visibility:public"],
 )
 
 genrule(
@@ -175,11 +177,20 @@ genrule(
     visibility = ["//visibility:public"],
 )
 
+_MIN_SDK_VERSION = "19"
+
 genrule(
     name = "d8_desugar_params",
     outs = ["d8_desugar_params.txt"],
-    cmd = "echo -n --min_sdk_version 19 > $@",
+    cmd = "echo -n --min_sdk_version " + _MIN_SDK_VERSION + " > $@",
     visibility = ["//visibility:private"],
+)
+
+genrule(
+    name = "desugar_min_sdk_version_txt",
+    outs = ["desugar_min_sdk_version.txt"],
+    cmd = "echo -n " + _MIN_SDK_VERSION + " > $@",
+    visibility = ["//visibility:public"],
 )
 
 sh_binary(

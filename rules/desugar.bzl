@@ -26,6 +26,7 @@ def _desugar(
         min_sdk_version = 0,
         library_desugaring = True,
         desugar_exec = None,
+        desugared_lib_config = None,
         toolchain_type = None):
     """Desugars a JAR.
 
@@ -38,6 +39,8 @@ def _desugar(
         min_sdk_version: Integer. The minimum targeted sdk version.
         library_desugaring: Boolean. Whether to enable core library desugaring.
         desugar_exec: File. The executable desugar file.
+        desugared_lib_config: File. The json file containing desugarer options.
+        toolchain_type: Label or String. The toolchain to use for running the desugar action.
     """
 
     args = ctx.actions.args()
@@ -50,18 +53,24 @@ def _desugar(
     args.add_all(classpath, before_each = "--classpath_entry")
     args.add_all(bootclasspath, before_each = "--bootclasspath_entry")
 
+    input_file_deps = [input]
     if library_desugaring:
         if ctx.fragments.android.check_desugar_deps:
             args.add("--emit_dependency_metadata_as_needed")
 
-        if ctx.fragments.android.desugar_java8_libs and library_desugaring:
+        if ctx.fragments.android.desugar_java8_libs:
             args.add("--desugar_supported_core_libs")
+            args.add("--desugared_lib_config", desugared_lib_config)
+            if desugared_lib_config:
+                input_file_deps.append(desugared_lib_config)
+            else:
+                fail("Got NoneType for desugared_lib_config")
 
     if min_sdk_version > 0:
         args.add("--min_sdk_version", str(min_sdk_version))
 
     ctx.actions.run(
-        inputs = depset([input] + bootclasspath, transitive = [classpath]),
+        inputs = depset(input_file_deps + bootclasspath, transitive = [classpath]),
         outputs = [output],
         executable = desugar_exec,
         arguments = [args],
