@@ -35,8 +35,6 @@ py_test(
         "@bazel_tools//tools/bash/runfiles",
     ],
     main = "unittest_test.py",
-    python_version = "PY3",
-    srcs_version = "PY3",
     tags = [
         "no_windows",  # test runs bash scripts in a subprocess
     ],
