@@ -15,15 +15,12 @@ licenses(["notice"])
 py_library(
     name = "validate_manifest_lib",
     srcs = ["validate_manifest.py"],
-    srcs_version = "PY3",
     deps = ["@bazel_tools//third_party/py/abseil"],
 )
 
 py_test(
     name = "validate_manifest_test",
     srcs = ["validate_manifest_test.py"],
-    python_version = "PY3",
-    srcs_version = "PY3",
     deps = [
         ":validate_manifest_lib",
     ],
@@ -32,7 +29,6 @@ py_test(
 py_binary(
     name = "validate_manifest",
     srcs = ["validate_manifest.py"],
-    python_version = "PY3",
     visibility = ["//visibility:public"],
     deps = [
         ":validate_manifest_lib",
