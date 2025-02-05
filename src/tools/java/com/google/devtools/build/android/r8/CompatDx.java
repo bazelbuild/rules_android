@@ -174,7 +174,7 @@ public class CompatDx {
     @Parameter(
         names = "--min-sdk-version",
         description = "Minimum Android API level compatibility.")
-    public int minApiLevel = 19; // Same as Constants.MIN_API_LEVEL.
+    public int minApiLevel = Integer.parseInt(Constants.MIN_API_LEVEL);
 
     @Parameter(names = "--input-list", description = "File listing input files.")
     public String inputList;

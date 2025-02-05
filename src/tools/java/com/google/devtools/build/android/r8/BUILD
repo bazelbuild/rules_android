@@ -2,6 +2,7 @@
 #   Collection of dex utilities used in the bazel android actions.
 
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+load("//rules:min_sdk_version.bzl", "min_sdk_version")
 
 filegroup(
     name = "srcs",
@@ -30,6 +31,7 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android/desugar/dependencies",
     ],
     deps = [
+        ":constants",
         "//src/tools/java/com/google/devtools/build/android:android_options_utils",
         "//tools/android:autovalue",
         "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
@@ -127,4 +129,26 @@ java_binary(
     runtime_deps = [
         ":r8",
     ],
+)
+
+java_library(
+    name = "constants",
+    srcs = [":Constants_java"],
+    visibility = [":__pkg__"],
+)
+
+genrule(
+    name = "Constants_java",
+    outs = ["Constants.java"],
+    cmd = """
+cat > $@ << EOF
+package com.google.devtools.build.android.r8;
+/** Constants shared by desugaring and dexing. */
+public class Constants {
+  public static final String MIN_API_LEVEL = "%s";
+  private Constants() {}
+}
+EOF
+""" % str(min_sdk_version.DEPOT_FLOOR),
+    visibility = [":__pkg__"],
 )
