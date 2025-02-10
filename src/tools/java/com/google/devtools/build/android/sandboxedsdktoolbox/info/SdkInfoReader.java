@@ -38,7 +38,11 @@ public final class SdkInfoReader {
     SdkModulesConfig.Builder modulesConfig = SdkModulesConfig.newBuilder();
     try {
       JsonFormat.parser().merge(Files.newBufferedReader(sdkModulesConfigPath), modulesConfig);
-      return new SdkInfo(modulesConfig.getSdkPackageName(), modulesConfig.getSdkVersion());
+      return new SdkInfo(
+          modulesConfig.getSdkPackageName(),
+          modulesConfig.getSdkVersion(),
+          modulesConfig.getSdkProviderClassName(),
+          modulesConfig.getCompatSdkProviderClassName());
     } catch (IOException e) {
       throw new UncheckedIOException("Failed to parse SDK Module Config.", e);
     }

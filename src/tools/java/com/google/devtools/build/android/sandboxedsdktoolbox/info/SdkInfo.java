@@ -29,20 +29,37 @@ public final class SdkInfo {
   private final String packageName;
   private final RuntimeEnabledSdkVersion version;
   private final Optional<String> certificateDigest;
+  private final Optional<String> sdkProviderClassName;
+  private final Optional<String> compatSdkProviderClassName;
 
-  SdkInfo(String packageName, RuntimeEnabledSdkVersion version) {
-    this(packageName, version, Optional.empty());
+  SdkInfo(
+      String packageName,
+      RuntimeEnabledSdkVersion version,
+      String sdkProviderClassName,
+      String compatSdkProviderClassName) {
+    this(
+        packageName,
+        version,
+        Optional.empty(),
+        Optional.ofNullable(sdkProviderClassName),
+        Optional.ofNullable(compatSdkProviderClassName));
   }
 
   SdkInfo(String packageName, RuntimeEnabledSdkVersion version, String certificateDigest) {
-    this(packageName, version, Optional.of(certificateDigest));
+    this(packageName, version, Optional.of(certificateDigest), Optional.empty(), Optional.empty());
   }
 
   private SdkInfo(
-      String packageName, RuntimeEnabledSdkVersion version, Optional<String> certificateDigest) {
+      String packageName,
+      RuntimeEnabledSdkVersion version,
+      Optional<String> certificateDigest,
+      Optional<String> sdkProviderClassName,
+      Optional<String> compatSdkProviderClassName) {
     this.packageName = packageName;
     this.version = version;
     this.certificateDigest = certificateDigest;
+    this.sdkProviderClassName = sdkProviderClassName;
+    this.compatSdkProviderClassName = compatSdkProviderClassName;
   }
 
   /** The SDK unique package name. */
@@ -76,19 +93,31 @@ public final class SdkInfo {
     return certificateDigest;
   }
 
+  /** The fully qualified name for the platform SDK provider entrypoint class. */
+  public Optional<String> getSdkProviderClassName() {
+    return sdkProviderClassName;
+  }
+
+  /** The fully qualified name for the compatibility SDK provider entrypoint class. */
+  public Optional<String> getCompatSdkProviderClassName() {
+    return compatSdkProviderClassName;
+  }
+
   @Override
   public boolean equals(Object object) {
-    if (object instanceof SdkInfo) {
-      SdkInfo that = (SdkInfo) object;
+    if (object instanceof SdkInfo that) {
       return this.packageName.equals(that.packageName)
           && this.version.equals(that.version)
-          && this.certificateDigest.equals(that.certificateDigest);
+          && this.certificateDigest.equals(that.certificateDigest)
+          && this.sdkProviderClassName.equals(that.sdkProviderClassName)
+          && this.compatSdkProviderClassName.equals(that.compatSdkProviderClassName);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(packageName, version, certificateDigest);
+    return Objects.hash(
+        packageName, version, certificateDigest, sdkProviderClassName, compatSdkProviderClassName);
   }
 }
