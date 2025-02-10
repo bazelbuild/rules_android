@@ -248,6 +248,36 @@ def _generate_sdk_dependencies_manifest(
         progress_message = "Generate SDK dependencies manifest %s" % output.short_path,
     )
 
+def _generate_sdk_proguard_specs(
+        ctx,
+        output = None,
+        sdk_module_config = None,
+        sandboxed_sdk_toolbox = None,
+        host_javabase = None):
+    """Generates Proguard specs for an SDK.
+
+    Args:
+      ctx: The context.
+      output: File. The output generated proguard spec.
+      sdk_module_config: SDK Module config JSON file from an SDK bundle.
+      sandboxed_sdk_toolbox: Toolbox executable files.
+      host_javabase: Javabase used to run the toolbox.
+    """
+    args = ctx.actions.args()
+    args.add("generate-sdk-proguard-specs")
+    args.add("--sdk-modules-config", sdk_module_config)
+    args.add("--output", output)
+    _java.run(
+        ctx = ctx,
+        host_javabase = host_javabase,
+        executable = sandboxed_sdk_toolbox,
+        arguments = [args],
+        inputs = [sdk_module_config],
+        outputs = [output],
+        mnemonic = "GenerateSdkProguardSpecs",
+        progress_message = "Generating Proguard specs for SDK %s" % output.short_path,
+    )
+
 def _generate_sdk_split_properties(
         ctx,
         output = None,
@@ -341,6 +371,7 @@ sandboxed_sdk_toolbox = struct(
     generate_runtime_enabled_sdk_config = _generate_runtime_enabled_sdk_config,
     generate_runtime_enabled_sdk_table = _generate_runtime_enabled_sdk_table,
     generate_sdk_dependencies_manifest = _generate_sdk_dependencies_manifest,
+    generate_sdk_proguard_specs = _generate_sdk_proguard_specs,
     generate_sdk_split_properties = _generate_sdk_split_properties,
     validate_modules_config = _validate_modules_config,
 )
