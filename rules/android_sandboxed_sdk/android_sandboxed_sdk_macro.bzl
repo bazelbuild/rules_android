@@ -89,6 +89,39 @@ _android_sandboxed_sdk = rule(
     ],
 )
 
+def _android_sandboxed_sdk_generate_proguard_specs_impl(ctx):
+    proguard_specs = ctx.actions.declare_file(ctx.label.name + "_proguard_specs.pgcfg")
+    _sandboxed_sdk_toolbox.generate_sdk_proguard_specs(
+        ctx,
+        output = proguard_specs,
+        sdk_module_config = ctx.file.sdk_modules_config,
+        sandboxed_sdk_toolbox = _get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
+        host_javabase = _common.get_host_javabase(ctx),
+    )
+    return [
+        DefaultInfo(
+            files = depset([proguard_specs]),
+        ),
+    ]
+
+_android_sandboxed_sdk_generate_proguard_specs = rule(
+    attrs = dict(
+        sdk_modules_config = attr.label(
+            allow_single_file = [".pb.json"],
+        ),
+        _host_javabase = attr.label(
+            cfg = "exec",
+            default = Label("//tools/jdk:current_java_runtime"),
+        ),
+    ),
+    executable = False,
+    implementation = _android_sandboxed_sdk_generate_proguard_specs_impl,
+    toolchains = [
+        "//toolchains/android:toolchain_type",
+        "@bazel_tools//tools/jdk:toolchain_type",
+    ],
+)
+
 def android_sandboxed_sdk_macro(
         name,
         sdk_modules_config,
@@ -99,6 +132,7 @@ def android_sandboxed_sdk_macro(
         testonly = None,
         tags = [],
         custom_package = None,
+        proguard_specs = [],
         android_binary = None):
     """Macro for an Android Sandboxed SDK.
 
@@ -113,6 +147,7 @@ def android_sandboxed_sdk_macro(
       tags: A list of string tags passed to generated targets.
       custom_package: Java package for resources. This needs to be the same as the package set in
         the sdk_modules_config.
+      proguard_specs: Proguard specs to use for the SDK.
       android_binary: android_binary rule used to create the intermediate SDK APK.
     """
     fully_qualified_name = "//%s:%s" % (native.package_name(), name)
@@ -139,6 +174,17 @@ EOF
 
     bin_fqn = "%s_bin" % fully_qualified_name
     bin_label = Label(bin_fqn)
+
+    result_proguard_specs = []
+    if proguard_specs:
+        result_proguard_specs.extend(proguard_specs)
+        generated_proguard_spec_label = Label("%s_gen_proguard_specs" % fully_qualified_name)
+        _android_sandboxed_sdk_generate_proguard_specs(
+            name = generated_proguard_spec_label.name,
+            sdk_modules_config = sdk_modules_config,
+        )
+        result_proguard_specs.append(generated_proguard_spec_label)
+
     android_binary(
         name = bin_label.name,
         manifest = str(manifest_label),
@@ -147,6 +193,8 @@ EOF
         testonly = testonly,
         tags = tags,
         use_r_package = True,
+        shrink_resources = 0,
+        proguard_specs = result_proguard_specs,
         custom_package = custom_package,
     )
 
