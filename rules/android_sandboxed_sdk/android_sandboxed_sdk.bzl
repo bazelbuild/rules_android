@@ -31,7 +31,8 @@ def android_sandboxed_sdk(
         visibility = None,
         testonly = None,
         tags = [],
-        custom_package = None):
+        custom_package = None,
+        proguard_specs = []):
     """Rule to build an Android Sandboxed SDK.
 
     A sandboxed SDK is a collection of libraries that can run independently in the Privacy Sandbox
@@ -52,6 +53,7 @@ def android_sandboxed_sdk(
         is inferred from the directory where the BUILD file containing the rule is. You can specify
         a different package but this is highly discouraged since it can introduce classpath
         conflicts with other libraries that will only be detected at runtime.
+      proguard_specs: Proguard specs to use for the SDK. If specified, will also include an implicitly generated spec.
     """
 
     _android_sandboxed_sdk_macro(
@@ -64,5 +66,6 @@ def android_sandboxed_sdk(
         testonly = testonly,
         tags = tags,
         custom_package = custom_package,
+        proguard_specs = proguard_specs,
         android_binary = _android_binary_macro,
     )
