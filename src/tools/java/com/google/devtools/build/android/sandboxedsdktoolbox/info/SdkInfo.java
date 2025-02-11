@@ -105,7 +105,8 @@ public final class SdkInfo {
 
   @Override
   public boolean equals(Object object) {
-    if (object instanceof SdkInfo that) {
+    if (object instanceof SdkInfo) {
+      SdkInfo that = (SdkInfo) object;
       return this.packageName.equals(that.packageName)
           && this.version.equals(that.version)
           && this.certificateDigest.equals(that.certificateDigest)
