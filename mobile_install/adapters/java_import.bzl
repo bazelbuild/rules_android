@@ -24,6 +24,7 @@ load("//mobile_install:utils.bzl", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
+load(":desugar.bzl", "get_desugar_classpath")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -49,7 +50,7 @@ def _adapt(target, ctx):
             dex_shards = dex(
                 ctx,
                 target[JavaInfo].runtime_output_jars,
-                target[JavaInfo].transitive_compile_time_jars,
+                get_desugar_classpath(target[JavaInfo]),
                 create_file = utils.declare_file,
             ),
             deps = providers.collect(

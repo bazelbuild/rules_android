@@ -16,6 +16,7 @@
 load("//providers:providers.bzl", "AndroidIdeInfo", "StarlarkAndroidDexInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load(":acls.bzl", "acls")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
@@ -79,6 +80,11 @@ def get_aspect_deps(ctx):
 
     return deps_list
 
+def _get_desugar_classpath(java_info):
+    if acls.in_desugaring_runtime_jar_classpath_rollout():
+        return java_info.transitive_runtime_jars
+    return java_info.transitive_compile_time_jars
+
 def _aspect_impl(target, ctx):
     """Adapts the rule and target data.
 
@@ -107,7 +113,7 @@ def _aspect_impl(target, ctx):
     dex_archives_dict = {}
     runtime_jars = _get_produced_runtime_jars(target, ctx, extra_toolchain_jars)
     bootclasspath = _get_boot_classpath(target, ctx)
-    compiletime_classpath = target[JavaInfo].transitive_compile_time_jars if JavaInfo in target else depset([])
+    desugar_classpath = _get_desugar_classpath(target[JavaInfo]) if JavaInfo in target else depset([])
     if runtime_jars:
         basename_clash = _check_basename_clash(runtime_jars)
         aspect_dexopts = _get_aspect_dexopts(ctx)
@@ -120,7 +126,7 @@ def _aspect_impl(target, ctx):
                     input = jar,
                     output = desugared_jar,
                     bootclasspath = bootclasspath,
-                    classpath = compiletime_classpath,
+                    classpath = desugar_classpath,
                     min_sdk_version = min_sdk_version,
                     desugar_exec = ctx.executable._desugar_java8,
                     desugared_lib_config = ctx.file._desugared_lib_config,

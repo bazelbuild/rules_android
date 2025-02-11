@@ -18,6 +18,7 @@ load("//mobile_install:transform.bzl", "dex")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
+load(":desugar.bzl", "get_desugar_classpath")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -42,7 +43,7 @@ def _adapt(target, ctx):
             dex_shards = dex(
                 ctx,
                 [j.class_jar for j in target[JavaInfo].outputs.jars],
-                target[JavaInfo].transitive_compile_time_jars,
+                get_desugar_classpath(target[JavaInfo]),
             ),
             deps = providers.collect(MIAndroidDexInfo, ctx.rule.attr.deps),
         ),
