@@ -29,6 +29,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
+load(":desugar.bzl", "get_desugar_classpath")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -77,7 +78,7 @@ def extract(target, ctx):
                         extension_registry_class_jar,
                     ] if extension_registry_class_jar else []
                 ),
-                target[JavaInfo].transitive_compile_time_jars,
+                get_desugar_classpath(target[JavaInfo]),
             ),
             deps = providers.collect(MIAndroidDexInfo, ctx.rule.attr.deps),
         ),

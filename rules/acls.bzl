@@ -56,6 +56,7 @@ load("//rules/acls:b122039567.bzl", "B122039567")
 load("//rules/acls:baseline_profiles_optimizer_integration.bzl", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION_FALLBACK")
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
+load("//rules/acls:desugaring_runtime_jar_classpath.bzl", "DESUGAR_USE_RUNTIME_JARS")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
 load("//rules/acls:disable_optimizing_dexer.bzl", "DISABLE_OPTIMIZING_DEXER")
 load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOURCES")
@@ -210,6 +211,9 @@ def _get_optimizer_execution_requirements(target_package):
 
 def _in_stamp_signing_rollout(fqn):
     return matches(fqn, STAMP_SIGNING_ROLLOUT_DICT) and not matches(fqn, STAMP_SIGNING_FALLBACK_DICT)
+
+def _in_desugaring_runtime_jar_classpath_rollout():
+    return DESUGAR_USE_RUNTIME_JARS
 
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
@@ -374,6 +378,7 @@ acls = struct(
     in_resource_shrinking_in_optimizer = _in_resource_shrinking_in_optimizer,
     in_record_desugaring_rollout = _in_record_desugaring_rollout,
     in_stamp_signing_rollout = _in_stamp_signing_rollout,
+    in_desugaring_runtime_jar_classpath_rollout = _in_desugaring_runtime_jar_classpath_rollout,
 )
 
 # Visible for testing
