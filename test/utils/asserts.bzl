@@ -77,7 +77,7 @@ def ExpectedResourcesNodeInfo(
         exports_manifest = False,
         name = "unused"):  # appease linter
     name = label + str(assets) + assets_dir + str(assets_symbols) + str(compiled_resources) + str(exports_manifest)
-    name = ":" + "".join([c for c in name.elems() if c != ":"])
+    name = ":_data_" + str(hash(name))
 
     _expected_resources_node_info(
         name = name[1:],
@@ -131,7 +131,7 @@ def ExpectedStarlarkAndroidResourcesInfo(
         name = "unused"):  # appease linter
     name = (str(direct_resources_nodes) + str(transitive_resources_nodes) + str(transitive_assets) +
             str(transitive_assets_symbols) + str(transitive_compiled_resources))
-    name = ":" + "".join([c for c in name.elems() if c not in [":", "\\"]])
+    name = ":_data_" + str(hash(name))
     _expected_starlark_android_resources_info(
         name = name[1:],
         direct_resources_nodes = direct_resources_nodes,
@@ -173,7 +173,7 @@ _expected_android_binary_native_libs_info = rule(
 
 def ExpectedAndroidBinaryNativeLibsInfo(**kwargs):
     name = "".join([str(kwargs[param]) for param in kwargs])
-    name = ":" + "".join([c for c in name.elems() if c not in [" ", "[", "]", ":", "\\", "{", "\""]])
+    name = ":_data_" + str(hash(name))
     _expected_android_binary_native_libs_info(name = name[1:], **kwargs)
     return name
 
