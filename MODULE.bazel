@@ -14,7 +14,7 @@ bazel_dep(name = "stardoc", version = "0.7.2", dev_dependency = True)
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
-bazel_dep(name = "protobuf", version = "29.0", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "29.3", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
 bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
@@ -85,8 +85,8 @@ maven.install(
         "jakarta.inject:jakarta.inject-api:2.0.1",
         "junit:junit:4.13.2",
         "com.beust:jcommander:1.82",
-        "com.google.protobuf:protobuf-java:4.29.0",
-        "com.google.protobuf:protobuf-java-util:4.29.0",
+        "com.google.protobuf:protobuf-java:4.29.3",
+        "com.google.protobuf:protobuf-java-util:4.29.3",
         "com.google.code.findbugs:jsr305:3.0.2",
         "androidx.databinding:databinding-compiler:8.7.0",
         "org.ow2.asm:asm:9.6",
