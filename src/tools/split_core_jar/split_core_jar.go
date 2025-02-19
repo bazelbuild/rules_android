@@ -23,17 +23,18 @@ import (
 	"strings"
 	"time"
 
-  "flag"
-  "log"
-  "bitbucket.org/creachadair/stringset"
+	"bitbucket.org/creachadair/stringset"
+
+	"flag"
+	"log"
 )
 
 var (
 	inputPath              = flag.String("input", "", "input jar path")
-	coreJarPathsStr           = flag.String("core_jars", "", "input core jar paths, to filter against")
+	coreJarPathsStr        = flag.String("core_jars", "", "input core jar paths, to filter against")
 	outputCoreJarPath      = flag.String("output_core_jar", "", "output core jar path")
 	outputAuxiliaryJarPath = flag.String("output_auxiliary_jar", "", "output auxiliary jar path")
-	exclusionsStr             = flag.String("exclusions", "", "packages to skip in core jar")
+	exclusionsStr          = flag.String("exclusions", "", "packages to skip in core jar")
 
 	martinEpoch = parseTimeOrDie(time.RFC3339, "2010-01-01T00:00:00Z")
 )
@@ -92,17 +93,17 @@ func (z *outputZip) Copy(f *zip.File) error {
 }
 
 func portableInit() {
-  flag.Parse()
+	flag.Parse()
 }
 
 func main() {
-  portableInit()
+	portableInit()
 
 	packages := stringset.New()
-  coreJarPathsArr := strings.Split(*coreJarPathsStr, ",")
-  coreJarPaths := &coreJarPathsArr
-  exclusionsArr := strings.Split(*exclusionsStr, ",")
-  exclusions := &exclusionsArr
+	coreJarPathsArr := strings.Split(*coreJarPathsStr, ",")
+	coreJarPaths := &coreJarPathsArr
+	exclusionsArr := strings.Split(*exclusionsStr, ",")
+	exclusions := &exclusionsArr
 
 	for _, coreJar := range *coreJarPaths {
 		r, err := zip.OpenReader(coreJar)

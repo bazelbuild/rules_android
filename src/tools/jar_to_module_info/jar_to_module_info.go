@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"strings"
 
+	"bitbucket.org/creachadair/stringset"
+
 	"flag"
 	"log"
 	"os"
-
-	"bitbucket.org/creachadair/stringset"
 )
 
 var (
