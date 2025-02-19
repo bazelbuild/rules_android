@@ -53,8 +53,8 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_TAG),
     )
 
-    PROTOBUF_VERSION = "29.0"
-    PROTOBUF_HASH = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c"
+    PROTOBUF_VERSION = "29.3"
+    PROTOBUF_HASH = "008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e"
     maybe(
         http_archive,
         name = "com_google_protobuf",
