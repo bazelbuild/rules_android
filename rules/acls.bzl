@@ -72,6 +72,7 @@ load(
 load("//rules/acls:proguard_apply_mapping.bzl", "ALLOW_PROGUARD_APPLY_MAPPING")
 load("//rules/acls:r8.bzl", "USE_R8")
 load("//rules/acls:record_desugaring.bzl", "RECORD_DESUGARING_FALLBACK", "RECORD_DESUGARING_ROLLOUT")
+load("//rules/acls:resource_translation_merging_rollout.bzl", "RESOURCE_TRANSLATION_MERGING_FALLBACK", "RESOURCE_TRANSLATION_MERGING_ROLLOUT")
 load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
 load("//rules/acls:stamp_signing.bzl", "STAMP_SIGNING_FALLBACK", "STAMP_SIGNING_ROLLOUT")
 load("//rules/acls:test_to_instrument_test_rollout.bzl", "TEST_TO_INSTRUMENT_TEST_FALLBACK", "TEST_TO_INSTRUMENT_TEST_ROLLOUT")
@@ -215,6 +216,9 @@ def _in_stamp_signing_rollout(fqn):
 def _in_desugaring_runtime_jar_classpath_rollout():
     return DESUGAR_USE_RUNTIME_JARS
 
+def _in_resource_translation_merging_rollout(fqn):
+    return matches(fqn, RESOURCE_TRANSLATION_MERGING_ROLLOUT_DICT) and not matches(fqn, RESOURCE_TRANSLATION_MERGING_FALLBACK_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -283,6 +287,8 @@ RECORD_DESUGARING_FALLBACK_DICT = make_dict(RECORD_DESUGARING_FALLBACK)
 RECORD_DESUGARING_ROLLOUT_DICT = make_dict(RECORD_DESUGARING_ROLLOUT)
 STAMP_SIGNING_ROLLOUT_DICT = make_dict(STAMP_SIGNING_ROLLOUT)
 STAMP_SIGNING_FALLBACK_DICT = make_dict(STAMP_SIGNING_FALLBACK)
+RESOURCE_TRANSLATION_MERGING_ROLLOUT_DICT = make_dict(RESOURCE_TRANSLATION_MERGING_ROLLOUT)
+RESOURCE_TRANSLATION_MERGING_FALLBACK_DICT = make_dict(RESOURCE_TRANSLATION_MERGING_FALLBACK)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -379,6 +385,7 @@ acls = struct(
     in_record_desugaring_rollout = _in_record_desugaring_rollout,
     in_stamp_signing_rollout = _in_stamp_signing_rollout,
     in_desugaring_runtime_jar_classpath_rollout = _in_desugaring_runtime_jar_classpath_rollout,
+    in_resource_translation_merging_rollout = _in_resource_translation_merging_rollout,
 )
 
 # Visible for testing
