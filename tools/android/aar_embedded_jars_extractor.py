@@ -100,9 +100,14 @@ def main(unused_argv):
               os.path.join(aar_junc, os.path.basename(aar_long)),
               os.path.join(params_junc, os.path.basename(params_long)),
               os.path.join(out_junc, os.path.basename(out_long)),
-              FLAGS.output_dir, FLAGS.build_target)
+              build_target=FLAGS.build_target,
+              output_dir_orig=FLAGS.output_dir)
   else:
-    _Main(FLAGS.input_aar, FLAGS.output_singlejar_param_file, FLAGS.output_dir, FLAGS.build_target)
+    _Main(
+        FLAGS.input_aar,
+        FLAGS.output_singlejar_param_file,
+        FLAGS.output_dir,
+        build_target=FLAGS.build_target)
 
 
 if __name__ == "__main__":
