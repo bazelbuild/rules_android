@@ -1,0 +1,9 @@
+common:core_library_desugaring --desugar_java8_libs
+
+common --java_runtime_version=remotejdk_17
+common --tool_java_runtime_version=remotejdk_17
+
+# Flags to enable mobile-install v3
+mobile-install --mode=skylark --mobile_install_aspect=@rules_android//mobile_install:mi.bzl --mobile_install_supported_rules=android_binary
+# Required to invoke the Studio deployer jar
+mobile-install --tool_java_runtime_version=17
