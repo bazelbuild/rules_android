@@ -112,8 +112,12 @@ _ATTRS = dict(
         cfg = "exec",
         default = "//tools/android:compiler_annotation_processor",
     ),
-    data_binding_annotation_template = attr.label(
-        default = "//rules:data_binding_annotation_template.txt",
+    data_binding_annotation_template_androidx = attr.label(
+        default = "//rules:data_binding_annotation_template_androidx.txt",
+        allow_files = True,
+    ),
+    data_binding_annotation_template_support_lib = attr.label(
+        default = "//rules:data_binding_annotation_template_support_lib.txt",
         allow_files = True,
     ),
     data_binding_exec = attr.label(

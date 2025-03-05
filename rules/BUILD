@@ -3,7 +3,8 @@ load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
 load("@rules_java//java:defs.bzl", "java_library")
 
 exports_files([
-    "data_binding_annotation_template.txt",
+    "data_binding_annotation_template_androidx.txt",
+    "data_binding_annotation_template_support_lib.txt",
     "res_v3_dummy_AndroidManifest.xml",
     "res_v3_dummy_R.txt",
     "robolectric_properties_template.txt",

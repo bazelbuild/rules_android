@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel Android Data Binding."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//providers:providers.bzl", "DataBindingV2Info")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", _utils = "utils")
@@ -67,7 +68,7 @@ def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_
     args.add("-classInfoOut", class_info)
     args.add("-sourceOut", srcjar)
     args.add("-zipSourceOutput", "true")
-    args.add("-useAndroidX", "false")
+    args.add("-useAndroidX", ctx.attr._databinding_use_androidx[BuildSettingInfo].value)
 
     if deps:
         if type(deps[0].class_infos) == "depset":
@@ -260,11 +261,11 @@ def _process(
     if defines_resources:
         # Outputs of the Data Binding annotation processor.
         br_out = ctx.actions.declare_file(
-            output_dir + "bin-files/%s-br.bin" % java_package,
+            output_dir + "bin-files/%s--br.bin" % java_package,
         )
         db_info[_JAVA_ANNOTATION_PROCESSOR_ADDITIONAL_OUTPUTS].append(br_out)
         setter_store_out = ctx.actions.declare_file(
-            output_dir + "bin-files/%s-setter_store.json" % java_package,
+            output_dir + "bin-files/%s--setter_store.json" % java_package,
         )
         db_info[_JAVA_ANNOTATION_PROCESSOR_ADDITIONAL_OUTPUTS].append(
             setter_store_out,
