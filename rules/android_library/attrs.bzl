@@ -243,6 +243,9 @@ ATTRS = _attrs.add(
         _aidl_lib = attr.label(
             default = Label("//rules:aidl_lib"),
         ),
+        _databinding_use_androidx = attr.label(
+            default = "//rules/flags:databinding_use_androidx",
+        ),
     ),
     _attrs.compilation_attributes(),
     _attrs.DATA_CONTEXT,

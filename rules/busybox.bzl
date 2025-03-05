@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel ResourcesBusyBox Commands."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", _java = "java")
 
@@ -984,6 +985,7 @@ def _process_databinding(
     args.add_all(res_dirs, before_each = "--resource_root")
     args.add("--dataBindingInfoOut", out_databinding_info)
     args.add("--appId", java_package)
+    args.add("--useDataBindingAndroidX", ctx.attr._databinding_use_androidx[BuildSettingInfo].value)
 
     _set_warning_level(ctx, args)
 
