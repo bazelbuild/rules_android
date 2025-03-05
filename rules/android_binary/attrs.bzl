@@ -247,6 +247,9 @@ ATTRS = _attrs.replace(
                 Allow for the optimizer to process resources. This is not supported in proguard.
                 """,
             ),
+            _databinding_use_androidx = attr.label(
+                default = "//rules/flags:databinding_use_androidx",
+            ),
         ),
         _attrs.compilation_attributes(apply_android_transition = True),
         _attrs.DATA_CONTEXT,

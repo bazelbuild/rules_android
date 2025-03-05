@@ -1,1 +1,2 @@
-common --java_runtime_version=17
+common --java_runtime_version=remotejdk_17
+common --tool_java_runtime_version=remotejdk_17

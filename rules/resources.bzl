@@ -381,7 +381,7 @@ OUT_DIR=$(mktemp -d)
 CUR_PWD=$(pwd)
 
 if zipinfo -t "$1"; then
-    ORDERED_LIST=`(unzip -l "$1" | sed -e '1,3d' | head -n -2 | tr -s " " | cut -d " " -f5)`
+    ORDERED_LIST=`(zipinfo -1 "$1" | sort)`
 
     unzip -q "$1" -d "$IN_DIR"
 
@@ -390,7 +390,8 @@ if zipinfo -t "$1"; then
     for FILE in $ORDERED_LIST; do
         cd "$IN_DIR"
         if [ -f "$FILE" ]; then
-            sed -i 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE"
+            LC_ALL=C sed -i.bak 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE"
+            rm "${FILE}.bak"
             NEW_NAME=`echo "$FILE" | sed 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' | sed 's#'"$IN_DIR"'/##g'`
             mkdir -p `dirname "$OUT_DIR/$NEW_NAME"` && touch "$OUT_DIR/$NEW_NAME"
             cp -p "$FILE" "$OUT_DIR/$NEW_NAME"
