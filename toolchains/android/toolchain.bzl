@@ -315,8 +315,13 @@ _ATTRS = dict(
       cfg = "exec",
       default = Label("//src/tools/deploy_info"),
       executable = True,
-    )
-
+    ),
+    translation_merger = attr.label(
+        cfg = "exec",
+        default = "@androidsdk//:fail",
+        allow_files = True,
+        executable = True,
+    ),
 )
 
 def _impl(ctx):
