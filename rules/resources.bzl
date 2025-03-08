@@ -16,6 +16,7 @@
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:add_constraints.bzl", "add_constraints")
+load("//rules:data_binding.bzl", _data_binding = "data_binding")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -1205,6 +1206,7 @@ def _process(
         resource_files = None,
         neverlink = False,
         enable_data_binding = False,
+        data_binding_setter_store = None,
         fix_resource_transitivity = False,
         crunch_png = True,
         aapt = None,
@@ -1388,6 +1390,12 @@ def _process(
     data_binding_layout_info = None
     processed_resources = resource_files
     processed_manifest = None
+
+    if data_binding_setter_store != None:
+        resources_ctx[_PROVIDERS].append(
+            _data_binding.process_aar(ctx, data_binding_setter_store)
+        )
+
     if not defines_resources:
         if aapt:
             # Generate an empty manifest with the right package
