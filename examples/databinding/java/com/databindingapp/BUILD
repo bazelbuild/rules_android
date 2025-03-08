@@ -18,6 +18,7 @@ android_library(
     enable_data_binding = True,
     deps = [
         "@maven//:androidx_annotation_annotation_jvm",
+        "@maven//:androidx_databinding_databinding_adapters",
         "@maven//:androidx_databinding_databinding_runtime",
     ],
 )
