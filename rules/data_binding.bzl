@@ -328,6 +328,19 @@ def _process(
 
     return DataBindingContextInfo(**db_info)
 
+def _process_aar(
+    ctx,
+    data_binding_setter_store):
+    """Builds a data binding provider for an AAR's extracted setter store
+    """
+    return DataBindingV2Info(
+        setter_stores = depset(direct = [data_binding_setter_store]),
+        class_infos = depset(),
+        transitive_br_files = depset(),
+        java_packages = [],
+    )
+
 data_binding = struct(
     process = _process,
+    process_aar = _process_aar,
 )
