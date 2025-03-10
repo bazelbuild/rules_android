@@ -52,8 +52,7 @@ def extract(target, ctx):
 
     java_package = target[AndroidIdeInfo].java_package
     if java_package == None:
-        fail("Unable to infer Java package for %s. Try setting `custom_package` if " +
-             "it does not live under a java/ or javatests/ package." % str(target))
+        fail("Unable to infer Java package for %s. Try setting `custom_package` if it does not live under a java/ or javatests/ package." % str(target))
 
     return dict(
         debug_key = utils.only(ctx.rule.files.debug_key, allow_empty = True),
