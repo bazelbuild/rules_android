@@ -82,7 +82,7 @@ def get_aspect_deps(ctx):
 
 def _get_desugar_classpath(java_info):
     if acls.in_desugaring_runtime_jar_classpath_rollout():
-        return java_info.transitive_runtime_jars
+        return java_info._transitive_full_compile_time_jars
     return java_info.transitive_compile_time_jars
 
 def _aspect_impl(target, ctx):
