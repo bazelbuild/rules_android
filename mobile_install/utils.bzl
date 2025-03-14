@@ -167,6 +167,8 @@ def dex(ctx, jar, out_dex_shards, deps = None, desugar = True):
         if deps:
             args.add_joined("-classpath", deps, join_with = ",")
         args.add("-desugar_core_libs", "True")
+        args.add("-desugared_lib_config", ctx.file._desugared_lib_config)
+
     args.add("-dexbuilder", ctx.executable._dexbuilder)
     args.add("-min_sdk_version", min_sdk)
     args.add("-in", jar)
@@ -177,7 +179,7 @@ def dex(ctx, jar, out_dex_shards, deps = None, desugar = True):
         arguments = ["dex", args],
         tools = [ctx.executable._desugar_java8, ctx.executable._dexbuilder],
         inputs = depset(
-            ctx.files._android_sdk + [jar],
+            ctx.files._android_sdk + [jar, ctx.file._desugared_lib_config],
             transitive = [deps] if deps else [],
         ),
         outputs = out_dex_shards,

@@ -54,7 +54,7 @@ def _get(ctx):
     # if not ctx.attr._min_sdk_version[BuildSettingInfo].value:
     #     return _DEPOT_FLOOR
     # return ctx.attr._min_sdk_version[BuildSettingInfo].value
-    return 0
+    return _DEPOT_FLOOR
 
 min_sdk_version = struct(
     attrs = _ATTRS,

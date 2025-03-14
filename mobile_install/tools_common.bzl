@@ -72,6 +72,10 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
+    _desugared_lib_config = attr.label(
+        allow_single_file = True,
+        default = Label("//tools/android:full_desugar_jdk_libs_config_json"),
+    ),
     _dexmerger = attr.label(
         cfg = "exec",
         default = Label("//tools/android:dexmerger"),
