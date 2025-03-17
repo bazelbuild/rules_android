@@ -127,8 +127,22 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         [get_android_toolchain(ctx).testsupport]
     )
 
+    added_deps = [
+         JavaInfo(
+             output_jar = get_android_sdk(ctx).android_jar,
+             compile_jar = get_android_sdk(ctx).android_jar,
+             # The android_jar must not be compiled into the test, it
+             # will bloat the Jar with no benefit.
+             neverlink = True,
+         ),
+    ]
+
     if ctx.configuration.coverage_enabled:
-        deps.append(get_android_toolchain(ctx).jacocorunner)
+        jacoco_runner = ctx.toolchains["@bazel_tools//tools/jdk:toolchain_type"].java.jacocorunner.executable
+        added_deps.append(JavaInfo(
+            output_jar = jacoco_runner,
+            compile_jar = jacoco_runner,
+        ))
         java_start_class = JACOCOCO_CLASS
         coverage_start_class = TEST_RUNNER_CLASS
     else:
@@ -144,16 +158,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         javac_opts = ctx.attr.javacopts,
         r_java = resources_ctx.r_java,
         deps = (
-            utils.collect_providers(JavaInfo, deps) +
-            [
-                JavaInfo(
-                    output_jar = get_android_sdk(ctx).android_jar,
-                    compile_jar = get_android_sdk(ctx).android_jar,
-                    # The android_jar must not be compiled into the test, it
-                    # will bloat the Jar with no benefit.
-                    neverlink = True,
-                ),
-            ]
+            utils.collect_providers(JavaInfo, deps) + added_deps
         ),
         plugins = utils.collect_providers(JavaPluginInfo, ctx.attr.plugins),
         java_toolchain = common.get_java_toolchain(ctx),
