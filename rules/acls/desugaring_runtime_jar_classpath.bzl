@@ -21,4 +21,4 @@ visibility(PROJECT_VISIBILITY)
 # rule attributes. The other is applied via the command line. There is clean way to get the
 # top-level target the aspect is applied to in these cases. In the end we just want to be able to
 # turn this feature entirely on or off independently of a release.
-DESUGAR_USE_RUNTIME_JARS = False
+DESUGAR_USE_RUNTIME_JARS = True
