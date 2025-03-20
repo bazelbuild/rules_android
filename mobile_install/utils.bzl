@@ -167,7 +167,9 @@ def dex(ctx, jar, out_dex_shards, deps = None, desugar = True):
         if deps:
             args.add_joined("-classpath", deps, join_with = ",")
         args.add("-desugar_core_libs", "True")
-        args.add("-desugared_lib_config", ctx.file._desugared_lib_config)
+
+    # Unconditionally add -desugared_lib_config. This matches the behavior of tools/android/d8_desugar.sh.
+    args.add("-desugared_lib_config", ctx.file._desugared_lib_config)
 
     args.add("-dexbuilder", ctx.executable._dexbuilder)
     args.add("-min_sdk_version", min_sdk)
