@@ -9,10 +9,8 @@ go_binary(
     name = "deploy_info",
     srcs = ["deploy_info.go"],
     visibility = [
-        "//mobile_install:__subpackages__",
         "//test/mobile_install:__subpackages__",
         "//toolchains/android:__subpackages__",
-        "//tools/android/mi/testing:__pkg__",
     ],
     deps = [
         "//src/common/golang:flagfile",
