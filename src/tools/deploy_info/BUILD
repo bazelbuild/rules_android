@@ -6,8 +6,10 @@ package(default_applicable_licenses = ["//:license"])
 licenses(["notice"])
 
 DEPLOY_INFO_VISIBILITY_GOOGLE3 = [
+    "//mobile_install:__subpackages__",
     "//test/mobile_install:__subpackages__",
     "//toolchains/android:__subpackages__",
+    "//tools/android/mi/testing:__pkg__",
 ]
 
 # buildifier: disable=unused-variable
