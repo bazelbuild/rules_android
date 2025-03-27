@@ -15,6 +15,7 @@
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
+load("//rules:utils.bzl", "get_android_toolchain")
 load(":deploy_info.bzl", "make_deploy_info_pb")
 load(":providers.bzl", "MIAppLaunchInfo")
 load(":utils.bzl", "utils")
@@ -65,6 +66,7 @@ def _make_app_runner(
         manifest_package_name_path,
         out_launcher,
         out_launcher_flags,
+        adb_path,
         splits = None,
         deploy_info_pb = None,
         test_apk = None,
@@ -89,6 +91,7 @@ def _make_app_runner(
     args["studio_deployer"] = getattr(ctx.file._studio_deployer, path_type)
     args["use_adb_root"] = str(use_adb_root).lower()
     args["use_studio_deployer"] = str(use_studio_deployer).lower()
+    args["adb"] = adb_path
 
     if test_data:
         args["data_files"] = ",".join([f.short_path for f in test_data])
@@ -146,6 +149,9 @@ def make_direct_launcher(
 
     runfiles.extend([launcher, launcher_flags])
 
+    adb = get_android_toolchain(ctx).adb
+    runfiles.extend(adb.files.to_list())
+
     runfiles.append(ctx.file._studio_deployer)
     if getattr(mi_app_info, "merged_manifest", None):
         runfiles.append(mi_app_info.merged_manifest)
@@ -178,6 +184,7 @@ def make_direct_launcher(
         mi_app_info.manifest_package_name,
         launcher,
         launcher_flags,
+        adb.files_to_run.executable.path,
         splits = splits,
         deploy_info_pb = deploy_info_pb,
         test_apk = test_apk,

@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -118,6 +119,18 @@ func main() {
 	ctx := context.Background()
 
 	flag.Parse()
+
+	var (
+		realPath string
+		err      error
+	)
+	if realPath, err = filepath.EvalSymlinks(*adbPath); err != nil {
+		glog.Exitf("Unable to dereference adb path: %s", err.Error())
+	}
+	if realPath, err = filepath.Abs(realPath); err != nil {
+		glog.Exitf("Unable to canonicalize adb path: %s", err.Error())
+	}
+	*adbPath = realPath
 
 	pprint.Info("Deploying using OSS mobile-install!")
 
