@@ -153,6 +153,9 @@ def android_sandboxed_sdk_macro(
     fully_qualified_name = "//%s:%s" % (native.package_name(), name)
     package = _java.resolve_package_from_label(Label(fully_qualified_name), custom_package)
 
+    # Sandboxed SDK treated as shared library and also could include native code.
+    # Shared libraries with native code must support both 32 and 64 bit architectures.
+    # To allow installation on device, generated manifest should have mutliArch=true
     manifest_label = Label("%s_gen_manifest" % fully_qualified_name)
     native.genrule(
         name = manifest_label.name,
@@ -162,7 +165,7 @@ def android_sandboxed_sdk_macro(
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="{package}">
     <uses-sdk android:minSdkVersion="{min_sdk_version}" android:targetSdkVersion="{target_sdk_version}" />
-    <application />
+    <application android:multiArch="true" />
 </manifest>
 EOF
 """.format(
