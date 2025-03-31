@@ -237,19 +237,25 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
     )
 
     # 2. Run the resource shrinker
-    proto_resource_apk_shrunk = ctx.actions.declare_file(
-        ctx.label.name + "_proto_resource_apk_shrunk.ap_",
-    )
+    proto_resource_apk_shrunk = ctx.actions.declare_file(ctx.label.name + "_proto_resource_apk_shrunk.ap_")
+    resource_shrinking_usage_log = ctx.actions.declare_file(ctx.label.name + "_resource_shrinking_usage.log")
+    resource_shrinking_res_config = ctx.actions.declare_file(ctx.label.name + "_resources.cfg")
     java.run(
         ctx = ctx,
         host_javabase = common.get_host_javabase(ctx),
         executable = android_toolchain.resource_shrinker.files_to_run,
-        arguments = [ctx.actions.args()
-            .add("--input", proto_resource_apk)
-            .add("--dex_input", r8_ctx.final_classes_dex_zip)
-            .add("--output", proto_resource_apk_shrunk)],
-        inputs = [proto_resource_apk, r8_ctx.final_classes_dex_zip],
-        outputs = [proto_resource_apk_shrunk],
+        arguments = [
+            ctx.actions.args()
+                .add("--input", proto_resource_apk)
+                .add("--dex_input", r8_ctx.final_classes_dex_zip)
+                .add("--proguard_mapping", r8_ctx.proguard_mappings_file)
+                .add("--output", proto_resource_apk_shrunk)
+                .add("--precise_shrinking", "true")
+                .add("--print_usage_log", resource_shrinking_usage_log)
+                .add("--print_config", resource_shrinking_res_config)
+        ],
+        inputs = [proto_resource_apk, r8_ctx.final_classes_dex_zip, r8_ctx.proguard_mappings_file],
+        outputs = [proto_resource_apk_shrunk, resource_shrinking_usage_log, resource_shrinking_res_config],
         mnemonic = "ResourceShrinkerForR8",
         progress_message = "Shrinking resources %{label}",
     )
@@ -269,9 +275,31 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
+    # 4. Optimize resources (shorten resource path names, remove resource names, collapse resource values)
+    resource_apk_optimized = ctx.actions.declare_file(ctx.label.name + "_resource_apk_optimized.ap_")
+    resource_obfuscation_map = ctx.actions.declare_file(ctx.label.name + "_resource_obfuscation.map")
+    ctx.actions.run(
+        arguments = [
+            ctx.actions.args()
+                .add("optimize")
+                .add(resource_apk_shrunk)
+                .add("-o", resource_apk_optimized)
+                .add("--resources-config-path", resource_shrinking_res_config)
+                .add("--collapse-resource-names")
+                .add("--shorten-resource-paths")
+                .add("--deduplicate-entry-values")
+                .add("--save-obfuscation-map", resource_obfuscation_map),
+        ],
+        executable = android_toolchain.aapt2.files_to_run,
+        inputs = [resource_apk_shrunk, resource_shrinking_res_config],
+        mnemonic = "Aapt2OptimizeForResourceShrinkerR8",
+        outputs = [resource_apk_optimized, resource_obfuscation_map],
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
+    )
+
     return ProviderInfo(
         name = "resource_shrinking_r8_ctx",
         value = struct(
-            resource_apk_shrunk = resource_apk_shrunk,
+            resource_apk_shrunk = resource_apk_optimized,
         ),
     )

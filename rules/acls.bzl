@@ -185,10 +185,10 @@ def _in_android_binary_min_sdk_version_attribute_allowlist(fqn):
     return True
 
 def _in_android_binary_raw_access_to_resource_paths_allowlist(fqn):
-    return matches(fqn, ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT)
+    return True
 
 def _in_android_binary_resource_name_obfuscation_opt_out_allowlist(fqn):
-    return matches(fqn, ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT)
+    return True
 
 def _in_allow_proguard_apply_mapping(fqn):
     return matches(fqn, ALLOW_PROGUARD_APPLY_MAPPING_DICT)

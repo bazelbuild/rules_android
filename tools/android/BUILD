@@ -276,9 +276,13 @@ java_binary(
 
 java_binary(
     name = "resource_shrinker",
-    main_class = "com.android.build.shrinker.ResourceShrinkerCli",
+    srcs = ["src/main/java/com/google/devtools/build/android/shrinker/BazelResourceShrinkerCli.java"],
+    main_class = "com.google.devtools.build.android.shrinker.BazelResourceShrinkerCli",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@rules_android_maven//:com_android_tools_build_gradle"],
+    deps = [
+        "@rules_android_maven//:com_android_tools_build_gradle",
+        "@rules_android_maven//:com_android_tools_common",
+    ],
 )
 
 alias(
