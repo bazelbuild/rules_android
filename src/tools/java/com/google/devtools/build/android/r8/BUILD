@@ -85,11 +85,6 @@ java_binary(
         "-XX:TieredStopAtLevel=1",
         "-Xms8g",
         "-Xmx8g",
-        # b/172508621
-        "-Dcom.android.tools.r8.sortMethodsOnCfWriting",
-        "-Dcom.android.tools.r8.allowAllDesugaredInput",
-        "-Dcom.android.tools.r8.noCfMarkerForDesugaredCode",
-        "-Dcom.android.tools.r8.lambdaClassFieldsNotFinal",
     ],
     main_class = "com.google.devtools.build.android.r8.Desugar",
     visibility = [
