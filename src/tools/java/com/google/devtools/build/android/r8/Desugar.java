@@ -61,6 +61,16 @@ public class Desugar {
   private static final int NUMBER_OF_ENTRIES_PER_SHARD = 100000;
   private static final Logger logger = Logger.getLogger(Desugar.class.getName());
 
+  private static final Object mutex = new Object();
+
+  // See b/172508621
+  private static final ImmutableList<String> DESUGAR_JVM_FLAGS =
+      ImmutableList.of(
+          "com.android.tools.r8.sortMethodsOnCfWriting",
+          "com.android.tools.r8.allowAllDesugaredInput",
+          "com.android.tools.r8.noCfMarkerForDesugaredCode",
+          "com.android.tools.r8.lambdaClassFieldsNotFinal");
+
   /** Commandline options for {@link com.google.devtools.build.android.r8.Desugar}. */
   @Parameters(separators = "= ")
   public static class DesugarOptions {
@@ -584,10 +594,27 @@ public class Desugar {
 
   private static int processRequest(List<String> args, PrintStream diagnosticsHandlerPrintStream)
       throws Exception {
-    DesugarOptions options = parseCommandLineOptions(args.toArray(new String[0]));
-    validateOptions(options);
-    new Desugar(options, diagnosticsHandlerPrintStream).desugar();
-    return 0;
+    // Execute the desugar workload inside of an atomic mutex lock
+    // Since JVM flags are applied JVM-wide, we want to ensure that it's impossible for another
+    // Desugar workload to execute until after the JVM flags have already been reset.
+    synchronized (mutex) {
+      setDesugarJvmFlags();
+      int exitCode = 0;
+      try {
+        DesugarOptions options = parseCommandLineOptions(args.toArray(new String[0]));
+        validateOptions(options);
+        new Desugar(options, diagnosticsHandlerPrintStream).desugar();
+        exitCode = 0;
+      } catch (Exception e) {
+        diagnosticsHandlerPrintStream.println(e.getMessage());
+        e.printStackTrace();
+        exitCode = 1;
+      } finally {
+        unsetDesugarJvmFlags();
+      }
+
+      return exitCode;
+    }
   }
 
   private static int processRequest(
@@ -622,6 +649,18 @@ public class Desugar {
       return 1;
     }
     return 0;
+  }
+
+  private static void setDesugarJvmFlags() {
+    for (String flag : DESUGAR_JVM_FLAGS) {
+      System.setProperty(flag, "");
+    }
+  }
+
+  private static void unsetDesugarJvmFlags() {
+    for (String flag : DESUGAR_JVM_FLAGS) {
+      System.clearProperty(flag);
+    }
   }
 
   public static void main(String[] args) throws Exception {
