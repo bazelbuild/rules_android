@@ -444,7 +444,7 @@ public class Desugar {
     }
   }
 
-  public void desugar() throws CompilationFailedException, IOException {
+  private void desugar() throws CompilationFailedException, IOException {
     // Prepare bootclasspath and classpath. Some jars on the classpath are considered to be
     // bootclasspath, and are moved there.
     ImmutableList.Builder<ClassFileResourceProvider> bootclasspathProvidersBuilder =
