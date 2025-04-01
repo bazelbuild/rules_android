@@ -16,6 +16,8 @@
 load("//providers:providers.bzl", "ApkInfo")
 load("//rules:android_split_transition.bzl", "android_transition")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "log")
 
