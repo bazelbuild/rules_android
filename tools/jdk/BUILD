@@ -3,6 +3,32 @@ load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//tools/jdk:system.bzl", "android_system")
 
+# Java language versions
+# See https://bazel.build/docs/user-manual#java-language-version
+_SUPPORTED_JAVA_LANGUAGE_VERSIONS = [
+    8,
+    9,
+    10,
+    11,
+    17,
+    21,
+]
+
+[
+    config_setting(
+        name = "java_language_version_%d" % ver,
+        values = {"java_language_version": str(ver)},
+    )
+    for ver in _SUPPORTED_JAVA_LANGUAGE_VERSIONS
+]
+
+java_language_version_select_dict = {
+    ":java_language_version_%d" % ver: ":toolchain_android_only_%d" % ver
+    for ver in _SUPPORTED_JAVA_LANGUAGE_VERSIONS
+} | {
+    "//conditions:default": ":toolchain_android_only_11",
+}
+
 sh_binary(
     name = "create_system",
     srcs = ["create_system.sh"],
@@ -49,11 +75,22 @@ android_system(
     ],
 )
 
-default_java_toolchain(
+[
+    default_java_toolchain(
+        name = "toolchain_android_only_%d" % ver,
+        bootclasspath = [
+            ":bootclasspath_android_only",
+        ],
+        source_version = str(ver),
+        target_version = str(ver),
+        visibility = ["//visibility:public"],
+    )
+    for ver in _SUPPORTED_JAVA_LANGUAGE_VERSIONS
+]
+
+alias(
     name = "toolchain_android_only",
-    bootclasspath = [
-        ":bootclasspath_android_only",
-    ],
+    actual = select(java_language_version_select_dict),
     visibility = ["//visibility:public"],
 )
 
