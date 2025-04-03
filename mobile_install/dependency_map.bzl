@@ -24,7 +24,7 @@ versioned_deps = struct(
         head = "//src/tools/mi/deployment_oss:deploy_binary",
     ),
     deploy_info = struct(
-        head = "//tools/android:gen_fail",
+        head = "//src/tools/deploy_info:deploy_info",
     ),
     forwarder = struct(
         head = "//tools/android:gen_fail",
