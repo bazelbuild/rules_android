@@ -43,6 +43,7 @@ var (
 	splits         = flags.NewStringList("splits", "The list of split apk paths.")
 	start          = flag.String("start", "", "start_type from mobile-install.")
 	startType      = flag.String("start_type", "", "start_type (deprecated, use --start).")
+	toolTag        = flag.String("tool_tag", "", "tool_tag from blaze.")
 	useADBRoot     = flag.Bool("use_adb_root", true, "whether (true) or not (false) to use root permissions.")
 	userID         = flag.Int("user", 0, "User id to install the app for.")
 
@@ -60,6 +61,8 @@ var (
 	// Unused flags: Relevant only for Google-internal use cases, but need to exist in the flag parser
 	buildID = flag.String("build_id", "", "The id of the build. Set by Bazel, the user should not use this flag.")
 )
+
+func isAndroidStudio() bool { return strings.Contains(*toolTag, "AndroidStudio") }
 
 func resolveDeviceSerialAndPort(ctx context.Context, device string) (deviceSerialFlag, port string) {
 	switch {
@@ -192,10 +195,10 @@ func main() {
 		}
 	}
 
-	if *launchApp {
+	if *launchApp && !isAndroidStudio() {
 		pprint.Info("Finished deploying changes. Launching app")
 
-		var stopCmd = exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "force-stop", appPackage)
+		stopCmd := exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "force-stop", appPackage)
 		if err := stopCmd.Run(); err != nil {
 			pprint.Error("Unable to stop app: %s", err.Error())
 		}
