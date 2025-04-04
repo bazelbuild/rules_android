@@ -1,0 +1,60 @@
+local_repository(
+    name = "rules_android",
+    path = "../..", # rules_android's WORKSPACE relative to this inner workspace
+)
+
+# --SNIP--: Everything below this line goes into the example WORKSPACE snippet in the release notes.
+
+# Android rules dependencies
+load("@rules_android//:prereqs.bzl", "rules_android_prereqs")
+rules_android_prereqs()
+
+##### rules_java setup for rules_android #####
+load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+rules_java_dependencies()
+# note that the following line is what is minimally required from protobuf for the java rules
+# consider using the protobuf_deps() public API from @com_google_protobuf//:protobuf_deps.bzl
+load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
+proto_bazel_features(name = "proto_bazel_features")
+# register toolchains
+load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
+rules_java_toolchains()
+
+##### rules_jvm_external setup for rules_android #####
+load("@rules_jvm_external//:repositories.bzl", "rules_jvm_external_deps")
+rules_jvm_external_deps()
+load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
+rules_jvm_external_setup()
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+
+maven_install(
+    name = "maven",
+    artifacts = [
+        "androidx.annotation:annotation-jvm:1.9.1",
+        "androidx.databinding:databinding-adapters:8.7.0",
+        "androidx.databinding:databinding-runtime:8.7.0",
+        "com.google.protobuf:protobuf-java:4.27.2",
+        "com.google.protobuf:protobuf-java-util:4.27.2",
+    ],
+    repositories = [
+        "https://maven.google.com",
+        "https://repo1.maven.org/maven2",
+        "https://repo.gradle.org/gradle/libs-releases",
+    ],
+)
+
+##### rules_android setup #####
+load("@rules_android//:defs.bzl", "rules_android_workspace")
+rules_android_workspace()
+
+# Android SDK setup
+load("@rules_android//rules:rules.bzl", "android_sdk_repository")
+android_sdk_repository(
+    name = "androidsdk",
+)
+
+register_toolchains(
+    "@rules_android//toolchains/android:android_default_toolchain",
+    "@rules_android//toolchains/android_sdk:android_sdk_tools",
+)

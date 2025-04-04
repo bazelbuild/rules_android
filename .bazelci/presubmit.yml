@@ -178,3 +178,64 @@ tasks:
       <<: *rules_flags
     build_targets:
       - "//java/com/basicapp:basic_app"
+  ubuntu2004_databinding:
+    name: "Databinding Basic app ubuntu"
+    platform: ubuntu2004
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+      ? "--@rules_android//rules/flags:databinding_use_androidx"
+    build_targets:
+      - "//java/com/databindingapp:databindingapp"
+  ubuntu2004_databinding_bzlmod:
+    name: "Databinding Basic app ubuntu bzlmod"
+    platform: ubuntu2004
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
+      ? "--@rules_android//rules/flags:databinding_use_androidx"
+    build_targets:
+      - "//java/com/databindingapp:databindingapp"
+  macos_arm64_databinding:
+    name: "Databinding Basic app mac arm64"
+    platform: macos_arm64
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+      ? "--@rules_android//rules/flags:databinding_use_androidx"
+    build_targets:
+      - "//java/com/databindingapp:databindingapp"
+  macos_arm64_databinding_bzlmod:
+    name: "Databinding Basic app mac arm64 bzlmod"
+    platform: macos_arm64
+    working_directory: examples/databinding
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
+      ? "--@rules_android//rules/flags:databinding_use_androidx"
+    build_targets:
+      - "//java/com/databindingapp:databindingapp"
+  # n.b. The below do not build.
+  # windows_databinding_bzlmod:
+  #   name: "Databinding Basic app Windows Bzlmod"
+  #   platform: windows
+  #   working_directory: examples/databinding
+  #   build_flags:
+  #     <<: *rules_flags
+  #     ? "--enable_bzlmod"
+  #     ? "--enable_workspace=false"
+  #     ? "--@rules_android//rules/flags:databinding_use_androidx"
+  #   build_targets:
+  #     - "//java/com/databindingapp:databindingapp"
+  # windows_databinding:
+  #   name: "Databinding Basic app Windows"
+  #   platform: windows
+  #   working_directory: examples/databinding
+  #   build_flags:
+  #     <<: *rules_flags
+  #     ? "--@rules_android//rules/flags:databinding_use_androidx"
+  #   build_targets:
+  #     - "//java/com/databindingapp:databindingapp"
