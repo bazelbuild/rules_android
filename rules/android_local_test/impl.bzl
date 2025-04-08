@@ -18,6 +18,7 @@ load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
+load("//rules:path.bzl", _path = "path")
 load(
     "//rules:processing_pipeline.bzl",
     "ProviderInfo",
@@ -528,7 +529,7 @@ mkdir -p {dir_name}
 cp $base/{f} {dir_name}
 $base/{zip_tool} -jt -X -q $base/{out_zip} {dir_name}/$(basename {f})
 """.format(
-        zip_tool = get_android_toolchain(ctx).zip_tool.files_to_run.executable.path,
+        zip_tool = _path.normalize(get_android_toolchain(ctx).zip_tool.files_to_run.executable.path),
         f = f.path,
         dir_name = dir_name,
         out_zip = out_zip.path,
