@@ -57,6 +57,13 @@ rules: &rules
     <<: *rules_flags
   test_flags:
     <<: *rules_flags
+rules_coverage: &rules_coverage
+  coverage_targets:
+    - "//test/rules/android_local_test/java/com/..."
+  coverage_flags:
+    <<: *rules_flags
+    ? "--enable_bzlmod"
+    ? "--enable_workspace=false"
 rules_bzlmod: &rules_bzlmod
   name: "Rules Bzlmod"
   build_flags:
@@ -118,6 +125,21 @@ tasks:
     platform: macos_arm64
     bazel: ${{ bazel }}
     <<: *rules_bzlmod
+  ubuntu_a_l_t_coverage:
+    name: "Ubuntu android_local_test coverage"
+    platform: ubuntu2004
+    bazel: ${{ bazel }}
+    <<: *rules_coverage
+  macos_a_l_t_coverage:
+    name: "Macos android_local_test coverage"
+    platform: macos
+    bazel: ${{ bazel }}
+    <<: *rules_coverage
+  windows_a_l_t_coverage:
+    name: "Macos android_local_test coverage"
+    platform: windows
+    bazel: ${{ bazel }}
+    <<: *rules_coverage
   ubuntu2004_basicapp:
     name: "Basic app ubuntu"
     platform: ubuntu2004
