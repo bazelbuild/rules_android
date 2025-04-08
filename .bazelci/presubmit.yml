@@ -136,7 +136,7 @@ tasks:
     bazel: ${{ bazel }}
     <<: *rules_coverage
   windows_a_l_t_coverage:
-    name: "Macos android_local_test coverage"
+    name: "Windows android_local_test coverage"
     platform: windows
     bazel: ${{ bazel }}
     <<: *rules_coverage
