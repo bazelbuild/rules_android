@@ -42,8 +42,7 @@ def dex(
         data,
         deps = constants.EMPTY_LIST,
         num_shards = None,
-        create_file = _declare_file,
-        desugar = True):
+        create_file = _declare_file):
     """Dex a list of Jars.
 
     Args:
@@ -65,7 +64,6 @@ def dex(
 
         Returns:
           A File.
-      desugar: A boolean that determines whether to apply desugaring.
 
     Returns:
       A list of tuples where each entry contains the originating Jar path and
@@ -88,7 +86,7 @@ def dex(
                 dirname + "/" + str(i) + ".zip",
                 sibling = jar,
             ))
-        utils.dex(ctx, jar, out_dex_shards, deps, desugar)
+        utils.dex(ctx, jar, out_dex_shards, deps)
         dex_files.append(out_dex_shards)
     return dex_files
 
