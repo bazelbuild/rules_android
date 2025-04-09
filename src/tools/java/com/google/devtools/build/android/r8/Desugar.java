@@ -592,7 +592,7 @@ public class Desugar {
         options.outputJars.size());
   }
 
-  private static int processRequest(List<String> args, PrintStream diagnosticsHandlerPrintStream)
+  public static int processRequest(List<String> args, PrintStream diagnosticsHandlerPrintStream)
       throws Exception {
     // Execute the desugar workload inside of an atomic mutex lock
     // Since JVM flags are applied JVM-wide, we want to ensure that it's impossible for another

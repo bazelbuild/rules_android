@@ -121,6 +121,12 @@ TOOL_ATTRS = dict(
         cfg = "exec",
         executable = True,
     ),
+    _desugar_dex_sharding = attr.label(
+        default = versioned_deps.desugar_dex_sharding.head,
+        allow_files = True,
+        cfg = "exec",
+        executable = True,
+    ),
     _deploy = attr.label(
         default = versioned_deps.deploy.head,
         allow_files = True,
