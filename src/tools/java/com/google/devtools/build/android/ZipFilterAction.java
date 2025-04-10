@@ -197,12 +197,13 @@ public class ZipFilterAction {
     }
     // Match any string that ends with any of the filter file types
     String filterRegex = String.format(".*(%s)$", Joiner.on("|").join(escapedFilterTypes));
+    Pattern filterPattern = Pattern.compile(filterRegex);
 
     ImmutableSetMultimap.Builder<String, Long> entriesToOmit = ImmutableSetMultimap.builder();
     for (Path filterZip : filterZips) {
       try (ZipReader zip = new ZipReader(filterZip.toFile())) {
         for (ZipFileEntry entry : zip.entries()) {
-          if (filterTypes.isEmpty() || entry.getName().matches(filterRegex)) {
+          if (filterTypes.isEmpty() || filterPattern.matcher(entry.getName()).matches()) {
             entriesToOmit.put(entry.getName(), entry.getCrc());
           }
         }
