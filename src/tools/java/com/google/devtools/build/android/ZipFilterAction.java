@@ -28,20 +28,21 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.devtools.build.singlejar.ZipCombiner;
 import com.google.devtools.build.singlejar.ZipCombiner.OutputMode;
-import com.google.devtools.build.zip.ZipFileEntry;
-import com.google.devtools.build.zip.ZipReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * Action to filter entries out of a Zip file.
@@ -201,8 +202,11 @@ public class ZipFilterAction {
 
     ImmutableSetMultimap.Builder<String, Long> entriesToOmit = ImmutableSetMultimap.builder();
     for (Path filterZip : filterZips) {
-      try (ZipReader zip = new ZipReader(filterZip.toFile())) {
-        for (ZipFileEntry entry : zip.entries()) {
+      try (ZipFile zf = new ZipFile(filterZip.toFile())) {
+        Enumeration<? extends ZipEntry> entries = zf.entries();
+
+        while (entries.hasMoreElements()) {
+          ZipEntry entry = entries.nextElement();
           if (filterTypes.isEmpty() || filterPattern.matcher(entry.getName()).matches()) {
             entriesToOmit.put(entry.getName(), entry.getCrc());
           }
@@ -234,8 +238,11 @@ public class ZipFilterAction {
     logger.fine(String.format("Filter created in %dms", timer.elapsed(TimeUnit.MILLISECONDS)));
 
     ImmutableMap.Builder<String, Long> inputEntries = ImmutableMap.builder();
-    try (ZipReader input = new ZipReader(options.inputZip.toFile())) {
-      for (ZipFileEntry entry : input.entries()) {
+    try (ZipFile zf = new ZipFile(options.inputZip.toFile())) {
+      Enumeration<? extends ZipEntry> entries = zf.entries();
+
+      while (entries.hasMoreElements()) {
+        ZipEntry entry = entries.nextElement();
         inputEntries.put(entry.getName(), entry.getCrc());
       }
     }

@@ -26,20 +26,6 @@ java_binary(
 )
 
 run_singlejar(
-    name = "zip_jar_gen",
-    srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    out = "zip.jar",
-    include_prefixes = [
-        "com/google/devtools/build/zip/",
-    ],
-)
-
-java_import(
-    name = "zip_jar",
-    jars = [":zip_jar_gen"],
-)
-
-run_singlejar(
     name = "singlejar_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
     out = "singlejar.jar",
@@ -125,7 +111,6 @@ java_library(
         ":dependency_info",
         ":kotlin_jar",
         ":singlejar_jar",
-        ":zip_jar",
         "//src/tools/java/com/google/devtools/build/android/junctions",
         "//src/tools/java/com/google/devtools/build/android/proto:resources_java_proto",
         "//src/tools/java/com/google/devtools/build/android/proto:serialize_format_java_pb",
@@ -151,7 +136,6 @@ java_library(
     ],
     deps = [
         ":android_builder_lib",
-        ":zip_jar",
         "//src/tools/java/com/google/devtools/build/android/r8",
         "//src/tools/java/com/google/devtools/build/android/r8:constants",
         "@rules_android_maven//:com_beust_jcommander",
