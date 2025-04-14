@@ -177,6 +177,7 @@ run_singlejar(
         "com/android/repository",
         "com/android/resources",
         "com/android/signflinger",
+        "com/android/support",
         "com/android/tools/analytics/library/protos",
         "com/android/tools/analytics/library/shared",
         "com/android/tools/analytics/library/tracker",
