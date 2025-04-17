@@ -10,6 +10,10 @@ bazel_dep(
     version = "0.6.3",
 )
 
+
+# Local override to enable this app to be used for rules_android presubmit
+# integration testing. If you're basing your app's MODULE file on this
+# example, you do *not* need the following override.
 local_path_override(
     module_name = "rules_android",
     path = "../../",
