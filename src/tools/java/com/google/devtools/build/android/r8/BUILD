@@ -85,15 +85,11 @@ java_binary(
         "-XX:TieredStopAtLevel=1",
         "-Xms8g",
         "-Xmx8g",
-        # b/172508621
-        "-Dcom.android.tools.r8.sortMethodsOnCfWriting",
-        "-Dcom.android.tools.r8.allowAllDesugaredInput",
-        "-Dcom.android.tools.r8.noCfMarkerForDesugaredCode",
-        "-Dcom.android.tools.r8.lambdaClassFieldsNotFinal",
     ],
     main_class = "com.google.devtools.build.android.r8.Desugar",
     visibility = [
         "//src/test/java/com/google/devtools/build/android/r8:__pkg__",
+        "//src/tools/java/com/google/devtools/build/android:__pkg__",
         "//tools/android:__pkg__",
     ],
     runtime_deps = [
@@ -134,7 +130,10 @@ java_binary(
 java_library(
     name = "constants",
     srcs = [":Constants_java"],
-    visibility = [":__pkg__"],
+    visibility = [
+        ":__pkg__",
+        "//src/tools/java/com/google/devtools/build/android:__pkg__",
+    ],
 )
 
 genrule(

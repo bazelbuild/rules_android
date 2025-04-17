@@ -770,6 +770,7 @@ asserts = struct(
         android_ide_info = _assert_android_ide_info,
     ),
     files = _assert_files,
+    depset = _assert_file_depset,
     r_class = struct(
         attrs = _R_CLASS_ATTRS,
     ),

@@ -26,20 +26,6 @@ java_binary(
 )
 
 run_singlejar(
-    name = "zip_jar_gen",
-    srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    out = "zip.jar",
-    include_prefixes = [
-        "com/google/devtools/build/zip/",
-    ],
-)
-
-java_import(
-    name = "zip_jar",
-    jars = [":zip_jar_gen"],
-)
-
-run_singlejar(
     name = "singlejar_jar_gen",
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
     out = "singlejar.jar",
@@ -106,6 +92,8 @@ java_library(
             "CompatShellQuotedParamsFileProcessor.java",
             "AndroidDataBindingWrapper.java",
             "ProcessXmlOptionsWrapper.java",
+            "DesugarDexShardingAction.java",
+            "Fnv1a32bHash.java",
         ],
     ),
     javacopts = [
@@ -123,7 +111,6 @@ java_library(
         ":dependency_info",
         ":kotlin_jar",
         ":singlejar_jar",
-        ":zip_jar",
         "//src/tools/java/com/google/devtools/build/android/junctions",
         "//src/tools/java/com/google/devtools/build/android/proto:resources_java_proto",
         "//src/tools/java/com/google/devtools/build/android/proto:serialize_format_java_pb",
@@ -142,6 +129,28 @@ java_library(
 )
 
 java_library(
+    name = "desugar_dex_sharding_lib",
+    srcs = [
+        "DesugarDexShardingAction.java",
+        "Fnv1a32bHash.java",
+    ],
+    deps = [
+        ":android_builder_lib",
+        "//src/tools/java/com/google/devtools/build/android/r8",
+        "//src/tools/java/com/google/devtools/build/android/r8:constants",
+        "@rules_android_maven//:com_beust_jcommander",
+        "@rules_android_maven//:com_google_guava_guava",
+    ],
+)
+
+java_binary(
+    name = "DesugarDexShardingAction",
+    main_class = "com.google.devtools.build.android.DesugarDexShardingAction",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":desugar_dex_sharding_lib"],
+)
+
+java_library(
     name = "dependency_info",
     srcs = ["DependencyInfo.java"],
     visibility = [":__subpackages__"],
@@ -155,8 +164,40 @@ run_singlejar(
     srcs = ["@android_tools//:all_android_tools_deploy.jar"],
     out = "android_common_exec.jar",
     include_prefixes = [
+        "com/android/AndroidProjectTypes",
+        "com/android/ProgressManagerAdapter",
+        "com/android/SdkConstants",
+        "com/android/Version",
+        "com/android/annotations",
+        "com/android/build/gradle",
+        "com/android/builder",
+        "com/android/ide",
+        "com/android/io",
+        "com/android/manifmerger",
+        "com/android/repository",
+        "com/android/resources",
+        "com/android/signflinger",
+        "com/android/support/AndroidxName",
+        "com/android/support/MigrationParserVisitor",
+        "com/android/tools/analytics/library/protos",
+        "com/android/tools/analytics/library/shared",
+        "com/android/tools/analytics/library/tracker",
+        "com/android/tools/annotations",
+        "com/android/tools/build/apksig",
+        "com/android/tools/build/apkzlib",
+        "com/android/tools/build/builder",
+        "com/android/tools/build/builder/model",
+        "com/android/tools/build/manifest/merger",
+        "com/android/tools/common",
+        "com/android/tools/ddms/ddmlib",
+        "com/android/tools/dvlib",
+        "com/android/tools/layoutlib/layoutlib/api",
+        "com/android/tools/repository",
+        "com/android/tools/sdk/common",
+        "com/android/tools/sdklib",
+        "com/android/utils",
+        "com/android/zipflinger",
         "com/google/wireless/",
-        "com/android/",
     ],
 )
 

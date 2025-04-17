@@ -17,6 +17,9 @@ versioned_deps = struct(
     android_kit = struct(
         head = "//src/tools/ak",
     ),
+    desugar_dex_sharding = struct(
+        head = "//src/tools/java/com/google/devtools/build/android:DesugarDexShardingAction_deploy.jar",
+    ),
     bootstraper = struct(
         head = "//tools/android:gen_fail",
     ),
@@ -24,7 +27,7 @@ versioned_deps = struct(
         head = "//src/tools/mi/deployment_oss:deploy_binary",
     ),
     deploy_info = struct(
-        head = "//tools/android:gen_fail",
+        head = "//src/tools/deploy_info:deploy_info",
     ),
     forwarder = struct(
         head = "//tools/android:gen_fail",

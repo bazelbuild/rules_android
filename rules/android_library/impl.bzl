@@ -145,7 +145,16 @@ def _process_manifest(ctx, **unused_ctxs):
         value = manifest_ctx,
     )
 
-def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
+def _process_localized_resources(ctx, **unused_ctxs):
+    return ProviderInfo(
+        name = "localized_ctx",
+        value = struct(
+            resource_files = ctx.files.resource_files,
+            providers = [],
+        ),
+    )
+
+def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_ctxs):
     # exports_manifest can be overridden by a bazel flag.
     if ctx.attr.exports_manifest == _attrs.tristate.auto:
         exports_manifest = ctx.fragments.android.get_exports_manifest_default
@@ -160,9 +169,9 @@ def _process_resources(ctx, java_package, manifest_ctx, **unused_ctxs):
     resources_ctx = _resources.process(
         ctx,
         manifest = manifest_ctx.processed_manifest,
-        resource_files = ctx.attr.resource_files,
+        resource_files = localized_ctx.resource_files,
         defined_assets = ctx.attr._defined_assets,
-        assets = ctx.attr.assets,
+        assets = ctx.files.assets,
         defined_assets_dir = ctx.attr._defined_assets_dir,
         assets_dir = ctx.attr.assets_dir,
         exports_manifest = exports_manifest,
@@ -476,6 +485,7 @@ def _process_baseline_profiles(ctx, **unused_ctx):
 PROCESSORS = dict(
     ExceptionsProcessor = _exceptions_processor,
     ManifestProcessor = _process_manifest,
+    LocalizedResourcesProcessor = _process_localized_resources,
     ResourceProcessor = _process_resources,
     IdlProcessor = _process_idl,
     DataBindingProcessor = _process_data_binding,

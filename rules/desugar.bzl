@@ -60,11 +60,13 @@ def _desugar(
 
         if ctx.fragments.android.desugar_java8_libs:
             args.add("--desugar_supported_core_libs")
-            args.add("--desugared_lib_config", desugared_lib_config)
-            if desugared_lib_config:
-                input_file_deps.append(desugared_lib_config)
-            else:
-                fail("Got NoneType for desugared_lib_config")
+
+    # Unconditionally add --desugared_lib_config. This matches the behavior of tools/android/d8_desugar.sh.
+    args.add("--desugared_lib_config", desugared_lib_config)
+    if desugared_lib_config:
+        input_file_deps.append(desugared_lib_config)
+    else:
+        fail("Got NoneType for desugared_lib_config")
 
     if min_sdk_version > 0:
         args.add("--min_sdk_version", str(min_sdk_version))

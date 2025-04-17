@@ -5,15 +5,22 @@ package(default_applicable_licenses = ["//:license"])
 
 licenses(["notice"])
 
+DEPLOY_INFO_VISIBILITY_GOOGLE3 = [
+    "//mobile_install:__subpackages__",
+    "//test/mobile_install:__subpackages__",
+    "//toolchains/android:__subpackages__",
+    "//tools/android/mi/testing:__pkg__",
+]
+
+# buildifier: disable=unused-variable
+DEPLOY_INFO_VISIBILITY_OSS = [
+    "//visibility:public",
+]
+
 go_binary(
     name = "deploy_info",
     srcs = ["deploy_info.go"],
-    visibility = [
-        "//mobile_install:__subpackages__",
-        "//test/mobile_install:__subpackages__",
-        "//toolchains/android:__subpackages__",
-        "//tools/android/mi/testing:__pkg__",
-    ],
+    visibility = DEPLOY_INFO_VISIBILITY_OSS,
     deps = [
         "//src/common/golang:flagfile",
         "//src/common/golang:flags",

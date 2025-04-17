@@ -19,9 +19,8 @@ visibility(PROJECT_VISIBILITY)
 
 # keep sorted
 RESOURCE_TRANSLATION_MERGING_ROLLOUT = [
+    "//:__subpackages__",
 ]
 
 # keep sorted
-RESOURCE_TRANSLATION_MERGING_FALLBACK = [
-    "//:__subpackages__",
-]
+RESOURCE_TRANSLATION_MERGING_FALLBACK = []

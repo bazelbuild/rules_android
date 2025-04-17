@@ -371,6 +371,21 @@ def create_android_sdk_rules(
     )
 
     native.genrule(
+        name = "dx_binary_source",
+        srcs = [],
+        outs = ["dx_binary.sh"],
+        cmd = "\n".join([
+            "cat > $@ <<'EOF'",
+            "#!/bin/bash",
+            "",
+            "echo dx_binary should not be used anymore.",
+            "exit 1",
+            "",
+            "EOF\n",
+        ]),
+    )
+
+    native.genrule(
         name = "main_dex_list_creator_source",
         srcs = [],
         outs = ["main_dex_list_creator.sh"],
@@ -378,13 +393,8 @@ def create_android_sdk_rules(
             "cat > $@ <<'EOF'",
             "#!/bin/bash",
             "",
-            "MAIN_DEX_LIST=$$1",
-            "STRIPPED_JAR=$$2",
-            "JAR=$$3",
-            "" +
-            "JAVA_BINARY=$$0.runfiles/%s/main_dex_list_creator_java" % name,
-            "$$JAVA_BINARY $$STRIPPED_JAR $$JAR > $$MAIN_DEX_LIST",
-            "exit $$?",
+            "echo main_dex_list_creator should not be used anymore.",
+            "exit 1",
             "",
             "EOF\n",
         ]),
@@ -393,21 +403,10 @@ def create_android_sdk_rules(
     sh_binary(
         name = "main_dex_list_creator",
         srcs = ["main_dex_list_creator.sh"],
-        data = [":main_dex_list_creator_java"],
     )
-    java_binary(
-        name = "main_dex_list_creator_java",
-        main_class = "com.android.multidex.ClassReferenceListBuilder",
-        runtime_deps = [":dx_jar_import"],
-    )
-    java_binary(
+    sh_binary(
         name = "dx_binary",
-        main_class = "com.android.dx.command.Main",
-        runtime_deps = [":dx_jar_import"],
-    )
-    java_import(
-        name = "dx_jar_import",
-        jars = ["build-tools/%s/lib/dx.jar" % build_tools_directory],
+        srcs = [":dx_binary_source"],
     )
     java_binary(
         name = "generate_main_dex_list",

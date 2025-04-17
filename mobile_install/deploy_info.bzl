@@ -1,4 +1,4 @@
-# Copyright 2023 The Bazel Authors. All rights reserved.
+# Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,18 +13,20 @@
 # limitations under the License.
 """Functions to create the deploy info proto used by ASwB."""
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "utils")
 
-def make_deploy_info_pb(ctx, _unused_manifest, _unused_apks):
+visibility(PROJECT_VISIBILITY)
+
+def make_deploy_info_pb(ctx, manifest, apks):
     """Builds a android_deploy_info pb for ASwB.
 
-    proto def in bazel/src/main/protobuf/android_deploy_info.proto.
-    For now, just writes an empty file to the pb.
+    proto def in src/tools/deploy_info/proto/android_deploy_info.proto
 
     Args:
       ctx: The context.
-      _unused_manifest: the merged manifest of the application
-      _unused_apks: the mobile_install apks
+      manifest: the merged manifest of the application
+      apks: the mobile_install apks
 
     Returns:
       The android_deploy_info pb
@@ -34,9 +36,17 @@ def make_deploy_info_pb(ctx, _unused_manifest, _unused_apks):
     # Do not change this suffix without coordinating with an Android Studio change.
     deploy_info_pb = utils.isolated_declare_file(ctx, ctx.label.name + "_mi.deployinfo.pb")
 
-    ctx.actions.run_shell(
+    args = ctx.actions.args()
+    args.add("--manifest", manifest)
+    args.add_joined("--apk", apks, join_with = ",")
+    args.add("--deploy_info", deploy_info_pb)
+
+    ctx.actions.run(
+        executable = ctx.executable._deploy_info,
+        arguments = [args],
         outputs = [deploy_info_pb],
-        command = "echo > " + deploy_info_pb.path,
+        mnemonic = "DeployInfo",
+        progress_message = "MI DeployInfo",
     )
 
     return deploy_info_pb

@@ -45,6 +45,7 @@ var (
 			"desugar",
 			"android_jar",
 			"desugar_core_libs",
+			"desugared_lib_config",
 			"classpath",
 			"dexbuilder",
 			"in",
@@ -187,10 +188,11 @@ func desugarJar(in, out string) error {
 	}
 	if desugarCoreLibs {
 		args = append(args, "--desugar_supported_core_libs")
-
-		if desugaredLibConfig != "" {
-			args = append(args, "--desugared_lib_config", desugaredLibConfig)
-		}
+	}
+	if desugaredLibConfig != "" {
+		args = append(args, "--desugared_lib_config", desugaredLibConfig)
+	} else {
+		log.Fatalf("Expected --desugared_lib_config <path>.")
 	}
 	for _, cp := range classpaths {
 		args = append(args, "--classpath_entry", cp)
