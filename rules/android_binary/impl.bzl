@@ -188,6 +188,13 @@ def _process_proto(_unused_ctx, **_unused_ctxs):
 def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_ctxs):
     if ctx.attr.enable_data_binding and not acls.in_databinding_allowed(str(ctx.label)):
         fail("This target is not allowed to use databinding and enable_data_binding is True.")
+
+    if ctx.attr._databinding_use_androidx[BuildSettingInfo].value:
+        template = get_android_toolchain(ctx).data_binding_annotation_template_androidx
+    else:
+        template = get_android_toolchain(ctx).data_binding_annotation_template_support_lib
+    data_binding_annotation_template = utils.only(template.files.to_list())
+
     return ProviderInfo(
         name = "db_ctx",
         value = data_binding.process(
@@ -201,8 +208,7 @@ def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_c
             data_binding_exec = get_android_toolchain(ctx).data_binding_exec.files_to_run,
             data_binding_annotation_processor =
                 get_android_toolchain(ctx).data_binding_annotation_processor[JavaPluginInfo],
-            data_binding_annotation_template =
-                utils.only(get_android_toolchain(ctx).data_binding_annotation_template.files.to_list()),
+            data_binding_annotation_template = data_binding_annotation_template,
         ),
     )
 
