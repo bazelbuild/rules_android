@@ -127,6 +127,7 @@ tasks:
     build_flags:
       <<: *rules_flags
     build_targets:
+      - "//:examples_basicapp_all_files_tar"
       - "//java/com/basicapp:basic_app"
   ubuntu2004_basicapp_bzlmod:
     name: "Basic app ubuntu bzlmod"
@@ -138,6 +139,7 @@ tasks:
       ? "--enable_bzlmod"
       ? "--enable_workspace=false"
     build_targets:
+      - "//:examples_basicapp_all_files_tar"
       - "//java/com/basicapp:basic_app"
   macos_arm64_basicapp:
     name: "Basic app mac arm64"
@@ -147,6 +149,7 @@ tasks:
     build_flags:
       <<: *rules_flags
     build_targets:
+      - "//:examples_basicapp_all_files_tar"
       - "//java/com/basicapp:basic_app"
   macos_arm64_basicapp_bzlmod:
     name: "Basic app mac arm64 bzlmod"
@@ -158,6 +161,7 @@ tasks:
       ? "--enable_bzlmod"
       ? "--enable_workspace=false"
     build_targets:
+      - "//:examples_basicapp_all_files_tar"
       - "//java/com/basicapp:basic_app"
   windows_basicapp_bzlmod:
     name: "Windows Basicapp Bzlmod"
@@ -169,6 +173,7 @@ tasks:
       ? "--enable_bzlmod"
       ? "--enable_workspace=false"
     build_targets:
+      - "//:examples_basicapp_all_files_tar"
       - "//java/com/basicapp:basic_app"
   windows_basicapp:
     name: "Windows Basicapp"
@@ -178,4 +183,5 @@ tasks:
     build_flags:
       <<: *rules_flags
     build_targets:
+      - "//:examples_basicapp_all_files_tar"
       - "//java/com/basicapp:basic_app"

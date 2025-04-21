@@ -13,3 +13,10 @@ android_library(
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
 )
+
+# For integration testing.
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)
