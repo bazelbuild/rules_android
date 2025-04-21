@@ -3,7 +3,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_python//python:defs.bzl", "py_binary")
 
-licenses(["notice"])
+package(
+    default_applicable_licenses = ["//:license"],
+)
 
 exports_files([
     "bundle_deploy.sh_template",
@@ -16,6 +18,7 @@ exports_files([
 filegroup(
     name = "all_files",
     srcs = glob(["**"]),
+    visibility = ["//rules:__pkg__"]
 )
 
 bzl_library(

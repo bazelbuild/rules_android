@@ -5,6 +5,22 @@ load("//tools/android:defs.bzl", "run_singlejar")
 
 package(default_visibility = ["//visibility:public"])
 
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]) + [
+        "//src/tools/java/com/google/devtools/build/android/desugar:srcs",
+        "//src/tools/java/com/google/devtools/build/android/dexer:srcs",
+        "//src/tools/java/com/google/devtools/build/android/idlclass:srcs",
+        "//src/tools/java/com/google/devtools/build/android/junctions:srcs",
+        "//src/tools/java/com/google/devtools/build/android/proto:srcs",
+        "//src/tools/java/com/google/devtools/build/android/r8:srcs",
+        "//src/tools/java/com/google/devtools/build/android/resources:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox:srcs",
+        "//src/tools/java/com/google/devtools/build/android/ziputils:srcs",
+    ],
+    visibility = ["//:__pkg__"],
+)
+
 # Used by //src/test/shell/bazel/android:android_integration_test
 java_binary(
     name = "ResourceProcessorBusyBox",

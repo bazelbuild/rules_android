@@ -11,6 +11,30 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]) + [
+        "//src/tools/ak/bucketize:all_files",
+        "//src/tools/ak/compile:all_files",
+        "//src/tools/ak/dex:all_files",
+        "//src/tools/ak/extractaar:all_files",
+        "//src/tools/ak/extractresources:all_files",
+        "//src/tools/ak/finalrjar:all_files",
+        "//src/tools/ak/generatemanifest:all_files",
+        "//src/tools/ak/link:all_files",
+        "//src/tools/ak/liteparse:all_files",
+        "//src/tools/ak/manifest:all_files",
+        "//src/tools/ak/minsdkfloor:all_files",
+        "//src/tools/ak/nativelib:all_files",
+        "//src/tools/ak/patch:all_files",
+        "//src/tools/ak/proto:all_files",
+        "//src/tools/ak/repack:all_files",
+        "//src/tools/ak/res:all_files",
+        "//src/tools/ak/rjar:all_files",
+    ],
+    visibility = ["//:__pkg__"]
+)
+
 go_binary(
     name = "ak",
     srcs = [

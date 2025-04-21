@@ -8,6 +8,12 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"]
+)
+
 go_binary(
     name = "bundletool_module_builder",
     srcs = ["bundletool_module_builder.go"],

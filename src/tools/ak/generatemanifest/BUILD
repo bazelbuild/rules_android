@@ -10,6 +10,12 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//src/tools/ak:__pkg__"],
+)
+
 go_binary(
     name = "generatemanifest_bin",
     srcs = ["generatemanifest_bin.go"],

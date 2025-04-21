@@ -9,6 +9,13 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]) + [
+        "//tools/android/xslt:all_files"
+    ],
+)
+
 config_setting(
     name = "minimal_desugaring",
     values = {

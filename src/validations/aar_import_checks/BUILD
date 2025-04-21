@@ -4,6 +4,12 @@ package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"]
+)
+
 genrule(
     name = "gen_aar_import_checks_sh",
     outs = ["aar_import_checks.sh"],

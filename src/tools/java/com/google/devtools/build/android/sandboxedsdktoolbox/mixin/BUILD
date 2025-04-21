@@ -8,6 +8,12 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]),
+    visibility = ["//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox:__pkg__"],
+)
+
 java_library(
     name = "mixin",
     srcs = glob(["*.java"]),

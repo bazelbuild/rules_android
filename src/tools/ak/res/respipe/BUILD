@@ -5,6 +5,12 @@ package(default_applicable_licenses = ["//:license"])
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//src/tools/ak/res:__pkg__"],
+)
+
 go_library(
     name = "respipe",
     srcs = [

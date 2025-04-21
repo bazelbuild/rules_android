@@ -12,6 +12,12 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"]
+)
+
 py_library(
     name = "validate_manifest_lib",
     srcs = ["validate_manifest.py"],

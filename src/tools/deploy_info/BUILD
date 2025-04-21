@@ -5,6 +5,14 @@ package(default_applicable_licenses = ["//:license"])
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]) + [
+        "//src/tools/deploy_info/proto:all_files",
+    ],
+    visibility = ["//:__pkg__"],
+)
+
 DEPLOY_INFO_VISIBILITY_GOOGLE3 = [
     "//mobile_install:__subpackages__",
     "//test/mobile_install:__subpackages__",

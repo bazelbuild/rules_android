@@ -3,6 +3,12 @@
 
 load("@rules_python//python:defs.bzl", "py_binary")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)
+
 py_binary(
     name = "resource_extractor",
     srcs = ["resource_extractor.py"],

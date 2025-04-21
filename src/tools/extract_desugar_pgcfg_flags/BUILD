@@ -10,6 +10,12 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)
+
 go_binary(
     name = "extract_desugar_pgcfg_flags",
     srcs = ["extract_desugar_pgcfg_flags.go"],

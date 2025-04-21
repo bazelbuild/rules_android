@@ -2,7 +2,7 @@ load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@rules_license//rules:license.bzl", "license")
 
 package(
-    default_applicable_licenses = [":license"],
+    default_applicable_licenses = ["//:license"],
     default_visibility = ["//visibility:public"],
 )
 
@@ -89,4 +89,43 @@ alias(
 alias(
     name = "androidsdk_has_android_sdk",
     actual = "@androidsdk//:has_android_sdk",
+)
+
+filegroup(
+    name = "all_files",
+    # Note: The glob pattern here is just '*' and not '**' in order to avoid collecing subdirectories
+    # In OSS Bazel-land, subdirectories can include irrelevant files such as .git/, .bazelci/, etc.
+    srcs = glob(["*"]) + [
+        "//android:all_files",
+        "//bzlmod_extensions:all_files",
+        "//mobile_install:all_files",
+        "//providers:all_files",
+        "//rules:all_files",
+        "//src/common/golang:all_files",
+        "//src/tools/ak:all_files",
+        "//src/tools/bundletool_module_builder:all_files",
+        "//src/tools/deploy_info:all_files",
+        "//src/tools/extract_desugar_pgcfg_flags:all_files",
+        "//src/tools/jar_to_module_info:all_files",
+        "//src/tools/java/com/google/devtools/build/android:srcs",
+        "//src/tools/java_resource_extractor:all_files",
+        "//src/tools/jdeps:all_files",
+        "//src/tools/mi/deployment_oss:all_files",
+        "//src/tools/split_core_jar:all_files",
+        "//src/validations/aar_import_checks:all_files",
+        "//src/validations/validate_manifest:all_files",
+        "//toolchains/android:all_files",
+        "//toolchains/android_sdk:all_files",
+        "//tools/android:all_files",
+        "//tools/jdk:all_files",
+    ]
+)
+
+genrule(
+    name = "all_files_tar",
+    srcs = [":all_files"],
+    outs = ["all_files.tar"],
+    # Note: The "h" in the tar options forces tar to _copy_ the files into
+    # the archive, rather than symlink.
+    cmd = "tar chf $@ $(locations :all_files)",
 )

@@ -2,13 +2,16 @@
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-licenses(["notice"])
+package(
+    default_applicable_licenses = ["//:license"],
+)
 
 exports_files(["rule.bzl"])
 
 filegroup(
     name = "all_files",
     srcs = glob(["**"]),
+    visibility = ["//rules:__pkg__"]
 )
 
 bzl_library(

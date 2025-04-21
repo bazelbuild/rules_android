@@ -9,6 +9,12 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//src/tools/ak:__pkg__"],
+)
+
 go_library(
     name = "extractresources",
     srcs = ["extractresources.go"],

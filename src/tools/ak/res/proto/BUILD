@@ -12,6 +12,12 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//src/tools/ak/res:__pkg__"],
+)
+
 proto_library(
     name = "res_meta_proto",
     srcs = ["res_meta.proto"],

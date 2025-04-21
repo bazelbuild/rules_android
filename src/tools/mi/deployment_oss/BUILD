@@ -6,6 +6,12 @@ package(
     default_visibility = ["//src/tools/mi/deployment_oss:__pkg__"],
 )
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)
+
 go_binary(
     name = "deploy_binary",
     srcs = ["deploy_binary.go"],

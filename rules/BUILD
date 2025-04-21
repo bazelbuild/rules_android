@@ -2,6 +2,10 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
 load("@rules_java//java:defs.bzl", "java_library")
 
+package(
+    default_applicable_licenses = ["//:license"],
+)
+
 exports_files([
     "data_binding_annotation_template.txt",
     "res_v3_dummy_AndroidManifest.xml",
@@ -146,4 +150,21 @@ int_setting(
 java_library(
     name = "aidl_lib",
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]) + [
+        "//rules/aar_import:all_files",
+        "//rules/acls:all_files",
+        "//rules/android_application:all_files",
+        "//rules/android_binary:all_files",
+        "//rules/android_common:all_files",
+        "//rules/android_library:all_files",
+        "//rules/android_local_test:all_files",
+        "//rules/android_sandboxed_sdk:all_files",
+        "//rules/android_sdk_repository:all_files",
+        "//rules/flags:all_files",
+    ],
+    visibility = ["//:__pkg__"],
 )

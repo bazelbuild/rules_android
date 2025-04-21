@@ -11,6 +11,14 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]) + [
+        "//src/tools/jdeps/proto:all_files",
+    ],
+    visibility = ["//:__pkg__"]
+)
+
 go_binary(
     name = "jdeps",
     srcs = ["jdeps.go"],

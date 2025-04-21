@@ -1,5 +1,11 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)
+
 go_binary(
     name = "split_core_jar",
     embed = [":split_core_jar_lib"],

@@ -9,9 +9,14 @@ load("//rules/flags:flags.bzl", "flags")
 
 licenses(["notice"])
 
+package(
+    default_applicable_licenses = ["//:license"],
+)
+
 filegroup(
     name = "all_files",
     srcs = glob(["**"]),
+    visibility = ["//rules:__pkg__"]
 )
 
 bzl_library(

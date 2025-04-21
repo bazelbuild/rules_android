@@ -8,6 +8,12 @@ bzl_library(
     deps = ["//rules:bzl"],
 )
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//src:__pkg__"]
+)
+
 # Run with `--workspace_status_command='echo STABLE_GIT_COMMIT $(git rev-parse HEAD)'`
 # to get the git commit stamping in the header.
 stardoc(

@@ -124,4 +124,10 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)
+
 exports_files(["java_stub_template.txt"])

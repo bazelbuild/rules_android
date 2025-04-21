@@ -11,6 +11,22 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "srcs",
+    srcs = glob(["**"]) + [
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/apidescriptors:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/clientsources:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/info:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/mixin:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/proguardspecs:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/runtimeenabledsdkconfig:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/sdkdependenciesmanifest:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/sdksplitproperties:srcs",
+        "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/validatemodulesconfig:srcs",
+    ],
+    visibility = ["//src/tools/java/com/google/devtools/build/android:__pkg__"]
+)
+
 java_library(
     name = "sandboxed_sdk_toolbox_lib",
     srcs = glob(["*.java"]),

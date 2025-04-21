@@ -16,3 +16,9 @@
 Package used for redirecting Starlark rules from //android/rules.bzl to //rules/rules.bzl.
 Used for easier migration to a new branch due to directory differences.
 """
+
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)

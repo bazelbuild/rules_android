@@ -11,6 +11,12 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//src/tools/ak:__pkg__"],
+)
+
 proto_library(
     name = "sync_proto",
     srcs = ["sync.proto"],

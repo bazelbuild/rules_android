@@ -11,6 +11,16 @@ package(
 
 licenses(["notice"])
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]) + [
+        "//src/tools/ak/res/proto:all_files",
+        "//src/tools/ak/res/respipe:all_files",
+        "//src/tools/ak/res/resxml:all_files",
+    ],
+    visibility = ["//src/tools/ak:__pkg__"],
+)
+
 go_library(
     name = "res",
     srcs = [

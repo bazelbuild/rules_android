@@ -1,5 +1,11 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+filegroup(
+    name = "all_files",
+    srcs = glob(["**"]),
+    visibility = ["//:__pkg__"],
+)
+
 bzl_library(
     name = "providers_bzl",
     srcs = [
