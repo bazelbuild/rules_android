@@ -19,7 +19,7 @@ rules_flags: &rules_flags
 tools: &tools
   name: "Tools"
   build_targets:
-    - "//:all_files_tar",
+    - "//:all_files_tar"
     - "//android/..."
     - "//src/..."
     - "-//src/java/com/example/sampleapp/..."
