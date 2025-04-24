@@ -196,6 +196,11 @@ def dex(ctx, jar, out_dex_shards, deps = None):
         outputs = out_dex_shards,
         mnemonic = "DesugarDexSharding",
         progress_message = "MI Desugar, dex and sharding " + jar.path,
+        execution_requirements = {
+            "worker-key-mnemonic": "DesugarDexSharding",
+            "supports-workers": "1",
+            "supports-multiplex-workers": "1",
+        },
         toolchain = None,
     )
 

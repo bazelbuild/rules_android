@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.google.devtools.build.android;
 
+import static java.lang.Math.min;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -20,21 +21,30 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.Weigher;
 import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 import com.google.devtools.build.android.Converters.CompatExistingPathConverter;
 import com.google.devtools.build.android.Converters.CompatPathConverter;
 import com.google.devtools.build.android.r8.CompatDexBuilder;
+import com.google.devtools.build.android.r8.CompatDexBuilder.DexingKeyR8;
 import com.google.devtools.build.android.r8.Constants;
 import com.google.devtools.build.android.r8.Desugar;
+import com.google.devtools.build.lib.worker.ProtoWorkerMessageProcessor;
+import com.google.devtools.build.lib.worker.WorkRequestHandler;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -169,8 +179,27 @@ final class DesugarDexShardingAction {
       args.add(Integer.toString(options.minSdkVersion));
     }
 
+    // Set up dexer cache
+    Cache<DexingKeyR8, byte[]> dexCache = null;
+    if (options.persistentWorker) {
+      final long ONE_MEG = 1024 * 1024;
+      dexCache =
+          CacheBuilder.newBuilder()
+              // Use at most 200 MB for cache and leave at least 25 MB of heap space alone. For
+              // reference:
+              // .class & class.dex files are around 1-5 KB, so this fits ~30K-35K class-dex pairs.
+              .maximumWeight(min(Runtime.getRuntime().maxMemory() - 25 * ONE_MEG, 200 * ONE_MEG))
+              .weigher(
+                  new Weigher<DexingKeyR8, byte[]>() {
+                    @Override
+                    public int weigh(DexingKeyR8 key, byte[] value) {
+                      return key.classfileContent().length + value.length;
+                    }
+                  })
+              .build();
+    }
     CompatDexBuilder compatDexBuilder = new CompatDexBuilder();
-    compatDexBuilder.dexEntries(args);
+    compatDexBuilder.dexEntries(dexCache, args);
   }
 
   private static int indexAny(String s, char[] chars) {
@@ -272,25 +301,68 @@ final class DesugarDexShardingAction {
 
   public static void main(String[] args) throws Exception {
     List<String> argsList = new ArrayList<>(Arrays.asList(args));
-    Options options = new Options();
 
+    if (argsList.contains("--persistent_worker")) {
+      System.exit(runPersistentWorker());
+    } else {
+      processRequest(argsList);
+    }
+  }
+
+  private static int runPersistentWorker() {
+    PrintStream realStdErr = System.err;
+
+    try {
+      WorkRequestHandler workerHandler =
+          new WorkRequestHandler.WorkRequestHandlerBuilder(
+                  new WorkRequestHandler.WorkRequestCallback(
+                      (request, pw) -> processRequestForWorker(request.getArgumentsList(), pw, realStdErr)),
+                  realStdErr,
+                  new ProtoWorkerMessageProcessor(System.in, System.out))
+              .setCpuUsageBeforeGc(Duration.ofSeconds(10))
+              .build();
+      workerHandler.processRequests();
+    } catch (IOException e) {
+      realStdErr.println(e);
+      e.printStackTrace(realStdErr);
+      return 1;
+    }
+    return 0;
+  }
+
+  private static int processRequestForWorker(List<String> argsList, PrintWriter pw, PrintStream ps) {
+    try {
+      processRequest(argsList);
+    } catch (Exception e) {
+      // In worker mode, if we catch an exception, don't throw it, just write it to the PrintStream
+      ps.println(e);
+      e.printStackTrace(pw);
+
+      return 1;
+    }
+
+    return 0;
+  }
+
+  private static void processRequest(List<String> argsList) throws Exception {
     final String flagfilePrefix = "-flagfile=";
-
     // Deal with param files.
-    if (args.length >= 1 && args[0].startsWith(flagfilePrefix)) {
-      argsList.clear();
+    if (argsList.size() >= 1 && argsList.get(0).startsWith(flagfilePrefix)) {
+      List<String> argsListTmp = new ArrayList<>();
       // Check if the first argument is a flagfile
-      String flagfile = args[0].substring(flagfilePrefix.length());
+      String flagfile = argsList.get(0).substring(flagfilePrefix.length());
 
       // Read the flagfile
       try (BufferedReader reader = Files.newBufferedReader(Path.of(flagfile))) {
         String line;
         while ((line = reader.readLine()) != null) {
-          argsList.add(line);
+          argsListTmp.add(line);
         }
       }
+      argsList = argsListTmp;
     }
 
+    Options options = new Options();
     JCommander.newBuilder().addObject(options).build().parse(argsList.toArray(new String[0]));
 
     if (options.androidJar == null) {
