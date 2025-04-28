@@ -188,7 +188,6 @@ java_import(
 java_library(
     name = "android_common_30_1_3",
     runtime_deps = [
-        ":android_common_jar",
         "@rules_android_maven//:com_android_signflinger",
         "@rules_android_maven//:com_android_tools_analytics_library_protos",
         "@rules_android_maven//:com_android_tools_analytics_library_shared",
