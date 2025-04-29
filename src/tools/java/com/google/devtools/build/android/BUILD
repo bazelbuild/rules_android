@@ -104,7 +104,6 @@ java_library(
         ":dependency_info",
     ],
     deps = [
-        # ":android_common_30_1_3",
         ":android_common_jar",
         ":android_databinding_wrapper_lib",
         ":android_options_utils",
