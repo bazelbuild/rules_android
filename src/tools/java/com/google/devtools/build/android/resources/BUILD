@@ -13,6 +13,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_common_jar",
+        "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android:dependency_info",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_guava_guava",
