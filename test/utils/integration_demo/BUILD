@@ -20,6 +20,8 @@ script_test(
         "//test/bashunit",
         "@bazel_tools//tools/bash/runfiles",
     ],
+    # Disabled due to #368.
+    tags = ["manual"],
 )
 
 test_suite(
@@ -27,4 +29,6 @@ test_suite(
     tests = [
         ":demo_test",
     ],
+    # Disabled due to #368.
+    tags = ["manual"],
 )
