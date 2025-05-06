@@ -47,6 +47,7 @@ func AndroidStudioSync(ctx context.Context, deviceSerial, port, pkg string, spli
 	if userID != 0 {
 		args = append(args, fmt.Sprintf("--user=%s", strconv.Itoa(userID)))
 	}
+	args = append(args, "--install-flags='-g -d'") // Grant runtime permission + allow downgrade
 	args = append(args, splits...)
 	cmd := exec.Command(jdk, args...)
 	cmd.Stdout = os.Stdout
