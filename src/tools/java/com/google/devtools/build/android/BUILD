@@ -138,12 +138,13 @@ java_library(
         "Fnv1a32bHash.java",
     ],
     deps = [
+        "@rules_android_maven//:com_android_tools_r8",
+        "@rules_android_maven//:com_beust_jcommander",
+        "@rules_android_maven//:com_google_guava_guava",
         ":android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android/r8",
         "//src/tools/java/com/google/devtools/build/android/r8:constants",
         "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_guava_guava",
     ],
 )
 
@@ -151,7 +152,9 @@ java_binary(
     name = "DesugarDexShardingAction",
     main_class = "com.google.devtools.build.android.DesugarDexShardingAction",
     visibility = ["//visibility:public"],
-    runtime_deps = [":desugar_dex_sharding_lib"],
+    runtime_deps = [
+        ":desugar_dex_sharding_lib"
+    ],
 )
 
 java_library(
