@@ -37,6 +37,7 @@ java_binary(
         "ZipEntryPredicates.java",
     ],
     visibility = ["//visibility:public"],
+    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
         "@rules_android_maven//:com_beust_jcommander",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
@@ -60,6 +61,7 @@ java_library(
         "ZipEntryPredicates.java",
     ],
     visibility = ["//src/test/java/com/google/devtools/build/android/dexer:__pkg__"],
+    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
         "@bazel_worker_api//:worker_protocol_proto",
         "@rules_android_maven//:com_beust_jcommander",

@@ -11,6 +11,7 @@ package(default_visibility = [
 java_library(
     name = "resources",
     srcs = glob(["*.java"]),
+    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
         "@android_ide_common_30_1_3//:com_android_tools_build_manifest_merger",
         "@android_ide_common_30_1_3//:com_android_tools_common",

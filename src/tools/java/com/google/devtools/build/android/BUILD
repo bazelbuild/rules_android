@@ -91,6 +91,7 @@ java_library(
         # Separated out to avoid a dependency cycle with resources/, but it logically belongs here.
         ":dependency_info",
     ],
+    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
         "@android_ide_common_30_1_3//:com_android_tools_common",
         "@android_ide_common_30_1_3//:com_android_tools_sdk_common",
@@ -122,6 +123,7 @@ java_library(
         "DesugarDexShardingAction.java",
         "Fnv1a32bHash.java",
     ],
+    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
         "@rules_android_maven//:com_android_tools_r8",
         "@rules_android_maven//:com_beust_jcommander",
@@ -170,6 +172,7 @@ java_import(
 
 java_library(
     name = "android_common_30_1_3",
+    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     exports = [
         "@rules_android_maven//:com_android_signflinger",
         "@android_ide_common_30_1_3//:com_android_tools_analytics_library_protos",
