@@ -47,8 +47,8 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_jar,
         name = "android_gmaven_r8",
-        sha256 = "59753e70a74f918389cc87f1b7d66b5c0862932559167425708ded159e3de439",
-        url = "https://maven.google.com/com/android/tools/r8/8.3.37/r8-8.3.37.jar",
+        sha256 = "204b2fc2b0f4e888dc0ef748b58090def1bf4185068d36abbb94841dbc7107a8",
+        url = "https://maven.google.com/com/android/tools/r8/8.9.35/r8-8.9.35.jar",
     )
 
     RULES_JVM_EXTERNAL_TAG = "6.6"
