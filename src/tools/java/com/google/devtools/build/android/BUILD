@@ -55,20 +55,6 @@ java_import(
     jars = [":databinding_exec_jar_gen"],
 )
 
-run_singlejar(
-    name = "kotlin_jar_gen",
-    srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    out = "kotlin.jar",
-    include_prefixes = [
-        "kotlin/",
-    ],
-)
-
-java_import(
-    name = "kotlin_jar",
-    jars = [":kotlin.jar"],
-)
-
 java_library(
     name = "android_databinding_wrapper_lib",
     srcs = [
@@ -120,7 +106,6 @@ java_library(
         ":android_databinding_wrapper_lib",
         ":android_options_utils",
         ":dependency_info",
-        ":kotlin_jar",
         ":singlejar_jar",
         "//src/tools/java/com/google/devtools/build/android/junctions",
         "//src/tools/java/com/google/devtools/build/android/proto:resources_java_proto",
