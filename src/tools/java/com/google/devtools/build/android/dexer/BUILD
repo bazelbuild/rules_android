@@ -37,16 +37,17 @@ java_binary(
         "ZipEntryPredicates.java",
     ],
     visibility = ["//visibility:public"],
+    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
+        "@rules_android_maven//:com_beust_jcommander",
+        "@rules_android_maven//:com_google_code_findbugs_jsr305",
+        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
+        "@rules_android_maven//:com_google_guava_guava",
         ":DexFileSplitter_lib",
         ":android_dex_from_android_tools",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_options_utils",
         "//tools/android:autovalue",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
-        "@rules_android_maven//:com_google_guava_guava",
     ],
 )
 
@@ -60,17 +61,18 @@ java_library(
         "ZipEntryPredicates.java",
     ],
     visibility = ["//src/test/java/com/google/devtools/build/android/dexer:__pkg__"],
+    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
-        ":android_dex_from_android_tools",
-        "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "//src/tools/java/com/google/devtools/build/android:android_options_utils",
-        "//tools/android:autovalue",
         "@bazel_worker_api//:worker_protocol_proto",
         "@rules_android_maven//:com_beust_jcommander",
         "@rules_android_maven//:com_google_auto_value_auto_value",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
         "@rules_android_maven//:com_google_guava_guava",
+        ":android_dex_from_android_tools",
+        "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
+        "//src/tools/java/com/google/devtools/build/android:android_options_utils",
+        "//tools/android:autovalue",
     ],
 )
 
