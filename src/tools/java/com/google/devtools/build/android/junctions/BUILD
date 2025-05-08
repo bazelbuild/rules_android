@@ -13,7 +13,7 @@ package_group(
 package_group(
     name = "android-tests",
     packages = [
-        "//src/test/java/com/google/devtools/build/android/...",
+        "//src/tools/javatests/com/google/devtools/build/android/...",
     ],
 )
 

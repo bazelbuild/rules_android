@@ -184,12 +184,12 @@ java_library(
         "CompatShellQuotedParamsFilePreProcessor.java",
     ],
     visibility = [
-        "//src/test/java/com/google/devtools/build/android:__pkg__",
         "//src/tools/java/com/google/devtools/build/android/desugar/scan:__pkg__",
         "//src/tools/java/com/google/devtools/build/android/dexer:__pkg__",
         "//src/tools/java/com/google/devtools/build/android/idlclass:__pkg__",
         "//src/tools/java/com/google/devtools/build/android/r8:__pkg__",
         "//src/tools/java/com/google/devtools/build/android/ziputils:__pkg__",
+        "//src/tools/javatests/com/google/devtools/build/android:__pkg__",
     ],
     deps = [
         "@rules_android_maven//:com_beust_jcommander",
