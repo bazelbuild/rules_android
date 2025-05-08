@@ -16,6 +16,8 @@ script_test(
     srcs = ["demo_test.sh"],
     bazel_binaries = bazel_binaries,
     bazel_version = bazel_binaries.versions.current,
+    # Disabled due to #368.
+    tags = ["manual"],
     deps = [
         "//test/bashunit",
         "@bazel_tools//tools/bash/runfiles",
@@ -24,6 +26,8 @@ script_test(
 
 test_suite(
     name = "integration_tests",
+    # Disabled due to #368.
+    tags = ["manual"],
     tests = [
         ":demo_test",
     ],

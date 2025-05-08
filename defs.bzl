@@ -40,6 +40,36 @@ def rules_android_workspace():
 
     bazel_skylib_workspace()
 
+    # Maven for android_ide_common need to be separated into their own separate maven_install for now
+    # due to compatibility issues with newer versions.
+    maven_install(
+        name = "android_ide_common_30_1_3",
+        aar_import_bzl_label = "@rules_android//rules:rules.bzl",
+        artifacts = [
+            "com.android.tools.layoutlib:layoutlib-api:30.1.3",
+            "com.android.tools.build:manifest-merger:30.1.3",
+            "com.android.tools:common:30.1.3",
+            "com.android.tools:repository:30.1.3",
+            "com.android.tools.analytics-library:protos:30.1.3",
+            "com.android.tools.analytics-library:shared:30.1.3",
+            "com.android.tools.analytics-library:tracker:30.1.3",
+            "com.android.tools:annotations:30.1.3",
+            "com.android.tools:sdk-common:30.1.3",
+            "com.android.tools.build:builder:7.1.3",
+            "com.android.tools.build:builder-model:7.1.3",
+            # These technically aren't needed, but the protobuf version pulled
+            # in by these older deps has compatibility issues with the newer
+            # protobuf runtimes.
+            "com.google.protobuf:protobuf-java:4.29.3",
+            "com.google.protobuf:protobuf-java-util:4.29.3",
+        ],
+        repositories = [
+            "https://maven.google.com",
+            "https://repo1.maven.org/maven2",
+        ],
+        use_starlark_android_rules = True,
+    )
+
     maven_install(
         name = "rules_android_maven",
         artifacts = [
@@ -49,7 +79,6 @@ def rules_android_workspace():
             "androidx.test:core:1.6.0-alpha01",
             "androidx.test.ext:junit:1.2.0-alpha01",
             "com.android.tools.apkdeployer:apkdeployer:8.8.0-alpha05",
-            "org.gradle:gradle-core:4.2.1",
             "com.android.tools.build:bundletool:1.15.5",
             "com.android.tools:desugar_jdk_libs_minimal:2.0.4",
             "com.android.tools:desugar_jdk_libs_configuration_minimal:2.0.4",
@@ -74,22 +103,12 @@ def rules_android_workspace():
             "org.ow2.asm:asm-commons:9.6",
             "org.ow2.asm:asm-tree:9.6",
             "org.ow2.asm:asm-util:9.6",
-            "com.android.tools.layoutlib:layoutlib-api:30.1.3",
-            "com.android.tools.build:manifest-merger:30.1.3",
-            "com.android.tools:common:30.1.3",
-            "com.android.tools:repository:30.1.3",
             "com.android:zipflinger:8.7.0",
             "com.android.tools.build:gradle:8.7.0",
             "com.android:signflinger:8.7.0",
             "com.android.tools.build:aapt2-proto:8.6.1-11315950",
-            "com.android.tools.analytics-library:protos:30.1.3",
-            "com.android.tools.analytics-library:shared:30.1.3",
-            "com.android.tools.analytics-library:tracker:30.1.3",
-            "com.android.tools:annotations:30.1.3",
             "com.android.tools.build:apksig:8.7.0",
             "com.android.tools.build:apkzlib:8.7.0",
-            "com.android.tools.build:builder:8.7.0",
-            "com.android.tools.build:builder-model:8.7.0",
             "com.google.auto.value:auto-value:1.11.0",
             "com.google.auto.value:auto-value-annotations:1.11.0",
             "com.google.auto:auto-common:1.2.2",
@@ -99,12 +118,10 @@ def rules_android_workspace():
             "com.google.errorprone:error_prone_type_annotations:2.33.0",
             "com.google.errorprone:error_prone_check_api:2.33.0",
             "com.google.errorprone:error_prone_core:2.33.0",
-            "com.android.tools:sdk-common:30.1.3",
         ],
         repositories = [
             "https://repo1.maven.org/maven2",
             "https://maven.google.com",
-            "https://repo.gradle.org/gradle/libs-releases",
         ],
         use_starlark_android_rules = True,
         aar_import_bzl_label = "@rules_android//rules:rules.bzl",
