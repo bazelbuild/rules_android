@@ -104,7 +104,6 @@ java_library(
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_protobuf_protobuf_java",
         ":android_common_30_1_3",
-        ":android_common_jar",
         ":android_databinding_wrapper_lib",
         ":android_options_utils",
         ":dependency_info",
@@ -154,22 +153,7 @@ java_library(
     ],
 )
 
-run_singlejar(
-    name = "android_common_jar_gen",
-    srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    out = "android_common_exec.jar",
-    include_prefixes = [
-        "com/android/build/gradle/tasks",
-        "com/android/resources",
-    ],
-)
 
-java_import(
-    name = "android_common_jar",
-    jars = [
-        ":android_common_jar_gen",
-    ],
-)
 
 java_library(
     name = "android_common_30_1_3",
