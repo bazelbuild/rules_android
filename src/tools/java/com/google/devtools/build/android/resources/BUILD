@@ -23,7 +23,6 @@ java_library(
         "@rules_android_maven//:org_ow2_asm_asm",
         "@rules_android_maven//:org_ow2_asm_asm_commons",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
-        "//src/tools/java/com/google/devtools/build/android:android_common_jar",
         "//src/tools/java/com/google/devtools/build/android:dependency_info",
     ],
 )
