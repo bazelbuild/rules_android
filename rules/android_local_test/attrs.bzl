@@ -226,6 +226,10 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
             _manifest_merge_order = attr.label(
                 default = "//rules/flags:manifest_merge_order",
             ),
+            _enable_debuggable_from_manifest_values = attr.label(
+                default = "//rules/flags:enable_debuggable_from_manifest_values",
+                doc = "Enables setting 'debuggable' of the app from android_binary#manifest_values.",
+            ),
         ),
         _attrs.compilation_attributes(),
         _attrs.DATA_CONTEXT,
