@@ -78,7 +78,7 @@ def rules_android_workspace():
             "androidx.privacysandbox.tools:tools-apipackager:1.0.0-alpha06",
             "androidx.test:core:1.6.0-alpha01",
             "androidx.test.ext:junit:1.2.0-alpha01",
-            "com.android.tools.apkdeployer:apkdeployer:8.8.0-alpha05",
+            "com.android.tools.apkdeployer:apkdeployer:8.11.0-alpha10",
             "com.android.tools.build:bundletool:1.15.5",
             "com.android.tools:desugar_jdk_libs_minimal:2.0.4",
             "com.android.tools:desugar_jdk_libs_configuration_minimal:2.0.4",
