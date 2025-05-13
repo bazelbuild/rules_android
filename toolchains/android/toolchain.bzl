@@ -137,6 +137,11 @@ _ATTRS = dict(
         allow_single_file = True,
         default = Label("//tools/android:desugar.globals"),
     ),
+    desugar_globals_dex_archive = attr.label(
+        cfg = "target",
+        allow_single_file = True,
+        default = "//tools/android:desugar_globals_dex_archive",
+    ),
     desugar_globals_jar = attr.label(
         cfg = "exec",
         default = Label("@androidsdk//:fail"),

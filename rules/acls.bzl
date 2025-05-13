@@ -71,7 +71,6 @@ load(
 )
 load("//rules/acls:proguard_apply_mapping.bzl", "ALLOW_PROGUARD_APPLY_MAPPING")
 load("//rules/acls:r8.bzl", "USE_R8")
-load("//rules/acls:record_desugaring.bzl", "RECORD_DESUGARING_FALLBACK", "RECORD_DESUGARING_ROLLOUT")
 load("//rules/acls:resource_translation_merging_rollout.bzl", "RESOURCE_TRANSLATION_MERGING_FALLBACK", "RESOURCE_TRANSLATION_MERGING_ROLLOUT")
 load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
 load("//rules/acls:stamp_signing.bzl", "STAMP_SIGNING_FALLBACK", "STAMP_SIGNING_ROLLOUT")
@@ -204,9 +203,6 @@ def _in_force_final_android_binary_resources(fqn):
 def _in_resource_shrinking_in_optimizer(fqn):
     return matches(fqn, RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT) and not matches(fqn, RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT)
 
-def _in_record_desugaring_rollout(fqn):
-    return matches(fqn, RECORD_DESUGARING_ROLLOUT_DICT) and not matches(fqn, RECORD_DESUGARING_FALLBACK_DICT)
-
 def _get_optimizer_execution_requirements(target_package):
     return OPTIMIZER_EXECUTION_REQUIREMENTS.get(target_package, None)
 
@@ -283,8 +279,6 @@ RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT = make_dict(RESOURCE_SHRINKING_IN_O
 RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT = make_dict(RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK)
 DISABLE_OPTIMIZING_DEXER_DICT = make_dict(DISABLE_OPTIMIZING_DEXER)
 FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT = make_dict(FORCE_FINAL_ANDROID_BINARY_RESOURCES)
-RECORD_DESUGARING_FALLBACK_DICT = make_dict(RECORD_DESUGARING_FALLBACK)
-RECORD_DESUGARING_ROLLOUT_DICT = make_dict(RECORD_DESUGARING_ROLLOUT)
 STAMP_SIGNING_ROLLOUT_DICT = make_dict(STAMP_SIGNING_ROLLOUT)
 STAMP_SIGNING_FALLBACK_DICT = make_dict(STAMP_SIGNING_FALLBACK)
 RESOURCE_TRANSLATION_MERGING_ROLLOUT_DICT = make_dict(RESOURCE_TRANSLATION_MERGING_ROLLOUT)
@@ -382,7 +376,6 @@ acls = struct(
     in_disable_optimizing_dexer = _in_disable_optimizing_dexer,
     in_force_final_android_binary_resources = _in_force_final_android_binary_resources,
     in_resource_shrinking_in_optimizer = _in_resource_shrinking_in_optimizer,
-    in_record_desugaring_rollout = _in_record_desugaring_rollout,
     in_stamp_signing_rollout = _in_stamp_signing_rollout,
     in_desugaring_runtime_jar_classpath_rollout = _in_desugaring_runtime_jar_classpath_rollout,
     in_resource_translation_merging_rollout = _in_resource_translation_merging_rollout,
