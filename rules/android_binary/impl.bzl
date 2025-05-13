@@ -407,7 +407,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             )
 
         dexes_to_append = []
-        if acls.in_record_desugaring_rollout(str(ctx.label)) and not is_binary_optimized:
+        if not is_binary_optimized:
             dexes_to_append.append(utils.only(get_android_toolchain(ctx).desugar_globals_dex_archive.files.to_list()))
         dexes_to_append.append(java8_legacy_dex)
         _dex.append_desugar_dexes(
@@ -473,7 +473,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, packaged_resources_ctx, 
 
         # Only include the desugar globals in the deploy jar if this target will be optimized.
         # For non-optimized targets this gets merged in as a separate dex.
-        if acls.in_record_desugaring_rollout(str(ctx.label)) and ctx.attr.proguard_specs:
+        if ctx.attr.proguard_specs:
             desugared_jars.append(utils.only(get_android_toolchain(ctx).desugar_globals_jar.files.to_list()))
         desugar_dict = {d.jar: d.desugared_jar for d in dex_archives if d.desugared_jar}
 
