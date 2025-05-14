@@ -122,10 +122,12 @@ genrule(
     cmd = "$(location //src/tools/extract_desugar_pgcfg_flags) --input_json $(location :desugar_jdk_libs_json) --output_file $@",
 )
 
+_MIN_SDK_VERSION = str(min_sdk_version.DEPOT_FLOOR)
+
 genrule(
     name = "build_java8_legacy_dex_params",
     outs = ["build_java8_legacy_dex_params.txt"],
-    cmd = "echo -n --min-api 19 > $@",
+    cmd = "echo -n --min-api %s > $@" % _MIN_SDK_VERSION,
     visibility = ["//visibility:private"],
 )
 
@@ -143,14 +145,18 @@ genrule(
 genrule(
     name = "desugared_jdk_libs_jar",
     srcs = [
+        ":android_jar",
         ":desugared_jdk_libs_from_maven.jar",
         ":full_desugar_jdk_libs_config_json",
     ],
     outs = ["desugared_jdk_libs.jar"],
-    cmd = "$(location :desugar_java8) " +
-          "--desugared_lib_config $(location :full_desugar_jdk_libs_config_json) " +
+    cmd = "$(location //src/tools/java/com/google/devtools/build/android/r8:core_library_desugar) " +
+          "--desugar_supported_core_libs " +
+          "--desugared_lib_config=$(location :full_desugar_jdk_libs_config_json) " +
+          "--bootclasspath_entry=$(location :android_jar) " +
+          "--min_sdk_version=%d " % min_sdk_version.DEPOT_FLOOR +
           "--input=$(location :desugared_jdk_libs_from_maven.jar) --output=$@",
-    tools = [":desugar_java8"],
+    tools = ["//src/tools/java/com/google/devtools/build/android/r8:core_library_desugar"],
 )
 
 sh_binary(
@@ -176,8 +182,6 @@ genrule(
     tools = [":build_java8_legacy_dex"],
     visibility = ["//visibility:public"],
 )
-
-_MIN_SDK_VERSION = "19"
 
 genrule(
     name = "d8_desugar_params",
@@ -219,8 +223,18 @@ java_import(
     visibility = ["//visibility:public"],
 )
 
+# Flags to make OpenJDK perform reasonably on D8.
+_JVM_FLAGS = [
+    "-XX:+TieredCompilation",
+    "-XX:TieredStopAtLevel=1",
+    # Consistent with what we use for desugar.
+    "-Xms8g",
+    "-Xmx8g",
+]
+
 java_binary(
     name = "d8",
+    jvm_flags = _JVM_FLAGS,
     main_class = "com.android.tools.r8.D8",
     visibility = ["//visibility:public"],
     runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
@@ -228,6 +242,7 @@ java_binary(
 
 java_binary(
     name = "r8",
+    jvm_flags = _JVM_FLAGS,
     main_class = "com.android.tools.r8.R8",
     visibility = ["//visibility:public"],
     runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
@@ -235,6 +250,7 @@ java_binary(
 
 java_binary(
     name = "tracereferences",
+    jvm_flags = _JVM_FLAGS,
     main_class = "com.android.tools.r8.tracereferences.TraceReferences",
     visibility = ["//visibility:public"],
     runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
