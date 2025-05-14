@@ -16,6 +16,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//bzlmod_extensions:apksig.bzl", _apksig_archive = "apksig")
+load("//bzlmod_extensions:com_android_dex.bzl", _com_android_dex_archive = "com_android_dex")
 
 def rules_android_prereqs(dev_mode = False):
     """Downloads prerequisite repositories for rules_android."""
@@ -219,6 +220,7 @@ def rules_android_prereqs(dev_mode = False):
     )
 
     _apksig_archive()
+    _com_android_dex_archive()
 
     if dev_mode:
         maybe(
