@@ -84,6 +84,7 @@ def rules_android_workspace():
             "com.android.tools:desugar_jdk_libs_configuration_minimal:2.1.5",
             "com.android.tools:desugar_jdk_libs_nio:2.1.5",
             "com.android.tools:desugar_jdk_libs_configuration_nio:2.1.5",
+            "com.android.tools:desugar_jdk_libs_configuration:2.1.5",
             "com.android.tools:r8:8.9.35",
             "org.bouncycastle:bcprov-jdk18on:1.77",
             "org.hamcrest:hamcrest-core:2.2",
