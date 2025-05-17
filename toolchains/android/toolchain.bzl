@@ -263,6 +263,11 @@ _ATTRS = dict(
         default = "//toolchains/android:unzip",
         executable = True,
     ),
+    xmllint_tool = attr.label(
+        cfg = "exec",
+        default = "//toolchains/android:xmllint",
+        executable = True,
+    ),
     xsltproc_tool = attr.label(
         cfg = "exec",
         default = Label("//tools/android/xslt:xslt"),
