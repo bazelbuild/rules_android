@@ -133,26 +133,6 @@ public class ZipFilterAction {
               + "same name are different."
     )
     HashMismatchCheckMode hashMismatchCheckMode = HashMismatchCheckMode.WARN;
-
-    /**
-     * @deprecated please use --checkHashMismatch ERROR instead. Other options are IGNORE and WARN.
-     */
-    @Deprecated
-    @Parameter(
-      names = "--errorOnHashMismatch",
-      description = "Error on entry filter with hash mismatch."
-    )
-    boolean errorOnHashMismatch = false;
-
-    /**
-     * @deprecated please use --checkHashMismatch WARN instead. Other options are IGNORE and WARN.
-     *     <p>This is a hack to support existing users of --noerrorOnHashMismatch. JCommander does
-     *     not support setting boolean flags with "--no", so instead we set the default to false and
-     *     just ignore anyone who passes --noerrorOnHashMismatch.
-     */
-    @Deprecated
-    @Parameter(names = "--noerrorOnHashMismatch")
-    boolean ignored = false;
   }
 
   /** Converts string flags to paths. Public because JCommander invokes this by reflection. */
@@ -247,11 +227,6 @@ public class ZipFilterAction {
       }
     }
 
-    // TODO(jingwen): Remove --errorOnHashMismatch when Blaze release with --checkHashMismatch
-    // is checked in.
-    if (options.errorOnHashMismatch) {
-      options.hashMismatchCheckMode = HashMismatchCheckMode.ERROR;
-    }
     ZipFilterEntryFilter entryFilter =
         new ZipFilterEntryFilter(
             explicitFilter,
