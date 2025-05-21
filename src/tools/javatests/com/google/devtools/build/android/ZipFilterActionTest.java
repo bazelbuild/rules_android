@@ -319,14 +319,15 @@ public class ZipFilterActionTest {
     File output = tmp.newFile();
     output.delete();
     Path filter = createZip("foo.java", "bar.class");
-    ImmutableList<String> args = ImmutableList.of(
-        "--inputZip", input.toFile().getPath(),
-        "--outputZip", output.getPath(),
-        "--filterZips", filter.toFile().getPath(),
-        "--filterTypes", ".class",
-        "--explicitFilters", "bar\\.class",
-        "--outputMode", "DONT_CARE",
-        "--errorOnHashMismatch");
+    ImmutableList<String> args =
+        ImmutableList.of(
+            "--inputZip", input.toFile().getPath(),
+            "--outputZip", output.getPath(),
+            "--filterZips", filter.toFile().getPath(),
+            "--filterTypes", ".class",
+            "--explicitFilters", "bar\\.class",
+            "--outputMode", "DONT_CARE",
+            "--checkHashMismatch", "ERROR");
     assertThat(outputEntriesWithArgs(args, output)).containsExactly("foo.java", "baz.class");
   }
 
