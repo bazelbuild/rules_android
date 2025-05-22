@@ -34,6 +34,7 @@ run_singlejar(
     out = "singlejar.jar",
     include_prefixes = [
         "com/google/devtools/build/singlejar/",
+        "com/google/devtools/build/zip/",
     ],
 )
 
