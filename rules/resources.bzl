@@ -15,6 +15,7 @@
 
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
+load("//rules:data_binding.bzl", _data_binding = "data_binding")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
@@ -381,7 +382,7 @@ OUT_DIR=$(mktemp -d)
 CUR_PWD=$(pwd)
 
 if zipinfo -t "$1"; then
-    ORDERED_LIST=`(unzip -l "$1" | sed -e '1,3d' | head -n -2 | tr -s " " | cut -d " " -f5)`
+    ORDERED_LIST=`(zipinfo -1 "$1" | sort)`
 
     unzip -q "$1" -d "$IN_DIR"
 
@@ -390,7 +391,8 @@ if zipinfo -t "$1"; then
     for FILE in $ORDERED_LIST; do
         cd "$IN_DIR"
         if [ -f "$FILE" ]; then
-            sed -i 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE"
+            LC_ALL=C sed -i.bak 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE"
+            rm "${FILE}.bak"
             NEW_NAME=`echo "$FILE" | sed 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' | sed 's#'"$IN_DIR"'/##g'`
             mkdir -p `dirname "$OUT_DIR/$NEW_NAME"` && touch "$OUT_DIR/$NEW_NAME"
             cp -p "$FILE" "$OUT_DIR/$NEW_NAME"
@@ -1189,6 +1191,7 @@ def _process_starlark(
         resource_files = None,
         neverlink = False,
         enable_data_binding = False,
+        data_binding_setter_store = None,
         fix_resource_transitivity = False,
         aapt = None,
         android_jar = None,
@@ -1368,6 +1371,12 @@ def _process_starlark(
     data_binding_layout_info = None
     processed_resources = resource_files
     processed_manifest = None
+
+    if data_binding_setter_store != None:
+        resources_ctx[_PROVIDERS].append(
+            _data_binding.process_aar(ctx, data_binding_setter_store)
+        )
+
     if not defines_resources:
         if aapt:
             # Generate an empty manifest with the right package
