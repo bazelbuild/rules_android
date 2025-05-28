@@ -13,7 +13,7 @@
 # limitations under the License.
 """Implementation."""
 
-load("//providers:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidPreDexJarInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
+load("//providers:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:apk_packaging.bzl", _apk_packaging = "apk_packaging")
 load("//rules:baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
@@ -315,6 +315,11 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
         )
 
     should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
+
+    build_metadata_output = None
+    if should_optimize_dex and acls.in_d8_optimization_metadata(str(ctx.label)):
+        build_metadata_output = ctx.actions.declare_file(ctx.label.name + "_d8_optimization_info.json")
+
     if proguard_output_map:
         # Proguard map from preprocessing will be merged with Proguard map for desugared
         # library.
@@ -362,6 +367,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
             proguard_output_map = proguard_output_map,
             postprocessing_output_map = postprocessing_output_map,
             startup_profile = optimize_ctx.proguard_output.startup_profile_rewritten,
+            build_metadata_output = build_metadata_output,
             inclusion_filter_jar = binary_jar if is_instrumentation(ctx) and not is_binary_optimized else None,
             transitive_runtime_jars_for_archive = deploy_ctx.transitive_runtime_jars_for_archive,
             desugar_dict = deploy_ctx.desugar_dict,
@@ -429,6 +435,9 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, deploy_ctx, bp_ctx
         java_resource_jar = binary_jar if ctx.fragments.android.get_java_resources_from_optimized_jar else deploy_jar,
     )
     providers.append(AndroidPreDexJarInfo(pre_dex_jar = binary_jar))
+
+    if build_metadata_output != None:
+        providers.append(AndroidOptimizationInfo(d8_optimization_info = build_metadata_output))
 
     if postprocessing_output_map:
         providers.append(ProguardMappingInfo(proguard_mapping = postprocessing_output_map))

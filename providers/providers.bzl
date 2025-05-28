@@ -218,6 +218,13 @@ AndroidNativeLibsInfo = provider(
     ),
 )
 
+AndroidOptimizationInfo = provider(
+    doc = "Contains data about which optimizations were applied to the APK with which settings",
+    fields = dict(
+        d8_optimization_info = "Metadata produced by D8 about the applied optimizations in a JSON format.",
+    ),
+)
+
 AndroidIdlInfo = provider(
     doc = "AndroidIdlInfo",
     fields = dict(
