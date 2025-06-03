@@ -477,6 +477,14 @@ AndroidSdkInfo, _AndroidSdkInfo_raw = provider(
     ),
 )
 
+# See b/419287003 for more details of why this provider is needed.
+AndroidLocalizedFilesInfo = provider(
+    doc = "AndroidLocalizedFilesInfo",
+    fields = dict(
+        transitive_dicts = "A depset of all the transitive dicts each mapping locale name to its translations",
+    ),
+)
+
 # Keep these symobols until rules/providers.bzl is deleted from release.
 AndroidResourcesInfo = None
 AndroidManifestInfo = None
