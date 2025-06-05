@@ -363,8 +363,13 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, targe
     for input in all_inputs:
         needs_linking = needs_linking or _contains_code_to_link(input)
 
-    if not needs_linking or cc_common.is_requested(
+    if not needs_linking or cc_common.is_enabled(
         feature_name = "disable_fallback_native_deps_linking",
+        feature_configuration = cc_common.configure_features(
+            ctx = ctx,
+            cc_toolchain = cc_toolchain,
+            unsupported_features = ctx.disabled_features,
+        ),
     ):
         return None
 
