@@ -3,7 +3,7 @@
 matrix:
   bazel: [
     7.4.1,
-    8.0.0rc7,
+    8.2.1,
     last_green,
   ]
 
