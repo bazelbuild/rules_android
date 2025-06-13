@@ -95,17 +95,19 @@ def _extract_resources(
         ctx,
         out_resources_dir,
         out_assets_dir,
+        out_databinding_setter_store_dir,
         aar,
         aar_resources_extractor_tool):
     args = ctx.actions.args()
     args.add("--input_aar", aar)
     args.add("--output_res_dir", out_resources_dir.path)
     args.add("--output_assets_dir", out_assets_dir.path)
+    args.add("--output_databinding_setter_store_dir", out_databinding_setter_store_dir.path)
     ctx.actions.run(
         executable = aar_resources_extractor_tool,
         arguments = [args],
         inputs = [aar],
-        outputs = [out_resources_dir, out_assets_dir],
+        outputs = [out_resources_dir, out_assets_dir, out_databinding_setter_store_dir],
         mnemonic = "AarResourcesExtractor",
         progress_message = "Extracting resources and assets from %s" % aar.basename,
         toolchain = None,
@@ -142,10 +144,12 @@ def _process_resources(
     # Extract resources and assets, if they exist.
     resources = _create_aar_tree_artifact(ctx, "resources")
     assets = _create_aar_tree_artifact(ctx, "assets")
+    data_binding_setter_store = _create_aar_tree_artifact(ctx, "data_binding_setter_store")
     _extract_resources(
         ctx,
         resources,
         assets,
+        data_binding_setter_store,
         aar,
         aar_resources_extractor_tool,
     )
@@ -156,6 +160,7 @@ def _process_resources(
         assets = [assets],
         assets_dir = assets.path,
         resource_files = [resources],
+        data_binding_setter_store = data_binding_setter_store,
         stamp_manifest = False,
         deps = ctx.attr.deps,
         exports = ctx.attr.exports,

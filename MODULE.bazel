@@ -146,7 +146,7 @@ maven.install(
     ],
     # To generate, run:
     # REPIN=1 bazelisk run --enable_bzlmod @rules_android_maven//:pin
-    # lock_file = "//:rules_android_maven_install.json",
+    lock_file = "//:rules_android_maven_install.json",
     use_starlark_android_rules = True,
 )
 use_repo(

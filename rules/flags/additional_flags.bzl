@@ -13,7 +13,7 @@
 # limitations under the License.
 """Additional flag definitions."""
 
-load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 
 def additional_flags():
 
@@ -27,5 +27,11 @@ def additional_flags():
             "legacy",
             "dependency",
         ],
+        visibility = ["//visibility:public"],
+    )
+
+    bool_flag(
+        name = "databinding_use_androidx",
+        build_setting_default = False,
         visibility = ["//visibility:public"],
     )
