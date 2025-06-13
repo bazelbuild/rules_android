@@ -5,3 +5,7 @@ common:core_library_desugaring --desugar_java8_libs
 mobile-install --mode=skylark --mobile_install_aspect=@rules_android//mobile_install:mi.bzl --mobile_install_supported_rules=android_binary
 # Required to invoke the Studio deployer jar
 common --tool_java_runtime_version=17
+
+# Workaround for a rules_java + bazel < 8.3.0 issue.
+# https://github.com/bazelbuild/bazel/pull/26119
+common --repositories_without_autoloads=bazel_features_version,bazel_features_globals

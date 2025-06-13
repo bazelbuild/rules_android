@@ -7,7 +7,6 @@ load("prereqs.bzl", "rules_android_prereqs")
 rules_android_prereqs(dev_mode = True)
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
-
 rules_java_dependencies()
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
