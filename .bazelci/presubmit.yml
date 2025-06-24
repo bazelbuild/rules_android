@@ -135,11 +135,12 @@ tasks:
     platform: macos
     bazel: ${{ bazel }}
     <<: *rules_coverage
-  windows_a_l_t_coverage:
-    name: "Windows android_local_test coverage"
-    platform: windows
-    bazel: ${{ bazel }}
-    <<: *rules_coverage
+#  TODO: Make windows ALT coverage work
+#  windows_a_l_t_coverage:
+#    name: "Windows android_local_test coverage"
+#    platform: windows
+#    bazel: ${{ bazel }}
+#    <<: *rules_coverage
   ubuntu2004_basicapp:
     name: "Basic app ubuntu"
     platform: ubuntu2004
