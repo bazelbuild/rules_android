@@ -179,7 +179,7 @@ _ATTRS = dict(
         executable = True,
     ),
     jacocorunner = attr.label(
-        default = "@androidsdk//:fail",
+        default = "@remote_java_tools//:jacoco_coverage_runner",
     ),
     java_stub = attr.label(
         allow_files = True,
