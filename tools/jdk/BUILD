@@ -29,6 +29,12 @@ java_language_version_select_dict = {
     "//conditions:default": ":toolchain_android_only_11",
 }
 
+alias(
+    name = "singlejar",
+    actual = "@rules_java//toolchains:singlejar",
+    visibility = ["//visibility:public"],
+)
+
 sh_binary(
     name = "create_system",
     srcs = ["create_system.sh"],

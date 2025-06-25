@@ -13,6 +13,8 @@
 // limitations under the License.
 package com.google.devtools.build.android;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.IValueValidator;
 import com.beust.jcommander.JCommander;
@@ -23,16 +25,18 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
-import com.google.devtools.build.singlejar.ZipCombiner;
-import com.google.devtools.build.singlejar.ZipCombiner.OutputMode;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -43,6 +47,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Action to filter entries out of a Zip file.
@@ -71,6 +76,23 @@ import java.util.zip.ZipFile;
  * </pre>
  */
 public class ZipFilterAction {
+  /** A copy of Bazel's singlejar.ZipCombiner#OutputMode enum. */
+  enum OutputMode {
+
+    /** Output entries using any method. */
+    DONT_CARE,
+
+    /**
+     * Output all entries using DEFLATE method, except directory entries. It is always more
+     * efficient to store directory entries uncompressed.
+     */
+    FORCE_DEFLATE,
+
+    /** Output all entries using STORED method. */
+    FORCE_STORED,
+  }
+
+  record GenerateExcludeListResult(int sawErrors, ArrayList<String> excludeList) {}
 
   private static final Logger logger = Logger.getLogger(ZipFilterAction.class.getName());
 
@@ -200,6 +222,58 @@ public class ZipFilterAction {
     System.exit(run(args));
   }
 
+  static GenerateExcludeListResult generateExcludeList(Options options, Stopwatch timer)
+      throws IOException {
+    Multimap<String, Long> entriesToOmit =
+        getEntriesToOmit(options.filterZips, options.filterTypes);
+    final String explicitFilter =
+        options.explicitFilters.isEmpty()
+            ? ""
+            : String.format(".*(%s).*", Joiner.on("|").join(options.explicitFilters));
+    logger.fine(String.format("Filter created in %dms", timer.elapsed(TimeUnit.MILLISECONDS)));
+    ArrayList<String> excludeList = new ArrayList<>();
+
+    int sawErrors = 0;
+    try (ZipFile zf = new ZipFile(options.inputZip.toFile());
+        ZipOutputStream zos =
+            new ZipOutputStream(new FileOutputStream(options.outputZip.toString()))) {
+      Enumeration<? extends ZipEntry> entries = zf.entries();
+
+      while (entries.hasMoreElements()) {
+        ZipEntry entry = entries.nextElement();
+        if (entry.getName().matches(explicitFilter)) {
+          excludeList.add(entry.getName());
+        } else if (entriesToOmit.containsEntry(entry.getName(), entry.getCrc())) {
+          excludeList.add(entry.getName());
+        } else if (entriesToOmit.containsKey(entry.getName())) {
+          // entriesToOmit contains the filename, but a different CRC was observed.
+          if (options.hashMismatchCheckMode == HashMismatchCheckMode.IGNORE) {
+            // Just add it to the excluded entry list.
+            excludeList.add(entry.getName());
+          } else {
+            if (options.hashMismatchCheckMode == HashMismatchCheckMode.ERROR) {
+              logger.severe(
+                  String.format(
+                      "ERROR: Requested to filter entries of name "
+                          + "'%s'; name matches but the hash does not.\n",
+                      entry.getName()));
+              sawErrors = 1;
+              excludeList.add(entry.getName());
+            } else {
+              logger.severe(
+                  String.format(
+                      "WARNING: Requested to filter entries of name "
+                          + "'%s'; name matches but the hash does not. Copying anyway.\n",
+                      entry.getName()));
+            }
+          }
+        }
+      }
+    }
+    return new GenerateExcludeListResult(sawErrors, excludeList);
+  }
+
+  @SuppressWarnings("RuntimeExec")
   static int run(String[] args) throws IOException {
     Options options = new Options();
     new JCommander(options).parse(args);
@@ -208,37 +282,73 @@ public class ZipFilterAction {
             "Creating filter from entries of type %s, in zip files %s.",
             options.filterTypes, options.filterZips));
 
+    String compressionStrategy = "--dont_change_compression";
+    if (options.outputMode == OutputMode.FORCE_STORED) {
+      compressionStrategy = "--compression";
+    } else if (options.outputMode == OutputMode.FORCE_DEFLATE) {
+      throw new IllegalArgumentException("FORCE_DEFLATE is not supported.");
+    }
+
+    String singleJarPath =
+        Path.of(System.getProperty("runfiles.path"), System.getProperty("singlejar.path"))
+            .toString();
+    ImmutableList.Builder<String> singleJarArgsBuilder = ImmutableList.builder();
+    singleJarArgsBuilder
+        .add("--sources")
+        .add(options.inputZip.toString())
+        .add("--output")
+        .add(options.outputZip.toString())
+        .add(compressionStrategy)
+        .add("--exclude_build_data")
+        .add("--normalize");
+
     final Stopwatch timer = Stopwatch.createStarted();
-    Multimap<String, Long> entriesToOmit =
-        getEntriesToOmit(options.filterZips, options.filterTypes);
-    final String explicitFilter =
-        options.explicitFilters.isEmpty()
-            ? ""
-            : String.format(".*(%s).*", Joiner.on("|").join(options.explicitFilters));
-    logger.fine(String.format("Filter created in %dms", timer.elapsed(TimeUnit.MILLISECONDS)));
+    GenerateExcludeListResult excludeListResult = generateExcludeList(options, timer);
+    int sawErrors = excludeListResult.sawErrors();
+    ArrayList<String> excludeList = excludeListResult.excludeList();
 
-    ImmutableMap.Builder<String, Long> inputEntries = ImmutableMap.builder();
-    try (ZipFile zf = new ZipFile(options.inputZip.toFile())) {
-      Enumeration<? extends ZipEntry> entries = zf.entries();
+    if (!excludeList.isEmpty()) {
+      singleJarArgsBuilder.add("--exclude_zip_entries").addAll(excludeList);
+    }
 
-      while (entries.hasMoreElements()) {
-        ZipEntry entry = entries.nextElement();
-        inputEntries.put(entry.getName(), entry.getCrc());
+    ImmutableList<String> singleJarArgs = singleJarArgsBuilder.build();
+    // Dump the singlejar args into a params file
+    File paramsFile = File.createTempFile("singlejar_params", ".txt");
+    try (BufferedWriter writer = Files.newBufferedWriter(paramsFile.toPath(), UTF_8)) {
+      for (String arg : singleJarArgs) {
+        writer.write(arg + "\n");
       }
     }
 
-    ZipFilterEntryFilter entryFilter =
-        new ZipFilterEntryFilter(
-            explicitFilter,
-            entriesToOmit,
-            inputEntries.buildOrThrow(),
-            options.hashMismatchCheckMode);
-
-    try (OutputStream out = Files.newOutputStream(options.outputZip);
-        ZipCombiner combiner = new ZipCombiner(options.outputMode, entryFilter, out)) {
-      combiner.addZip(options.inputZip.toFile());
+    boolean singleJarError = false;
+    Process singleJarProcess =
+        Runtime.getRuntime().exec(new String[] {singleJarPath, "@" + paramsFile.getAbsolutePath()});
+    try {
+      int singlejarExitCode = singleJarProcess.waitFor();
+      if (singlejarExitCode != 0) {
+        sawErrors = 1;
+        singleJarError = true;
+        logger.severe(
+            String.format(
+                "ERROR: singlejar failed with exit code %d. See logs for details.",
+                singlejarExitCode));
+      }
+    } catch (InterruptedException e) {
+      singleJarError = true;
+      logger.severe(String.format("ERROR: singlejar was interrupted: %s", e.getMessage()));
+      sawErrors = 1;
+    }
+    // Dump out the singlejar stderr if there was an issue.
+    if (singleJarError) {
+      InputStreamReader isr = new InputStreamReader(singleJarProcess.getErrorStream(), UTF_8);
+      BufferedReader br = new BufferedReader(isr);
+      String line;
+      while ((line = br.readLine()) != null) {
+        System.out.println("  [singlejar stderr] " + line);
+      }
     }
     logger.fine(String.format("Filtering completed in %dms", timer.elapsed(TimeUnit.MILLISECONDS)));
-    return entryFilter.sawErrors() ? 1 : 0;
+
+    return sawErrors;
   }
 }
