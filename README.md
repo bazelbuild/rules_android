@@ -81,7 +81,7 @@ MODULE.bazel:
 bazel_dep(name = "rules_java", version = "7.11.1")
 bazel_dep(name = "bazel_skylib", version = "1.3.0")
 
-bazel_dep(name = "rules_android", version = "0.6.4")
+bazel_dep(name = "rules_android", version = "0.6.5")
 
 remote_android_extensions = use_extension(
     "@rules_android//bzlmod_extensions:android_extensions.bzl",
