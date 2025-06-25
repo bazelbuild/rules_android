@@ -18,11 +18,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
-import com.google.devtools.build.android.ZipFilterAction.HashMismatchCheckMode;
 import com.google.devtools.build.singlejar.ZipEntryFilter.CustomMergeStrategy;
 import com.google.devtools.build.singlejar.ZipEntryFilter.StrategyCallback;
 import java.io.File;
@@ -186,40 +183,6 @@ public class ZipFilterActionTest {
     assertThat(filterFiles).valuesForKey("bar.java").hasSize(2);
   }
 
-  @Test public void testZipEntryFilter() throws Exception {
-    ZipFilterEntryFilter filter =
-        new ZipFilterEntryFilter(
-            ".*R.class.*",
-            ImmutableSetMultimap.of("foo.class", 1L, "baz.class", 2L),
-            ImmutableMap.of("foo.class", 1L, "bar.class", 2L, "baz.class", 3L, "res/R.class", 4L),
-            HashMismatchCheckMode.WARN);
-    filter.accept("foo.class", callback);
-    callback.assertOp(FilterOperation.SKIP);
-    filter.accept("bar.class", callback);
-    callback.assertOp(FilterOperation.COPY);
-    filter.accept("baz.class", callback);
-    callback.assertOp(FilterOperation.COPY);
-    filter.accept("res/R.class", callback);
-    callback.assertOp(FilterOperation.SKIP);
-  }
-
-  @Test public void testZipEntryFilter_ErrorOnMismatch() throws Exception {
-    ZipFilterEntryFilter filter =
-        new ZipFilterEntryFilter(
-            ".*R.class.*",
-            ImmutableSetMultimap.of("foo.class", 1L, "baz.class", 2L),
-            ImmutableMap.of("foo.class", 1L, "bar.class", 2L, "baz.class", 3L, "res/R.class", 4L),
-            HashMismatchCheckMode.ERROR);
-    filter.accept("foo.class", callback);
-    callback.assertOp(FilterOperation.SKIP);
-    filter.accept("bar.class", callback);
-    callback.assertOp(FilterOperation.COPY);
-    filter.accept("res/R.class", callback);
-    callback.assertOp(FilterOperation.SKIP);
-    filter.accept("baz.class", callback);
-    assertThat(filter.sawErrors()).isTrue();
-  }
-
   @Test public void testFlags() throws Exception {
     File input = tmp.newFile("input");
     File output = tmp.newFile("output");
@@ -260,7 +223,8 @@ public class ZipFilterActionTest {
         "--explicitFilters", Joiner.on(",").join("R\\.class", "R\\$.*\\.class"),
         "--outputMode", "DONT_CARE");
     assertThat(outputEntriesWithArgs(args, output))
-        .containsExactly("foo.java", "baz.class", "2.class", "Read.class");
+        .containsExactly(
+            "META-INF/", "META-INF/MANIFEST.MF", "foo.java", "baz.class", "2.class", "Read.class");
   }
 
   @Test public void testFullIntegrationErrorsOnHash() throws IOException {
@@ -310,7 +274,8 @@ public class ZipFilterActionTest {
             "IGNORE",
             "--outputMode",
             "DONT_CARE");
-    assertThat(outputEntriesWithArgs(args, output)).containsExactly("foo.java", "baz.class");
+    assertThat(outputEntriesWithArgs(args, output))
+        .containsExactly("META-INF/", "META-INF/MANIFEST.MF", "foo.java", "baz.class");
   }
 
   @Test public void testFullIntegrationErrorsOnHash_WithExplicitOverride()
@@ -328,7 +293,8 @@ public class ZipFilterActionTest {
             "--explicitFilters", "bar\\.class",
             "--outputMode", "DONT_CARE",
             "--checkHashMismatch", "ERROR");
-    assertThat(outputEntriesWithArgs(args, output)).containsExactly("foo.java", "baz.class");
+    assertThat(outputEntriesWithArgs(args, output))
+        .containsExactly("META-INF/", "META-INF/MANIFEST.MF", "foo.java", "baz.class");
   }
 
 }

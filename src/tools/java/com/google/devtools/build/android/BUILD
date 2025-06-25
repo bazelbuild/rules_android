@@ -19,28 +19,20 @@ java_binary(
 
 java_binary(
     name = "ZipFilterAction",
+    data = [
+        "//tools/jdk:singlejar",
+    ],
     # Memory consumption of SingleJar is about 250 bytes per entry in the output file. Unfortunately,
     # the JVM tends to kill the process with an OOM long before we're at the limit. In the most
     # recent example, 400 MB of memory was enough for about 500,000 entries.
-    jvm_flags = ["-Xmx1600m"],
+    jvm_flags = [
+        "-Xmx1600m",
+        "-Drunfiles.path=$$0.runfiles",
+        "-Dsinglejar.path=$(rlocationpath //tools/jdk:singlejar)",
+    ],
     main_class = "com.google.devtools.build.android.ZipFilterAction",
     visibility = ["//tools/android:__pkg__"],
     runtime_deps = [":android_builder_lib"],
-)
-
-run_singlejar(
-    name = "singlejar_jar_gen",
-    srcs = ["@android_tools//:all_android_tools_deploy.jar"],
-    out = "singlejar.jar",
-    include_prefixes = [
-        "com/google/devtools/build/singlejar/",
-        "com/google/devtools/build/zip/",
-    ],
-)
-
-java_import(
-    name = "singlejar_jar",
-    jars = [":singlejar_jar_gen"],
 )
 
 run_singlejar(
@@ -108,7 +100,6 @@ java_library(
         ":android_databinding_wrapper_lib",
         ":android_options_utils",
         ":dependency_info",
-        ":singlejar_jar",
         "//src/tools/java/com/google/devtools/build/android/junctions",
         "//src/tools/java/com/google/devtools/build/android/proto:resources_java_proto",
         "//src/tools/java/com/google/devtools/build/android/proto:serialize_format_java_pb",
@@ -153,8 +144,6 @@ java_library(
         "//tools/android:autovalue",
     ],
 )
-
-
 
 java_library(
     name = "android_common_30_1_3",

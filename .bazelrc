@@ -1,4 +1,5 @@
 common --java_runtime_version=17
+common --tool_java_language_version=17
 
 # Workaround for a rules_java + bazel < 8.3.0 issue. It should only be relevant
 # for bazel@HEAD and rolling releases.
