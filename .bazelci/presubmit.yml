@@ -10,8 +10,6 @@ matrix:
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
-  # Sandboxed SDK tools depend on libraries that require Java runtime 17 or higher.
-  ? "--java_runtime_version=17"
 rules_flags: &rules_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
