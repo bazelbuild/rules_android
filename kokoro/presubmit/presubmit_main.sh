@@ -100,10 +100,6 @@ function main() {
     "--sandbox_tmpfs_path=$hsperfdata_dir"
     "--disk_cache=$disk_cache"
     "--verbose_failures"
-    "--experimental_google_legacy_api"
-    "--experimental_enable_android_migration_apis"
-    "--java_language_version=11"
-    "--java_runtime_version=17"
   )
 
   TEST_ARGS=(
