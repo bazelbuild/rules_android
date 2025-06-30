@@ -53,7 +53,7 @@ class PrefixReferenceScanner extends ClassVisitor {
   private final String prefix;
 
   public PrefixReferenceScanner(String prefix) {
-    super(GoogleOpcodes.LATEST);
+    super(Opcodes.ASM9);
     this.prefix = prefix;
   }
 
@@ -229,7 +229,7 @@ class PrefixReferenceScanner extends ClassVisitor {
   private class PrefixReferenceMethodVisitor extends MethodVisitor {
 
     public PrefixReferenceMethodVisitor() {
-      super(GoogleOpcodes.LATEST);
+      super(Opcodes.ASM9);
     }
 
     @Override
@@ -363,7 +363,7 @@ class PrefixReferenceScanner extends ClassVisitor {
   private class PrefixReferenceFieldVisitor extends FieldVisitor {
 
     public PrefixReferenceFieldVisitor() {
-      super(GoogleOpcodes.LATEST);
+      super(Opcodes.ASM9);
     }
 
     @Override
@@ -383,7 +383,7 @@ class PrefixReferenceScanner extends ClassVisitor {
   private class PrefixReferenceAnnotationVisitor extends AnnotationVisitor {
 
     public PrefixReferenceAnnotationVisitor() {
-      super(GoogleOpcodes.LATEST);
+      super(Opcodes.ASM9);
     }
 
     @Override

@@ -88,7 +88,7 @@ public class HeaderClassLoader extends ClassLoader {
     private String internalName;
 
     public NonPrimitiveFieldCollector() {
-      super(GoogleOpcodes.LATEST);
+      super(Opcodes.ASM9);
     }
 
     @Override
@@ -132,7 +132,7 @@ public class HeaderClassLoader extends ClassLoader {
     private final ImmutableList<FieldInfo> interfaceFields;
 
     public CodeStubber(ClassVisitor cv, ImmutableList<FieldInfo> interfaceFields) {
-      super(GoogleOpcodes.LATEST, cv);
+      super(Opcodes.ASM9, cv);
       this.interfaceFields = interfaceFields;
     }
 
@@ -178,7 +178,7 @@ public class HeaderClassLoader extends ClassLoader {
 
     public InterfaceInitializerEraser(
         MethodVisitor mv, String internalName, ImmutableList<FieldInfo> interfaceFields) {
-      super(GoogleOpcodes.LATEST);
+      super(Opcodes.ASM9);
       dest = mv;
       this.interfaceFields = interfaceFields;
     }
@@ -209,7 +209,7 @@ public class HeaderClassLoader extends ClassLoader {
     private boolean hasCode = false;
 
     public BodyStubber(MethodVisitor mv) {
-      super(GoogleOpcodes.LATEST, mv);
+      super(Opcodes.ASM9, mv);
     }
 
     @Override
