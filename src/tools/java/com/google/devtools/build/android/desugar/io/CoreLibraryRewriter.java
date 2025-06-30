@@ -165,7 +165,7 @@ public class CoreLibraryRewriter {
     private String finalClassName;
 
     UnprefixingClassWriter(int flags) {
-      super(GoogleOpcodes.LATEST);
+      super(Opcodes.ASM9);
       this.writer = new ClassWriter(flags);
       this.cv = this.writer;
       if (!prefix.isEmpty()) {

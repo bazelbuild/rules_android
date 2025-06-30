@@ -40,7 +40,7 @@ public class DesugarInfoCollector extends ClassVisitor {
   }
 
   public DesugarInfoCollector(ClassVisitor classVisitor) {
-    super(GoogleOpcodes.LATEST, classVisitor);
+    super(Opcodes.ASM9, classVisitor);
   }
 
   public int getNumberOfInvokeDynamic() {
