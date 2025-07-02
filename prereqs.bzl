@@ -13,7 +13,7 @@
 # limitations under the License.
 """Sets up prerequisites for rules_android."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_jar")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("//bzlmod_extensions:apksig.bzl", _apksig_archive = "apksig")
 load("//bzlmod_extensions:com_android_dex.bzl", _com_android_dex_archive = "com_android_dex")
@@ -43,13 +43,6 @@ def rules_android_prereqs(dev_mode = False):
         name = "android_tools",
         sha256 = "d7cdfc03f3ad6571b7719f4355379177a4bde68d17dca2bdbf6c274d72e4d6cf",
         url = "https://mirror.bazel.build/bazel_android_tools/android_tools_pkg-0.31.0.tar",
-    )
-
-    maybe(
-        http_jar,
-        name = "android_gmaven_r8",
-        sha256 = "204b2fc2b0f4e888dc0ef748b58090def1bf4185068d36abbb94841dbc7107a8",
-        url = "https://maven.google.com/com/android/tools/r8/8.9.35/r8-8.9.35.jar",
     )
 
     RULES_JVM_EXTERNAL_TAG = "6.6"
