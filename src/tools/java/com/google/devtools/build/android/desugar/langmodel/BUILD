@@ -4,9 +4,9 @@ load("@rules_java//java:defs.bzl", "java_library")
 
 package(
     default_visibility = [
-        "//src/test/java/com/google/devtools/build/android/desugar:__subpackages__",
         "//src/tools/java/com/google/devtools/build/android:__pkg__",
         "//src/tools/java/com/google/devtools/build/android/desugar:__subpackages__",
+        "//src/tools/javatests/com/google/devtools/build/android/desugar:__subpackages__",
     ],
 )
 

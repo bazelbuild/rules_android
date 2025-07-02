@@ -8,8 +8,8 @@ filegroup(
     name = "srcs",
     srcs = glob(["**"]),
     visibility = [
-        "//src/test/java/com/google/devtools/build/android/r8:__pkg__",
         "//src/tools/java/com/google/devtools/build/android:__pkg__",
+        "//src/tools/javatests/com/google/devtools/build/android/r8:__pkg__",
     ],
 )
 
@@ -53,9 +53,9 @@ java_library(
     name = "deps_collector_api",
     srcs = ["DependencyCollector.java"],
     visibility = [
-        "//src/test/java/com/google/devtools/build/android/desugar:__subpackages__",
         "//src/tools/java/com/google/devtools/build/android:__subpackages__",
         "//src/tools/java/com/google/devtools/build/android/r8:__subpackages__",
+        "//src/tools/javatests/com/google/devtools/build/android/desugar:__subpackages__",
     ],
     deps = [
         ":utils",
@@ -88,8 +88,8 @@ java_binary(
     ],
     main_class = "com.google.devtools.build.android.r8.Desugar",
     visibility = [
-        "//src/test/java/com/google/devtools/build/android/r8:__pkg__",
         "//src/tools/java/com/google/devtools/build/android:__pkg__",
+        "//src/tools/javatests/com/google/devtools/build/android/r8:__subpackages__",
         "//tools/android:__pkg__",
     ],
     runtime_deps = [
@@ -120,7 +120,7 @@ java_binary(
     name = "dexbuilder",
     main_class = "com.google.devtools.build.android.r8.CompatDexBuilder",
     visibility = [
-        "//src/test/java/com/google/devtools/build/android/dexer:__pkg__",
+        "//src/tools/javatests/com/google/devtools/build/android/dexer:__pkg__",
     ],
     runtime_deps = [
         ":r8",

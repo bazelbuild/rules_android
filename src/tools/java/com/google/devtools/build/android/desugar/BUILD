@@ -7,9 +7,9 @@ java_library(
     name = "desugar",
     tags = ["manual"],
     visibility = [
-        "//src/test/java/com/google/devtools/build/android/desugar:__pkg__",
         "//src/tools/java/com/google/devtools/build/android:__pkg__",
         "//src/tools/java/com/google/devtools/build/android/desugar/testing/junit:__pkg__",
+        "//src/tools/javatests/com/google/devtools/build/android/desugar:__pkg__",
     ],
     exports = [
         "//src/tools/java/com/google/devtools/build/android/desugar/dependencies",
