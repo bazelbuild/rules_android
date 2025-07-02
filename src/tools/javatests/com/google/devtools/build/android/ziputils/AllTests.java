@@ -13,11 +13,23 @@
 // limitations under the License.
 package com.google.devtools.build.android.ziputils;
 
-import com.google.devtools.build.lib.testutil.ClasspathSuite;
 import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-/**
- * Test suite for options parsing framework.
- */
-@RunWith(ClasspathSuite.class)
+/** Test suite for zip processor tools. */
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+  BufferedFileTest.class,
+  CentralDirectoryTest.class,
+  DataDescriptorTest.class,
+  EndOfCentralDirectoryTest.class,
+  LocalFileHeaderTest.class,
+  ScanUtilTest.class,
+  SplitterTest.class,
+  SplitZipFiltersTest.class,
+  SplitZipTest.class,
+  ViewTest.class,
+  ZipInTest.class,
+  ZipOutTest.class,
+})
 public class AllTests {}

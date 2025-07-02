@@ -13,9 +13,15 @@
 // limitations under the License.
 package com.google.devtools.build.android.r8;
 
-import com.google.devtools.build.lib.testutil.ClasspathSuite;
 import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /** Test suite for dexer tests. */
-@RunWith(ClasspathSuite.class)
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+  CompatDexBuilderTest.class,
+  CompatDxTest.class,
+  DescriptorUtilsTest.class,
+  DexingKeyR8Test.class,
+})
 public class AllTests {}

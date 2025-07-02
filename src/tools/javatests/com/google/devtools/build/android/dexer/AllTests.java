@@ -15,7 +15,11 @@ package com.google.devtools.build.android.dexer;
 
 import com.google.devtools.build.lib.testutil.ClasspathSuite;
 import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /** Test suite for dexer tests. */
-@RunWith(ClasspathSuite.class)
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+  DexFileSplitterTest.class,
+})
 public class AllTests {}
