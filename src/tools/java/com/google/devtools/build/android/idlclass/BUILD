@@ -17,8 +17,8 @@ java_library(
     srcs = glob(["*.java"]),
     tags = ["manual"],
     visibility = [
-        "//src/test/java/com/google/devtools/build/android/idlclass:__pkg__",
         "//src/tools/java/com/google/devtools/build/android:__pkg__",
+        "//src/tools/javatests/com/google/devtools/build/android/idlclass:__pkg__",
     ],
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",

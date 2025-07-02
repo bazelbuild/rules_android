@@ -7,8 +7,8 @@ filegroup(
     name = "srcs",
     srcs = glob(["**"]),
     visibility = [
-        "//src/test/java/com/google/devtools/build/android/dexer:__pkg__",
         "//src/tools/java/com/google/devtools/build/android:__pkg__",
+        "//src/tools/javatests/com/google/devtools/build/android/dexer:__pkg__",
     ],
 )
 
@@ -45,9 +45,11 @@ java_library(
         "ZipEntryComparator.java",
         "ZipEntryPredicates.java",
     ],
-    visibility = ["//src/test/java/com/google/devtools/build/android/dexer:__pkg__"],
-    # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
+    visibility = ["//src/tools/javatests/com/google/devtools/build/android/dexer:__pkg__"],
     deps = [
+        "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
+        "//src/tools/java/com/google/devtools/build/android:android_options_utils",
+        "//tools/android:autovalue",
         "@bazel_worker_api//:worker_protocol_proto",
         "@com_android_dex//:dex",
         "@rules_android_maven//:com_beust_jcommander",
@@ -55,9 +57,6 @@ java_library(
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
         "@rules_android_maven//:com_google_guava_guava",
-        "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "//src/tools/java/com/google/devtools/build/android:android_options_utils",
-        "//tools/android:autovalue",
     ],
 )
 

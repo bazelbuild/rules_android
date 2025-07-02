@@ -4,8 +4,9 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_library")
 
 package(
     default_visibility = [
-        "//src/test/java/com/google/devtools/build/android/ziputils:__pkg__",
         "//src/tools/java/com/google/devtools/build/android:__subpackages__",
+        "//src/tools/javatests/com/google/devtools/build/android/xml:__pkg__",
+        "//src/tools/javatests/com/google/devtools/build/android/ziputils:__pkg__",
         "//tools/android:__pkg__",
     ],
 )
