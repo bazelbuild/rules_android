@@ -429,7 +429,7 @@ def create_android_sdk_rules(
     )
     native.alias(
         name = "d8_jar_import",
-        actual = "@android_gmaven_r8//jar",
+        actual = ":fail",
     )
 
 TAGDIR_TO_TAG_MAP = {
