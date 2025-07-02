@@ -24,11 +24,6 @@ def _remote_android_tools_extensions_impl(module_ctx):
         sha256 = "d7cdfc03f3ad6571b7719f4355379177a4bde68d17dca2bdbf6c274d72e4d6cf",
         url = "https://mirror.bazel.build/bazel_android_tools/android_tools_pkg-0.31.0.tar",
     )
-    http_jar(
-        name = "android_gmaven_r8",
-        sha256 = "204b2fc2b0f4e888dc0ef748b58090def1bf4185068d36abbb94841dbc7107a8",
-        url = "https://maven.google.com/com/android/tools/r8/8.9.35/r8-8.9.35.jar",
-    )
     return module_ctx.extension_metadata(reproducible = True)
 
 remote_android_tools_extensions = module_extension(

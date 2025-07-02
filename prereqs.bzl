@@ -45,13 +45,6 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://mirror.bazel.build/bazel_android_tools/android_tools_pkg-0.31.0.tar",
     )
 
-    maybe(
-        http_jar,
-        name = "android_gmaven_r8",
-        sha256 = "204b2fc2b0f4e888dc0ef748b58090def1bf4185068d36abbb94841dbc7107a8",
-        url = "https://maven.google.com/com/android/tools/r8/8.9.35/r8-8.9.35.jar",
-    )
-
     RULES_JVM_EXTERNAL_TAG = "6.6"
     RULES_JVM_EXTERNAL_SHA = "3afe5195069bd379373528899c03a3072f568d33bd96fe037bd43b1f590535e7"
     maybe(
