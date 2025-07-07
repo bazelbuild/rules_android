@@ -339,11 +339,10 @@ public class DexFileSplitterTest {
     String positionInfo = "lines"; // com.android.dx.dex.code.PositionList.LINES;
     CompatDexBuilder.main(
         new String[] {
-          "--input", inputJar.toString(),
-          "--output", outputZipPath.toString(),
-          "--max-threads", Integer.toString(maxThreads),
-          "--optimize", Boolean.toString(optimize),
-          "--position-info", positionInfo
+          "--input_jar", inputJar.toString(),
+          "--output_zip", outputZipPath.toString(),
+          "--num-threads=" + Integer.toString(maxThreads),
+          "--positions=", positionInfo
         });
     return outputZipPath;
   }

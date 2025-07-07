@@ -18,9 +18,8 @@ java_test(
     srcs = glob([
         "**/*.java",
     ]),
-    tags = [
-        # TODO(#381): Fix this test.
-        "manual",
+    runtime_deps = [
+        "@rules_android_maven//:com_google_guava_guava",
     ],
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",

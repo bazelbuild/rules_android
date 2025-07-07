@@ -20,10 +20,6 @@ java_test(
     name = "AarGeneratorActionTest",
     size = "small",
     srcs = ["AarGeneratorActionTest.java"],
-    tags = [
-        # TODO(#381): Fix usage of Bazel ZipReader here; use ZipFile instead.
-        "manual",
-    ],
     deps = [
         ":guava",
         ":test_utils",
@@ -352,9 +348,13 @@ java_test(
     name = "ZipFilterActionTest",
     size = "small",
     srcs = ["ZipFilterActionTest.java"],
-    tags = [
-        # TODO(#381): This still has a reference to ZipEntryFilter, which no longer exists.
-        "manual",
+    data = [
+        "//tools/jdk:singlejar",
+    ],
+    jvm_flags = [
+        "-Drunfiles.path=$$TEST_SRCDIR",
+        # NOTE: Singlejar technically comes from an "external" source, so its repo mapping is under "_main/external".
+        "-Dsinglejar.path=_main/external/$(rlocationpath //tools/jdk:singlejar)",
     ],
     deps = [
         ":guava",
