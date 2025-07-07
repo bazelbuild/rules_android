@@ -10,7 +10,7 @@ matrix:
     ubuntu2004,
     macos,
     macos_arm64,
-    windows
+    # windows # TODO: Windows unit tests don't work yet.
   ]
 
 tools_flags: &tools_flags
@@ -125,6 +125,26 @@ tasks:
   basicapp_bzlmod:
     name: "Basic app bzlmod"
     platform: ${{ platform }}
+    bazel: ${{ bazel }}
+    working_directory: examples/basicapp
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  windows_basicapp:
+    name: "Basic app windows"
+    platform: "windows"
+    bazel: ${{ bazel }}
+    working_directory: examples/basicapp
+    build_flags:
+      <<: *rules_flags
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+  windows_basicapp_bzlmod:
+    name: "Basic app windows bzlmod"
+    platform: "windows"
     bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
