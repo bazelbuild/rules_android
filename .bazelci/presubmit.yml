@@ -6,6 +6,12 @@ matrix:
     8.2.1,
     last_green,
   ]
+  platform: [
+    ubuntu2004,
+    macos,
+    macos_arm64,
+    windows
+  ]
 
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
@@ -75,52 +81,20 @@ rules_bzlmod: &rules_bzlmod
   <<: *rules
 
 tasks:
-  ubuntu2004_tools:
-    platform: ubuntu2004
+  tools:
+    platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools
-  ubuntu2004_rules:
-    platform: ubuntu2004
+  rules:
+    platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules
-  macos_tools:
-    platform: macos
-    bazel: ${{ bazel }}
-    <<: *tools
-  macos_rules:
-    platform: macos
-    bazel: ${{ bazel }}
-    <<: *rules
-  macos_arm64_tools:
-    platform: macos_arm64
-    bazel: ${{ bazel }}
-    <<: *tools
-  macos_arm64_rules:
-    platform: macos_arm64
-    bazel: ${{ bazel }}
-    <<: *rules
-  ubuntu2004_tools_bzlmod:
-    platform: ubuntu2004
+  tools_bzlmod:
+    platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
-  ubuntu2004_rules_bzlmod:
-    platform: ubuntu2004
-    bazel: ${{ bazel }}
-    <<: *rules_bzlmod
-  macos_bzlmods_tools:
-    platform: macos
-    bazel: ${{ bazel }}
-    <<: *tools_bzlmod
-  macos_bzlmods_rules:
-    platform: macos
-    bazel: ${{ bazel }}
-    <<: *rules_bzlmod
-  macos_arm64_tools_bzlmod:
-    platform: macos_arm64
-    bazel: ${{ bazel }}
-    <<: *tools_bzlmod
-  macos_arm64_rules_bzlmod:
-    platform: macos_arm64
+  rules_bzlmod:
+    platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules_bzlmod
   ubuntu_a_l_t_coverage:
@@ -139,38 +113,18 @@ tasks:
 #    platform: windows
 #    bazel: ${{ bazel }}
 #    <<: *rules_coverage
-  ubuntu2004_basicapp:
-    name: "Basic app ubuntu"
-    platform: ubuntu2004
+  basicapp:
+    name: "Basic app"
+    platform: ${{ platform }}
     bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
     build_targets:
       - "//java/com/basicapp:basic_app"
-  ubuntu2004_basicapp_bzlmod:
-    name: "Basic app ubuntu bzlmod"
-    platform: ubuntu2004
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-      ? "--enable_bzlmod"
-      ? "--enable_workspace=false"
-    build_targets:
-      - "//java/com/basicapp:basic_app"
-  macos_arm64_basicapp:
-    name: "Basic app mac arm64"
-    platform: macos_arm64
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-    build_targets:
-      - "//java/com/basicapp:basic_app"
-  macos_arm64_basicapp_bzlmod:
-    name: "Basic app mac arm64 bzlmod"
-    platform: macos_arm64
+  basicapp_bzlmod:
+    name: "Basic app bzlmod"
+    platform: ${{ platform }}
     bazel: ${{ bazel }}
     working_directory: examples/basicapp
     build_flags:
@@ -179,23 +133,4 @@ tasks:
       ? "--enable_workspace=false"
     build_targets:
       - "//java/com/basicapp:basic_app"
-  windows_basicapp_bzlmod:
-    name: "Windows Basicapp Bzlmod"
-    platform: windows
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-      ? "--enable_bzlmod"
-      ? "--enable_workspace=false"
-    build_targets:
-      - "//java/com/basicapp:basic_app"
-  windows_basicapp:
-    name: "Windows Basicapp"
-    platform: windows
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-    build_targets:
-      - "//java/com/basicapp:basic_app"
+
