@@ -353,8 +353,7 @@ java_test(
     ],
     jvm_flags = [
         "-Drunfiles.path=$$TEST_SRCDIR",
-        # NOTE: Singlejar technically comes from an "external" source, so its repo mapping is under "_main/external".
-        "-Dsinglejar.path=$$TEST_WORKSPACE/$(execpath //tools/jdk:singlejar)",
+        "-Dsinglejar.path=$(rlocationpath //tools/jdk:singlejar)",
     ],
     deps = [
         ":guava",
