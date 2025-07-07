@@ -25,7 +25,6 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.devtools.build.android.AarGeneratorAction.AarGeneratorOptions;
-import com.google.devtools.build.zip.ZipReader;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -43,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import org.junit.Before;
@@ -520,7 +520,7 @@ public class AarGeneratorActionTest {
     assertThat(getZipEntries(aar))
         .contains("META-INF/com/android/build/gradle/aar-metadata.properties");
     String aarMetadataContents = "";
-    try (ZipReader aarReader = new ZipReader(aar.toFile());
+    try (ZipFile aarReader = new ZipFile(aar.toFile());
         BufferedReader entryReader =
             new BufferedReader(
                 new InputStreamReader(
@@ -953,7 +953,7 @@ public class AarGeneratorActionTest {
     Set<String> zipEntries = getZipEntries(aar);
     assertThat(zipEntries).contains("proguard.txt");
     List<String> proguardTxtContents = null;
-    try (ZipReader aarReader = new ZipReader(aar.toFile())) {
+    try (ZipFile aarReader = new ZipFile(aar.toFile())) {
       try (BufferedReader entryReader =
           new BufferedReader(
               new InputStreamReader(
