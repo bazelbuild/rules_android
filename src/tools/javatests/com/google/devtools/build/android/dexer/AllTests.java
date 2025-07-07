@@ -13,7 +13,6 @@
 // limitations under the License.
 package com.google.devtools.build.android.dexer;
 
-import com.google.devtools.build.lib.testutil.ClasspathSuite;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 

@@ -335,15 +335,16 @@ public class DexFileSplitterTest {
     // Use Jar file that has this test in it as the input Jar
     Path outputZipPath = FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"), outputZip);
     int maxThreads = 1;
-    boolean optimize = true;
     String positionInfo = "lines"; // com.android.dx.dex.code.PositionList.LINES;
     CompatDexBuilder.main(
         new String[] {
-          "--input", inputJar.toString(),
-          "--output", outputZipPath.toString(),
-          "--max-threads", Integer.toString(maxThreads),
-          "--optimize", Boolean.toString(optimize),
-          "--position-info", positionInfo
+          "--input_jar",
+          inputJar.toString(),
+          "--output_zip",
+          outputZipPath.toString(),
+          "--num-threads=" + Integer.toString(maxThreads),
+          "--positions=",
+          positionInfo
         });
     return outputZipPath;
   }

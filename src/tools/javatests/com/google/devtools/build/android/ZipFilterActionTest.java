@@ -20,21 +20,17 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.devtools.build.singlejar.ZipEntryFilter.CustomMergeStrategy;
-import com.google.devtools.build.singlejar.ZipEntryFilter.StrategyCallback;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -64,46 +60,10 @@ public class ZipFilterActionTest {
     }
   }
 
-  private enum FilterOperation {
-    SKIP,
-    RENAME,
-    CUSTOM_MERGE,
-    COPY
-  }
-
-  private static final class TestingStrategyCallback implements StrategyCallback {
-    private FilterOperation operation;
-
-    public void assertOp(FilterOperation operation) {
-      assertThat(this.operation).isEqualTo(operation);
-    }
-
-    @Override
-    public void skip() throws IOException {
-      operation = FilterOperation.SKIP;
-    }
-
-    @Override
-    public void rename(String filename, Date date) throws IOException {
-      operation = FilterOperation.RENAME;
-    }
-
-    @Override
-    public void customMerge(Date date, CustomMergeStrategy strategy) throws IOException {
-      operation = FilterOperation.CUSTOM_MERGE;
-    }
-
-    @Override
-    public void copy(Date date) throws IOException {
-      operation = FilterOperation.COPY;
-    }
-  }
-
   @Rule public ExpectedException thrown = ExpectedException.none();
   @Rule public TemporaryFolder tmp = new TemporaryFolder();
 
   private int fileCount;
-  private TestingStrategyCallback callback;
 
   private Path createZip(String... filenames) throws IOException {
     Entry[] entries = new Entry[filenames.length];
@@ -138,10 +98,6 @@ public class ZipFilterActionTest {
       }
     }
     return filteredEntries;
-  }
-
-  @Before public void setup() {
-    callback = new TestingStrategyCallback();
   }
 
   @Test public void testCreateFilter() throws IOException {
