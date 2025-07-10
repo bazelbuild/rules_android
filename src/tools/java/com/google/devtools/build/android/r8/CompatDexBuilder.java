@@ -428,12 +428,10 @@ public class CompatDexBuilder {
 
     @Override
     public void warning(Diagnostic warning) {
-      DiagnosticsHandler.printDiagnosticToStream(warning, "Warning", stream);
     }
 
     @Override
     public void info(Diagnostic info) {
-      DiagnosticsHandler.printDiagnosticToStream(info, "Info", stream);
     }
 
     @Override

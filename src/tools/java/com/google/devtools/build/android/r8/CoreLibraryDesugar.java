@@ -130,7 +130,10 @@ public class CoreLibraryDesugar {
             DescriptorUtils.descriptorToBinaryName(
                 missingTypeDiagnostic.getMissingType().getDescriptor()));
       }
-      DiagnosticsHandler.super.warning(warning);
+    }
+
+    @Override
+    public void info(Diagnostic info) {
     }
   }
 

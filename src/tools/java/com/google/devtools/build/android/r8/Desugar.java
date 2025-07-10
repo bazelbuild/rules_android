@@ -347,15 +347,11 @@ public class Desugar {
               .getDiagnosticMessage()
               .contains(
                   "Retargeting non final method Encoded method java.nio.channels.FileChannel")) {
-        // Ignore.
-        return;
       }
-      DiagnosticsHandler.printDiagnosticToStream(warning, "Warning", stream);
     }
 
     @Override
     public void info(Diagnostic info) {
-      DiagnosticsHandler.printDiagnosticToStream(info, "Info", stream);
     }
 
     @Override
