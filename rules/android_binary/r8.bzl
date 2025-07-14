@@ -76,6 +76,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     )
 
     dexes_zip = ctx.actions.declare_file(ctx.label.name + "_dexes.zip")
+    proguard_mappings_output_file = ctx.actions.declare_file(ctx.label.name + "_proguard.txt")
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
@@ -93,6 +94,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     args.add("--lib", android_jar)
     args.add_all(neverlink_jars, before_each = "--lib")
     args.add(deploy_jar)  # jar to optimize + desugar + dex
+    args.add("--pg-map-output", proguard_mappings_output_file)
 
     java.run(
         ctx = ctx,
@@ -100,7 +102,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         executable = get_android_toolchain(ctx).r8.files_to_run,
         arguments = [args],
         inputs = depset([android_jar, deploy_jar] + proguard_specs, transitive = [neverlink_jars]),
-        outputs = [dexes_zip],
+        outputs = [dexes_zip, proguard_mappings_output_file],
         mnemonic = "AndroidR8",
         jvm_flags = ["-Xmx8G"],
         progress_message = "R8 Optimizing, Desugaring, and Dexing %{label}",
