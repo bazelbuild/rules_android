@@ -166,9 +166,8 @@ ATTRS = _attrs.add(
                 "and more. " +
                 "See [AIDL Doc](https://source.android.com/docs/core/architecture/aidl/overview) " +
                 "for more details. " +
-                "Note: the use of the AOSP compiler in google3 is restricted due to performance " +
-                "considerations. This should not be broadly used unless these features are " +
-                "strictly required."
+                "Note: the AOSP compiler's generated code has not had its runtime performance " +
+                "evaluated in comparison to the google3 IDL compiler."
             ),
         ),
         idlopts = attr.string_list(
