@@ -57,10 +57,6 @@ _IDL_SRC_FROM_DIFFERENT_PACKAGE_ERROR = (
     "package or depend on an appropriate rule there."
 )
 
-_IDL_USES_AOSP_COMPILER_ERROR = (
-    "Use of `idl_uses_aosp_compiler` is not allowed for %s."
-)
-
 _IDL_IDLOPTS_UNSUPPORTERD_ERROR = (
     "`idlopts` is supported only if `idl_uses_aosp_compiler` is set to true."
 )
@@ -114,11 +110,6 @@ def _validate_rule_context(ctx):
     for idl_src in ctx.attr.idl_srcs:
         if ctx.label.package != idl_src.label.package:
             log.error(_IDL_SRC_FROM_DIFFERENT_PACKAGE_ERROR % idl_src.label)
-
-    # Ensure that the AOSP AIDL compiler is used only in allowlisted packages
-    if (ctx.attr.idl_uses_aosp_compiler and
-        not acls.in_android_library_use_aosp_aidl_compiler_allowlist(str(ctx.label))):
-        log.error(_IDL_USES_AOSP_COMPILER_ERROR % ctx.label)
 
     # Check if idlopts is with idl_uses_aosp_compiler
     if ctx.attr.idlopts and not ctx.attr.idl_uses_aosp_compiler:
