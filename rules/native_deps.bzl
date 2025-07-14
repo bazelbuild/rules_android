@@ -45,6 +45,18 @@ split_config_aspect = aspect(
 
 def _get_libs_dir_name(target_platform):
     name = target_platform.name
+    # Standarize the name give a platform.
+    # Plaform names not necessarily match exactly to a cpu architecture.
+    # If we use the plaform name directly, libs might end up packaged in the apk
+    # in a different directory that what is expected.
+    if "arm64" in name:
+      name = "arm64-v8a"
+    elif "arm" in name:
+      name = "armeabi-v7a"
+    elif "amd64" in name or "x86_64" in name:
+      name = "x86_64"
+    elif "x86"  in name:
+      name = "x86"
     return name
 
 def _get_cc_link_params_infos(ctx, deps):
