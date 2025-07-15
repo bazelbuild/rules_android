@@ -129,19 +129,14 @@ _ResourcesPackageContextInfo = provider(
 # Manifest context attributes
 _PROCESSED_MANIFEST = "processed_manifest"
 _PROCESSED_MANIFEST_VALUES = "processed_manifest_values"
+_PROCESSED_MIN_SDK_VERSION = "processed_min_sdk_version"
 
 _ManifestContextInfo = provider(
     "Manifest context object",
     fields = {
         _PROCESSED_MANIFEST: "The manifest after the min SDK has been changed as necessary.",
         _PROCESSED_MANIFEST_VALUES: "Optional, dict of manifest values that have been processed.",
-    },
-)
-
-_ManifestValidationContextInfo = provider(
-    "Manifest validation context object",
-    fields = {
-        _VALIDATION_OUTPUTS: "List of outputs given to OutputGroupInfo _validation group.",
+        _PROCESSED_MIN_SDK_VERSION: "Optional, int minSdkVersion passed as an attribute of the target that has been processed.",
     },
 )
 
@@ -1030,6 +1025,7 @@ def _bump_min_sdk(
         ctx,
         manifest = None,
         manifest_values = None,
+        min_sdk_version = 0,
         floor = _min_sdk_version.DEPOT_FLOOR):
     """Bumps the min SDK attribute of AndroidManifest to the floor.
 
@@ -1037,6 +1033,7 @@ def _bump_min_sdk(
       ctx: The rules context.
       manifest: File. The AndroidManifest.xml file.
       manifest_values: Dictionary. The optional manifest_values to process.
+      min_sdk_version: Int. The min_sdk_version attribute provided on the build target (generally not set).
       floor: int. The min SDK floor. Manifest is unchanged if floor <= 0.
 
     Returns:
@@ -1053,6 +1050,11 @@ def _bump_min_sdk(
             manifest_values,
             floor,
         )
+
+    if min_sdk_version != 0:
+        manifest_ctx[_PROCESSED_MIN_SDK_VERSION] = max(min_sdk_version, floor)
+    else:
+        manifest_ctx[_PROCESSED_MIN_SDK_VERSION] = 0
 
     if not manifest or floor <= 0:
         manifest_ctx[_PROCESSED_MANIFEST] = manifest
