@@ -37,6 +37,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -92,7 +93,44 @@ public class ZipFilterAction {
     FORCE_STORED,
   }
 
-  record GenerateExcludeListResult(int sawErrors, ArrayList<String> excludeList) {}
+    static final class GenerateExcludeListResult {
+        private final int sawErrors;
+        private final ArrayList<String> excludeList;
+
+        GenerateExcludeListResult(int sawErrors, ArrayList<String> excludeList) {
+            this.sawErrors = sawErrors;
+            this.excludeList = excludeList;
+        }
+
+        public int sawErrors() {
+            return sawErrors;
+        }
+
+        public ArrayList<String> excludeList() {
+            return excludeList;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (GenerateExcludeListResult) obj;
+            return this.sawErrors == that.sawErrors &&
+                    Objects.equals(this.excludeList, that.excludeList);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(sawErrors, excludeList);
+        }
+
+        @Override
+        public String toString() {
+            return "GenerateExcludeListResult[" +
+                    "sawErrors=" + sawErrors + ", " +
+                    "excludeList=" + excludeList + ']';
+        }
+    }
 
   private static final Logger logger = Logger.getLogger(ZipFilterAction.class.getName());
 
