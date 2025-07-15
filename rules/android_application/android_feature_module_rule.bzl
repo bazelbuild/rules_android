@@ -21,6 +21,7 @@ load(
 )
 load("//rules:acls.bzl", "acls")
 load("//rules:java.bzl", _java = "java")
+load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load(
     "//rules:utils.bzl",
     "get_android_toolchain",
@@ -149,7 +150,7 @@ EOF
     )
 
     # Create AndroidManifest.xml
-    min_sdk_version = getattr(attrs, "min_sdk_version", "21") or "21"
+    min_sdk_version = getattr(attrs, "min_sdk_version", _min_sdk_version.DEPOT_FLOOR) or _min_sdk_version.DEPOT_FLOOR
     package = _java.resolve_package_from_label(Label(fqn), getattr(attrs, "custom_package", None))
     native.genrule(
         name = targets.manifest_lib.name,
