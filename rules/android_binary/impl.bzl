@@ -291,7 +291,9 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
 
     #  Multidex mode: generate classes.dex.zip, where the zip contains
     #  [classes.dex, classes2.dex, ... classesN.dex]
-    if ctx.attr.multidex == "legacy":
+    #  We only generate a main_dex_list if the minSdkVersion floor is <= 21.
+    #  Above 21 it is not possible to pass a main_dex_list to the dexing actions.
+    if ctx.attr.multidex == "legacy" and _min_sdk_version.DEPOT_FLOOR <= 21:
         main_dex_list = _dex.generate_main_dex_list(
             ctx,
             jar = binary_jar,
