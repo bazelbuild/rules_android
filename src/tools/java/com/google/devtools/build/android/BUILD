@@ -41,6 +41,9 @@ run_singlejar(
     out = "databinding_exec.jar",
     include_prefixes = [
         "android/databinding/",
+        "org/antlr/",
+        "org/apache/commons/",
+        "org/mozilla",
     ],
 )
 

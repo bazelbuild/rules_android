@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.google.app"
+    android:versionCode="0"
+    android:versionName="some_version_name" >
+
+    <uses-sdk
+        android:minSdkVersion="15"
+        android:targetSdkVersion="29" />
+
+    <application>
+        <activity android:name="${main_activity_name}" >
+        </activity>
+    </application>
+
+</manifest>

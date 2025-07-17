@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="string_foo" translatable="false">foo</string>
+    <string name="string_bar" translatable="false">bar</string>
+
+</resources>

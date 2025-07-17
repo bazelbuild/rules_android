@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="">
+  <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="29"/>
+  <instrumentation android:name="android.test.InstrumentationTestRunner" android:targetPackage="com.foo.bar"/>
+  <application>
+
+  </application>
+</manifest>
