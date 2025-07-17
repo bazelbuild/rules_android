@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="my_string" translatable="false">my string = B</string>
+    <string name="my_other_string" translatable="false">my other string</string>
+
+</resources>

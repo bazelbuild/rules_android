@@ -213,6 +213,186 @@ _DATA_CONTEXT = _add(
 )
 
 
+# Attributes for rules that produce an Android binary.
+# NOTE: this is unused by the actual android_binary impl, and at this stage is only
+# really used by a couple tests. We should clean it up at some point.
+ANDROID_BINARY_ATTRS = _add(
+    dict(
+        crunch_png = attr.bool(
+            default = True,
+        ),
+        debug_key = attr.label(
+            allow_files = True,
+            cfg = "exec",
+            default = Label("//tools/android:debug_keystore"),
+        ),
+        debug_signing_keys = attr.label_list(),
+        deps = attr.label_list(
+            allow_files = True,
+            allow_rules = [
+                "aar_import",
+                "android_library",
+                "cc_library",
+                "java_import",
+                "java_library",
+                "java_lite_proto_library",
+            ],
+            # aspects = [AndroidNeverlinkAspect, DexArchiveAspect], TODO(timpeut): enable this
+            # cfg = "android_split_transition", TODO(timpeut): enable this
+            providers = [JavaInfo, CcInfo],
+        ),
+        densities = attr.string_list(),
+        dexopts = attr.string_list(),
+        dex_shards = attr.int(
+            default = 1,
+        ),
+        enable_data_binding = attr.bool(),
+        feature_flags = attr.label_keyed_string_dict(
+            allow_files = True,
+            allow_rules = ["config_feature_flag"],
+            # TODO(timpeut): set nonconfigurable
+            providers = [config_common.FeatureFlagInfo],
+        ),
+        incremental_dexing = _tristate.create(
+            default = _tristate.auto,
+        ),
+        inline_constants = attr.bool(
+            default = False,
+        ),
+        # TODO(timpeut): handle this line: .add(AndroidFeatureFlagSetProvider.getWhitelistAttribute(env))
+        instruments = attr.label(
+            allow_files = False,
+            allow_rules = ["android_binary"],
+        ),
+        main_dex_list = attr.label(
+            allow_files = True,
+        ),
+        main_dex_list_opts = attr.string_list(),
+        main_dex_proguard_specs = attr.label_list(
+            allow_files = True,
+        ),
+        manifest_values = attr.string_dict(),
+        manifest_merger = attr.string(
+            default = "auto",
+            values = ["auto", "legacy", "android", "force_android"],
+        ),
+        multidex = attr.string(
+            default = "native",
+            values = ["native", "legacy", "manual_main_dex"],
+        ),
+        nocompress_extensions = attr.string_list(),
+        proguard_apply_dictionary = attr.label(
+            allow_files = True,
+        ),
+        proguard_apply_mapping = attr.label(
+            allow_files = True,
+        ),
+        proguard_generate_mapping = attr.bool(
+            default = False,
+            # TODO(timpeut): set nonconfigurable
+        ),
+        proguard_generate_obfuscated_constant_string_mapping = attr.bool(
+            default = False,
+        ),
+        proguard_optimization_passes = attr.int(),
+        proguard_specs = attr.label_list(
+            allow_files = True,
+        ),
+        resource_configuration_filters = attr.string_list(),
+        shrink_resources = _tristate.create(
+            default = _tristate.auto,
+        ),
+        srcs = attr.label_list(
+            # TODO(timpeut): Set PropertyFlag direct_compile_time_input
+            allow_files = [".java", ".srcjar"],
+        ),
+        _build_java8_legacy_dex = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:build_java8_legacy_dex"),
+            executable = True,
+        ),
+        _desugar = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:desugar_java8"),
+            executable = True,
+        ),
+        _desugared_lib_config = attr.label(
+            allow_single_file = True,
+            default = Label("//tools/android:full_desugar_jdk_libs_config_json"),
+        ),
+        _desugared_java8_legacy_apis = attr.label(
+            default = Label("//tools/android:desugared_java8_legacy_apis"),
+        ),
+        _dexbuilder = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:dexbuilder"),
+            executable = True,
+        ),
+        _dexbuilder_after_proguard = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:dexbuilder_after_proguard"),
+            executable = True,
+        ),
+        _dexmerger = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:dexmerger"),
+            executable = True,
+        ),
+        _dexsharder = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:dexsharder"),
+            executable = True,
+        ),
+        _dex_list_obfuscator = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:dex_list_obfuscator"),
+            executable = True,
+        ),
+        _java8_legacy_dex = attr.label(
+            default = Label("//tools/android:java8_legacy_dex"),
+        ),
+        _merge_dexzips = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:merge_dexzips"),
+            executable = True,
+        ),
+        _shuffle_jars = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:shuffle_jars"),
+            executable = True,
+        ),
+        _zip_filter = attr.label(
+            cfg = "exec",
+            default = Label("//tools/android:zip_filter"),
+            executable = True,
+        ),
+
+        # incremental_dexing = attrs.tristate.create() TODO(timpeut): enable once set to nonconfigurable
+        # TODO(timpeut): add instrumentation_test_check which is a ComputedDefault
+        # TODO(timpeut): expose the following in native and enable here
+        #_bytecode_optimizers = attr.label_list(
+        #    default = configuration_field(
+        #        fragment = "java",
+        #        name = "bytecode_optimizers",
+        #    ),
+        #),
+        #_cc_toolchain_split = attr.label(
+        #    TODO(timpeut): set cfg android_split_transition
+        #    default = configuration_field(
+        #        fragment = "cpp",
+        #        name = "toolchain_split",
+        #    ),
+        #),
+        #_extra_proguard_specs = attr.label_list(
+        #    default = configuration_field(
+        #        fragment = "java",
+        #        name = "extra_proguard_specs",
+        #    ),
+        #),
+    ),
+    _compilation_attributes(apply_android_transition = True),
+    _DATA_CONTEXT,
+)
 
 
 

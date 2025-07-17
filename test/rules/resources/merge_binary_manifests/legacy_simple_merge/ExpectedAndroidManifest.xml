@@ -1,0 +1,74 @@
+<?xml version="1.0" ?>
+<manifest android:versionCode="70" android:versionName="1.0" package="com.google.android.apps.testapp" xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- *** WARNING *** DO NOT EDIT! THIS IS GENERATED MANIFEST BY MERGE_MANIFEST TOOL.
+  Merger manifest:
+    test/rules/resources/merge_binary_manifests/legacy_simple_merge/AndroidManifest.xml
+  Mergee manifests:
+    bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml
+  -->
+  <uses-sdk android:minSdkVersion="10"/>
+  <uses-feature android:name="android.hardware.nfc" android:required="true"/>
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+  <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+  <permission android:name="com.google.android.apps.foo.C2D_MESSAGE" android:protectionLevel="signature"/>
+  <application android:icon="@drawable/icon" android:label="@string/app_name" android:name="com.google.android.apps.testapp.TestApplication" android:theme="@style/Theme.Test">
+    <!--  START LIBRARIES (Maintain Alphabetic order) -->
+    <!-- NFC extras -->
+    <uses-library android:name="com.google.android.nfc_extras" android:required="false"/>
+    <!--  END LIBRARIES -->
+    <!--  START ACTIVITIES (Maintain Alphabetic order) -->
+    <!-- Entry point activity - navigation and title bar. -->
+    <activity android:launchMode="singleTop" android:name="com.google.android.apps.testapp.entrypoint.EntryPointActivityGroup" android:screenOrientation="portrait"/>
+    <activity android:name="com.google.android.apps.testapp.ui.topup.TopUpActivity"/>
+    <service android:name="com.google.android.apps.testapp.nfcevent.NfcEventService"/>
+    <receiver android:name="com.receiver.TestReceiver" android:process="@string/receiver_service_name">
+      <!-- Receive the actual message -->
+      <intent-filter>
+        <action android:name="android.intent.action.USER_PRESENT"/>
+      </intent-filter>
+    </receiver>
+    <provider android:authorities="com.google.android.apps.testapp" android:exported="false" android:name="com.google.android.apps.testapp.dataaccess.persistence.ContentProvider"/>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <activity android:label="@string/app_name" android:name="com.google.android.apps.testapp2.ui.home.HomeActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <activity android:name="com.google.android.apps.testapp2.TestActivity2"/>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <activity android:name="com.google.android.apps.testapp2.PreviewActivity"/>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <activity android:excludeFromRecents="true" android:name="com.google.android.apps.testapp2.ShowTextActivity"/>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <activity android:excludeFromRecents="true" android:name="com.google.android.apps.testapp2.ShowStringListActivity" android:parentActivityName="com.google.android.apps.testapp2.ui.home.HomeActivity">
+        </activity>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <activity android:name="activityPrefix.com.google.android.apps.testapp2.activitySuffix">
+      <intent-filter>
+        <action android:name="actionPrefix.com.google.android.apps.testapp2.actionSuffix"/>
+      </intent-filter>
+    </activity>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <provider android:name="some.package.with.inner.class$AnInnerClass"/>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <provider android:authorities="com.google.android.apps.testapp2.com.google.android.apps.testapp2" android:exported="false" android:name="com.google.android.apps.testapp2"/>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <provider android:authorities="PlaceHolderProviderAuthorities.com.google.android.apps.testapp2" android:exported="false" android:name="com.google.android.apps.testapp2.PlaceHolderProviderName"/>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <receiver android:enabled="false" android:name="com.google.android.apps.testapp2.ConnectivityReceiver">
+      <intent-filter>
+        <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+      </intent-filter>
+    </receiver>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <service android:name="com.google.android.apps.testapp2.TestService">
+      <meta-data android:name="param" android:value="value"/>
+    </service>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <service android:name="com.google.android.apps.testapp2.nfcevent.NfcEventService"/>
+    <!-- Merged from file: bazel-out/k8-fastbuild/bin/test/rules/resources/merge_binary_manifests/legacy_simple_merge/deps/A_processed_manifest/AndroidManifest.xml -->
+    <activity-alias android:name="com.google.android.apps.testapp2.BarFoo" android:targetActivity="com.google.android.apps.testapp2.FooBar"/>
+  </application>
+</manifest>
