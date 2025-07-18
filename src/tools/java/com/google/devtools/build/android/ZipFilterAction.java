@@ -92,7 +92,23 @@ public class ZipFilterAction {
     FORCE_STORED,
   }
 
-  record GenerateExcludeListResult(int sawErrors, ArrayList<String> excludeList) {}
+  static final class GenerateExcludeListResult {
+    private final int sawErrors;
+    private final ArrayList<String> excludeList;
+
+    GenerateExcludeListResult(int sawErrors, ArrayList<String> excludeList) {
+      this.sawErrors = sawErrors;
+      this.excludeList = excludeList;
+    }
+
+    public int sawErrors() {
+      return sawErrors;
+    }
+
+    public ArrayList<String> excludeList() {
+      return excludeList;
+    }
+  }
 
   private static final Logger logger = Logger.getLogger(ZipFilterAction.class.getName());
 
