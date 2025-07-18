@@ -76,7 +76,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     )
 
     dexes_zip = ctx.actions.declare_file(ctx.label.name + "_dexes.zip")
-    proguard_mappings_output_file = ctx.actions.declare_file(ctx.label.name + "_proguard.txt")
+    proguard_mappings_output_file = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
