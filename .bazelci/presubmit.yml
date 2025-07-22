@@ -72,10 +72,10 @@ resource_rules: &resource_rules
     - "//test/rules/resources/..."
   build_flags:
     <<: *rules_flags
-    ? "//rules/flags:manifest_merge_order=legacy"
+    ? "--//rules/flags:manifest_merge_order=legacy"
   test_flags:
     <<: *rules_flags
-    ? "//rules/flags:manifest_merge_order=legacy"
+    ? "--//rules/flags:manifest_merge_order=legacy"
 rules_coverage: &rules_coverage
   coverage_targets:
     - "//test/rules/android_local_test/java/com/..."
