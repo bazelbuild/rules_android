@@ -174,6 +174,7 @@ tasks:
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
+      ? "--config=windows"
     build_targets:
       - "//java/com/basicapp:basic_app"
   windows_basicapp_bzlmod:
@@ -185,6 +186,7 @@ tasks:
       <<: *rules_flags
       ? "--enable_bzlmod"
       ? "--enable_workspace=false"
+      ? "--config=windows"
     build_targets:
       - "//java/com/basicapp:basic_app"
 
