@@ -9,21 +9,17 @@ common --tool_java_runtime_version=17
 common --repositories_without_autoloads=bazel_features_version,bazel_features_globals
 
 # Newer versions of protobuf require downstream transitive projects to set C++ language version flags.
-common --cxxopt=-std=c++17
-common --host_cxxopt=-std=c++17
-# common:linux --cxxopt=-std=c++17
-# common:linux --host_cxxopt=-std=c++17
-# common:mac --cxxopt=-std=c++17
-# common:mac --host_cxxopt=-std=c++17
+common:linux --cxxopt=-std=c++17
+common:linux --host_cxxopt=-std=c++17
+common:mac --cxxopt=-std=c++17
+common:mac --host_cxxopt=-std=c++17
 common:windows --cxxopt=/std:c++17
 common:windows --host_cxxopt=/std:c++17
 # Suppress warnings from external repos
-common --per_file_copt=external/.*@-w
-common --host_per_file_copt=external/.*@-w
-# common:linux --per_file_copt=external/.*@-w
-# common:linux --host_per_file_copt=external/.*@-w
-# common:mac --per_file_copt=external/.*@-w
-# common:mac --host_per_file_copt=external/.*@-w
+common:linux --per_file_copt=external/.*@-w
+common:linux --host_per_file_copt=external/.*@-w
+common:mac --per_file_copt=external/.*@-w
+common:mac --host_per_file_copt=external/.*@-w
 common:windows --per_file_copt=external/.*@/w
 common:windows --host_per_file_copt=external/.*@/w
 

@@ -4,7 +4,7 @@ matrix:
   bazel: [
     7.4.1,
     8.2.1,
-#    last_green,
+    #    last_green, # TODO: re-enable once we migrate away from @bazel_tools//src/main/protobuf.
   ]
   platform: [
     ubuntu2004,
@@ -16,9 +16,11 @@ matrix:
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
+  ? "--config={platform}"
 rules_flags: &rules_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
+  ? "--config={platform}"
 
 tools: &tools
   name: "Tools"
@@ -64,18 +66,18 @@ rules: &rules
     <<: *rules_flags
   test_flags:
     <<: *rules_flags
-## resource_rules: &resource_rules
-##  name: "Resource Rules"
-##  build_targets:
-##    - "//test/rules/resources/..."
-##  test_targets:
-##    - "//test/rules/resources/..."
-##  build_flags:
-##    <<: *rules_flags
-##    ? "//rules/flags:manifest_merge_order=legacy"
-##  test_flags:
-##    <<: *rules_flags
-##    ? "//rules/flags:manifest_merge_order=legacy"
+resource_rules: &resource_rules
+ name: "Resource Rules"
+ build_targets:
+   - "//test/rules/resources/..."
+ test_targets:
+   - "//test/rules/resources/..."
+ build_flags:
+   <<: *rules_flags
+   ? "--//rules/flags:manifest_merge_order=legacy"
+ test_flags:
+   <<: *rules_flags
+   ? "--//rules/flags:manifest_merge_order=legacy"
 rules_coverage: &rules_coverage
   coverage_targets:
     - "//test/rules/android_local_test/java/com/..."
@@ -94,17 +96,17 @@ rules_bzlmod: &rules_bzlmod
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
   <<: *rules
-## resource_rules_bzlmod: &resource_rules_bzlmod
-##   name: "Resource Rules Bzlmod"
-##   build_flags:
-##     <<: *rules_flags
-##     ? "--enable_bzlmod"
-##     ? "--enable_workspace=false"
-##   test_flags:
-##     <<: *rules_flags
-##     ? "--enable_bzlmod"
-##     ? "--enable_workspace=false"
-##   <<: *resource_rules
+resource_rules_bzlmod: &resource_rules_bzlmod
+  name: "Resource Rules Bzlmod"
+  build_flags:
+    <<: *rules_flags
+    ? "--enable_bzlmod"
+    ? "--enable_workspace=false"
+  test_flags:
+    <<: *rules_flags
+    ? "--enable_bzlmod"
+    ? "--enable_workspace=false"
+  <<: *resource_rules
 
 tasks:
   tools:
@@ -115,18 +117,18 @@ tasks:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules
-  ## resource_rules:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules
+  resource_rules:
+    platform: ${{ platform }}
+    bazel: ${{ bazel }}
+    <<: *resource_rules
   tools_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
-  ## resource_rules_bzlmod:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules_bzlmod
+  resource_rules_bzlmod:
+    platform: ${{ platform }}
+    bazel: ${{ bazel }}
+    <<: *resource_rules_bzlmod
   rules_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
@@ -174,7 +176,6 @@ tasks:
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
-      ? "--config=windows"
     build_targets:
       - "//java/com/basicapp:basic_app"
   windows_basicapp_bzlmod:
@@ -186,7 +187,6 @@ tasks:
       <<: *rules_flags
       ? "--enable_bzlmod"
       ? "--enable_workspace=false"
-      ? "--config=windows"
     build_targets:
       - "//java/com/basicapp:basic_app"
 
