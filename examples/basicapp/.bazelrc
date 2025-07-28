@@ -14,3 +14,14 @@ common --tool_java_runtime_version=17
 # for bazel@HEAD and rolling releases.
 # https://github.com/bazelbuild/bazel/pull/26119
 common --repositories_without_autoloads=bazel_features_version,bazel_features_globals
+
+# Newer versions of protobuf require downstream transitive projects to set C++ language version flags.
+common --cxxopt=-std=c++17
+common --host_cxxopt=-std=c++17
+# Suppress warnings from external repos
+common --per_file_copt=external/.*@-w
+common --host_per_file_copt=external/.*@-w
+
+# Enable protobuf MSVC support on Windows
+build:windows --define=protobuf_allow_msvc=tru
+
