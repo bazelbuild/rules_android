@@ -22,7 +22,7 @@ java_test(
     srcs = ["MetadataCollectorTest.java"],
     deps = [
         "//src/tools/java/com/google/devtools/build/android/desugar/dependencies",
-        "@bazel_tools//src/main/protobuf:desugar_deps_java_proto",
+        "//third_party/bazel/src/main/protobuf:desugar_deps_java_proto",
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",
