@@ -56,7 +56,7 @@ def rules_android_prereqs(dev_mode = False):
     )
 
     PROTOBUF_VERSION = "31.1"
-    PROTOBUF_HASH = "a53a7a039d0d20e6ed84685a92ae500a"
+    PROTOBUF_HASH = "12bfd76d27b9ac3d65c00966901609e020481b9474ef75c7ff4601ac06fa0b82"
     maybe(
         http_archive,
         name = "com_google_protobuf",
