@@ -56,7 +56,7 @@ def _segment_idx(path_segments):
         # Check for a nested root directory.
         for idx in range(root_idx + 1, len(path_segments) - 2):
             segment = path_segments[idx]
-            if segment == "src" or (is_src and segment in ["java", "javatests"]):
+            if segment == "src" or (is_src and segment in ["java", "javatests", "kotlin"]):
                 next_segment = path_segments[idx + 1]
                 if next_segment in ["com", "org", "net"]:
                     root_idx = idx
