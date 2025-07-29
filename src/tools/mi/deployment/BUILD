@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 package(
     default_applicable_licenses = ["//:license"],
-    default_visibility = ["//src/tools/mi/deployment_oss:__pkg__"],
+    default_visibility = ["//src/tools/mi/deployment:__pkg__"],
 )
 
 go_binary(
@@ -14,14 +14,14 @@ go_binary(
         "//src/common/golang:flagfile",
         "//src/common/golang:flags",
         "//src/common/golang:pprint",
-        "//src/tools/mi/deployment_oss:deployment",
+        "//src/tools/mi/deployment",
         "@com_github_golang_glog//:glog",
     ],
 )
 
 go_library(
     name = "deployment",
-    importpath = "src/tools/mi/deployment_oss/deployment",
+    importpath = "src/tools/mi/deployment/deployment",
 
     srcs = [
         "deploy.go",
@@ -32,5 +32,5 @@ go_library(
 
 build_test(
     name = "deploy_binary_build_test",
-    targets = [":deploy_binary"]
+    targets = [":deploy_binary"],
 )
