@@ -30,7 +30,7 @@ import (
 	_ "src/common/golang/flagfile"
 	"src/common/golang/flags"
 	"src/common/golang/pprint"
-	"src/tools/mi/deployment_oss/deployment"
+	"src/tools/mi/deployment/deployment"
 )
 
 var (
