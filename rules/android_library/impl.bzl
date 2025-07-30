@@ -297,24 +297,30 @@ def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_s
         java_toolchain = _common.get_java_toolchain(ctx),
     )
 
-    providers = [java_info]
+    return ProviderInfo(
+        name = "jvm_ctx",
+        value = struct(
+            java_info = java_info,
+            providers = [java_info],
+        ),
+    )
 
+def _process_lint_rules(ctx, **unused_sub_ctxs):
     # Propagate Lint rule Jars from any exported AARs (b/229993446)
     android_lint_rules = [info.lint_jars for info in utils.collect_providers(
         AndroidLintRulesInfo,
         ctx.attr.exports,
     )]
+    providers = []
     if android_lint_rules:
         providers.append(
             AndroidLintRulesInfo(
                 lint_jars = depset(transitive = android_lint_rules),
             ),
         )
-
     return ProviderInfo(
-        name = "jvm_ctx",
+        name = "lint_rules_ctx",
         value = struct(
-            java_info = java_info,
             providers = providers,
         ),
     )
@@ -475,6 +481,7 @@ def _process_baseline_profiles(ctx, **unused_ctx):
 # insertion.
 PROCESSORS = dict(
     ExceptionsProcessor = _exceptions_processor,
+    LintRulesProcessor = _process_lint_rules,
     ManifestProcessor = _process_manifest,
     LocalizedResourcesProcessor = _process_localized_resources,
     ResourceProcessor = _process_resources,
