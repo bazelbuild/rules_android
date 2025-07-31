@@ -14,6 +14,7 @@ go_binary(
         "//src/common/golang:flagfile",
         "//src/common/golang:flags",
         "//src/common/golang:pprint",
+        "//src/tools/mi/broker:device",
         "//src/tools/mi/deployment",
         "@com_github_golang_glog//:glog",
     ],
@@ -25,9 +26,12 @@ go_library(
 
     srcs = [
         "deploy.go",
+        "deploy_utils.go",
     ],
     visibility = ["//src/tools/mi:__subpackages__"],
-    deps = ["//src/common/golang:pprint"],
+    deps = [
+        "//src/common/golang:pprint",
+    ],
 )
 
 build_test(
