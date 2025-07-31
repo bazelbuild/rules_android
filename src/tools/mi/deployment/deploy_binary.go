@@ -18,10 +18,7 @@ package main
 import (
 	"context"
 	"flag"
-	"io/ioutil"
-	"log"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -30,6 +27,7 @@ import (
 	_ "src/common/golang/flagfile"
 	"src/common/golang/flags"
 	"src/common/golang/pprint"
+	devlib "src/tools/mi/broker/device"
 	"src/tools/mi/deployment/deployment"
 )
 
@@ -62,6 +60,10 @@ var (
 	buildID = flag.String("build_id", "", "The id of the build. Set by Bazel, the user should not use this flag.")
 )
 
+const (
+	devTmp = "/data/local/tmp"
+)
+
 func isAndroidStudio() bool { return strings.Contains(*toolTag, "AndroidStudio") }
 
 func resolveDeviceSerialAndPort(ctx context.Context, device string) (deviceSerialFlag, port string) {
@@ -89,15 +91,6 @@ func determineDeviceSerial(deviceSerialFlag, deviceSerialEnv, deviceSerialADBArg
 		deviceSerial = deviceSerialADBArg
 	}
 	return deviceSerial
-}
-
-// ReadFile reads file from a given path
-func readFile(path string) []byte {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		log.Fatalf("Error reading file %q: %v", path, err)
-	}
-	return data
 }
 
 func parseRepeatedFlag(n string, a *flags.StringList) {
@@ -171,7 +164,16 @@ func main() {
 		pprint.Warning("A device serial was specified more than once with --device, $ANDROID_SERIAL or --adb_arg, using %s.", deviceSerial)
 	}
 
-	appPackage := strings.TrimSpace(string(readFile(*appPackagePath)))
+	pprint.Info("Connecting to device %s", deviceSerial)
+	d, err := devlib.New(ctx, deviceSerial, port, devTmp, *adbPath, *useADBRoot)
+	if err != nil {
+		glog.Exitln(err)
+	}
+	if s := d.BuildDesc(); s != "" {
+		pprint.Info("Connected to %s", s)
+	}
+
+	appPackage := strings.TrimSpace(string(deployment.ReadFile(*appPackagePath)))
 
 	startTime := time.Now()
 
@@ -186,40 +188,17 @@ func main() {
 	if *startType != "" {
 		*start = *startType
 	}
-
-	// Wait for the debugger if debug mode selected
 	if *start == "DEBUG" {
-		waitCmd := exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "set-debug-app", "-w", appPackage)
-		if err := waitCmd.Run(); err != nil {
-			pprint.Error("Unable to wait for debugger: %s", err.Error())
-		}
+		d.WaitForDebugger(ctx, appPackage)
 	}
-
 	if *launchApp && !isAndroidStudio() {
 		pprint.Info("Finished deploying changes. Launching app")
-
-		stopCmd := exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "force-stop", appPackage)
-		if err := stopCmd.Run(); err != nil {
-			pprint.Error("Unable to stop app: %s", err.Error())
-		}
-		var launchCmd *exec.Cmd
-		if *launchActivity != "" {
-			launchCmd = exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "start", "-a", "android.intent.action.MAIN", "-n", appPackage+"/"+*launchActivity)
-		} else {
-			launchCmd = exec.Command(*adbPath, "-s", deviceSerial, "shell", "monkey", "-p", appPackage, "1")
-			pprint.Warning(
-				"No or multiple main activities found, falling back to Monkey launcher. Specify the activity you want with `-- --launch_activity` or `-- --nolaunch_app` to launch nothing.")
-		}
-
-		if err := launchCmd.Run(); err != nil {
+		if err = d.Launch(ctx, appPackage, *launchActivity); err != nil {
 			pprint.Warning("Unable to launch app. Specify an activity with --launch_activity.")
 			pprint.Warning("Original error: %s", err.Error())
 		}
 	} else {
 		// Always stop the app since classloader needs to be reloaded.
-		stopCmd := exec.Command(*adbPath, "-s", deviceSerial, "shell", "am", "force-stop", appPackage)
-		if err := stopCmd.Run(); err != nil {
-			pprint.Error("Unable to stop app: %s", err.Error())
-		}
+		d.Stop(ctx, appPackage)
 	}
 }
