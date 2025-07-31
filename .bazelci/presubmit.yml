@@ -16,11 +16,9 @@ matrix:
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
-  ? "--config={platform}"
 rules_flags: &rules_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
-  ? "--config={platform}"
 
 tools: &tools
   name: "Tools"
@@ -176,6 +174,7 @@ tasks:
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
+      ? "--config-windows"
     build_targets:
       - "//java/com/basicapp:basic_app"
   windows_basicapp_bzlmod:
@@ -185,6 +184,7 @@ tasks:
     working_directory: examples/basicapp
     build_flags:
       <<: *rules_flags
+      ? "--config-windows"
       ? "--enable_bzlmod"
       ? "--enable_workspace=false"
     build_targets:
