@@ -59,6 +59,7 @@ load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLO
 load("//rules/acls:desugaring_runtime_jar_classpath.bzl", "DESUGAR_USE_RUNTIME_JARS")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
 load("//rules/acls:disable_optimizing_dexer.bzl", "DISABLE_OPTIMIZING_DEXER")
+load("//rules/acls:enable_exported_lint_checks.bzl", "ENABLE_EXPORTED_LINT_CHECKS")
 load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOURCES")
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
@@ -215,6 +216,9 @@ def _in_resource_translation_merging_rollout(fqn):
 def _in_d8_optimization_metadata(fqn):
     return matches(fqn, D8_OPTIMIZATION_METADATA_DICT)
 
+def _in_enable_exported_lint_checks(fqn):
+    return matches(fqn, ENABLE_EXPORTED_LINT_CHECKS_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -283,6 +287,7 @@ STAMP_SIGNING_ROLLOUT_DICT = make_dict(STAMP_SIGNING_ROLLOUT)
 STAMP_SIGNING_FALLBACK_DICT = make_dict(STAMP_SIGNING_FALLBACK)
 RESOURCE_TRANSLATION_MERGING_ROLLOUT_DICT = make_dict(RESOURCE_TRANSLATION_MERGING_ROLLOUT)
 RESOURCE_TRANSLATION_MERGING_FALLBACK_DICT = make_dict(RESOURCE_TRANSLATION_MERGING_FALLBACK)
+ENABLE_EXPORTED_LINT_CHECKS_DICT = make_dict(ENABLE_EXPORTED_LINT_CHECKS)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -379,6 +384,7 @@ acls = struct(
     in_stamp_signing_rollout = _in_stamp_signing_rollout,
     in_desugaring_runtime_jar_classpath_rollout = _in_desugaring_runtime_jar_classpath_rollout,
     in_resource_translation_merging_rollout = _in_resource_translation_merging_rollout,
+    in_enable_exported_lint_checks = _in_enable_exported_lint_checks,
 )
 
 # Visible for testing

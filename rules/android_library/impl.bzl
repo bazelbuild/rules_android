@@ -306,18 +306,19 @@ def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_s
     )
 
 def _process_lint_rules(ctx, **unused_sub_ctxs):
-    # Propagate Lint rule Jars from any exported AARs (b/229993446)
-    android_lint_rules = [info.lint_jars for info in utils.collect_providers(
-        AndroidLintRulesInfo,
-        ctx.attr.exports,
-    )]
     providers = []
-    if android_lint_rules:
-        providers.append(
-            AndroidLintRulesInfo(
-                lint_jars = depset(transitive = android_lint_rules),
-            ),
-        )
+    if acls.in_enable_exported_lint_checks(str(ctx.label)):
+        # Propagate Lint rule Jars from any exported AARs (b/229993446)
+        android_lint_rules = [info.lint_jars for info in utils.collect_providers(
+            AndroidLintRulesInfo,
+            ctx.attr.exports,
+        )]
+        if android_lint_rules:
+            providers.append(
+                AndroidLintRulesInfo(
+                    lint_jars = depset(transitive = android_lint_rules),
+                ),
+            )
     return ProviderInfo(
         name = "lint_rules_ctx",
         value = struct(
