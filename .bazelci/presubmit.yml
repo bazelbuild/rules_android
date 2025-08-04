@@ -770,3 +770,291 @@ tasks:
       - "--noenable_workspace"
       - "--config=linux"
 
+  basic_app_bazel_7_4_1_bzlmod_disabled_platform_macos:
+    name: "Basic App w/ bazel 7.4.1 w/ bzlmod disabled w/ platform macos"
+    platform: macos
+    bazel: 7.4.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=mac"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=mac"
+
+  basic_app_bazel_7_4_1_bzlmod_disabled_platform_macos_arm64:
+    name: "Basic App w/ bazel 7.4.1 w/ bzlmod disabled w/ platform macos_arm64"
+    platform: macos_arm64
+    bazel: 7.4.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=mac"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=mac"
+
+  basic_app_bazel_7_4_1_bzlmod_disabled_platform_ubuntu2004:
+    name: "Basic App w/ bazel 7.4.1 w/ bzlmod disabled w/ platform ubuntu2004"
+    platform: ubuntu2004
+    bazel: 7.4.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=linux"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=linux"
+
+  basic_app_bazel_7_4_1_bzlmod_enabled_platform_macos:
+    name: "Basic App w/ bazel 7.4.1 w/ bzlmod enabled w/ platform macos"
+    platform: macos
+    bazel: 7.4.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=mac"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=mac"
+
+  basic_app_bazel_7_4_1_bzlmod_enabled_platform_macos_arm64:
+    name: "Basic App w/ bazel 7.4.1 w/ bzlmod enabled w/ platform macos_arm64"
+    platform: macos_arm64
+    bazel: 7.4.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=mac"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=mac"
+
+  basic_app_bazel_7_4_1_bzlmod_enabled_platform_ubuntu2004:
+    name: "Basic App w/ bazel 7.4.1 w/ bzlmod enabled w/ platform ubuntu2004"
+    platform: ubuntu2004
+    bazel: 7.4.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=linux"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=linux"
+
+  basic_app_bazel_8_2_1_bzlmod_disabled_platform_macos:
+    name: "Basic App w/ bazel 8.2.1 w/ bzlmod disabled w/ platform macos"
+    platform: macos
+    bazel: 8.2.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=mac"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=mac"
+
+  basic_app_bazel_8_2_1_bzlmod_disabled_platform_macos_arm64:
+    name: "Basic App w/ bazel 8.2.1 w/ bzlmod disabled w/ platform macos_arm64"
+    platform: macos_arm64
+    bazel: 8.2.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=mac"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=mac"
+
+  basic_app_bazel_8_2_1_bzlmod_disabled_platform_ubuntu2004:
+    name: "Basic App w/ bazel 8.2.1 w/ bzlmod disabled w/ platform ubuntu2004"
+    platform: ubuntu2004
+    bazel: 8.2.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=linux"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=linux"
+
+  basic_app_bazel_8_2_1_bzlmod_enabled_platform_macos:
+    name: "Basic App w/ bazel 8.2.1 w/ bzlmod enabled w/ platform macos"
+    platform: macos
+    bazel: 8.2.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=mac"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=mac"
+
+  basic_app_bazel_8_2_1_bzlmod_enabled_platform_macos_arm64:
+    name: "Basic App w/ bazel 8.2.1 w/ bzlmod enabled w/ platform macos_arm64"
+    platform: macos_arm64
+    bazel: 8.2.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=mac"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=mac"
+
+  basic_app_bazel_8_2_1_bzlmod_enabled_platform_ubuntu2004:
+    name: "Basic App w/ bazel 8.2.1 w/ bzlmod enabled w/ platform ubuntu2004"
+    platform: ubuntu2004
+    bazel: 8.2.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=linux"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=linux"
+
+  basic_app_bazel_7_4_1_bzlmod_disabled_platform_windows:
+    name: "Basic App w/ bazel 7.4.1 w/ bzlmod disabled w/ platform windows"
+    platform: windows
+    bazel: 7.4.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=windows"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=windows"
+
+  basic_app_bazel_7_4_1_bzlmod_enabled_platform_windows:
+    name: "Basic App w/ bazel 7.4.1 w/ bzlmod enabled w/ platform windows"
+    platform: windows
+    bazel: 7.4.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=windows"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=windows"
+
+  basic_app_bazel_8_2_1_bzlmod_disabled_platform_windows:
+    name: "Basic App w/ bazel 8.2.1 w/ bzlmod disabled w/ platform windows"
+    platform: windows
+    bazel: 8.2.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=windows"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=windows"
+
+  basic_app_bazel_8_2_1_bzlmod_enabled_platform_windows:
+    name: "Basic App w/ bazel 8.2.1 w/ bzlmod enabled w/ platform windows"
+    platform: windows
+    bazel: 8.2.1
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=windows"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=windows"
+
+  basic_app_bazel_last_green_bzlmod_disabled_platform_windows:
+    name: "Basic App w/ bazel last_green w/ bzlmod disabled w/ platform windows"
+    platform: windows
+    bazel: last_green
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=windows"
+    test_flags:
+      - "--noenable_bzlmod"
+      - "--enable_workspace"
+      - "--config=windows"
+
+  basic_app_bazel_last_green_bzlmod_enabled_platform_windows:
+    name: "Basic App w/ bazel last_green w/ bzlmod enabled w/ platform windows"
+    platform: windows
+    bazel: last_green
+    working_directory: examples/basicapp
+    build_targets:
+      - "//java/com/basicapp:basic_app"
+    build_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=windows"
+    test_flags:
+      - "--enable_bzlmod"
+      - "--noenable_workspace"
+      - "--config=windows"
+
