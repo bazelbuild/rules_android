@@ -5,7 +5,7 @@ go_proto_library(
     name = "deps_go_proto",
     importpath = "src/tools/jdeps/proto/deps_go_proto",
     protos = [
-        "//src/main/protobuf:deps_proto",
+        "@bazel_tools//src/main/protobuf:deps_proto",
     ],
     visibility = [
         "//src/tools/jdeps:__pkg__",
