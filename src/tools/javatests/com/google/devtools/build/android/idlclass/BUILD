@@ -18,7 +18,7 @@ java_test(
     srcs = glob(["*.java"]),
     deps = [
         "//src/tools/java/com/google/devtools/build/android/idlclass:idlclass_lib",
-        "@bazel_tools//src/main/protobuf:java_compilation_java_proto",
+        "//src/main/protobuf:java_compilation_java_proto",
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",

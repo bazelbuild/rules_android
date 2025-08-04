@@ -18,7 +18,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/tools/java/com/google/devtools/build/android/r8:deps_collector_api",
-        "@bazel_tools//src/main/protobuf:desugar_deps_java_proto",
+        "//src/main/protobuf:desugar_deps_java_proto",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_guava_guava",
     ],
