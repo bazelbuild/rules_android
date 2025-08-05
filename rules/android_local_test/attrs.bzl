@@ -27,7 +27,6 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
     return _attrs.add(
         dict(
             deps = attr.label_list(
-                allow_files = True,
                 allow_rules = [
                     "aar_import",
                     "android_library",
@@ -108,7 +107,6 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
                 """,
             ),
             runtime_deps = attr.label_list(
-                allow_files = True,
                 doc = """
                 Libraries to make available to the final binary or test at runtime only.
                 Like ordinary `deps`, these will appear on the runtime classpath, but unlike

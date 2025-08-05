@@ -33,7 +33,6 @@ visibility(PROJECT_VISIBILITY)
 
 def make_deps(allow_rules, providers, aspects):
     return attr.label_list(
-        allow_files = True,
         allow_rules = allow_rules,
         providers = providers,
         aspects = aspects,
