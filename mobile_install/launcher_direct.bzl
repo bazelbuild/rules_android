@@ -71,7 +71,6 @@ def _make_app_runner(
         test_data = None,
         test_args = None,
         use_adb_root = True,
-        use_studio_deployer = True,
         is_test = False):
     path_type = "path" if ctx.attr._mi_is_cmd else "short_path"
 
@@ -88,7 +87,6 @@ def _make_app_runner(
 
     args["studio_deployer"] = getattr(ctx.file._studio_deployer, path_type)
     args["use_adb_root"] = str(use_adb_root).lower()
-    args["use_studio_deployer"] = str(use_studio_deployer).lower()
 
     if test_data:
         args["data_files"] = ",".join([f.short_path for f in test_data])
@@ -106,13 +104,6 @@ def _make_app_runner(
         out_launcher,
         getattr(deploy, path_type),
         flags = getattr(out_launcher_flags, path_type),
-        # Converts the python array of args into a bash array. Each arg is
-        # wrapped with quotes to handle "space" separted flag value entries
-        # and as result also escapes existing quotes.
-        test_args = ("(%s)" % " ".join([
-            '"--test_arg=%s"' % arg.replace('"', '\\"')
-            for arg in test_args
-        ])) if test_args else "",
         test_flags = getattr(out_launcher_flags, path_type) if test_args or is_test else "",
     )
 
@@ -184,7 +175,6 @@ def make_direct_launcher(
         test_data = test_data,
         test_args = test_args,
         use_adb_root = use_adb_root,
-        use_studio_deployer = flags.get(ctx).use_studio_deployer,
         is_test = is_test,
     ))
 
