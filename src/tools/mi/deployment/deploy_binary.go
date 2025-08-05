@@ -33,7 +33,7 @@ import (
 
 var (
 	adbArgs        = flags.NewStringList("adb_arg", "Options for the adb binary.")
-	adbPath        = flag.String("adb", "/usr/bin/adb", "Path to the adb binary to use with mobile-install.")
+	adbPath        = flag.String("adb", "", "Path to the adb binary to use with mobile-install.")
 	device         = flag.String("device", "", "The adb device serial number.")
 	javaHome       = flag.String("java_home", "", "Path to JDK.")
 	launchActivity = flag.String("launch_activity", "", "Activity to launch via am start -n package/.activity_to_launch.")
