@@ -26,3 +26,5 @@ common:windows --host_per_file_copt=external/.*@/w
 # Enable protobuf MSVC support on Windows
 build:windows --define=protobuf_allow_msvc=true
 
+common --enable_platform_specific_config
+
