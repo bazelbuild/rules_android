@@ -18,18 +18,20 @@ common --repositories_without_autoloads=bazel_features_version,bazel_features_gl
 # Newer versions of protobuf require downstream transitive projects to set C++ language version flags.
 common:linux --cxxopt=-std=c++17
 common:linux --host_cxxopt=-std=c++17
-common:mac --cxxopt=-std=c++17
-common:mac --host_cxxopt=-std=c++17
+common:macos --cxxopt=-std=c++17
+common:macos --host_cxxopt=-std=c++17
 common:windows --cxxopt=/std:c++17
 common:windows --host_cxxopt=/std:c++17
 # Suppress warnings from external repos
 common:linux --per_file_copt=external/.*@-w
 common:linux --host_per_file_copt=external/.*@-w
-common:mac --per_file_copt=external/.*@-w
-common:mac --host_per_file_copt=external/.*@-w
+common:macos --per_file_copt=external/.*@-w
+common:macos --host_per_file_copt=external/.*@-w
 common:windows --per_file_copt=external/.*@/w
 common:windows --host_per_file_copt=external/.*@/w
 
 # Enable protobuf MSVC support on Windows
 build:windows --define=protobuf_allow_msvc=true
+
+common --enable_platform_specific_config
 
