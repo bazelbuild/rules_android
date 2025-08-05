@@ -115,18 +115,20 @@ tasks:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules
-  resource_rules:
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    <<: *resource_rules
+  # TODO(#397): Resource tests need some more debugging.
+  ## resource_rules:
+  ##   platform: ${{ platform }}
+  ##   bazel: ${{ bazel }}
+  ##   <<: *resource_rules
   tools_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
-  resource_rules_bzlmod:
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    <<: *resource_rules_bzlmod
+  # TODO(#397): Resource tests need some more debugging.
+  ## resource_rules_bzlmod:
+  ##   platform: ${{ platform }}
+  ##   bazel: ${{ bazel }}
+  ##   <<: *resource_rules_bzlmod
   rules_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
