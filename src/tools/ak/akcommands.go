@@ -18,7 +18,6 @@ package akcommands
 import (
 	"src/tools/ak/bucketize/bucketize"
 	"src/tools/ak/compile/compile"
-	"src/tools/ak/dex/dex"
 	"src/tools/ak/extractaar/extractaar"
 	"src/tools/ak/extractresources/extractresources"
 	"src/tools/ak/finalrjar/finalrjar"
@@ -39,7 +38,6 @@ var (
 	Cmds = map[string]types.Command{
 		"bucketize":        bucketize.Cmd,
 		"compile":          compile.Cmd,
-		"dex":              dex.Cmd,
 		"extractaar":       extractaar.Cmd,
 		"extractresources": extractresources.Cmd,
 		"link":             link.Cmd,
