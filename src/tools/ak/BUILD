@@ -52,7 +52,6 @@ go_library(
         ":types",
         "//src/tools/ak/bucketize",
         "//src/tools/ak/compile",
-        "//src/tools/ak/dex",
         "//src/tools/ak/extractaar",
         "//src/tools/ak/extractresources",
         "//src/tools/ak/finalrjar",
