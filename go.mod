@@ -1,6 +1,6 @@
 module github.com/bazelbuild/rules_android
 
-go 1.21.1
+go 1.24.2
 
 require (
 	bitbucket.org/creachadair/stringset v0.0.14

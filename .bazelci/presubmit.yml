@@ -4,7 +4,7 @@ matrix:
   bazel: [
     7.4.1,
     8.2.1,
-#    last_green, # Temporarily disable last_green until @bazel_tools//src/main/protobuf issues are fixed.
+    last_green,
   ]
   platform: [
     ubuntu2004,
