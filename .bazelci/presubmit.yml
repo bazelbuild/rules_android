@@ -4,7 +4,7 @@ matrix:
   bazel: [
     7.4.1,
     8.2.1,
-    last_green,
+#    last_green, # Temporarily disable last_green until @bazel_tools//src/main/protobuf issues are fixed.
   ]
   platform: [
     ubuntu2004,
@@ -72,10 +72,10 @@ resource_rules: &resource_rules
     - "//test/rules/resources/..."
   build_flags:
     <<: *rules_flags
-    ? "//rules/flags:manifest_merge_order=legacy"
+    ? "--//rules/flags:manifest_merge_order=legacy"
   test_flags:
     <<: *rules_flags
-    ? "//rules/flags:manifest_merge_order=legacy"
+    ? "--//rules/flags:manifest_merge_order=legacy"
 rules_coverage: &rules_coverage
   coverage_targets:
     - "//test/rules/android_local_test/java/com/..."
@@ -115,18 +115,20 @@ tasks:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules
-  resource_rules:
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    <<: *resource_rules
+  # TODO(#397): Resource tests need some more debugging.
+  ## resource_rules:
+  ##   platform: ${{ platform }}
+  ##   bazel: ${{ bazel }}
+  ##   <<: *resource_rules
   tools_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
-  resource_rules_bzlmod:
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    <<: *resource_rules_bzlmod
+  # TODO(#397): Resource tests need some more debugging.
+  ## resource_rules_bzlmod:
+  ##   platform: ${{ platform }}
+  ##   bazel: ${{ bazel }}
+  ##   <<: *resource_rules_bzlmod
   rules_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}

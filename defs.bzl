@@ -57,8 +57,8 @@ def rules_android_workspace():
             # These technically aren't needed, but the protobuf version pulled
             # in by these older deps has compatibility issues with the newer
             # protobuf runtimes.
-            "com.google.protobuf:protobuf-java:4.29.3",
-            "com.google.protobuf:protobuf-java-util:4.29.3",
+            "com.google.protobuf:protobuf-java:4.31.1",
+            "com.google.protobuf:protobuf-java-util:4.31.1",
         ],
         repositories = [
             "https://maven.google.com",
@@ -94,8 +94,8 @@ def rules_android_workspace():
             "jakarta.inject:jakarta.inject-api:2.0.1",
             "junit:junit:4.13.2",
             "com.beust:jcommander:1.82",
-            "com.google.protobuf:protobuf-java:4.29.3",
-            "com.google.protobuf:protobuf-java-util:4.29.3",
+            "com.google.protobuf:protobuf-java:4.31.1",
+            "com.google.protobuf:protobuf-java-util:4.31.1",
             "com.google.code.findbugs:jsr305:3.0.2",
             "androidx.databinding:databinding-compiler:8.7.0",
             "org.ow2.asm:asm:9.6",
