@@ -67,6 +67,7 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
         ctx,
         ctx.attr.manifest_values,
     )
+    min_sdk = int(manifest_values.get("minSdkVersion", min_sdk_version.DEPOT_FLOOR))
     if ctx.file.manifest == None:
         # No manifest provided, generate one
         manifest = ctx.actions.declare_file("_generated/" + ctx.label.name + "/AndroidManifest.xml")
@@ -74,7 +75,7 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
             ctx,
             out_manifest = manifest,
             java_package = java_package,
-            min_sdk_version = int(manifest_values.get("minSdkVersion", min_sdk_version.DEPOT_FLOOR)),
+            min_sdk_version = min_sdk,
         )
         manifest_ctx = struct(processed_manifest = manifest, processed_manifest_values = manifest_values)
     else:
@@ -82,6 +83,7 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
             ctx,
             manifest = ctx.file.manifest,
             manifest_values = ctx.attr.manifest_values,
+            floor = min_sdk,
         )
 
     return ProviderInfo(
