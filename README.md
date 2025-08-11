@@ -2,14 +2,16 @@
 
 ## Disclaimer
 
-NOTE: This branch is a development preview of the Starlark implementation of Android rules for Bazel. This code is incomplete and may not function as-is.
+NOTE: This branch is a development preview of the Starlark implementation of
+Android rules for Bazel. This code is incomplete and may not function as-is.
 
-A version of Bazel built at or near head or a recent pre-release and the following flags are necessary to use these rules:
+A recent version of Bazel (7.4+, 8.0+, HEAD, Bazel 9 pre-release) is required.
 
-```
---experimental_enable_android_migration_apis
---experimental_google_legacy_api
-```
+This ruleset depends on [Protobuf](https://github.com/protocolbuffers/protobuf),
+which has a minimum C++ language level of 17 (as of Protobuf v30, ~2025 Q3).
+Depending on your system's compiler version, you may have to set `-std=c++17`
+in your C++ toolchain arguments. This repository's .bazelrc file provides a
+minimal set of Bazel configuration flags to build an Android app.
 
 ## Overview
 
@@ -93,8 +95,6 @@ use_repo(android_sdk_repository_extension, "androidsdk")
 
 register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
 ```
-
-
 
 Then, in your BUILD files, import and use the rules:
 
