@@ -47,9 +47,6 @@ def _manifest_merge_split_impl(ctx):
 manifest_merge_split = rule(
     implementation = _manifest_merge_split_impl,
     attrs = {
-        "_allowlist_function_transition": attr.label(
-            default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
-        ),
         "binary": attr.label(cfg = _manifest_merge_split_transition),
     },
 )
