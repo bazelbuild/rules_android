@@ -13,18 +13,10 @@
 # limitations under the License.
 """Validates an android manifest xml file."""
 
+import argparse
 import sys
 import xml.dom.minidom
 
-from absl import app
-from absl import flags
-
-_MANIFEST = flags.DEFINE_string('manifest', None,
-                                'Path to manifest.xml to validate.')
-_OUTPUT = flags.DEFINE_string('output', None,
-                              'Output file for validation action.')
-_EXPECTED_MIN_SDK = flags.DEFINE_integer('expected_min_sdk_version', 0,
-                                         'Expected minSdkVersion in manifest.')
 
 _MIN_SDK_VERSION = 'android:minSdkVersion'
 
@@ -58,22 +50,36 @@ Expected manifest minSdkVersion of %s but got %s
 """ % (expected_min_sdk, min_sdk_version)
 
 
-def main(argv):
-  if len(argv) > 1:
-    raise app.UsageError('Too many command-line arguments.')
+def main():
+  parser = argparse.ArgumentParser(
+      description='Validates an android manifest xml file.'
+  )
+  parser.add_argument(
+      '--manifest', required=True, help='Path to manifest.xml to validate.'
+  )
+  parser.add_argument(
+      '--output', required=True, help='Output file for validation action.'
+  )
+  parser.add_argument(
+      '--expected_min_sdk_version',
+      type=int,
+      default=0,
+      help='Expected minSdkVersion in manifest.',
+  )
+  args = parser.parse_args()
 
-  with open(_MANIFEST.value, 'rb') as manifest_file:
+  with open(args.manifest, 'rb') as manifest_file:
     manifest = manifest_file.read()
 
-  if _EXPECTED_MIN_SDK.value:
-    error = ValidateManifestMinSdk(manifest, _EXPECTED_MIN_SDK.value)
+  if args.expected_min_sdk_version:
+    error = ValidateManifestMinSdk(manifest, args.expected_min_sdk_version)
     if error:
       sys.stderr.write(error)
       sys.exit(1)
 
-  with open(_OUTPUT.value, 'w') as output:
+  with open(args.output, 'w') as output:
     output.write('')
 
 
 if __name__ == '__main__':
-  app.run(main)
+  main()
