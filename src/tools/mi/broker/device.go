@@ -103,7 +103,7 @@ func (d *Device) Launch(ctx context.Context, manifestPackageName, activity strin
 	if activity != "" {
 		cmp := manifestPackageName + "/" + activity
 		stdOut, stdErr, err = d.Ctl.Exec(
-			ctx, "am", []string{"start", "-a", "android.intent.action.MAIN", "-n", cmp}, true)
+			ctx, "am", []string{"start", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER", "-n", cmp}, true)
 	} else {
 		stdOut, stdErr, err = d.Ctl.Exec(ctx, "am", []string{"start", manifestPackageName}, true)
 		if err != nil || strings.Contains(stdOut+stdErr, "Error: ") {
