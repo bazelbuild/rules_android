@@ -100,10 +100,12 @@ resource_rules_bzlmod: &resource_rules_bzlmod
     <<: *rules_flags
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
+    ? "--//rules/flags:manifest_merge_order=legacy"
   test_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
+    ? "--//rules/flags:manifest_merge_order=legacy"
   <<: *resource_rules
 
 tasks:
@@ -126,7 +128,7 @@ tasks:
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
   resource_rules_ubuntu2004_bzlmod:
-    name: "Resource rules on Linux with Bazel {bazel} and bzlmod enabled"
+    name: "Resource rules with Bazel {bazel} and bzlmod enabled"
     platform: ubuntu2004
     bazel: ${{ bazel }}
     <<: *resource_rules_bzlmod
