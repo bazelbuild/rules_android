@@ -10,6 +10,7 @@ py_test(
         "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_R8_no_shrink",
         "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_R8_shrink",
         "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_no_R8",
+        "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_select_R8_genmap",
         "@androidsdk//:dexdump",
     ],
 )
