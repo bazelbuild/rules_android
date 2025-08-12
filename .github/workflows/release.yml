@@ -14,6 +14,9 @@ permissions:
 jobs:
   release:
     uses: bazel-contrib/.github/.github/workflows/release_ruleset.yaml@v7.2.2
+    permissions:
+      attestations: write
+      id-token: write
     with:
       release_files: rules_android-*.tar.gz
       bazel_test_command: "cd examples/basicapp && bazel build java/com/basicapp:basic_app"
