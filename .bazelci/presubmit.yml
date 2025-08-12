@@ -115,20 +115,22 @@ tasks:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules
-  # TODO(#397): Resource tests need some more debugging.
-  ## resource_rules:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules
+  # TODO(#397): Resource tests on Mac need some more debugging.
+  resource_rules_ubuntu2004:
+    name: "Resource rules on Linux with Bazel {bazel} and bzlmod disabled"
+    platform: ubuntu2004
+    bazel: ${{ bazel }}
+    <<: *resource_rules
   tools_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
-  # TODO(#397): Resource tests need some more debugging.
-  ## resource_rules_bzlmod:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules_bzlmod
+  # TODO(#397): Resource tests on Mac need some more debugging.
+  resource_rules_bzlmod:
+    name: "Resource rules on Linux with Bazel {bazel} and bzlmod disabled"
+    platform: ubuntu2004
+    bazel: ${{ bazel }}
+    <<: *resource_rules_bzlmod
   rules_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
