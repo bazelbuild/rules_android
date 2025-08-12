@@ -191,6 +191,7 @@ set -eu
 
 EXPECTED_R_CLASS_FIELDS="{expected_r_class_fields}"
 if [ "{check_r_java}" == "True" ]; then
+    set -x
 
     # Check the contents of the resources jar, as it is always produced.
     # There are cases when it is produced empty (with only META-INF data).
@@ -205,6 +206,7 @@ if [ "{check_r_java}" == "True" ]; then
         exit
     fi
 
+    find . -name java -type f
     {java} -cp {class_path} com.google.RClassChecker \
         --package="{package}" \
         --expected_r_class_fields="${{EXPECTED_R_CLASS_FIELDS}}"
