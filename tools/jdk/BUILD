@@ -1,4 +1,5 @@
 load("@rules_java//toolchains:default_java_toolchain.bzl", "default_java_toolchain")
+load("@rules_java//java:java_import.bzl", "java_import")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//tools/jdk:system.bzl", "android_system")
@@ -119,14 +120,14 @@ alias(
 )
 
 alias(
-    name = "jdk",
-    actual = "@bazel_tools//tools/jdk:jdk",
+    name = "current_host_java_runtime",
+    actual = "@rules_java//toolchains:current_host_java_runtime",
     visibility = ["//visibility:public"],
 )
 
-alias(
-    name = "current_host_java_runtime",
-    actual = "@rules_java//toolchains:current_host_java_runtime",
+java_import(
+    name = "TestRunner",
+    jars = ["@remote_java_tools//:Runner"],
     visibility = ["//visibility:public"],
 )
 

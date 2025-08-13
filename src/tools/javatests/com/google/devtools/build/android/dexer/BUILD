@@ -39,7 +39,7 @@ java_library(
         ":dexbuilder_import",
         "//src/tools/java/com/google/devtools/build/android/dexer:DexFileSplitter_lib",
         "//src/tools/java/com/google/devtools/build/android/r8:dexbuilder_deploy.jar",
-        "@bazel_tools//tools/java/runfiles",
+        "@rules_java//java/runfiles",
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",

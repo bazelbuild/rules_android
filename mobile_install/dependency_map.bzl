@@ -33,7 +33,7 @@ versioned_deps = struct(
         head = "//tools/android:gen_fail",
     ),
     jar_tool = struct(
-        head = "@bazel_tools//tools/jdk:JavaBuilder_deploy.jar",
+        head = "@remote_java_tools//:JavaBuilder",
     ),
     res_v3_dummy_manifest = struct(
         head = "//rules:res_v3_dummy_AndroidManifest.xml",

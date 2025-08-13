@@ -224,7 +224,7 @@ def create_android_sdk_rules(
             main_dex_list_creator = ":main_dex_list_creator",
             proguard = select({
                 ":disallow_proguard": ":fail",
-                "//conditions:default": "@bazel_tools//tools/jdk:proguard",
+                "//conditions:default": "@remote_java_tools//:proguard",
             }),
             # See https://github.com/bazelbuild/bazel/issues/8757
             tags = ["__ANDROID_RULES_MIGRATION__"],
