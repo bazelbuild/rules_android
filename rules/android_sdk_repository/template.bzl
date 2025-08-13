@@ -49,6 +49,24 @@ config_setting(
     },
 )
 
+config_setting(
+    name = "darwin_arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "darwin_x86_64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:x86_64",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 alias(
     name = "has_androidsdk",
     actual = ":always_true",
@@ -118,8 +136,8 @@ filegroup(
 filegroup(
     name = "qemu2_x86",
     srcs = ["emulator/emulator"] + select({
-        "@bazel_tools//src/conditions:darwin_x86_64": ["emulator/qemu/darwin-x86_64/qemu-system-i386"],
-        "@bazel_tools//src/conditions:darwin_arm64": ["emulator/qemu/darwin-aarch64/qemu-system-aarch64"],
+        ":darwin_x86_64": ["emulator/qemu/darwin-x86_64/qemu-system-i386"],
+        ":darwin_arm64": ["emulator/qemu/darwin-aarch64/qemu-system-aarch64"],
         "//conditions:default": ["emulator/qemu/linux-x86_64/qemu-system-i386"],
     }),
 )
