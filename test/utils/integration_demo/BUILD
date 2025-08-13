@@ -20,7 +20,7 @@ script_test(
     tags = ["manual"],
     deps = [
         "//test/bashunit",
-        "@bazel_tools//tools/bash/runfiles",
+        "@rules_shell//shell/runfiles",
     ],
 )
 

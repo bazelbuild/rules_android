@@ -32,7 +32,7 @@ py_test(
         ":bashunit",
         # This test relies on writing shell scripts that use bash runfiles
         # to load the actual copy of unittest.bash being tested.
-        "@bazel_tools//tools/bash/runfiles",
+        "@rules_shell//shell/runfiles",
     ],
     main = "unittest_test.py",
     tags = [

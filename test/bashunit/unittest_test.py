@@ -29,13 +29,16 @@ import unittest
 
 # The test setup for this external test is forwarded to the internal bash test.
 # This allows the internal test to use the same runfiles to load unittest.bash.
+# NOTE: runfiles.bash exists in rules_shell, but isn't entirely hooked up yet.
+# For now, we still need to reference the "old" runfiles.bash path in the
+# bashunit library.
 _TEST_PREAMBLE = """
 #!/bin/bash
 # --- begin runfiles.bash initialization ---
 if [[ -f "${RUNFILES_DIR:-/dev/null}/bazel_tools/tools/bash/runfiles/runfiles.bash" ]]; then
   source "${RUNFILES_DIR}/bazel_tools/tools/bash/runfiles/runfiles.bash"
 else
-  echo >&2 "ERROR: cannot find @bazel_tools//tools/bash/runfiles:runfiles.bash"
+  echo >&2 "ERROR: cannot find @rules_shell//shell/runfiles:runfiles.bash"
   exit 1
 fi
 # --- end runfiles.bash initialization ---

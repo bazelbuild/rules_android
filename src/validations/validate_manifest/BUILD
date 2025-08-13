@@ -15,7 +15,6 @@ licenses(["notice"])
 py_library(
     name = "validate_manifest_lib",
     srcs = ["validate_manifest.py"],
-    deps = ["@bazel_tools//third_party/py/abseil"],
 )
 
 py_test(

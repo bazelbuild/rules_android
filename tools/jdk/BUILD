@@ -66,7 +66,7 @@ sh_test(
         "//src/tools/jar_to_module_info",
     ],
     deps = [
-        "@bazel_tools//tools/bash/runfiles",
+        "@rules_shell//shell/runfiles",
     ],
 )
 
