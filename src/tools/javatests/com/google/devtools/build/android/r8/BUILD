@@ -30,12 +30,12 @@ java_library(
     }),
     deps = [
         "//src/tools/java/com/google/devtools/build/android/r8",
-        "@bazel_tools//tools/java/runfiles",
         "@rules_android_maven//:com_android_tools_r8",
         "@rules_android_maven//:com_beust_jcommander",
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",
+        "@rules_java//java/runfiles",
     ],
 )
 

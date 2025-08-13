@@ -29,7 +29,7 @@ android_library(
 # JNI target.
 genrule(
     name = "jni_h",
-    srcs = ["@bazel_tools//tools/jdk:jni_header"],
+    srcs = ["@rules_java//toolchains:jni_header"],
     outs = [":jni.h"],
     cmd = "cp $< $@",
 )
@@ -37,9 +37,9 @@ genrule(
 genrule(
     name = "jni_md_h",
     srcs = select({
-        "//conditions:default":["@bazel_tools//tools/jdk:jni_md_header-linux"],
-        "@platforms//os:windows": ["@bazel_tools//tools/jdk:jni_md_header-windows"],
-        "@platforms//os:macos": ["@bazel_tools//tools/jdk:jni_md_header-darwin"],
+        "//conditions:default": ["@rules_java//toolchains:jni_md_header-linux"],
+        "@platforms//os:windows": ["@rules_java//toolchains:jni_md_header-windows"],
+        "@platforms//os:macos": ["@rules_java//toolchains:jni_md_header-darwin"],
     }),
     outs = [":jni_md.h"],
     cmd = "cp $< $@",
@@ -47,6 +47,10 @@ genrule(
 
 cc_library(
     name = "native",
-    srcs = ["native.c", ":jni.h", ":jni_md.h"],
+    srcs = [
+        "native.c",
+        ":jni.h",
+        ":jni_md.h",
+    ],
     includes = ["."],
 )
