@@ -799,7 +799,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             # Proguard map from shrinking is the final output.
             proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
 
-    if ctx.attr._generate_proguard_outputs:
+    if not acls.use_r8(str(ctx.label)) and ctx.attr._generate_proguard_outputs:
         proguard_output_jar = ctx.outputs.proguard_jar
         proguard_output_config = ctx.outputs.proguard_config
     else:
