@@ -27,7 +27,7 @@ sh_library(
     visibility = ["//visibility:private"],
     deps = [
         "//test/bashunit",
-        "@bazel_tools//tools/bash/runfiles",
+        "@rules_shell//shell/runfiles",
     ],
 )
 
@@ -41,7 +41,7 @@ script_test(
     deps = [
         ":android_helper",
         "//test/bashunit",
-        "@bazel_tools//tools/bash/runfiles",
+        "@rules_shell//shell/runfiles",
     ],
 )
 
