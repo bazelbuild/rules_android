@@ -188,7 +188,7 @@ sh_binary(
         ":r8",
         ":tracereferences",
         ":zip",
-        "@bazel_tools//tools/bash/runfiles",
+        "@rules_shell//shell/runfiles",
     ],
     visibility = ["//visibility:public"],
 )
@@ -222,7 +222,7 @@ sh_binary(
         ":d8_desugar_params",
         ":full_desugar_jdk_libs_config_json",
         "//src/tools/java/com/google/devtools/build/android/r8:desugar",
-        "@bazel_tools//tools/bash/runfiles",
+        "@rules_shell//shell/runfiles",
     ],
     visibility = ["//visibility:public"],
 )
