@@ -81,6 +81,14 @@ class R8IntegrationTest(unittest.TestCase):
         expect_unused_activity_class=False,
     )
 
+    # No R8 when run in default test mode (non-opt),
+    # so unused resources and unused classes should be in the app
+    self._r8_integration_check(
+        "basic_app_select_R8_genmap.apk",
+        expect_unused_activity_resource=True,
+        expect_unused_activity_class=True,
+    )
+
 
 if __name__ == "__main__":
   dexdump = sys.argv.pop()
