@@ -84,7 +84,7 @@ class R8IntegrationTest(unittest.TestCase):
     # No R8 when run in default test mode (non-opt),
     # so unused resources and unused classes should be in the app
     self._r8_integration_check(
-        "basic_app_select_R8_genmap.apk",
+        "basic_app_select_R8_generate_pg_map.apk",
         expect_unused_activity_resource=True,
         expect_unused_activity_class=True,
     )
