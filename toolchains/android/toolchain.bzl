@@ -256,7 +256,7 @@ _ATTRS = dict(
         executable = True,
     ),
     testsupport = attr.label(
-        default = "//tools/jdk:TestRunner",
+        default = Label("//tools/jdk:TestRunner"),
     ),
     unzip_tool = attr.label(
         cfg = "exec",
