@@ -95,10 +95,10 @@ def get_feature_module_paths(fqn):
     # Given a fqn to an android_feature_module, returns the absolute paths to
     # all implicitly generated targets
     return struct(
-        binary = Label("%s_bin" % fqn),
-        manifest_lib = Label("%s_AndroidManifest" % fqn),
-        title_strings_xml = Label("%s_title_strings_xml" % fqn),
-        title_lib = Label("%s_title_lib" % fqn),
+        binary = native.package_relative_label("%s_bin" % fqn),
+        manifest_lib = native.package_relative_label("%s_AndroidManifest" % fqn),
+        title_strings_xml = native.package_relative_label("%s_title_strings_xml" % fqn),
+        title_lib = native.package_relative_label("%s_title_lib" % fqn),
     )
 
 def android_feature_module_macro(_android_binary, _android_library, **attrs):
