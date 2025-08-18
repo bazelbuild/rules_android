@@ -30,7 +30,7 @@ toolchain(
         "@platforms//cpu:aarch64",
     ],
     toolchain = ":fake_cc_toolchain",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc:toolchain_type",
 )
 
 toolchain(
@@ -40,7 +40,7 @@ toolchain(
         "@platforms//cpu:armv7",
     ],
     toolchain = ":fake_cc_toolchain",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    toolchain_type = "@rules_cc//cc:toolchain_type",
 )
 
 genrule(
