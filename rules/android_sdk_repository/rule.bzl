@@ -94,7 +94,7 @@ def _android_sdk_repository_impl(repo_ctx):
     # Determine the SDK path to use, either from the attribute or the environment.
     android_sdk_path = repo_ctx.attr.path
     if not android_sdk_path:
-        android_sdk_path = repo_ctx.os.environ.get("ANDROID_HOME")
+        android_sdk_path = repo_ctx.getenv("ANDROID_HOME")
     if not android_sdk_path:
         # Create an empty repository that allows non-Android code to build.
         repo_ctx.template("BUILD.bazel", _EMPTY_SDK_REPO_TEMPLATE)
