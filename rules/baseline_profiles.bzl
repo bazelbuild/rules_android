@@ -15,6 +15,8 @@
 Defines baseline profiles processing methods in Android Rules.
 """
 
+load("//rules:common.bzl", _common = "common")
+load("//rules:java.bzl", _java = "java")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
@@ -103,7 +105,6 @@ def _process_art_profile(
         merged_profile,
         proguard_output_map = None,
         profgen = None,
-        zipper = None,
         toolchain_type = None):
     """ Compiles the merged baseline profile.
 
@@ -117,7 +118,6 @@ def _process_art_profile(
       merged_profile: File. The merged profile from transitive baseline profile files.
       proguard_output_map: File. Optional. The proguard output mapping file.
       profgen: FilesToRunProvider. The profgen executable for profile compilation.
-      zipper: FilesToRunProvider. An executable for compressing files to an archive.
       toolchain_type: Label or String. Toolchain type of the executable used in actions.
     Returns:
       Provider info containing BaselineProfileProvider for all merged profiles.
@@ -148,19 +148,17 @@ def _process_art_profile(
 
     # Zip ART profiles
     output_profile_zip = _get_profile_artifact(ctx, "art_profile.zip")
-    zip_args = ctx.actions.args()
-    zip_args.add("c", output_profile_zip)
-    zip_args.add(output_profile.path, format = "assets/dexopt/baseline.prof=%s")
-    zip_args.add(output_profile_meta.path, format = "assets/dexopt/baseline.profm=%s")
-    ctx.actions.run(
+
+    _java.singlejar(
+        ctx,
+        compression = False,
+        inputs = [],
+        output = output_profile_zip,
         mnemonic = "ZipARTProfiles",
-        executable = zipper,
         progress_message = "Zip ART Profiles for %{label}",
-        arguments = [zip_args],
-        inputs = [output_profile, output_profile_meta],
-        outputs = [output_profile_zip],
-        use_default_shell_env = True,
-        toolchain = toolchain_type,
+        resource_paths = [output_profile.path + ":assets/dexopt/baseline.prof", output_profile_meta.path + ":assets/dexopt/baseline.profm"],
+        resources = [output_profile, output_profile_meta],
+        java_toolchain = _common.get_java_toolchain(ctx),
     )
     return output_profile_zip
 

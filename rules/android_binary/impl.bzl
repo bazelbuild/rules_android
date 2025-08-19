@@ -731,7 +731,6 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
                 merged_profile = merged_baseline_profile,
                 proguard_output_map = proguard_output_map,
                 profgen = get_android_toolchain(ctx).profgen.files_to_run,
-                zipper = get_android_toolchain(ctx).zipper.files_to_run,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
     return ProviderInfo(
