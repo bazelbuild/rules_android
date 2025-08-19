@@ -84,12 +84,13 @@ genrule(
         echo "package j$$.test; public class Foo {}" > "$${tmpdir}/Foo.java"
         echo "package zzz; public class Bar {}" > "$${tmpdir}/Bar.java"
         echo "package aaa; public class Baz {}" > "$${tmpdir}/Baz.java"
-        $(location @bazel_tools//tools/zip:zipper) c $@ \\
-            "j$$/test/Foo.java=$${tmpdir}/Foo.java" \\
-            "zzz/Bar.java=$${tmpdir}/Bar.java" \\
-            "aaa/Baz.java=$${tmpdir}/Baz.java"
+        $(location //tools/jdk:singlejar) --output $@ \\
+            --resources \\
+            "$${tmpdir}/Foo.java:j$$/test/Foo.java" \\
+            "$${tmpdir}/Bar.java:zzz/Bar.java" \\
+            "$${tmpdir}/Baz.java:aaa/Baz.java"
         rm -rf "$${tmpdir}" """,
-    tools = ["@bazel_tools//tools/zip:zipper"],
+    tools = ["//tools/jdk:singlejar"],
 )
 
 java_library(
