@@ -279,12 +279,6 @@ _ATTRS = dict(
         default = "//tools/android:zip_filter",
         executable = True,
     ),
-    zipper = attr.label(
-        allow_single_file = True,
-        cfg = "exec",
-        default = "@bazel_tools//tools/zip:zipper",
-        executable = True,
-    ),
     dex_zips_merger = attr.label(
         cfg = "exec",
         default = "//tools/android:merge_dexzips",
