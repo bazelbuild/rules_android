@@ -148,6 +148,9 @@ def _process_feature_module(
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = _common.get_host_javabase(ctx),
         should_throw_on_conflict = True,
+        # We only support native libraries and assets in feature modules. This likely needs to be
+        # conditionally set if/when we support jvm / resources.
+        debug = False,
         application_id = application_id,
     )
 
