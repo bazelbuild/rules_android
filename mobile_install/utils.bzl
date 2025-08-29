@@ -18,6 +18,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 # Copybara: placeholder for GeneratedExtensionRegistryInfo load
+load("//tools/jdk:jvmopts.bzl", "BASE_JVMOPTS")
 load(":constants.bzl", "constants")
 
 visibility(PROJECT_VISIBILITY)
@@ -177,10 +178,8 @@ def dex(ctx, jar, out_dex_shards, deps = None):
     java = java_runtime.java_executable_exec_path
 
     # Performance-related JVM flags for the desugar tool.
-    jvm_flags = [
+    jvm_flags = BASE_JVMOPTS + [
         # b/71513487
-        "-XX:+TieredCompilation",
-        "-XX:TieredStopAtLevel=1",
         "-Xms8g",
         "-Xmx8g",
     ]
