@@ -3,6 +3,7 @@
 # Privacy Sandbox.
 
 load("@rules_java//java:defs.bzl", "java_binary", "java_library")
+load("//tools/jdk:jvmopts.bzl", "BASE_JVMOPTS")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -28,6 +29,7 @@ java_library(
 
 java_binary(
     name = "sandboxed_sdk_toolbox",
+    jvm_flags = BASE_JVMOPTS,
     main_class = "com.google.devtools.build.android.sandboxedsdktoolbox.SandboxedSdkToolbox",
     visibility = ["//visibility:public"],
     runtime_deps = [
