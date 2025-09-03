@@ -484,6 +484,8 @@ def android_application_macro(_android_binary, **attrs):
     _verify_attrs(attrs, fqn)
 
     # Create an android_binary base split, plus an android_application to produce the aab
+    # Note: various teams / systems rely on the _base suffix (even though it's really an
+    # implementation detail).
     name = attrs.pop("name")
     base_split_name = "%s_base" % name
 
