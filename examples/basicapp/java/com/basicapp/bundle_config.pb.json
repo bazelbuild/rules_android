@@ -1,0 +1,12 @@
+// https://github.com/google/bundletool/blob/master/src/main/proto/config.proto
+{
+  "optimizations": {
+    "splitsConfig": {
+      "splitDimension": [
+        {
+          "value": "LANGUAGE"
+        }
+      ]
+    }
+  }
+}

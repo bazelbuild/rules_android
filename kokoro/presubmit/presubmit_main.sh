@@ -152,7 +152,8 @@ function main() {
     "${COMMON_ARGS[@]}" \
     "${RULE_ARGS[@]}" \
     -- \
-    //java/com/basicapp:basic_app
+    //java/com/basicapp:basic_app \
+    //java/com/basicapp:basic_app_bundle
 
   # Mobile-install test with no deployment
   "$bazel" mobile-install \
