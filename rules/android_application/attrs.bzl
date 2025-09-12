@@ -71,10 +71,6 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
             allow_single_file = True,
             default = ":bundle_deploy.sh_template",
         ),
-        _bundle_keystore_properties = attr.label(
-            allow_single_file = True,
-            default = "//rules:bundle_keystore_properties.tmpl",
-        ),
         _feature_manifest_script = attr.label(
             allow_single_file = True,
             cfg = "exec",

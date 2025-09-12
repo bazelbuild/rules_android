@@ -158,6 +158,7 @@ tasks:
       <<: *rules_flags
     build_targets:
       - "//java/com/basicapp:basic_app"
+      - "//java/com/basicapp:basic_app_bundle"
   basicapp_bzlmod:
     name: "Basic app bzlmod"
     platform: ${{ platform }}
@@ -169,6 +170,7 @@ tasks:
       ? "--enable_workspace=false"
     build_targets:
       - "//java/com/basicapp:basic_app"
+      - "//java/com/basicapp:basic_app_bundle"
   windows_basicapp:
     name: "Basic app windows"
     platform: "windows"
@@ -178,6 +180,7 @@ tasks:
       <<: *rules_flags
     build_targets:
       - "//java/com/basicapp:basic_app"
+      - "//java/com/basicapp:basic_app_bundle"
   windows_basicapp_bzlmod:
     name: "Basic app windows bzlmod"
     platform: "windows"
@@ -189,4 +192,5 @@ tasks:
       ? "--enable_workspace=false"
     build_targets:
       - "//java/com/basicapp:basic_app"
+      - "//java/com/basicapp:basic_app_bundle"
 
