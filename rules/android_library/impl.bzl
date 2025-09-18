@@ -334,12 +334,22 @@ def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
         _VALIDATION_OUTPUTS: [],
     }
 
+    # This is a workaround to fix b/445511343 that translation resources are missing in the final
+    # aar for the internal version of android_library. The workaround doesn't work with data binding
+    # enabled. Given we've deprecated data binding internally, this is an acceptable compromise.
+    if ctx.attr.neverlink:
+        resource_files = []
+    elif resources_ctx.data_binding_layout_info:
+        resource_files = resources_ctx.starlark_processed_resources
+    else:
+        resource_files = ctx.files.resource_files
+
     starlark_aar = _resources.make_aar(
         ctx,
         manifest = resources_ctx.starlark_processed_manifest,
         assets = ctx.files.assets,
         assets_dir = ctx.attr.assets_dir,
-        resource_files = resources_ctx.starlark_processed_resources if not ctx.attr.neverlink else [],
+        resource_files = resource_files,
         class_jar = ctx.outputs.lib_jar,
         r_txt = resources_ctx.starlark_r_txt,
         aar_metadata = ctx.file.aar_metadata,
