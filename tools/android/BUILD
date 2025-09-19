@@ -485,6 +485,15 @@ py_test(
     deps = [":aar_resources_extractor"],
 )
 
+py_test(
+    name = "junction_test",
+    srcs = ["junction_test.py"],
+    deps = [":junction_lib"],
+    # TODO: This test was migrated from Bazel and is missing some
+    # Bazel-intrinsic test deps.
+    tags = ["manual"],
+)
+
 java_binary(
     name = "apkdeployer",
     main_class = "com.android.tools.deployer.DeployerRunner",
