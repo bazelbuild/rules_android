@@ -25,20 +25,6 @@ import (
 	"src/common/golang/pprint"
 )
 
-const (
-	manifestName                         = "artifacts_manifest"
-	dexManifestName                      = "dex_manifest"
-	nativeMarkerName                     = "native_marker"
-	systemInstallDir                     = "/system/"
-	appLib                               = "app/lib"
-	dManifest                            = "deployed_manifest"
-	minApiforAdditionalDevicePermissions = 28
-	abiErrorMessage                      = `no libraries found for device %v, built %v.
-Double check the architecture --config you're building for.
-Often switching between architectures? Try setting --fat_apk_cpu={arch1},{arch2}...
-`
-)
-
 // AndroidStudioSync calls to the Studio deployer with splits.
 func AndroidStudioSync(ctx context.Context, deviceSerial, port, pkg string, splits []string, deployer, adbPath, jdk string, optimisticInstall bool, studioVerboseLog bool, userID int, useADBRoot bool) error {
 	args := []string{"-Dkotlinx.coroutines.debug=on", "-jar", deployer, "install", pkg}
