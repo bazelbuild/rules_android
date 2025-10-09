@@ -16,6 +16,12 @@
 # Don't use relative paths since this file is coppied to //android/rules.bzl.
 
 load(
+    "//providers:providers.bzl",
+    _AndroidAppsInfo = "AndroidAppsInfo",
+    _ApkInfo = "ApkInfo",
+    _StarlarkApkInfo = "StarlarkApkInfo",
+)
+load(
     "//rules:android_sdk.bzl",
     _android_sdk = "android_sdk",
 )
@@ -26,12 +32,6 @@ load(
 load(
     "//rules:instrumented_app_info_aspect.bzl",
     _instrumented_app_info_aspect = "instrumented_app_info_aspect",
-)
-load(
-    "//providers:providers.bzl",
-    _AndroidAppsInfo = "AndroidAppsInfo",
-    _ApkInfo = "ApkInfo",
-    _StarlarkApkInfo = "StarlarkApkInfo",
 )
 load(
     "//rules/aar_import:rule.bzl",
@@ -68,6 +68,8 @@ load(
 load(
     "//rules/android_sdk_repository:rule.bzl",
     _android_sdk_repository = "android_sdk_repository",
+    _sandboxed_android_sdk_repository = "sandboxed_android_sdk_repository",
+    _sdk_package = "sdk_package",
 )
 
 # Current version. Tools may check this to determine compatibility.
@@ -82,6 +84,8 @@ android_sandboxed_sdk = _android_sandboxed_sdk
 android_sandboxed_sdk_bundle = _android_sandboxed_sdk_bundle
 android_sdk = _android_sdk
 android_sdk_repository = _android_sdk_repository
+sandboxed_android_sdk_repository = _sandboxed_android_sdk_repository
+sdk_package = _sdk_package
 android_tools_defaults_jar = _android_tools_defaults_jar
 asar_import = _asar_import
 instrumented_app_info_aspect = _instrumented_app_info_aspect
