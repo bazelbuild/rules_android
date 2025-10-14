@@ -61,6 +61,7 @@ load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
 load("//rules/acls:disable_optimizing_dexer.bzl", "DISABLE_OPTIMIZING_DEXER")
 load("//rules/acls:enable_exported_lint_checks.bzl", "ENABLE_EXPORTED_LINT_CHECKS")
 load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOURCES")
+load("//rules/acls:gpu_override.bzl", "CAN_USE_GPU_OVERRIDE")
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
 load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
@@ -137,6 +138,9 @@ def _in_databinding_allowed(fqn):
 
 def _in_dex2oat_opts(fqn):
     return matches(fqn, CAN_USE_DEX2OAT_OPTIONS_DICT)
+
+def _in_gpu_override(fqn):
+    return matches(fqn, CAN_USE_GPU_OVERRIDE_DICT)
 
 def _in_install_apps_in_data(fqn):
     return matches(fqn, AIT_INSTALL_APPS_IN_DATA_DICT)
@@ -255,6 +259,7 @@ ANDROID_TEST_LOCKDOWN_GENERATOR_FUNCTIONS_DICT = make_dict(ANDROID_TEST_LOCKDOWN
 ANDROID_TEST_LOCKDOWN_TARGETS_DICT = make_dict(ANDROID_TEST_LOCKDOWN_TARGETS)
 B122039567_DICT = make_dict(B122039567)
 CAN_USE_DEX2OAT_OPTIONS_DICT = make_dict(CAN_USE_DEX2OAT_OPTIONS)
+CAN_USE_GPU_OVERRIDE_DICT = make_dict(CAN_USE_GPU_OVERRIDE)
 AIT_INSTALL_APPS_IN_DATA_DICT = make_dict(INSTALL_APPS_IN_DATA)
 LOCAL_TEST_MULTI_PROTO_PKG_DICT = make_dict(LOCAL_TEST_MULTI_PROTO_PKG)
 TEST_TO_INSTRUMENT_TEST_FALLBACK_DICT = make_dict(TEST_TO_INSTRUMENT_TEST_FALLBACK)
@@ -361,6 +366,7 @@ acls = struct(
     in_android_test_lockdown_allowlist = _in_android_test_lockdown_allowlist,
     in_databinding_allowed = _in_databinding_allowed,
     in_dex2oat_opts = _in_dex2oat_opts,
+    in_gpu_override = _in_gpu_override,
     in_install_apps_in_data = _in_install_apps_in_data,
     in_local_test_multi_proto = _in_local_test_multi_proto,
     in_test_to_instrument_test_rollout = _in_test_to_instrument_test_rollout,
