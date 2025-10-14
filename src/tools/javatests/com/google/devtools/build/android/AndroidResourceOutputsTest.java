@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -65,5 +66,37 @@ public class AndroidResourceOutputsTest {
       }
     }
     assertThat(entries).containsExactly("some/prefix/data1.txt", "some/prefix/bar/data2.txt");
+  }
+
+  @Test
+  public void zipBuilder_addEntry_contentFactory() throws Exception {
+    Path output = tmp.resolve("actual.zip");
+    Path fileToAdd = tmp.resolve("foo/data1.txt");
+    Files.createDirectories(fileToAdd.getParent());
+    byte[] content = "hello world".getBytes(Charset.defaultCharset());
+    Files.write(fileToAdd, content);
+
+    try (ZipOutputStream zout = new ZipOutputStream(Files.newOutputStream(output))) {
+      AndroidResourceOutputs.ZipBuilder zipBuilder = AndroidResourceOutputs.ZipBuilder.wrap(zout);
+      zipBuilder.addEntry(
+          "a/prefix/data1.txt",
+          () -> Files.newInputStream(fileToAdd),
+          ZipEntry.STORED,
+          /* comment= */ null);
+    }
+
+    try (ZipInputStream zin = new ZipInputStream(Files.newInputStream(output))) {
+      ZipEntry entry = zin.getNextEntry();
+      assertThat(entry).isNotNull();
+      assertThat(entry.getName()).isEqualTo("a/prefix/data1.txt");
+      assertThat(entry.getMethod()).isEqualTo(ZipEntry.STORED);
+      byte[] zippedContent = zin.readAllBytes();
+      assertThat(zippedContent).isEqualTo(content);
+      CRC32 crc32 = new CRC32();
+      crc32.update(content);
+      assertThat(entry.getCrc()).isEqualTo(crc32.getValue());
+      assertThat(entry.getSize()).isEqualTo(content.length);
+      assertThat(zin.getNextEntry()).isNull();
+    }
   }
 }

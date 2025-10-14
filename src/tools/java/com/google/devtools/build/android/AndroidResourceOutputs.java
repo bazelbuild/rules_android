@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -58,6 +59,9 @@ public class AndroidResourceOutputs {
     // see http://www.info-zip.org/FAQ.html#limits
     private static final long MINIMUM_TIMESTAMP_INCREMENT = 2000L;
 
+    // The maximum size of an entry that will be read entirely into memory.
+    private static final long MAX_IN_MEMORY_ENTRY_SIZE = 512 * 1024 * 1024;  // 512 MB.
+
     /**
      * Normalized timestamp for zip entries We use the system's default timezone and locale and
      * additionally avoid using the DOS epoch to ensure Java's zip implementation does not add the
@@ -68,6 +72,13 @@ public class AndroidResourceOutputs {
      */
     private static final long DEFAULT_TIMESTAMP =
         new GregorianCalendar(1980, Calendar.FEBRUARY, 01, 0, 0).getTimeInMillis();
+
+
+    /** Supplier for input streams. */
+    protected interface InputStreamSupplier {
+      /** Returns a new input stream for reading the content. */
+      InputStream get() throws IOException;
+    }
 
     private final ZipOutputStream zip;
 
@@ -129,6 +140,80 @@ public class AndroidResourceOutputs {
       zip.putNextEntry(entry);
       zip.write(content);
       zip.closeEntry();
+    }
+
+    /**
+     * Adds a new entry to the zip archive. Use this method when the content has an unknown size and
+     * may be too large to fit in memory.
+     *
+     * @param rawName The name of the entry, which may include path separators.
+     * @param contentSupplier A supplier for creating input streams to read the content. The
+     *     supplier may be called for more than once.
+     * @param storageMethod The storage method to use for the entry.
+     * @param comment The comment to add to the entry.
+     * @throws IOException if an I/O error occurs.
+     */
+    protected void addEntry(
+        String rawName,
+        InputStreamSupplier contentSupplier,
+        int storageMethod,
+        @Nullable String comment)
+        throws IOException {
+      // Fix the path for windows.
+      String relativeName = rawName.replace('\\', '/');
+      // Make sure the zip entry is not absolute.
+      Preconditions.checkArgument(
+          !relativeName.startsWith("/"), "Cannot add absolute resources %s", relativeName);
+      ZipEntry entry = new ZipEntry(relativeName);
+      entry.setMethod(storageMethod);
+      entry.setTime(normalizeTime(relativeName));
+      if (!Strings.isNullOrEmpty(comment)) {
+        entry.setComment(comment);
+      }
+
+      long size = 0;
+      CRC32 crc32 = new CRC32();
+      try (InputStream content = contentSupplier.get()) {
+        byte[] buf = new byte[8192];
+        int read;
+        while ((read = content.read(buf)) != -1) {
+          crc32.update(buf, 0, read);
+          size += read;
+        }
+      }
+      entry.setSize(size);
+      entry.setCrc(crc32.getValue());
+      zip.putNextEntry(entry);
+
+      // InputStream doesn't support reset(), so to safely read the stream twice, we need to create
+      // the stream twice.
+      try (InputStream content = contentSupplier.get()) {
+        content.transferTo(zip);
+      }
+      zip.closeEntry();
+    }
+
+    /**
+     * Adds a new entry to the zip archive.
+     *
+     * @param rawName The name of the entry, which may include path separators.
+     * @param sourcePath The path to the source file.
+     * @param storageMethod The storage method to use for the entry.
+     * @throws IOException if an I/O error occurs.
+     */
+    protected void addEntry(String rawName, Path sourcePath, int storageMethod, String comment)
+        throws IOException {
+      // If the file is known to be small, it's more efficient to read it entirely into memory.
+      // Otherwise, do streaming processing to avoid using too much memory.
+      if (Files.isRegularFile(sourcePath) && Files.size(sourcePath) <= MAX_IN_MEMORY_ENTRY_SIZE) {
+        addEntry(rawName, Files.readAllBytes(sourcePath), storageMethod, comment);
+      } else {
+        addEntry(rawName, () -> Files.newInputStream(sourcePath), storageMethod, comment);
+      }
+    }
+
+    protected void addEntry(String rawName, Path sourcePath, int storageMethod) throws IOException {
+      addEntry(rawName, sourcePath, storageMethod, /* comment= */ null);
     }
 
     @Override
@@ -310,6 +395,11 @@ public class AndroidResourceOutputs {
       zipBuilder.addEntry(entry, content, storageMethod);
     }
 
+    protected void addEntry(Path file) throws IOException {
+      Preconditions.checkArgument(file.startsWith(root), "%s does not start with %s", file, root);
+      zipBuilder.addEntry(directoryPrefix + root.relativize(file), file, storageMethod);
+    }
+
     public void setCompress(boolean compress) {
       storageMethod = compress ? ZipEntry.DEFLATED : ZipEntry.STORED;
     }
@@ -333,8 +423,7 @@ public class AndroidResourceOutputs {
 
     protected void writeEntry(Path file) throws IOException {
       if (!Files.isDirectory(file)) {
-        byte[] content = Files.readAllBytes(file);
-        addEntry(file, content);
+        addEntry(file);
       }
     }
   }
