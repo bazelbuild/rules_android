@@ -182,19 +182,19 @@ public class ResourcesZip {
       }
       try {
         if (ids != null) {
-          zip.addEntry("ids.txt", Files.readAllBytes(ids), ZipEntry.STORED);
+          zip.addEntry("ids.txt", ids, ZipEntry.STORED);
         }
 
         if (proto != null && Files.exists(proto)) {
-          zip.addEntry("apk.pb", Files.readAllBytes(proto), ZipEntry.STORED);
+          zip.addEntry("apk.pb", proto, ZipEntry.STORED);
         }
 
         if (attributes != null && Files.exists(attributes)) {
-          zip.addEntry("tools.attributes.pb", Files.readAllBytes(attributes), ZipEntry.STORED);
+          zip.addEntry("tools.attributes.pb", attributes, ZipEntry.STORED);
         }
 
         if (packages != null && Files.exists(packages)) {
-          zip.addEntry("packages.txt", Files.readAllBytes(packages), ZipEntry.STORED);
+          zip.addEntry("packages.txt", packages, ZipEntry.STORED);
         }
 
       } catch (IOException e) {
@@ -295,7 +295,7 @@ public class ResourcesZip {
     @CanIgnoreReturnValue
     ShrunkProtoApk writeResourcesToZip(Path resourcesZip) throws IOException {
       try (final ZipBuilder zip = ZipBuilder.createFor(resourcesZip)) {
-        zip.addEntry("apk.pb", Files.readAllBytes(apk.asApkPath()), ZipEntry.STORED);
+        zip.addEntry("apk.pb", apk.asApkPath(), ZipEntry.STORED);
       }
       return this;
     }
