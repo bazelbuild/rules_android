@@ -27,6 +27,7 @@ To update a list:
 """
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/acls:aapt2_feature_flags.bzl", "AAPT2_FEATURE_FLAGS")
 load("//rules/acls:aar_import_deps_checker.bzl", "AAR_IMPORT_DEPS_CHECKER_FALLBACK", "AAR_IMPORT_DEPS_CHECKER_ROLLOUT")
 load("//rules/acls:aar_import_explicit_exports_manifest.bzl", "AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST")
 load("//rules/acls:aar_import_exports_r_java.bzl", "AAR_IMPORT_EXPORTS_R_JAVA")
@@ -223,6 +224,9 @@ def _in_d8_optimization_metadata(fqn):
 def _in_enable_exported_lint_checks(fqn):
     return matches(fqn, ENABLE_EXPORTED_LINT_CHECKS_DICT)
 
+def _get_aapt2_feature_flags(_):
+    return AAPT2_FEATURE_FLAGS
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -391,6 +395,7 @@ acls = struct(
     in_desugaring_runtime_jar_classpath_rollout = _in_desugaring_runtime_jar_classpath_rollout,
     in_resource_translation_merging_rollout = _in_resource_translation_merging_rollout,
     in_enable_exported_lint_checks = _in_enable_exported_lint_checks,
+    get_aapt2_feature_flags = _get_aapt2_feature_flags,
 )
 
 # Visible for testing

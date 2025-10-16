@@ -175,6 +175,7 @@ def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_
         deps = ctx.attr.deps,
         resource_apks = resource_apks,
         exports = ctx.attr.exports,
+        feature_flags = acls.get_aapt2_feature_flags(str(ctx.label)),
 
         # Processing behavior changing flags.
         enable_res_v3 = _flags.get(ctx).android_enable_res_v3,

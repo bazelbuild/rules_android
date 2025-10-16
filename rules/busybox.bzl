@@ -226,6 +226,7 @@ def _package(
         shrink_resource_cycles = False,
         version_name = None,
         version_code = None,
+        feature_flags = "",
         android_jar = None,
         aapt = None,
         busybox = None,
@@ -406,6 +407,8 @@ def _package(
         args.add("--versionCode", version_code)
     if java_package:
         args.add("--packageForR", java_package)
+    if feature_flags:
+        args.add("--featureFlags", feature_flags)
 
     args.add_joined(
         "--resourceApks",
@@ -569,6 +572,7 @@ def _validate_and_link(
         transitive_compiled_resources = depset(),
         java_package = None,
         manifest = None,
+        feature_flags = "",
         resource_apks = [],
         android_jar = None,
         busybox = None,
@@ -630,6 +634,8 @@ def _validate_and_link(
         join_with = ":",
     )
     input_files.extend(resource_apks)
+    if feature_flags:
+        args.add("--featureFlags", feature_flags)
 
     _set_warning_level(ctx, args)
 

@@ -495,6 +495,7 @@ def _package(
         should_compile_java_srcs = True,
         generate_minsdk_proguard_config = False,
         build_java_with_final_resources = False,
+        feature_flags = "",
         aapt = None,
         has_local_proguard_specs = False,
         android_jar = None,
@@ -764,6 +765,7 @@ def _package(
         shrink_resource_cycles = shrink_resource_cycles,
         version_name = manifest_values[_VERSION_NAME] if _VERSION_NAME in manifest_values else None,
         version_code = manifest_values[_VERSION_CODE] if _VERSION_CODE in manifest_values else None,
+        feature_flags = feature_flags,
         android_jar = android_jar,
         aapt = aapt,
         busybox = busybox,
@@ -1188,6 +1190,7 @@ def _process_starlark(
         deps = [],
         resource_apks = [],
         exports = [],
+        feature_flags = "",
         resource_files = None,
         neverlink = False,
         enable_data_binding = False,
@@ -1228,6 +1231,7 @@ def _process_starlark(
         attributes are considered direct dependencies of any rule that directly
         depends on the target with exports. The exports are not direct deps of
         the rule they belong to (TODO(b/144134042): make this so).
+      feature_flags: string. The string value for --feature-flags to pass to aapt2.
       resource_files: sequence of Files. A list of Android resource files to be
         processed.
       neverlink: boolean. Only use this library for compilation and not runtime.
@@ -1406,6 +1410,7 @@ def _process_starlark(
                 transitive_compiled_resources = transitive_compiled_resources,
                 transitive_manifests = transitive_manifests,
                 transitive_r_txts = transitive_r_txts,
+                feature_flags = feature_flags,
                 package_type = "LIBRARY",
                 java_package = java_package,
                 android_jar = android_jar,
@@ -1582,6 +1587,7 @@ def _process_starlark(
             ),
             java_package = java_package,
             manifest = processed_manifest,
+            feature_flags = feature_flags,
             android_jar = android_jar,
             aapt = aapt,
             busybox = busybox,
@@ -1795,6 +1801,7 @@ def _process(
         deps = [],
         resource_apks = [],
         exports = [],
+        feature_flags = "",
         android_jar = None,
         android_kit = None,
         aapt = None,
@@ -1821,6 +1828,7 @@ def _process(
         deps = deps,
         resource_apks = resource_apks,
         exports = exports,
+        feature_flags = feature_flags,
         resource_files = resource_files,
         enable_data_binding = enable_data_binding,
         fix_resource_transitivity = fix_resource_transitivity,
