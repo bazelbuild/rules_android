@@ -26,7 +26,7 @@ set -x
 cd "$ANDROID_HOME"
 
 # Use "yes" to accept sdk licenses.
-yes | cmdline-tools/latest/bin/sdkmanager --install "build-tools;30.0.3" "extras;android;m2repository" &>/dev/null
+yes | cmdline-tools/latest/bin/sdkmanager --install "build-tools;35.0.0" "extras;android;m2repository" &>/dev/null
 yes | cmdline-tools/latest/bin/sdkmanager --licenses &>/dev/null
 chmod -R o=rx "$ANDROID_HOME"
 
