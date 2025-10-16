@@ -178,6 +178,7 @@ public final class ValidateAndLinkResourcesAction {
           .resourceApks(resourceApks)
           .buildVersion(aapt2Options.buildToolsVersion)
           .outputAsProto(aapt2Options.resourceTableAsProto)
+          .featureFlags(aapt2Options.featureFlags)
           .linkStatically(resources)
           .copyLibraryTo(options.staticLibraryOut)
           .copySourceJarTo(options.sourceJarOut)

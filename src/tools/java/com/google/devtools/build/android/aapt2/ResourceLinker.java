@@ -157,6 +157,7 @@ public class ResourceLinker {
   private boolean conditionalKeepRules = false;
   private boolean includeProguardLocationReferences = false;
   private List<StaticLibrary> resourceApks = ImmutableList.of();
+  private String featureFlags = "";
 
   private ResourceLinker(
       Path aapt2, ListeningExecutorService executorService, Path workingDirectory) {
@@ -251,6 +252,12 @@ public class ResourceLinker {
     return this;
   }
 
+  @CanIgnoreReturnValue
+  public ResourceLinker featureFlags(String featureFlags) {
+    this.featureFlags = featureFlags;
+    return this;
+  }
+
   /**
    * Statically links the {@link CompiledResources} with the dependencies to produce a {@link
    * StaticLibrary}.
@@ -278,6 +285,7 @@ public class ResourceLinker {
               .add("--manifest", compiled.getManifest())
               .add("--no-static-lib-packages")
               .add("--custom-package", customPackage)
+              .add("--feature-flags", featureFlags)
               .whenVersionIsAtLeast(new Revision(23))
               .thenAdd("--no-version-vectors")
               .addParameterableRepeated(
@@ -308,6 +316,7 @@ public class ResourceLinker {
                 .thenAdd("--no-version-vectors")
                 .when(outputAsProto)
                 .thenAdd("--proto-format")
+                .add("--feature-flags", featureFlags)
                 // only link against jars
                 .addRepeated("-I", pathsToLinkAgainst.stream().filter(IS_JAR).collect(toList()))
                 .addRepeated("-I", resourceApkPathsToLinkAgainst)
@@ -480,6 +489,7 @@ public class ResourceLinker {
             .when(conditionalKeepRules)
             .thenAdd("--proguard-conditional-keep-rules")
             .add("-o", linked)
+            .add("--feature-flags", featureFlags)
             .execute(String.format("Linking %s", compiled.getManifest())));
     profiler.recordEndOf("fulllink");
     return ProtoApk.readFrom(optimize(compiled, linked));

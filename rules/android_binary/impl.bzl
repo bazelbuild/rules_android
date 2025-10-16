@@ -124,6 +124,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,
         host_javabase = ctx.attr._host_javabase,
         use_r_package = ctx.attr.use_r_package,
+        feature_flags = acls.get_aapt2_feature_flags(str(ctx.label)),
     )
     return ProviderInfo(
         name = "packaged_resources_ctx",

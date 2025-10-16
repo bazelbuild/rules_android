@@ -405,6 +405,7 @@ public class Aapt2ResourcePackagingAction {
               .includeGeneratedLocales(aaptConfigOptions.generatePseudoLocale)
               .includeOnlyConfigs(aaptConfigOptions.resourceConfigs)
               .includeProguardLocationReferences(options.includeProguardLocationReferences)
+              .featureFlags(aaptConfigOptions.featureFlags)
               .link(compiled);
       profiler.recordEndOf("link").startTask("validate");
 

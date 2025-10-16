@@ -117,4 +117,9 @@ public class Aapt2ConfigOptions {
       arity = 1,
       description = "Indicates whether databinding generated files should depend on AndroidX.")
   public boolean useDataBindingAndroidX;
+
+  @Parameter(
+      names = "--featureFlags",
+      description = "Optional --feature-flags to pass to certain aapt2 commands.")
+  public String featureFlags = "";
 }
