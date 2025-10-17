@@ -100,10 +100,12 @@ resource_rules_bzlmod: &resource_rules_bzlmod
     <<: *rules_flags
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
+    ? "--//rules/flags:manifest_merge_order=legacy"
   test_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
+    ? "--//rules/flags:manifest_merge_order=legacy"
   <<: *resource_rules
 
 tasks:
@@ -115,20 +117,21 @@ tasks:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules
-  # TODO(#397): Resource tests need some more debugging.
-  ## resource_rules:
-  ##   platform: ${{ platform }}
+  # TODO(#397): Resource tests on WORKSPACE need some more debugging.
+  ## resource_rules_ubuntu2004:
+  ##   name: "Resource rules on Linux with Bazel {bazel} and bzlmod disabled"
+  ##   platform: ubuntu2004
   ##   bazel: ${{ bazel }}
   ##   <<: *resource_rules
   tools_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
-  # TODO(#397): Resource tests need some more debugging.
-  ## resource_rules_bzlmod:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules_bzlmod
+  resource_rules_ubuntu2004_bzlmod:
+    name: "Resource rules with Bazel {bazel} and bzlmod enabled"
+    platform: ubuntu2004
+    bazel: ${{ bazel }}
+    <<: *resource_rules_bzlmod
   rules_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
