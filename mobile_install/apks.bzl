@@ -206,7 +206,9 @@ def _zipalign_sign(ctx, unsigned_apk, signed_apk, debug_signing_keys, debug_sign
                       " --deterministic-dsa-signing true" +
                       " --provider-class org.bouncycastle.jce.provider.BouncyCastleProvider")
 
-    # zipalign -p 4 input.apk output.apk will align the apk in a 4k boundary.
+    # note zipalign usage:
+    # https://cs.android.com/android/platform/superproject/main/+/main:build/make/tools/zipalign/ZipAlignMain.cpp
+
     cmd = """
 zipalign=$1
 unsigned_apk=$2
@@ -216,7 +218,7 @@ signing_params=$5
 signed_apk=$6
 tmp_dir=$(mktemp -d)
 tmp_apk="${tmp_dir}/zipaligned.apk"
-${zipalign} -p 4 ${unsigned_apk} ${tmp_apk}
+${zipalign} -P 16 4 ${unsigned_apk} ${tmp_apk}
 ${jvm} -jar ${apk_signer} sign ${signing_params} --out ${signed_apk} ${tmp_apk}
 """
     ctx.actions.run_shell(

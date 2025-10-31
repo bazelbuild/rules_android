@@ -298,7 +298,10 @@ def _zipalign_apk(
         toolchain_type = None):
     """ Zipaligns an unsigned apk."""
     args = ctx.actions.args()
-    args.add("-p", "4")
+
+    # note usage: https://cs.android.com/android/platform/superproject/main/+/main:build/make/tools/zipalign/ZipAlignMain.cpp
+    args.add("-P", "16")
+    args.add("4")
     args.add(in_apk)
     args.add(out_apk)
 
