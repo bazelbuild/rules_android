@@ -76,7 +76,7 @@ def rules_android_workspace():
             "androidx.test:core:1.6.0-alpha01",
             "androidx.test.ext:junit:1.2.0-alpha01",
             "com.android.tools.apkdeployer:apkdeployer:8.11.0-alpha10",
-            "com.android.tools.build:bundletool:1.15.5",
+            "com.android.tools.build:bundletool:1.18.2",
             "com.android.tools:desugar_jdk_libs_minimal:2.1.5",
             "com.android.tools:desugar_jdk_libs_configuration_minimal:2.1.5",
             "com.android.tools:desugar_jdk_libs_nio:2.1.5",
