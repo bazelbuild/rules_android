@@ -39,7 +39,7 @@ _DIRS_TO_LINK = [
     _SYSTEM_IMAGES_DIR,
 ] + _LOCAL_MAVEN_REPOS
 
-_MIN_BUILD_TOOLS_VERSION = parse_android_revision("30.0.0")
+_MIN_BUILD_TOOLS_VERSION = parse_android_revision("35.0.0")
 
 def _read_api_levels(repo_ctx, android_sdk_path):
     platforms_dir = "%s/%s" % (android_sdk_path, _PLATFORMS_DIR)
