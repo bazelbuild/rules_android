@@ -52,7 +52,7 @@ _ATTRS = dict(
     adb = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "@androidsdk//:platform-tools/adb",
+        default = "@androidsdk//:adb",
         executable = True,
     ),
     add_g3itr_xslt = attr.label(

@@ -256,6 +256,22 @@ ANDROID_BINARY_ATTRS = _add(
         incremental_dexing = _tristate.create(
             default = _tristate.auto,
         ),
+        sdk_path = attr.label(
+            allow_files = True,
+            cfg = "exec",
+        ),
+        files = attr.label(
+            allow_files = True,
+            cfg = "exec",
+        ),
+        core_for_system_modules_jar = attr.label(
+            allow_single_file = [".jar"],
+            cfg = "exec",
+        ),
+        org_apache_http_legacy = attr.label(
+            allow_files = True,
+            cfg = "exec",
+        ),
         inline_constants = attr.bool(
             default = False,
         ),
