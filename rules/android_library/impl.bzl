@@ -13,6 +13,11 @@
 # limitations under the License.
 """Implementation."""
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load("//providers:providers.bzl", "AndroidCcLinkParamsInfo", "AndroidIdlInfo", "AndroidLibraryAarInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "BaselineProfileProvider", "DataBindingV2Info", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", _attrs = "attrs")
@@ -28,14 +33,9 @@ load(
 )
 load("//rules:proguard.bzl", _proguard = "proguard")
 load("//rules:resources.bzl", _resources = "resources")
-load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
+load("//rules:utils.bzl", "ANDROID_PIPELINE_TOOLCHAIN_TYPE", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", _flags = "flags")
-load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
-load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -585,7 +585,7 @@ def finalize(
     ])
     return providers
 
-_PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
+PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
     processors = PROCESSORS,
     finalize = finalize,
 )
@@ -600,4 +600,8 @@ def impl(ctx):
       A legacy struct provider.
     """
     java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package)
-    return processing_pipeline.run(ctx, java_package, _PROCESSING_PIPELINE)
+    pipeline = PROCESSING_PIPELINE
+    tt = ctx.toolchains[ANDROID_PIPELINE_TOOLCHAIN_TYPE]
+    if tt:
+        pipeline = tt.library
+    return processing_pipeline.run(ctx, java_package, pipeline)

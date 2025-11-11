@@ -20,6 +20,7 @@ visibility(PROJECT_VISIBILITY)
 
 ANDROID_TOOLCHAIN_TYPE = Label("//toolchains/android:toolchain_type")
 ANDROID_SDK_TOOLCHAIN_TYPE = Label("//toolchains/android_sdk:toolchain_type")
+ANDROID_PIPELINE_TOOLCHAIN_TYPE = Label("//toolchains/pipeline:toolchain_type")
 
 _CUU = "\033[A"
 _EL = "\033[K"
