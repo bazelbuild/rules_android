@@ -15,6 +15,7 @@
 Defines baseline profiles processing methods in Android Rules.
 """
 
+load("//providers:providers.bzl", "ArtProfileInfo")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -120,7 +121,7 @@ def _process_art_profile(
       profgen: FilesToRunProvider. The profgen executable for profile compilation.
       toolchain_type: Label or String. Toolchain type of the executable used in actions.
     Returns:
-      Provider info containing BaselineProfileProvider for all merged profiles.
+      ArtProfileInfo containing the generated profile, the metadata, and the combined zip file.
     """
 
     # Profgen
@@ -160,7 +161,11 @@ def _process_art_profile(
         resources = [output_profile, output_profile_meta],
         java_toolchain = _common.get_java_toolchain(ctx),
     )
-    return output_profile_zip
+    return ArtProfileInfo(
+        art_profile_zip = output_profile_zip,
+        baseline_profile = output_profile,
+        baseline_profile_metadata = output_profile_meta,
+    )
 
 def _get_profile_dir(ctx):
     return ctx.label.name + _BASELINE_PROFILE_DIR_SUFFIX

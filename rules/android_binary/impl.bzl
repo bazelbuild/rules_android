@@ -708,7 +708,7 @@ def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
 
 def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
     providers = []
-    art_profile_zip = None
+    art_profile_info = None
     if ctx.attr.generate_art_profile and not validation_ctx.use_r8:
         merged_baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
         merged_baseline_profile_rewritten = \
@@ -726,7 +726,7 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
             if merged_baseline_profile_rewritten:
                 merged_baseline_profile = merged_baseline_profile_rewritten
         if merged_baseline_profile:
-            art_profile_zip = _baseline_profiles.process_art_profile(
+            art_profile_info = _baseline_profiles.process_art_profile(
                 ctx,
                 final_classes_dex = dex_ctx.dex_info.final_classes_dex_zip,
                 merged_profile = merged_baseline_profile,
@@ -734,10 +734,12 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
                 profgen = get_android_toolchain(ctx).profgen.files_to_run,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
+            providers.append(art_profile_info)
+
     return ProviderInfo(
         name = "ap_ctx",
         value = struct(
-            art_profile_zip = art_profile_zip,
+            art_profile_zip = art_profile_info.art_profile_zip if art_profile_info else None,
             providers = providers,
         ),
     )
