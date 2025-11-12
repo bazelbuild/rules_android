@@ -22,6 +22,7 @@ load(
     "AndroidPreDexJarInfo",
     "AndroidSandboxedSdkBundleInfo",
     "ApkInfo",
+    "ArtProfileInfo",
     "ProguardMappingInfo",
     "StarlarkAndroidResourcesInfo",
 )
@@ -367,6 +368,11 @@ def _impl(ctx):
 
     if ctx.file.app_integrity_config:
         metadata["com.google.play.apps.integrity/AppIntegrityConfig.pb"] = ctx.file.app_integrity_config
+
+    if ArtProfileInfo in ctx.attr.base_module:
+        base_art_profile_info = ctx.attr.base_module[ArtProfileInfo]
+        metadata["com.android.tools.build.profiles/baseline.prof"] = base_art_profile_info.baseline_profile
+        metadata["com.android.tools.build.profiles/baseline.profm"] = base_art_profile_info.baseline_profile_metadata
 
     # Create .aab
     _bundletool.build(
