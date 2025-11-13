@@ -586,7 +586,7 @@ def _package(
 
     g3itr_manifest = manifest
 
-    if xsltproc or instrument_xslt:
+    if manifest and (xsltproc or instrument_xslt):
         g3itr_manifest = ctx.actions.declare_file(
             "_migrated/" + ctx.label.name + "add_g3itr/AndroidManifest.xml",
         )
