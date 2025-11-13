@@ -262,7 +262,7 @@ public class SplitterTest {
    */
   private void assertNoSplit(String name, int packageSize, int[] counts) {
     for (int i = 1; i < counts.length; i++) {
-      assertWithMessage(name + " shard " + i).that(counts[i]).isAtLeast(0);
+      assertWithMessage("%s shard %s", name, i).that(counts[i]).isAtLeast(0);
     }
   }
 
@@ -274,7 +274,7 @@ public class SplitterTest {
       if (counts[i + 1] <= 1) {
         continue;
       }
-      assertWithMessage(name + " shard " + i).that(counts[i]).isAtMost(packageSize);
+      assertWithMessage("%s shard %s", name, i).that(counts[i]).isAtMost(packageSize);
     }
   }
 
@@ -310,25 +310,25 @@ public class SplitterTest {
       if (i < shards && counts[i + 1] > 1) {
         if (shards <= packageCount) {
           // if there are fewer shards than packages, expect shards contain at least 1 full package
-          assertWithMessage(name + " dense shard " + i)
+          assertWithMessage("%s dense shard %s", name, i)
               .that(counts[i])
               .isIn(Range.closed(packageSize, entries));
         } else {
-          assertWithMessage(name + " sparse shard " + i)
+          assertWithMessage("%s sparse shard %s", name, i)
               .that(counts[i])
               .isIn(Range.closed(0, packageSize));
         }
         if (noneClass == 0 && counts[0] == 0) {
           // Give some slack in minimal number of entries in a shard because Splitter recomputes
           // boundaries for each shard, so our computed bounds can be off for later shards.
-          assertWithMessage(name + " shard " + i)
+          assertWithMessage("%s shard %s", name, i)
               .that(counts[i])
               .isIn(Range.closed(lowerBound - i, entries));
         }
       }
       // Give some slack in maximum number of entries in a shard because Splitter recomputes
       // boundaries for each shard, so our computed bounds can be off for later shards.
-      assertWithMessage(name + " shard " + i).that(adjusted).isAtMost(upperBound + i);
+      assertWithMessage("%s shard %s", name, i).that(adjusted).isAtMost(upperBound + i);
     }
   }
 

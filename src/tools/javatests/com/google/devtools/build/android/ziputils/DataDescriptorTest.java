@@ -49,16 +49,16 @@ public class DataDescriptorTest {
       int expSize = marker == DataDescriptor.SIGNATURE ? ZipInputStream.EXTHDR
           : ZipInputStream.EXTHDR - 4;
       int expPos = 0;
-      assertWithMessage("not based at current position[" + marker + "]")
+      assertWithMessage("not based at current position[%s]", marker)
           .that(view.get(EXTSIG))
           .isEqualTo(expMark);
-      assertWithMessage("Not slice with position 0[" + marker + "]")
+      assertWithMessage("Not slice with position 0[%s]", marker)
           .that(view.buffer.position())
           .isEqualTo(expPos);
-      assertWithMessage("Not sized with comment[" + marker + "]")
+      assertWithMessage("Not sized with comment[%s]", marker)
           .that(view.getSize())
           .isEqualTo(expSize);
-      assertWithMessage("Not limited to size[" + marker + "]")
+      assertWithMessage("Not limited to size[%s]", marker)
           .that(view.buffer.limit())
           .isEqualTo(expSize);
     }

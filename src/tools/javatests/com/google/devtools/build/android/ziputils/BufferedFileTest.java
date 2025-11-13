@@ -191,24 +191,24 @@ public class BufferedFileTest {
             msg + " - no exception",
             Exception.class,
             () -> new BufferedFile(file, off, len, maxAlloc));
-    assertWithMessage(msg + " - exception, ").that(expect).isSameInstanceAs(ex.getClass());
+    assertWithMessage("%s - exception, ", msg).that(expect).isSameInstanceAs(ex.getClass());
   }
 
   void assertException(String msg, BufferedFile instance, long off, int len, Class<?> expect) {
     Exception ex =
         assertThrows(msg + " - no exception", Exception.class, () -> instance.getBuffer(off, len));
-    assertWithMessage(msg + " - exception, ").that(expect).isSameInstanceAs(ex.getClass());
+    assertWithMessage("%s - exception, ", msg).that(expect).isSameInstanceAs(ex.getClass());
   }
 
   void assertCase(String msg, BufferedFile instance, long off, int len, int expectLimit,
       int capacityBound) throws IOException {
     ByteBuffer buf = instance.getBuffer(off, len);
-    assertWithMessage(msg + " - position, ").that(0).isEqualTo(buf.position());
-    assertWithMessage(msg + " - limit, ").that(expectLimit).isEqualTo(buf.limit());
-    assertWithMessage(msg + " - capacity, ").that(buf.capacity()).isAtLeast(expectLimit);
-    assertWithMessage(msg + " - capacity, ").that(buf.capacity()).isAtMost(capacityBound);
+    assertWithMessage("%s - position, ", msg).that(0).isEqualTo(buf.position());
+    assertWithMessage("%s - limit, ", msg).that(expectLimit).isEqualTo(buf.limit());
+    assertWithMessage("%s - capacity, ", msg).that(buf.capacity()).isAtLeast(expectLimit);
+    assertWithMessage("%s - capacity, ", msg).that(buf.capacity()).isAtMost(capacityBound);
     if (len > 0 && expectLimit > 0) {
-      assertWithMessage(msg + " - value, ").that(buf.get(0)).isEqualTo((byte) off);
+      assertWithMessage("%s - value, ", msg).that(buf.get(0)).isEqualTo((byte) off);
     }
   }
 
