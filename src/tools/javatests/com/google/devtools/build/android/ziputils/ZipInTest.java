@@ -73,7 +73,7 @@ public class ZipInTest {
     fileSystem.addFile(filename, bytes);
     ZipIn zipIn = newZipIn(filename);
     EndOfCentralDirectory result = zipIn.endOfCentralDirectory();
-    assertWithMessage(subcase + "found").that(result).isNotNull();
+    assertWithMessage("%sfound", subcase).that(result).isNotNull();
   }
 
   @Test
@@ -100,7 +100,7 @@ public class ZipInTest {
             subcase + "expected IllegalStateException",
             Exception.class,
             () -> zipIn.endOfCentralDirectory());
-    assertWithMessage(subcase + "caught exception")
+    assertWithMessage("%scaught exception", subcase)
         .that(ex.getClass())
         .isSameInstanceAs(IllegalStateException.class);
   }
@@ -130,7 +130,7 @@ public class ZipInTest {
             subcase + "expected IndexOutOfBoundsException",
             Exception.class,
             () -> zipIn.endOfCentralDirectory());
-    assertWithMessage(subcase + "caught exception")
+    assertWithMessage("%scaught exception", subcase)
         .that(ex.getClass())
         .isSameInstanceAs(IndexOutOfBoundsException.class);
   }
@@ -161,7 +161,7 @@ public class ZipInTest {
             subcase + "expected IndexOutOfBoundsException",
             Exception.class,
             () -> zipIn.endOfCentralDirectory());
-    assertWithMessage(subcase + "caught exception")
+    assertWithMessage("%scaught exception", subcase)
         .that(ex.getClass())
         .isSameInstanceAs(IndexOutOfBoundsException.class);
   }
@@ -188,7 +188,7 @@ public class ZipInTest {
             subcase + "expected IllegalArgumentException",
             Exception.class,
             () -> zipIn.endOfCentralDirectory());
-    assertWithMessage(subcase + "caught exception")
+    assertWithMessage("%scaught exception", subcase)
         .that(ex.getClass())
         .isSameInstanceAs(IllegalArgumentException.class);
   }
@@ -207,9 +207,9 @@ public class ZipInTest {
     fileSystem.addFile(filename, bytes);
     ZipIn zipIn = newZipIn(filename);
     EndOfCentralDirectory result = zipIn.endOfCentralDirectory();
-    assertWithMessage(subcase + "found").that(result).isNotNull();
-    assertWithMessage(subcase + "comment").that(result.getComment()).isEqualTo("");
-    assertWithMessage(subcase + "marker")
+    assertWithMessage("%sfound", subcase).that(result).isNotNull();
+    assertWithMessage("%scomment", subcase).that(result.getComment()).isEqualTo("");
+    assertWithMessage("%smarker", subcase)
         .that((int) result.get(ENDSIG))
         .isEqualTo(ZipInputStream.ENDSIG);
   }
@@ -225,15 +225,15 @@ public class ZipInTest {
     int offset = bytes.length - ZipInputStream.ENDHDR - commentLen;
     buffer.position(offset);
     EndOfCentralDirectory.view(buffer, comment);
-    assertWithMessage(subcase + "setup")
+    assertWithMessage("%ssetup", subcase)
         .that(new String(bytes, bytes.length - commentLen, commentLen, UTF_8))
         .isEqualTo(comment);
     fileSystem.addFile(filename, bytes);
     ZipIn zipIn = newZipIn(filename);
     EndOfCentralDirectory result = zipIn.endOfCentralDirectory();
-    assertWithMessage(subcase + "found").that(result).isNotNull();
-    assertWithMessage(subcase + "comment").that(result.getComment()).isEqualTo(comment);
-    assertWithMessage(subcase + "marker")
+    assertWithMessage("%sfound", subcase).that(result).isNotNull();
+    assertWithMessage("%scomment", subcase).that(result.getComment()).isEqualTo(comment);
+    assertWithMessage("%smarker", subcase)
         .that((int) result.get(ENDSIG))
         .isEqualTo(ZipInputStream.ENDSIG);
   }
@@ -253,9 +253,9 @@ public class ZipInTest {
     fileSystem.addFile(filename, bytes);
     ZipIn zipIn = newZipIn(filename);
     EndOfCentralDirectory result = zipIn.endOfCentralDirectory();
-    assertWithMessage(subcase + "found").that(result).isNotNull();
-    assertWithMessage(subcase + "comment").that(result.getComment()).isEqualTo("");
-    assertWithMessage(subcase + "marker")
+    assertWithMessage("%sfound", subcase).that(result).isNotNull();
+    assertWithMessage("%scomment", subcase).that(result.getComment()).isEqualTo("");
+    assertWithMessage("%smarker", subcase)
         .that((int) result.get(ENDSIG))
         .isEqualTo(ZipInputStream.ENDSIG);
   }
@@ -307,11 +307,11 @@ public class ZipInTest {
     fileSystem.addFile(filename, bytes);
     zipIn = newZipIn(filename);
     CentralDirectory result = zipIn.centralDirectory();
-    assertWithMessage(subcase + "found").that(result).isNotNull();
+    assertWithMessage("%sfound", subcase).that(result).isNotNull();
     List<DirectoryEntry> list = result.list();
-    assertWithMessage(subcase + "size").that(list.size()).isEqualTo(count);
+    assertWithMessage("%ssize", subcase).that(list.size()).isEqualTo(count);
     for (int i = 0; i < list.size(); i++) {
-      assertWithMessage(subcase + "offset check[" + i + "]")
+      assertWithMessage("%soffset check[%s]", subcase, i)
           .that(list.get(i).get(CENOFF))
           .isEqualTo(i);
     }

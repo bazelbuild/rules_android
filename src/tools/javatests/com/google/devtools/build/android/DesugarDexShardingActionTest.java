@@ -86,12 +86,8 @@ public final class DesugarDexShardingActionTest {
     DesugarDexShardingAction.main(args.toArray(new String[0]));
 
     for (Path out : outs) {
-      assertWithMessage("Output zip " + out + " does not exist")
-          .that(out.toFile().exists())
-          .isTrue();
-      assertWithMessage("Output zip " + out + " is empty")
-          .that(out.toFile().length())
-          .isGreaterThan(0);
+      assertWithMessage("Output zip %s does not exist", out).that(out.toFile().exists()).isTrue();
+      assertWithMessage("Output zip %s is empty", out).that(out.toFile().length()).isGreaterThan(0);
     }
   }
 

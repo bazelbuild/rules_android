@@ -50,13 +50,13 @@ class UnwrittenMergedAndroidDataSubject extends Subject {
 
   private void compareDataSets(
       String identifier, ParsedAndroidData subject, ParsedAndroidData expected) {
-    assertWithMessage("Overwriting " + identifier)
+    assertWithMessage("Overwriting %s", identifier)
         .that(subject.getOverwritingResources())
         .containsExactlyEntriesIn(expected.getOverwritingResources());
-    assertWithMessage("Combining " + identifier)
+    assertWithMessage("Combining %s", identifier)
         .that(subject.getCombiningResources())
         .containsExactlyEntriesIn(expected.getCombiningResources());
-    assertWithMessage("Assets " + identifier)
+    assertWithMessage("Assets %s", identifier)
         .that(subject.getAssets())
         .containsExactlyEntriesIn(expected.getAssets());
   }
