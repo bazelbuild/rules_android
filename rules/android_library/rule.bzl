@@ -13,14 +13,14 @@
 # limitations under the License.
 """android_library rule."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "AndroidCcLinkParamsInfo", "AndroidIdeInfo", "AndroidIdlInfo", "AndroidLibraryResourceClassJarProvider", "AndroidNativeLibsInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
-load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
+load("//rules:utils.bzl", "ANDROID_PIPELINE_TOOLCHAIN_TYPE", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _ATTRS = "ATTRS")
 load(":impl.bzl", _impl = "impl")
 
@@ -172,6 +172,10 @@ def make_rule(
         toolchains = [
             "//toolchains/android:toolchain_type",
             "@bazel_tools//tools/jdk:toolchain_type",
+            config_common.toolchain_type(
+                ANDROID_PIPELINE_TOOLCHAIN_TYPE,
+                mandatory = False,
+            ),
             ANDROID_SDK_TOOLCHAIN_TYPE,
         ] + additional_toolchains,
         _skylark_testable = True,
