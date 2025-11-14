@@ -247,6 +247,10 @@ ATTRS = _attrs.replace(
                 Allow for the optimizer to process resources. This is not supported in proguard.
                 """,
             ),
+            _enable_debuggable_from_manifest_values = attr.label(
+                default = "//rules/flags:enable_debuggable_from_manifest_values",
+                doc = "Enables setting 'debuggable' of the app from android_binary#manifest_values.",
+            ),
         ),
         _attrs.compilation_attributes(apply_android_transition = True),
         _attrs.DATA_CONTEXT,

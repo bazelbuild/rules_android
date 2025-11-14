@@ -731,6 +731,13 @@ def _package(
     resource_files_zip = ctx.actions.declare_file(
         "_migrated/" + ctx.label.name + "_files/resource_files.zip",
     )
+    manifest_debuggable = utils.get_bool(manifest_values["debuggable"]) if "debuggable" in manifest_values else None
+    # By default, the debug flag passed to AAPT2 should be the inverse of the OPT flag (i.e. -c opt --> debug disabled)
+    aapt2_debug_mode = compilation_mode != _compilation_mode.OPT
+    # If the --@rules_android//rules/flags:enable_debuggable_from_manifest_values flag is passed, then get
+    # the AAPT2 debug flag value from the Bazel/Blaze command line.
+    if ctx.attr._enable_debuggable_from_manifest_values[BuildSettingInfo].value and manifest_debuggable != None:
+        aapt2_debug_mode = manifest_debuggable
     _busybox.package(
         ctx,
         out_file = resource_apk,
@@ -770,7 +777,7 @@ def _package(
         aapt = aapt,
         busybox = busybox,
         host_javabase = host_javabase,
-        debug = compilation_mode != _compilation_mode.OPT,
+        debug = aapt2_debug_mode,
         should_throw_on_conflict = should_throw_on_conflict,
     )
 
@@ -1898,7 +1905,7 @@ def _shrink(
         r_txt = r_txt,
         shrunk_jar = shrunk_jar,
         proguard_mapping = proguard_mapping,
-        debug = _compilation_mode.get(ctx) != _compilation_mode.OPT,
+        manifest_debuggable = _compilation_mode.get(ctx) != _compilation_mode.OPT,
         busybox = busybox,
         host_javabase = host_javabase,
     )
@@ -1946,7 +1953,7 @@ def _convert_resources_to_apk(
         resources_zip = resources_zip,
         aapt = aapt,
         android_jar = android_jar,
-        debug = _compilation_mode.get(ctx) != _compilation_mode.OPT,
+        manifest_debuggable = _compilation_mode.get(ctx) != _compilation_mode.OPT,
         busybox = busybox,
         host_javabase = host_javabase,
     )
