@@ -78,6 +78,7 @@ load("//rules/acls:resource_translation_merging_rollout.bzl", "RESOURCE_TRANSLAT
 load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
 load("//rules/acls:stamp_signing.bzl", "STAMP_SIGNING_FALLBACK", "STAMP_SIGNING_ROLLOUT")
 load("//rules/acls:test_to_instrument_test_rollout.bzl", "TEST_TO_INSTRUMENT_TEST_FALLBACK", "TEST_TO_INSTRUMENT_TEST_ROLLOUT")
+load("//rules/acls:use_baseline_as_startup_profile.bzl", "USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK", "USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -227,6 +228,9 @@ def _in_enable_exported_lint_checks(fqn):
 def _get_aapt2_feature_flags(_):
     return AAPT2_FEATURE_FLAGS
 
+def _use_baseline_as_startup_profile(fqn):
+    return matches(fqn, USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT_DICT) and not matches(fqn, USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -297,6 +301,8 @@ STAMP_SIGNING_FALLBACK_DICT = make_dict(STAMP_SIGNING_FALLBACK)
 RESOURCE_TRANSLATION_MERGING_ROLLOUT_DICT = make_dict(RESOURCE_TRANSLATION_MERGING_ROLLOUT)
 RESOURCE_TRANSLATION_MERGING_FALLBACK_DICT = make_dict(RESOURCE_TRANSLATION_MERGING_FALLBACK)
 ENABLE_EXPORTED_LINT_CHECKS_DICT = make_dict(ENABLE_EXPORTED_LINT_CHECKS)
+USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT)
+USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -396,6 +402,7 @@ acls = struct(
     in_resource_translation_merging_rollout = _in_resource_translation_merging_rollout,
     in_enable_exported_lint_checks = _in_enable_exported_lint_checks,
     get_aapt2_feature_flags = _get_aapt2_feature_flags,
+    use_baseline_as_startup_profile = _use_baseline_as_startup_profile,
 )
 
 # Visible for testing

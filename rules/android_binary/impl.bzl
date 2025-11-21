@@ -45,6 +45,7 @@ load(
     "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
@@ -815,6 +816,9 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     if acls.in_baseline_profiles_optimizer_integration(str(ctx.label)) and bp_ctx.baseline_profile_output:
         startup_profile = bp_ctx.baseline_profile_output.startup_profile
         baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
+    if not startup_profile and (_flags.get(ctx).use_baseline_as_startup_profile or
+                                acls.use_baseline_as_startup_profile(str(ctx.label))):
+        startup_profile = baseline_profile
 
     enable_rewrite_resources_through_optimizer = enable_resource_shrinking and ctx.attr._rewrite_resources_through_optimizer
 
