@@ -93,3 +93,9 @@ def define_flags():
         default = True,
         description = "Use Studio Deployer to install apks",
     )
+
+    flags.DEFINE_bool(
+        name = "use_baseline_as_startup_profile",
+        default = False,
+        description = "For testing/validation only. Use baseline profiles as startup profiles in optimized builds.",
+    )

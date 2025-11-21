@@ -222,6 +222,10 @@ ATTRS = _attrs.replace(
                 allow_single_file = True,
                 cfg = android_platforms_transition,
             ),
+            _flags = attr.label(
+                default = "//rules/flags",
+                cfg = android_platforms_transition,
+            ),
             _bytecode_optimizer = attr.label(
                 default = configuration_field(
                     fragment = "java",
