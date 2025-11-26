@@ -13,11 +13,11 @@
 # limitations under the License.
 """Bazel Android testing libs."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "@bazel_skylib//lib:unittest.bzl",
     _asserts = "asserts",
 )
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     ":file.bzl",
     _file = "file",

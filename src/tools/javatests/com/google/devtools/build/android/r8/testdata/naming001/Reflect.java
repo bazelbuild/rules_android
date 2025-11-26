@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * testing in the R8 repo. The class was actually there for testing some R8 renaming, and
  * CompatDexBuilderTest just happened to piggy-bag on this class.
  */
-@SuppressWarnings({"PrivateConstructorForUtilityClass", "ClassCanBeStatic"})
+@SuppressWarnings({"PrivateConstructorForUtilityClass", "ClassCanBeStatic", "ReturnValueIgnored"})
 public class Reflect {
   void keep() throws ClassNotFoundException {
     Class.forName("naming001.Reflect2");

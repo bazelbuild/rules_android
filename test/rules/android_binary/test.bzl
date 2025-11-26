@@ -13,6 +13,8 @@
 # limitations under the License.
 """Tests for android_binary."""
 
+load("@rules_cc//cc:defs.bzl", "CcToolchainConfigInfo")
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//test/utils:lib.bzl",
@@ -50,6 +52,7 @@ def multiple_android_platforms_test_impl(ctx):
     Returns:
         The providers.
     """
+
     # This test only needs to run analysis on the android_binary
     # in target_under_test.
     env = analysistest.begin(ctx)
