@@ -426,6 +426,7 @@ public class Desugar {
               .setMinApiLevel(options.minSdkVersion)
               .setSyntheticInfoConsumer(consumer.getContextConsumer())
               .setProgramConsumer(consumer);
+      R8Utils.setEnableVerboseSyntheticNames(builder);
       bootclasspathProviders.forEach(builder::addLibraryResourceProvider);
       if (desugaredLibConfig != null) {
         builder.addDesugaredLibraryConfiguration(Files.readString(desugaredLibConfig));

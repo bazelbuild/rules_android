@@ -437,16 +437,15 @@ public class CompatDx {
 
     try {
       D8Command.Builder builder = D8Command.builder();
-      inputs.forEach(
-          input ->
-              builder.addProgramResourceProvider(ArchiveResourceProvider.fromArchive(input, true)));
-
+      for (Path input : inputs) {
+        builder.addProgramResourceProvider(ArchiveResourceProvider.fromArchive(input, true));
+      }
       builder
-          // .addProgramFiles(inputs)
           .setProgramConsumer(createConsumer(inputs, output, singleDexFile, dexArgs.keepClasses))
           .setMode(mode)
           .setDisableDesugaring(true) // DX does not desugar.
           .setMinApiLevel(dexArgs.minApiLevel);
+      R8Utils.setEnableVerboseSyntheticNames(builder);
       if (mainDexList != null) {
         builder.addMainDexListFiles(mainDexList);
       }
