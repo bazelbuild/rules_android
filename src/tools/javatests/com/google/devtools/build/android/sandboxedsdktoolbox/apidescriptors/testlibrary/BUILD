@@ -13,6 +13,6 @@ android_library(
     name = "testlibrary",
     srcs = glob(["**/*.java"]),
     deps = [
-        "@rules_android_maven//:androidx_privacysandbox_tools_tools",
+        "@maven//:androidx_privacysandbox_tools_tools",
     ],
 )

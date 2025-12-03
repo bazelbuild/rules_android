@@ -14,6 +14,6 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/info",
-        "@rules_android_maven//:info_picocli_picocli",
+        "@maven//:info_picocli_picocli",
     ],
 )

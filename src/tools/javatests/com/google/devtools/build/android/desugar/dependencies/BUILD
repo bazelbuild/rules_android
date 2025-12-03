@@ -23,8 +23,8 @@ java_test(
     deps = [
         "//src/tools/java/com/google/devtools/build/android/desugar/dependencies",
         "//third_party/bazel/src/main/protobuf:desugar_deps_java_proto",
-        "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )

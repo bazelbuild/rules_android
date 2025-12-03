@@ -35,12 +35,12 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android:android_options_utils",
         "//tools/android:autovalue",
         "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
-        "@rules_android_maven//:com_android_tools_r8",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:org_ow2_asm_asm",
-        "@rules_android_maven//:org_ow2_asm_asm_commons",
+        "@maven//:com_android_tools_r8",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_guava_guava",
+        "@maven//:org_ow2_asm_asm",
+        "@maven//:org_ow2_asm_asm_commons",
     ],
 )
 
@@ -59,7 +59,7 @@ java_library(
     ],
     deps = [
         ":utils",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_code_findbugs_jsr305",
     ],
 )
 

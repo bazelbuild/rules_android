@@ -13,7 +13,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//src/tools/java/com/google/devtools/build/android/sandboxedsdktoolbox/info",
-        "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:info_picocli_picocli",
+        "@maven//:com_google_guava_guava",
+        "@maven//:info_picocli_picocli",
     ],
 )

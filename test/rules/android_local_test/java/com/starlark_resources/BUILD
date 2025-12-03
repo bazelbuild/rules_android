@@ -25,10 +25,10 @@ android_local_test(
     test_class = "com.starlark_resources.SampleTest",
     deps = [
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_robolectric_robolectric",
     ],
 )
 
@@ -44,11 +44,11 @@ android_local_test(
     test_class = "com.starlark_resources.SampleTestWithEnvSetting",
     deps = [
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_hamcrest_hamcrest_core",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_hamcrest_hamcrest_core",
+        "@maven//:org_robolectric_robolectric",
     ],
 )
 
@@ -76,10 +76,10 @@ android_local_test(
     deps = [
         ":resource_processing",
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_robolectric_robolectric",
     ],
 )
 
@@ -96,10 +96,10 @@ android_local_test(
     deps = [
         ":resource_processing",
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_robolectric_robolectric",
     ],
 )
 
@@ -125,10 +125,10 @@ android_local_test(
     deps = [
         ":resources_with_dep_with_res",
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_robolectric_robolectric",
     ],
 )
 
@@ -153,10 +153,10 @@ android_local_test(
     deps = [
         ":resource_processing_with_neverlink",
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_robolectric_robolectric",
     ],
 )
 
@@ -169,10 +169,10 @@ android_local_test(
     test_class = "com.starlark_resources.SampleTest",
     deps = [
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_robolectric_robolectric",
     ],
 )
 
@@ -184,9 +184,9 @@ android_local_test(
     test_class = "com.starlark_resources.SampleTest",
     deps = [
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_robolectric_robolectric",
     ],
 )

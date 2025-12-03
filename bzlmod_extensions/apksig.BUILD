@@ -13,7 +13,7 @@ java_binary(
     main_class = "com.android.apksigner.ApkSignerTool",
     visibility = ["//visibility:public"],
     deps = [
-        "@rules_android_maven//:org_bouncycastle_bcprov_jdk18on",
-        "@rules_android_maven//:org_conscrypt_conscrypt_openjdk_uber",
+        "@maven//:org_bouncycastle_bcprov_jdk18on",
+        "@maven//:org_conscrypt_conscrypt_openjdk_uber",
     ],
 )
