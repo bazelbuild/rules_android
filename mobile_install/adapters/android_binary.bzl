@@ -59,6 +59,7 @@ def extract(target, ctx):
         debug_signing_keys = ctx.rule.files.debug_signing_keys,
         debug_signing_lineage_file = utils.only(ctx.rule.files.debug_signing_lineage_file, allow_empty = True),
         key_rotation_min_sdk = ctx.rule.attr.key_rotation_min_sdk,
+        keystore_signing_password = ctx.rule.attr.keystore_signing_password,
         merged_manifest = target[AndroidIdeInfo].generated_manifest,
         native_libs = target[AndroidIdeInfo].native_libs,
         package = java_package,
