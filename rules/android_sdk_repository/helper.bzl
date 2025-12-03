@@ -185,6 +185,14 @@ def create_android_sdk_rules(
                 neverlink = 1,
             )
 
+        if api_level >= 29:
+            # Android 29 is min api that compatible with Car App Library
+            java_import(
+                name = "android_car-%d" % api_level,
+                jars = ["platforms/android-%d/optional/android.car.jar" % api_level],
+                neverlink = 1,
+            )
+
         native.config_setting(
             name = "api_%d_enabled" % api_level,
             flag_values = {
@@ -245,6 +253,12 @@ def create_android_sdk_rules(
         )
 
     create_dummy_sdk_toolchain()
+
+    if default_api_level >= 29:
+        native.alias(
+            name = "android_car",
+            actual = "android_car-%d" % default_api_level,
+        )
 
     native.alias(
         name = "org_apache_http_legacy",
