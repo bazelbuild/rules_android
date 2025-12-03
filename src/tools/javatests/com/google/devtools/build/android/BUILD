@@ -26,9 +26,9 @@ java_test(
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android:android_options_utils",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -38,9 +38,9 @@ java_test(
     srcs = ["AndroidResourceOutputsTest.java"],
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -52,9 +52,9 @@ java_test(
         ":guava",
         ":test_utils",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -65,8 +65,8 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -78,9 +78,9 @@ java_test(
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
-        "@rules_android_maven//:com_google_guava_guava_testlib",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_guava_guava_testlib",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -93,9 +93,9 @@ java_test(
         ":test_utils",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -107,9 +107,9 @@ java_test(
         ":guava",
         ":test_utils",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -122,9 +122,9 @@ java_test(
         ":test_utils",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -132,7 +132,7 @@ java_library(
     name = "test_options",
     srcs = ["TestOptions.java"],
     deps = [
-        "@rules_android_maven//:com_beust_jcommander",
+        "@maven//:com_beust_jcommander",
     ],
 )
 
@@ -143,9 +143,9 @@ java_test(
     deps = [
         ":test_options",
         "//src/tools/java/com/google/devtools/build/android:android_options_utils",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -158,9 +158,9 @@ java_test(
         ":test_utils",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android/resources",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -171,9 +171,9 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -187,9 +187,9 @@ java_test(
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android/resources",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -199,9 +199,9 @@ java_test(
     srcs = ["DataSourceTest.java"],
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -213,9 +213,9 @@ java_test(
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android/resources",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -226,9 +226,9 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -239,8 +239,8 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -251,9 +251,9 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -268,9 +268,9 @@ java_test(
         ":guava",
         ":test_utils",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -284,9 +284,9 @@ java_test(
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android/resources",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -299,9 +299,9 @@ java_test(
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android/resources",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -312,9 +312,9 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -325,9 +325,9 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -338,9 +338,9 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_jimfs_jimfs",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_jimfs_jimfs",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -358,8 +358,8 @@ java_test(
     deps = [
         ":guava",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -367,7 +367,7 @@ java_library(
     name = "error_prone_annotations",
     testonly = 1,
     exports = [
-        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
     ],
 )
 
@@ -376,8 +376,8 @@ java_library(
     testonly = 1,
     exports = [
         ":error_prone_annotations",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_guava_guava",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -393,9 +393,9 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android/resources",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
-        "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:com_google_truth_truth",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_truth_truth",
     ],
 )

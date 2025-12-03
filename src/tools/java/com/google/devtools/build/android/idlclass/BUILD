@@ -24,9 +24,9 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_options_utils",
         "//third_party/bazel/src/main/protobuf:java_compilation_java_proto",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_guava_guava",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_guava_guava",
     ],
 )
 

@@ -15,7 +15,7 @@ bazel_dep(name = "stardoc", version = "0.7.2", dev_dependency = True)
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
-bazel_dep(name = "protobuf", version = "31.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "33.1", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
 bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
@@ -79,8 +79,8 @@ maven.install(
         # These technically aren't needed, but the protobuf version pulled
         # in by these older deps has compatibility issues with the newer
         # protobuf runtimes.
-        "com.google.protobuf:protobuf-java:4.31.1",
-        "com.google.protobuf:protobuf-java-util:4.31.1",
+        "com.google.protobuf:protobuf-java:4.33.1",
+        "com.google.protobuf:protobuf-java-util:4.33.1",
     ],
     repositories = [
         "https://maven.google.com",
@@ -90,7 +90,7 @@ maven.install(
 )
 use_repo(maven, "android_ide_common_30_1_3")
 maven.install(
-    name = "rules_android_maven",
+    name = "maven",
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = [
         "androidx.privacysandbox.tools:tools:1.0.0-alpha06",
@@ -117,8 +117,8 @@ maven.install(
         "jakarta.inject:jakarta.inject-api:2.0.1",
         "junit:junit:4.13.2",
         "com.beust:jcommander:1.82",
-        "com.google.protobuf:protobuf-java:4.31.1",
-        "com.google.protobuf:protobuf-java-util:4.31.1",
+        "com.google.protobuf:protobuf-java:4.33.1",
+        "com.google.protobuf:protobuf-java-util:4.33.1",
         "com.google.code.findbugs:jsr305:3.0.2",
         "androidx.databinding:databinding-compiler:8.7.0",
         "org.ow2.asm:asm:9.6",
@@ -156,14 +156,14 @@ maven.install(
         "https://repo1.maven.org/maven2",
     ],
     # To generate, run:
-    # REPIN=1 bazelisk run --enable_bzlmod @rules_android_maven//:pin
-    # lock_file = "//:rules_android_maven_install.json",
+    # REPIN=1 bazelisk run --enable_bzlmod @maven//:pin
+    # lock_file = "//:maven_install.json",
     use_starlark_android_rules = True,
 )
 
 use_repo(
     maven,
-    "rules_android_maven",
+    "maven",
 )
 
 remote_android_extensions = use_extension("//bzlmod_extensions:android_extensions.bzl", "remote_android_tools_extensions")

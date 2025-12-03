@@ -32,8 +32,8 @@ android_local_test(
     test_class = "com.google.android.emptytest.EmptyTest",
     deps = [
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -44,8 +44,8 @@ android_local_test(
     test_class = "com.google.android.emptytest.EmptyTest",
     deps = [
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
     ],
 )
 

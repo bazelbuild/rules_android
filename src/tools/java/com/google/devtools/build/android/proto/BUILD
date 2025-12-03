@@ -23,7 +23,7 @@ java_proto_library(
 [
     genrule(
         name = proto + "_proto_file",
-        srcs = ["@rules_android_maven//:com_android_tools_build_aapt2_proto"],
+        srcs = ["@maven//:com_android_tools_build_aapt2_proto"],
         outs = [proto + ".proto"],
         cmd = "unzip -q $< " + proto + ".proto && " +
               "sed 's/import \\\"/import \\\"src\\/tools\\/java\\/com\\/google\\/devtools\\/build\\/android\\/proto\\//' " + proto + ".proto > $@",

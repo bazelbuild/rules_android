@@ -16,13 +16,13 @@ java_library(
     deps = [
         ":desugar_class_attr_java_proto",
         "//tools/android:autovalue",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
-        "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:com_google_protobuf_protobuf_java",
-        "@rules_android_maven//:org_ow2_asm_asm",
-        "@rules_android_maven//:org_ow2_asm_asm_commons",
-        "@rules_android_maven//:org_ow2_asm_asm_tree",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_protobuf_protobuf_java",
+        "@maven//:org_ow2_asm_asm",
+        "@maven//:org_ow2_asm_asm_commons",
+        "@maven//:org_ow2_asm_asm_tree",
     ],
 )
 
