@@ -13,10 +13,29 @@
 // limitations under the License.
 package com.google.devtools.build.android.r8;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 /** Utilities related to the R8 code base */
 public class R8Utils {
   public static final String INTERFACE_COMPANION_SUFFIX = "$-CC";
   public static final String DESUGAR_INTERFACE_COMPANION_SUFFIX = "$$CC";
 
   private R8Utils() {}
+
+  public static void setEnableVerboseSyntheticNames(Object commandBuilder) {
+    try {
+      Class<?> commandBuilderClass = commandBuilder.getClass();
+      Method setEnableVerboseSyntheticNamesMethod =
+          commandBuilderClass.getDeclaredMethod(
+              "setEnableVerboseSyntheticNames", boolean.class);
+      setEnableVerboseSyntheticNamesMethod.invoke(commandBuilder, true);
+    } catch (IllegalAccessException e) {
+      // Intentionally empty.
+    } catch (InvocationTargetException e) {
+      // Intentionally empty.
+    } catch (NoSuchMethodException e) {
+      // Intentionally empty.
+    }
+  }
 }

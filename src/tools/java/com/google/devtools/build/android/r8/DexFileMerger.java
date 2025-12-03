@@ -101,6 +101,7 @@ public class DexFileMerger {
 
   /** Option converter for {@link MultidexStrategy}. */
   public static class MultidexStrategyConverter implements IStringConverter<MultidexStrategy> {
+    @Override
     public MultidexStrategy convert(String value) {
       return MultidexStrategy.valueOf(value.toUpperCase());
     }
@@ -324,6 +325,9 @@ public class DexFileMerger {
 
     // The merge step assumes that no further desugaring is needed.
     builder = builder.setDisableDesugaring(true);
+
+    // Enable verbose synthetic names that use the `$$ExternalSynthetic` marker.
+    R8Utils.setEnableVerboseSyntheticNames(builder);
 
     // D8 does not allow duplicate classes. Resolve conflicts based on input order.
     Map<String, Integer> inputOrdering =

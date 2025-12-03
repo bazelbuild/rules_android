@@ -362,6 +362,7 @@ public class CompatDexBuilder {
         .setMinApiLevel(minSdkVersion)
         .setDisableDesugaring(true)
         .setIntermediate(true);
+    R8Utils.setEnableVerboseSyntheticNames(builder);
     byte[] cachedDexBytes = null;
     byte[] classFileBytes = null;
     try (InputStream stream = zipFile.getInputStream(classEntry)) {
