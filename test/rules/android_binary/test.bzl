@@ -52,7 +52,6 @@ def multiple_android_platforms_test_impl(ctx):
     Returns:
         The providers.
     """
-
     # This test only needs to run analysis on the android_binary
     # in target_under_test.
     env = analysistest.begin(ctx)

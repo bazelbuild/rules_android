@@ -22,11 +22,12 @@ go_binary(
 
 go_library(
     name = "deployment",
+    importpath = "src/tools/mi/deployment/deployment",
+
     srcs = [
         "deploy.go",
         "deploy_utils.go",
     ],
-    importpath = "src/tools/mi/deployment/deployment",
     visibility = ["//src/tools/mi:__subpackages__"],
     deps = [
         "//src/common/golang:pprint",

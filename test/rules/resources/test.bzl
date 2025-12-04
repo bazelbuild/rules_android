@@ -13,14 +13,6 @@
 # limitations under the License.
 """Test rule for resource processing."""
 
-load(
-    "@bazel_skylib//lib:unittest.bzl",
-    "analysistest",
-    "asserts",
-    "unittest",
-)
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
-load("@rules_java//java/common:java_common.bzl", "java_common")
 load("//providers:providers.bzl", "StarlarkAndroidResourcesInfo")
 load("//rules:attrs.bzl", "ANDROID_BINARY_ATTRS")
 load("//rules:common.bzl", _common = "common")
@@ -39,6 +31,14 @@ load(
     "//test/utils:asserts.bzl",
     _asserts = "asserts",
 )
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load(
+    "@bazel_skylib//lib:unittest.bzl",
+    "analysistest",
+    "asserts",
+    "unittest",
+)
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 visibility(PROJECT_VISIBILITY)
 
