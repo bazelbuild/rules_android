@@ -199,6 +199,7 @@ def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_
         ),
         xsltproc = get_android_toolchain(ctx).xsltproc_tool.files_to_run,
         zip_tool = get_android_toolchain(ctx).zip_tool.files_to_run,
+        skip_library_resources_apk = _flags.get(ctx).skip_library_resources_apk,
     )
 
     # TODO(b/139305816): Remove the ability for android_library to be added in
