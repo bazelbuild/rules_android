@@ -1203,7 +1203,8 @@ def _process_starlark(
         host_javabase = None,
         instrument_xslt = None,
         xsltproc = None,
-        zip_tool = None):
+        zip_tool = None,
+        skip_library_resources_apk = False):
     """Processes Android Resources.
 
     Args:
@@ -1572,44 +1573,54 @@ def _process_starlark(
         )
         resources_ctx[_MERGED_MANIFEST] = processed_manifest
 
-        apk = ctx.actions.declare_file(ctx.label.name + "_files/library.ap_")
         r_java = ctx.actions.declare_file(ctx.label.name + ".srcjar")
         r_txt = ctx.actions.declare_file(ctx.label.name + "_symbols/R.txt")
-        _busybox.validate_and_link(
-            ctx,
-            out_r_src_jar = r_java,
-            out_r_txt = r_txt,
-            out_file = apk,
-            compiled_resources = compiled_resources,
-            transitive_compiled_resources = depset(
-                transitive = transitive_compiled_resources,
-                order = "preorder",
-            ),
-            java_package = java_package,
-            manifest = processed_manifest,
-            feature_flags = feature_flags,
-            android_jar = android_jar,
-            aapt = aapt,
-            busybox = busybox,
-            host_javabase = host_javabase,
-            resource_apks = resource_apks,
-        )
-        resources_ctx[_RESOURCES_APK] = apk
 
-        java_info = JavaInfo(
-            output_jar = out_class_jar,
-            compile_jar = out_class_jar,
-            source_jar = r_java,
-        )
+        if skip_library_resources_apk:
+            ctx.actions.write(output = r_java, content = "")
+            ctx.actions.write(output = r_txt, content = "")
 
-        packages_to_r_txts_depset.setdefault(java_package, []).append(depset([out_aapt2_r_txt]))
+            java_info = JavaInfo(
+                output_jar = out_class_jar,
+                compile_jar = out_class_jar,
+                source_jar = r_java,
+            )
+        else:
+            apk = ctx.actions.declare_file(ctx.label.name + "_files/library.ap_")
+            _busybox.validate_and_link(
+                ctx,
+                out_r_src_jar = r_java,
+                out_r_txt = r_txt,
+                out_file = apk,
+                compiled_resources = compiled_resources,
+                transitive_compiled_resources = depset(
+                    transitive = transitive_compiled_resources,
+                    order = "preorder",
+                ),
+                java_package = java_package,
+                manifest = processed_manifest,
+                feature_flags = feature_flags,
+                android_jar = android_jar,
+                aapt = aapt,
+                busybox = busybox,
+                host_javabase = host_javabase,
+                resource_apks = resource_apks,
+            )
+            resources_ctx[_RESOURCES_APK] = apk
+
+            java_info = JavaInfo(
+                output_jar = out_class_jar,
+                compile_jar = out_class_jar,
+                source_jar = r_java,
+            )
+
+            # In a normal build, the outputs of _busybox.validate_and_link are unused. However we need
+            # this action to run to support resource visibility checks.
+            resources_ctx[_VALIDATION_RESULTS].append(r_txt)
 
         resources_ctx[_R_JAVA] = java_info
+        packages_to_r_txts_depset.setdefault(java_package, []).append(depset([out_aapt2_r_txt]))
         resources_ctx[_DATA_BINDING_LAYOUT_INFO] = data_binding_layout_info
-
-        # In a normal build, the outputs of _busybox.validate_and_link are unused. However we need
-        # this action to run to support resource visibility checks.
-        resources_ctx[_VALIDATION_RESULTS].append(r_txt)
 
         # Needed for AAR generation. The Starlark resource processing pipeline uses the aapt2_r_txt file,
         # which is why we can't use the StarlarkAndroidResourcesInfo provider when generating the aar.
@@ -1814,7 +1825,8 @@ def _process(
         res_v3_dummy_manifest = None,
         res_v3_dummy_r_txt = None,
         fix_resource_transitivity = False,
-        zip_tool = None):
+        zip_tool = None,
+        skip_library_resources_apk = False):
     out_ctx = _process_starlark(
         ctx,
         java_package = java_package,
@@ -1842,6 +1854,7 @@ def _process(
         java_toolchain = java_toolchain,
         host_javabase = host_javabase,
         zip_tool = zip_tool,
+        skip_library_resources_apk = skip_library_resources_apk,
     )
 
     if _VALIDATION_OUTPUTS not in out_ctx:
