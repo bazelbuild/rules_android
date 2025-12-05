@@ -23,11 +23,19 @@ def rules_android_prereqs(dev_mode = False):
 
     maybe(
         http_archive,
+        name = "bazel_features",
+        sha256 = "a660027f5a87f13224ab54b8dc6e191693c554f2692fcca46e8e29ee7dabc43b",
+        strip_prefix = "bazel_features-1.30.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.30.0/bazel_features-v1.30.0.tar.gz",
+    )
+
+    maybe(
+        http_archive,
         name = "rules_java",
         urls = [
-            "https://github.com/bazelbuild/rules_java/releases/download/9.0.3/rules_java-9.0.3.tar.gz",
+            "https://github.com/bazelbuild/rules_java/releases/download/9.2.0/rules_java-9.2.0.tar.gz",
         ],
-        sha256 = "865b3d334bd0f769587737447410d8042d6a95134cc45be5380805fdbacd7152",
+        sha256 = "2f822fbc33b99de5bbeaceada4be2bd3bb5c8da80e2f7462a9d300c8fc312f11",
     )
 
     maybe(
@@ -45,8 +53,8 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://mirror.bazel.build/bazel_android_tools/android_tools_pkg-0.31.0.tar",
     )
 
-    RULES_JVM_EXTERNAL_TAG = "6.7"
-    RULES_JVM_EXTERNAL_SHA = "a1e351607f04fed296ba33c4977d3fe2a615ed50df7896676b67aac993c53c18"
+    RULES_JVM_EXTERNAL_TAG = "6.9"
+    RULES_JVM_EXTERNAL_SHA = "3c41eae4226a7dfdce7b213bc541557b8475c92da71e2233ec7c306630243a65"
     maybe(
         http_archive,
         name = "rules_jvm_external",
@@ -55,8 +63,8 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_TAG),
     )
 
-    PROTOBUF_VERSION = "33.0"
-    PROTOBUF_HASH = "cbc536064706b628dcfe507bef386ef3e2214d563657612296f1781aa155ee07"
+    PROTOBUF_VERSION = "33.1"
+    PROTOBUF_HASH = "fda132cb0c86400381c0af1fe98bd0f775cb566cb247cdcc105e344e00acc30e"
     maybe(
         http_archive,
         name = "com_google_protobuf",
