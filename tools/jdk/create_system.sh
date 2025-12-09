@@ -70,6 +70,15 @@ rm -rf "${FLAGS_output}"
   --patch-module=java.base="${DIR}/classes" \
   "${FLAGS_module_info}"
 
+RELEASE="${FLAGS_java_home}/release"
+IMPLEMENTOR="$(sed -n -E 's/IMPLEMENTOR="(.*)"/\1/p' "${RELEASE}")"
+JAVA_RUNTIME_VERSION="$(sed -n -E 's/JAVA_RUNTIME_VERSION="(.*)"/\1/p' "${RELEASE}")"
+JAVA_VERSION_DATE="$(sed -n -E 's/JAVA_VERSION_DATE="(.*)"/\1/p' "${RELEASE}")"
+
+RESOURCE_DIR="${DIR}/classes/jdk/internal/misc/resources"
+mkdir -p "${RESOURCE_DIR}"
+echo "${IMPLEMENTOR}-${JAVA_RUNTIME_VERSION}-${JAVA_VERSION_DATE}" > "${RESOURCE_DIR}/release.txt"
+
 "${FLAGS_java_home}/bin/jmod" \
   create \
   --module-version "$("${FLAGS_java_home}/bin/jlink" --version)" \
