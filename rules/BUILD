@@ -56,6 +56,7 @@ bzl_library(
         "//rules/flags:bzl",
         "@bazel_skylib//lib:paths",
         "@rules_java//java/common",
+        "@rules_java//java/private:android_support",
     ],
 )
 
@@ -124,6 +125,16 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":visibility_bzl",
+    ],
+)
+
+bzl_library(
+    name = "utils_bzl",
+    srcs = ["utils.bzl"],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        ":visibility_bzl",
+        "//providers:providers_bzl",
     ],
 )
 
