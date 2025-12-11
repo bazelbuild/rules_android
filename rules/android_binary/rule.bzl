@@ -31,7 +31,7 @@ _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_
 
 _DEFAULT_PROVIDES = [ApkInfo, JavaInfo]
 
-def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs):
+def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs, generate_art_profile):
     label = "//" + _package_name + ":" + name
 
     outputs = dict(
@@ -50,6 +50,10 @@ def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_
         outputs["proguard_config"] = "%{name}_proguard.config"
         if proguard_generate_mapping:
             outputs["proguard_map"] = "%{name}_proguard.map"
+
+    if generate_art_profile:
+        outputs["primary_profile"] = "%{name}_primary.prof"
+
     return outputs
 
 def make_rule(

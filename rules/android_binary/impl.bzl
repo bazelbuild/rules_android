@@ -152,7 +152,7 @@ def _validate_manifest(ctx, packaged_resources_ctx, manifest_ctx, **unused_ctxs)
         ),
     )
 
-def _process_native_libs(ctx, **_unusued_ctxs):
+def _process_native_libs(ctx, **_unused_ctxs):
     providers = []
     native_libs_info = _process_native_deps(
         ctx,
@@ -710,6 +710,7 @@ def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
 def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
     providers = []
     art_profile_info = None
+
     if ctx.attr.generate_art_profile and not validation_ctx.use_r8:
         merged_baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
         merged_baseline_profile_rewritten = \
@@ -731,11 +732,22 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
                 ctx,
                 final_classes_dex = dex_ctx.dex_info.final_classes_dex_zip,
                 merged_profile = merged_baseline_profile,
+                output_primary_profile = ctx.outputs.primary_profile,
                 proguard_output_map = proguard_output_map,
                 profgen = get_android_toolchain(ctx).profgen.files_to_run,
                 toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
             providers.append(art_profile_info)
+
+    if ctx.attr.generate_art_profile and not art_profile_info:
+        # There are a lot of ways baseline profiles could fail, and thus art profile generation also
+        # fails. For example, if the baseline profile is not included as a dependency, if the
+        # baseline profile is empty, or if you're attempting to use R8.
+        ctx.actions.run_shell(
+            mnemonic = "FailedGeneratingArtProfile",
+            outputs = [ctx.outputs.primary_profile],
+            command = "echo \"Unable to generate art profile, ensure baseline profiles are included as dependencies or disable generate_art_profile\"; exit 1;",
+        )
 
     return ProviderInfo(
         name = "ap_ctx",
