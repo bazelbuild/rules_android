@@ -96,15 +96,20 @@ rules_bzlmod: &rules_bzlmod
   <<: *rules
 resource_rules_bzlmod: &resource_rules_bzlmod
   name: "Resource Rules Bzlmod"
+  build_targets:
+    - "//test/rules/resources/..."
+  test_targets:
+    - "//test/rules/resources/..."
   build_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
+    ? "--//rules/flags:manifest_merge_order=legacy"
   test_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
-  <<: *resource_rules
+    ? "--//rules/flags:manifest_merge_order=legacy"
 
 tasks:
   tools:
@@ -115,20 +120,18 @@ tasks:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules
-  # TODO(#397): Resource tests need some more debugging.
-  ## resource_rules:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules
+  resource_rules:
+    platform: ${{ platform }}
+    bazel: ${{ bazel }}
+    <<: *resource_rules
   tools_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
-  # TODO(#397): Resource tests need some more debugging.
-  ## resource_rules_bzlmod:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules_bzlmod
+  resource_rules_bzlmod:
+    platform: ${{ platform }}
+    bazel: ${{ bazel }}
+    <<: *resource_rules_bzlmod
   rules_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
