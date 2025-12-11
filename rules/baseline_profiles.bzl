@@ -104,6 +104,7 @@ def _process_art_profile(
         ctx,
         final_classes_dex,
         merged_profile,
+        output_primary_profile,
         proguard_output_map = None,
         profgen = None,
         toolchain_type = None):
@@ -124,27 +125,17 @@ def _process_art_profile(
       ArtProfileInfo containing the generated profile, the metadata, and the combined zip file.
     """
 
-    # Profgen
     output_profile = _get_profile_artifact(ctx, "baseline.prof")
     output_profile_meta = _get_profile_artifact(ctx, "baseline.profm")
-    profgen_inputs = [final_classes_dex, merged_profile]
-    profgen_args = ctx.actions.args()
-    profgen_args.add("bin", merged_profile)
-    profgen_args.add("--apk", final_classes_dex)
-    profgen_args.add("--output", output_profile)
-    profgen_args.add("--output-meta", output_profile_meta)
-    if proguard_output_map:
-        profgen_args.add("--map", proguard_output_map)
-        profgen_inputs.append(proguard_output_map)
-    ctx.actions.run(
-        mnemonic = "GenerateARTProfile",
-        executable = profgen,
-        progress_message = "Generating Android P-R ART profile for %{label} APK",
-        arguments = [profgen_args],
-        inputs = profgen_inputs,
-        outputs = [output_profile, output_profile_meta],
-        use_default_shell_env = True,
-        toolchain = toolchain_type,
+    _generate_profile(
+        ctx,
+        output_profile,
+        output_profile_meta,
+        final_classes_dex,
+        merged_profile,
+        proguard_output_map,
+        profgen,
+        toolchain_type,
     )
 
     # Zip ART profiles
@@ -161,10 +152,21 @@ def _process_art_profile(
         resources = [output_profile, output_profile_meta],
         java_toolchain = _common.get_java_toolchain(ctx),
     )
+
+    _dump_profile(
+        ctx,
+        output_primary_profile,
+        output_profile,
+        final_classes_dex,
+        profgen,
+        toolchain_type,
+    )
+
     return ArtProfileInfo(
         art_profile_zip = output_profile_zip,
         baseline_profile = output_profile,
         baseline_profile_metadata = output_profile_meta,
+        primary_profile = output_primary_profile,
     )
 
 def _get_profile_dir(ctx):
@@ -213,6 +215,60 @@ def _expand_wildcards(
         arguments = [args],
         mnemonic = "ExpandBaselineProfileWildcards",
         progress_message = "Expanding baseline profile wildcards for %{label} APK",
+        toolchain = toolchain_type,
+    )
+
+def _generate_profile(
+        ctx,
+        output_profile,
+        output_profile_meta,
+        final_classes_dex,
+        merged_profile,
+        proguard_output_map = None,
+        profgen = None,
+        toolchain_type = None):
+    profgen_inputs = [final_classes_dex, merged_profile]
+    args = ctx.actions.args()
+    args.add("bin", merged_profile)
+    args.add("--apk", final_classes_dex)
+    args.add("--output", output_profile)
+    args.add("--output-meta", output_profile_meta)
+    if proguard_output_map:
+        args.add("--map", proguard_output_map)
+        profgen_inputs.append(proguard_output_map)
+
+    ctx.actions.run(
+        mnemonic = "GenerateARTProfile",
+        executable = profgen,
+        progress_message = "Generating Android P-R ART profile for %{label} APK",
+        arguments = [args],
+        inputs = profgen_inputs,
+        outputs = [output_profile, output_profile_meta],
+        use_default_shell_env = True,
+        toolchain = toolchain_type,
+    )
+
+def _dump_profile(
+        ctx,
+        output,
+        binary_profile,
+        final_classes_dex,
+        profgen = None,
+        toolchain_type = None):
+    args = ctx.actions.args()
+    args.add("dumpProfile")
+    args.add("--profile", binary_profile)
+    args.add("--apk", final_classes_dex)
+    args.add("--output", output)
+
+    ctx.actions.run(
+        mnemonic = "DumpProfile",
+        executable = profgen,
+        progress_message = "Dumping Obfuscated-HRP profile for %{label} APK",
+        arguments = [args],
+        inputs = [binary_profile, final_classes_dex],
+        outputs = [output],
+        use_default_shell_env = True,
         toolchain = toolchain_type,
     )
 

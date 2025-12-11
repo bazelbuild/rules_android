@@ -289,6 +289,7 @@ ArtProfileInfo = provider(
         art_profile_zip = "Zip file containing the baseline profile and metadata, intended to be merged into APK.",
         baseline_profile = "Generated baseline.prof file",
         baseline_profile_metadata = "Generated baseline.profm file",
+        primary_profile = "Generated primary.prof file",
     ),
 )
 
