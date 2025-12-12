@@ -82,6 +82,9 @@ maven.install(
         "com.google.protobuf:protobuf-java:4.31.1",
         "com.google.protobuf:protobuf-java-util:4.31.1",
     ],
+    # To generate, run:
+    # REPIN=1 bazelisk run --enable_bzlmod @android_ide_common_30_1_3//:pin
+    lock_file = "//:android_ide_common_30_1_3_maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
@@ -89,6 +92,7 @@ maven.install(
     use_starlark_android_rules = True,
 )
 use_repo(maven, "android_ide_common_30_1_3")
+
 maven.install(
     name = "rules_android_maven",
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
@@ -151,16 +155,15 @@ maven.install(
         "com.google.truth.extensions:truth-proto-extension:1.4.0",
         "org.mockito:mockito-core:5.4.0",
     ],
+    # To generate, run:
+    # REPIN=1 bazelisk run --enable_bzlmod @rules_android_maven//:pin
+    lock_file = "//:rules_android_maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
-    # To generate, run:
-    # REPIN=1 bazelisk run --enable_bzlmod @rules_android_maven//:pin
-    # lock_file = "//:rules_android_maven_install.json",
     use_starlark_android_rules = True,
 )
-
 use_repo(
     maven,
     "rules_android_maven",
