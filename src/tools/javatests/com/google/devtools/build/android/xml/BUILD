@@ -15,9 +15,9 @@ java_test(
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android/proto:resources_java_proto",
         "//src/tools/java/com/google/devtools/build/android/resources",
-        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )
 
@@ -28,11 +28,11 @@ java_test(
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android/proto:resources_java_proto",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
     runtime_deps = [
-        "@rules_android_maven//:com_google_guava_guava",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -43,7 +43,7 @@ java_test(
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android/proto:resources_java_proto",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )

@@ -13,7 +13,7 @@ java_library(
     name = "apidescriptors",
     srcs = glob(["*.java"]),
     deps = [
-        "@rules_android_maven//:androidx_privacysandbox_tools_tools_apipackager",
-        "@rules_android_maven//:info_picocli_picocli",
+        "@maven//:androidx_privacysandbox_tools_tools_apipackager",
+        "@maven//:info_picocli_picocli",
     ],
 )

@@ -36,10 +36,10 @@ android_local_test(
     deps = [
         ":resource_processing",
         "@robolectric//bazel:android-all",
-        "@rules_android_maven//:androidx_test_core",
-        "@rules_android_maven//:androidx_test_ext_junit",
-        "@rules_android_maven//:junit_junit",
-        "@rules_android_maven//:org_robolectric_robolectric",
+        "@maven//:androidx_test_core",
+        "@maven//:androidx_test_ext_junit",
+        "@maven//:junit_junit",
+        "@maven//:org_robolectric_robolectric",
     ],
 )
 

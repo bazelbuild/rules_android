@@ -52,7 +52,7 @@ java_library(
     ],
     deps = [
         ":windows_file_jar",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_guava_guava",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_guava_guava",
     ],
 )

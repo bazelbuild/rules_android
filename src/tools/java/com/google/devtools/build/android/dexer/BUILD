@@ -25,10 +25,10 @@ java_binary(
     # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
         "@com_android_dex//:dex",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
-        "@rules_android_maven//:com_google_guava_guava",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
         ":DexFileSplitter_lib",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_options_utils",
@@ -52,11 +52,11 @@ java_library(
         "//tools/android:autovalue",
         "@bazel_worker_api//:worker_protocol_proto",
         "@com_android_dex//:dex",
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_auto_value_auto_value",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
-        "@rules_android_maven//:com_google_guava_guava",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_auto_value_auto_value",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_guava_guava",
     ],
 )
 
@@ -71,8 +71,8 @@ java_library(
     runtime_deps = [
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "@bazel_worker_api//:worker_protocol_proto",
-        "@rules_android_maven//:com_google_auto_value_auto_value",
-        "@rules_android_maven//:com_google_code_findbugs_jsr305",
-        "@rules_android_maven//:com_google_guava_guava",
+        "@maven//:com_google_auto_value_auto_value",
+        "@maven//:com_google_code_findbugs_jsr305",
+        "@maven//:com_google_guava_guava",
     ],
 )
