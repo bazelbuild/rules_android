@@ -99,3 +99,9 @@ def define_flags():
         default = False,
         description = "For testing/validation only. Use baseline profiles as startup profiles in optimized builds.",
     )
+
+    flags.DEFINE_bool(
+        name = "skip_library_resources_apk",
+        default = False,
+        description = "When set to True skips the generation of intermediate .ap_ files by android_library targets.",
+    )
