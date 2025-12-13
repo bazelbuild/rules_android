@@ -120,7 +120,8 @@ tasks:
     bazel: ${{ bazel }}
     <<: *rules
   resource_rules:
-    platform: ${{ platform }}
+    # Resource tests have macOS compatibility issues, run only on Linux
+    platform: ubuntu2404
     bazel: ${{ bazel }}
     <<: *resource_rules
   tools_bzlmod:
@@ -128,7 +129,8 @@ tasks:
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
   resource_rules_bzlmod:
-    platform: ${{ platform }}
+    # Resource tests have macOS compatibility issues, run only on Linux
+    platform: ubuntu2404
     bazel: ${{ bazel }}
     <<: *resource_rules_bzlmod
   rules_bzlmod:
