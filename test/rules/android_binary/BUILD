@@ -1,5 +1,6 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_java//java:java_library.bzl", "java_library")
 load("//rules:rules.bzl", "android_binary", "android_library")
 load(":test.bzl", "fake_cc_toolchain_config", "multiple_android_platforms_test")

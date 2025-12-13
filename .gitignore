@@ -5,3 +5,4 @@ bazel-*
 .aswb
 *.swp
 MODULE.bazel.lock
+.claude

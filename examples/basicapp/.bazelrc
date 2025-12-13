@@ -13,7 +13,7 @@ common --tool_java_runtime_version=17
 # Workaround for a rules_java + bazel < 8.3.0 issue. It should only be relevant
 # for bazel@HEAD and rolling releases.
 # https://github.com/bazelbuild/bazel/pull/26119
-common --repositories_without_autoloads=bazel_features_version,bazel_features_globals
+common --repositories_without_autoloads=bazel_features_version,bazel_features_globals,cc_compatibility_proxy
 
 # Newer versions of protobuf require downstream transitive projects to set C++ language version flags.
 common:linux --cxxopt=-std=c++17

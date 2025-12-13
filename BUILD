@@ -77,16 +77,11 @@ alias(
 )
 
 alias(
-    name = "androidsdk_dx_jar_import",
-    actual = "@androidsdk//:dx_jar_import",
-)
-
-alias(
     name = "androidsdk_files",
     actual = "@androidsdk//:files",
 )
 
 alias(
-    name = "androidsdk_has_android_sdk",
-    actual = "@androidsdk//:has_android_sdk",
+    name = "androidsdk_has_androidsdk",
+    actual = "@androidsdk//:has_androidsdk",
 )

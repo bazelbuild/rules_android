@@ -178,7 +178,7 @@ def _starlark_process_test_impl(ctx):
         )
         runfiles = r_java.runtime_output_jars + [ctx.executable._r_class_check]
         java = ctx.attr._host_javabase[java_common.JavaRuntimeInfo]
-        args["java"] = java.java_executable_exec_path
+        args["java"] = java.java_executable_runfiles_path
 
     elif ctx.attr.expected_r_class_fields:
         fail("Expected a R.java file but none was generated")
