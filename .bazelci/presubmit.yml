@@ -142,7 +142,7 @@ tasks:
     <<: *rules_coverage
   macos_a_l_t_coverage:
     name: "Macos android_local_test coverage"
-    platform: macos
+    platform: macos_arm64
     bazel: ${{ bazel }}
     <<: *rules_coverage
 #  TODO: Make windows ALT coverage work
