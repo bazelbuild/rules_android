@@ -132,15 +132,18 @@ def ExpectedStarlarkAndroidResourcesInfo(
     name = (str(direct_resources_nodes) + str(transitive_resources_nodes) + str(transitive_assets) +
             str(transitive_assets_symbols) + str(transitive_compiled_resources))
     name = ":_data_" + str(hash(name))
-    _expected_starlark_android_resources_info(
-        name = name[1:],
-        direct_resources_nodes = direct_resources_nodes,
-        transitive_resources_nodes = transitive_resources_nodes,
-        transitive_assets = transitive_assets,
-        transitive_assets_symbols = transitive_assets_symbols,
-        transitive_compiled_resources = transitive_compiled_resources,
-        packages_to_r_txts = packages_to_r_txts,
-    )
+
+    # Allow multiple tests to share the same expected info by checking if rule exists
+    if not native.existing_rule(name[1:]):
+        _expected_starlark_android_resources_info(
+            name = name[1:],
+            direct_resources_nodes = direct_resources_nodes,
+            transitive_resources_nodes = transitive_resources_nodes,
+            transitive_assets = transitive_assets,
+            transitive_assets_symbols = transitive_assets_symbols,
+            transitive_compiled_resources = transitive_compiled_resources,
+            packages_to_r_txts = packages_to_r_txts,
+        )
     return name
 
 def _build_expected_resources_node_info(string):

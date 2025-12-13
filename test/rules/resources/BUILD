@@ -1257,31 +1257,11 @@ starlark_process_test(
         ],
     ),
     inspect_actions = dict(
+        # Use path suffixes that work across platforms (k8-fastbuild vs darwin_arm64-fastbuild).
+        # The _is_suffix_sublist check uses .endswith(), so we match the end of the full arg string.
         PackageAndroidResources = [
-            "--data",
-            ":".join([
-                "",
-                "",
-                "bazel-out/k8-fastbuild/bin/test/rules/resources/manifest_without_resources_processed_manifest/AndroidManifest.xml",
-                "bazel-out/k8-fastbuild/bin/test/rules/resources/manifest_without_resources_symbols/R.aapt2.txt",
-                "bazel-out/k8-fastbuild/bin/test/rules/resources/manifest_without_resources_symbols/symbols.zip",
-            ]),
-            "--directData",
-            ":".join([
-                "",
-                "",
-                "bazel-out/k8-fastbuild/bin/test/rules/resources/manifest_without_resources_processed_manifest/AndroidManifest.xml",
-                "bazel-out/k8-fastbuild/bin/test/rules/resources/manifest_without_resources_symbols/R.aapt2.txt",
-                "bazel-out/k8-fastbuild/bin/test/rules/resources/manifest_without_resources_symbols/symbols.zip",
-            ]),
             "--primaryData",
-            ":".join([
-                "",
-                "",
-                "bazel-out/k8-fastbuild/bin/test/rules/resources/_generated/exports_manifest_without_resources/AndroidManifest.xml",
-                "",
-                "",
-            ]),
+            "_generated/exports_manifest_without_resources/AndroidManifest.xml::",
         ],
     ),
     target_under_test = ":exports_manifest_without_resources",
