@@ -30,6 +30,9 @@ load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
 load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 
+# keep in sync with MODULE.bazel and `proto_version` variable there.
+proto_version = "4.33.1"
+
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
 
@@ -57,8 +60,8 @@ def rules_android_workspace():
             # These technically aren't needed, but the protobuf version pulled
             # in by these older deps has compatibility issues with the newer
             # protobuf runtimes.
-            "com.google.protobuf:protobuf-java:4.31.1",
-            "com.google.protobuf:protobuf-java-util:4.31.1",
+            "com.google.protobuf:protobuf-java:{}".format(proto_version),
+            "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
         ],
         repositories = [
             "https://maven.google.com",
@@ -94,8 +97,8 @@ def rules_android_workspace():
             "jakarta.inject:jakarta.inject-api:2.0.1",
             "junit:junit:4.13.2",
             "com.beust:jcommander:1.82",
-            "com.google.protobuf:protobuf-java:4.31.1",
-            "com.google.protobuf:protobuf-java-util:4.31.1",
+            "com.google.protobuf:protobuf-java:{}".format(proto_version),
+            "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
             "com.google.code.findbugs:jsr305:3.0.2",
             "androidx.databinding:databinding-compiler:8.7.0",
             "org.ow2.asm:asm:9.6",
@@ -145,12 +148,13 @@ def rules_android_workspace():
         # All lines in the artifacts list must be tagged "bazel worker api" for
         # the presubmit maven artifact consistency checker to pass.
         name = "maven",
-        artifacts = [ # bazel worker api
+        artifacts = [
+            # bazel worker api
             "com.google.code.gson:gson:2.10.1",  # bazel worker api
             "com.google.errorprone:error_prone_annotations:2.23.0",  # bazel worker api
             "com.google.guava:guava:33.0.0-jre",  # bazel worker api
-            "com.google.protobuf:protobuf-java:4.27.2",  # bazel worker api
-            "com.google.protobuf:protobuf-java-util:4.27.2",  # bazel worker api
+            "com.google.protobuf:protobuf-java:{}".format(proto_version),  # bazel worker api
+            "com.google.protobuf:protobuf-java-util:{}".format(proto_version),  # bazel worker api
             "junit:junit:4.13.2",  # bazel worker api
             "org.mockito:mockito-core:5.4.0",  # bazel worker api
             "com.google.truth:truth:1.4.0",  # bazel worker api

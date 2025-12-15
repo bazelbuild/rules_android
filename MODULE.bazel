@@ -15,7 +15,17 @@ bazel_dep(name = "stardoc", version = "0.7.2", dev_dependency = True)
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
-bazel_dep(name = "protobuf", version = "31.1", repo_name = "com_google_protobuf")
+# Note: This upgrade requires bazel_worker_java to be updated to use protobuf 4.33.1
+# The current published version (0.0.4) uses protobuf 31.1, which causes Maven dependency
+# conflicts when both modules contribute to @maven. Once bazel_worker_java is released
+# with protobuf 4.33.1, this should resolve automatically.
+proto_version = "4.33.1"
+
+proto_version_parts = proto_version.split(".")
+
+proto_module_version = ".".join(proto_version_parts[-2:])  # Last 2 parts
+
+bazel_dep(name = "protobuf", version = proto_module_version, repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_jvm_external", version = "6.6")
 bazel_dep(name = "bazel_skylib", version = "1.0.3")
 bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
@@ -79,8 +89,8 @@ maven.install(
         # These technically aren't needed, but the protobuf version pulled
         # in by these older deps has compatibility issues with the newer
         # protobuf runtimes.
-        "com.google.protobuf:protobuf-java:4.31.1",
-        "com.google.protobuf:protobuf-java-util:4.31.1",
+        "com.google.protobuf:protobuf-java:{}".format(proto_version),
+        "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
     ],
     repositories = [
         "https://maven.google.com",
@@ -117,8 +127,8 @@ maven.install(
         "jakarta.inject:jakarta.inject-api:2.0.1",
         "junit:junit:4.13.2",
         "com.beust:jcommander:1.82",
-        "com.google.protobuf:protobuf-java:4.31.1",
-        "com.google.protobuf:protobuf-java-util:4.31.1",
+        "com.google.protobuf:protobuf-java:{}".format(proto_version),
+        "com.google.protobuf:protobuf-java-util:{}".format(proto_version),
         "com.google.code.findbugs:jsr305:3.0.2",
         "androidx.databinding:databinding-compiler:8.7.0",
         "org.ow2.asm:asm:9.6",
