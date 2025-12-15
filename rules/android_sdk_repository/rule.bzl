@@ -51,8 +51,8 @@ def _read_api_levels(repo_ctx, android_sdk_path):
         name = entry.basename
         if name.startswith("android-"):
             level = name[len("android-"):]
-            if level.isdigit():
-                api_levels.append(int(level))
+            if len(level) > 0:
+                api_levels.append(level)
     return api_levels
 
 def _newest_build_tools(repo_ctx, android_sdk_path):
@@ -116,7 +116,7 @@ def _android_sdk_repository_impl(repo_ctx):
     # Determine default SDK level.
     default_api_level = max(api_levels)
     if repo_ctx.attr.api_level:
-        default_api_level = int(repo_ctx.attr.api_level)
+        default_api_level = repo_ctx.attr.api_level
     if default_api_level not in api_levels:
         fail("Android SDK api level %s was requested but it is not installed in the Android SDK at %s. The api levels found were %s. Please choose an available api level or install api level %s from the Android SDK Manager." % (
             default_api_level,
@@ -167,7 +167,7 @@ def _android_sdk_repository_impl(repo_ctx):
 _android_sdk_repository = repository_rule(
     implementation = _android_sdk_repository_impl,
     attrs = {
-        "api_level": attr.int(default = 0),
+        "api_level": attr.string(default = ""),
         "build_tools_version": attr.string(),
         "path": attr.string(),
     },
@@ -178,7 +178,7 @@ _android_sdk_repository = repository_rule(
 def android_sdk_repository(
         name,
         path = "",
-        api_level = 0,
+        api_level = "",
         build_tools_version = ""):
     """Create a repository with Android SDK toolchains.
 
@@ -228,7 +228,7 @@ android_sdk_repository_extension = module_extension(
     tag_classes = {
         "configure": tag_class(attrs = {
             "path": attr.string(),
-            "api_level": attr.int(),
+            "api_level": attr.string(),
             "build_tools_version": attr.string(),
         }),
     },

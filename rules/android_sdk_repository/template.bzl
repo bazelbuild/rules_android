@@ -76,8 +76,8 @@ create_android_sdk_rules(
     name = "__repository_name__",
     build_tools_version = "__build_tools_version__",
     build_tools_directory = "__build_tools_directory__",
-    api_levels = [__api_levels__],
-    default_api_level = __default_api_level__,
+    api_levels = str(__api_levels__).split(","),
+    default_api_level = str(__default_api_level__),
 )
 
 alias(
