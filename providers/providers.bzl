@@ -496,6 +496,13 @@ AndroidLocalizedFilesInfo = provider(
     ),
 )
 
+AndroidBuildStampInfo = provider(
+    doc = "AndroidBuildStampInfo",
+    fields = dict(
+        java_info = "JavaInfo for the generated build stamp.",
+    ),
+)
+
 # Keep these symobols until rules/providers.bzl is deleted from release.
 AndroidResourcesInfo = None
 AndroidManifestInfo = None

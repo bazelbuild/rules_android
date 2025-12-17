@@ -24,7 +24,7 @@ load(
 )
 load("//mobile_install:transform.bzl", "dex", "filter_jars")
 load("//mobile_install:utils.bzl", "utils")
-load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidIdeInfo")
+load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidBuildStampInfo", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -49,6 +49,7 @@ def extract(target, ctx):
       Input for process method
     """
     extension_registry_class_jar = utils.get_extension_registry_class_jar(target)
+    build_stamp_java_info = target[AndroidBuildStampInfo].java_info if AndroidBuildStampInfo in target else None
 
     java_package = target[AndroidIdeInfo].java_package
     if java_package == None:
@@ -76,6 +77,9 @@ def extract(target, ctx):
                     [
                         extension_registry_class_jar,
                     ] if extension_registry_class_jar else []
+                ) +
+                (
+                    build_stamp_java_info.runtime_output_jars if build_stamp_java_info else []
                 ),
                 get_desugar_classpath(target[JavaInfo]),
             ),
