@@ -31,7 +31,7 @@ _DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_
 
 _DEFAULT_PROVIDES = [ApkInfo, JavaInfo]
 
-def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs, generate_art_profile):
+def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs, _generate_art_profile_outputs):
     label = "//" + _package_name + ":" + name
 
     outputs = dict(
@@ -51,7 +51,7 @@ def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_
         if proguard_generate_mapping:
             outputs["proguard_map"] = "%{name}_proguard.map"
 
-    if generate_art_profile:
+    if _generate_art_profile_outputs:
         outputs["primary_profile"] = "%{name}_primary.prof"
 
     return outputs
@@ -129,5 +129,9 @@ def android_binary_macro(**attrs):
 
     if type(attrs.get("proguard_specs", None)) == "select" or attrs.get("proguard_specs", None):
         attrs["$generate_proguard_outputs"] = True
+
+    # Default value of generate_art_profile is True
+    if type(attrs.get("generate_art_profile", None)) == "select" or attrs.get("generate_art_profile", True):
+        attrs["$generate_art_profile_outputs"] = True
 
     android_binary(**sanitize_attrs(attrs))
