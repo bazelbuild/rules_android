@@ -447,7 +447,7 @@ public class Desugar {
         ImmutableList.builder();
     for (Path path : options.classpath) {
       ClassFileResourceProvider provider = new ArchiveClassFileProvider(path);
-      if (isPlatform(provider)) {
+      if (isPlatform(path, provider)) {
         bootclasspathProvidersBuilder.add(provider);
       } else {
         classpathProvidersBuilder.add(provider);
@@ -489,8 +489,20 @@ public class Desugar {
     return Math.floorMod(string.hashCode(), numberOfShards);
   }
 
-  private static boolean isPlatform(ClassFileResourceProvider provider) {
-    // See b/153106333.
+  private static boolean isPlatform(Path path, ClassFileResourceProvider provider) {
+    // See b/456670962
+    // If the jar name contains "wear_sdk_stubs" and it only contains classes in the package
+    // com.google.wear, then it is part of the platform.
+    if (path.toString().contains("android_libs/wear_sdk_stubs/")) {
+      for (String descriptor : provider.getClassDescriptors()) {
+        if (!descriptor.startsWith("Lcom/google/wear/")) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // See b/153106333
     boolean mightBePlatform = false;
     for (String descriptor : provider.getClassDescriptors()) {
       // If the jar contains classes in the package android.car.content this could be a platform
@@ -502,7 +514,6 @@ public class Desugar {
         return false;
       }
     }
-    // Found classes in the package android.car.content and not in the package android.car.test.
     return mightBePlatform;
   }
 
