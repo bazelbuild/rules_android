@@ -739,7 +739,7 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
             )
             providers.append(art_profile_info)
 
-    if ctx.attr.generate_art_profile and not art_profile_info:
+    if ctx.attr._generate_art_profile_outputs and not art_profile_info:
         # There are a lot of ways baseline profiles could fail, and thus art profile generation also
         # fails. For example, if the baseline profile is not included as a dependency, if the
         # baseline profile is empty, or if you're attempting to use R8.
