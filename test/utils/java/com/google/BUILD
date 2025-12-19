@@ -11,9 +11,9 @@ java_binary(
     name = "RClassChecker",
     srcs = ["RClassChecker.java"],
     deps = [
-        "@rules_android_maven//:com_beust_jcommander",
-        "@rules_android_maven//:com_google_flogger_flogger",
-        "@rules_android_maven//:com_google_flogger_flogger_system_backend",
-        "@rules_android_maven//:com_google_guava_guava",
+        "@maven//:com_beust_jcommander",
+        "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_flogger_flogger_system_backend",
+        "@maven//:com_google_guava_guava",
     ],
 )

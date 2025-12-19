@@ -17,8 +17,8 @@ java_test(
     ],
     deps = [
         "//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/utils",
-        "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:com_google_truth_truth",
-        "@rules_android_maven//:junit_junit",
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_truth_truth",
+        "@maven//:junit_junit",
     ],
 )

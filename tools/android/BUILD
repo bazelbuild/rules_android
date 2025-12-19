@@ -52,7 +52,7 @@ java_binary(
     name = "bundletool",
     main_class = "com.android.tools.build.bundletool.BundleToolMain",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@rules_android_maven//:com_android_tools_build_bundletool"],
+    runtime_deps = ["@maven//:com_android_tools_build_bundletool"],
 )
 
 java_plugin(
@@ -80,11 +80,11 @@ alias(
 genrule(
     name = "full_desugar_jdk_libs_config_json",
     srcs = [
-        "@rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio",
+        "@maven//:com_android_tools_desugar_jdk_libs_configuration_nio",
     ],
     outs = ["full_desugar_jdk_libs_config.json"],
     cmd = "unzip -q -c " +
-          "$(location @rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio) " +
+          "$(location @maven//:com_android_tools_desugar_jdk_libs_configuration_nio) " +
           "META-INF/desugar/d8/desugar.json > $@",
     visibility = ["//visibility:public"],
 )
@@ -92,11 +92,11 @@ genrule(
 genrule(
     name = "minimal_desugar_jdk_libs_config_json",
     srcs = [
-        "@rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_minimal",
+        "@maven//:com_android_tools_desugar_jdk_libs_configuration_minimal",
     ],
     outs = ["minimal_desugar_jdk_libs_config.json"],
     cmd = "unzip -q -c " +
-          "$(location @rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_minimal) " +
+          "$(location @maven//:com_android_tools_desugar_jdk_libs_configuration_minimal) " +
           "META-INF/desugar/d8/desugar.json > $@",
 )
 
@@ -134,9 +134,9 @@ genrule(
 genrule(
     name = "desugared_jdk_libs_from_maven_jar",
     srcs = select({
-        "full_desugaring": ["@rules_android_maven//:com_android_tools_desugar_jdk_libs_nio"],
-        "minimal_desugaring": ["@rules_android_maven//:com_android_tools_desugar_jdk_libs_minimal"],
-        "//conditions:default": ["@rules_android_maven//:com_android_tools_desugar_jdk_libs_nio"],
+        "full_desugaring": ["@maven//:com_android_tools_desugar_jdk_libs_nio"],
+        "minimal_desugaring": ["@maven//:com_android_tools_desugar_jdk_libs_minimal"],
+        "//conditions:default": ["@maven//:com_android_tools_desugar_jdk_libs_nio"],
     }),
     outs = ["desugared_jdk_libs_from_maven.jar"],
     cmd = "cp $< $@",
@@ -146,7 +146,7 @@ run_singlejar(
     name = "desugar_jdk_libs_all",
     srcs = [
         ":desugared_jdk_libs_from_maven_jar",
-        "@rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration",
+        "@maven//:com_android_tools_desugar_jdk_libs_configuration",
     ],
     out = "desugar_jdk_libs_all.jar",
 )
@@ -255,7 +255,7 @@ java_binary(
     jvm_flags = _JVM_FLAGS,
     main_class = "com.android.tools.r8.D8",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
+    runtime_deps = ["@maven//:com_android_tools_r8"],
 )
 
 java_binary(
@@ -263,7 +263,7 @@ java_binary(
     jvm_flags = _JVM_FLAGS,
     main_class = "com.android.tools.r8.R8",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
+    runtime_deps = ["@maven//:com_android_tools_r8"],
 )
 
 java_binary(
@@ -271,14 +271,14 @@ java_binary(
     jvm_flags = _JVM_FLAGS,
     main_class = "com.android.tools.r8.tracereferences.TraceReferences",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
+    runtime_deps = ["@maven//:com_android_tools_r8"],
 )
 
 java_binary(
     name = "resource_shrinker",
     main_class = "com.android.build.shrinker.ResourceShrinkerCli",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@rules_android_maven//:com_android_tools_build_gradle"],
+    runtime_deps = ["@maven//:com_android_tools_build_gradle"],
 )
 
 alias(
@@ -352,7 +352,7 @@ java_binary(
         "-Xmx8g",
     ],
     main_class = "com.android.tools.r8.GlobalSyntheticsGenerator",
-    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
+    runtime_deps = ["@maven//:com_android_tools_r8"],
 )
 
 alias(
@@ -499,15 +499,15 @@ java_binary(
     main_class = "com.android.tools.deployer.DeployerRunner",
     visibility = ["//visibility:public"],
     runtime_deps = [
-        "@rules_android_maven//:com_android_tools_apkdeployer_apkdeployer",
+        "@maven//:com_android_tools_apkdeployer_apkdeployer",
     ],
 )
 
 java_library(
     name = "auto_service_lib",
     exports = [
-        "@rules_android_maven//:com_google_auto_service_auto_service",
-        "@rules_android_maven//:com_google_auto_service_auto_service_annotations",
+        "@maven//:com_google_auto_service_auto_service",
+        "@maven//:com_google_auto_service_auto_service_annotations",
     ],
 )
 
@@ -515,7 +515,7 @@ java_library(
     name = "autovalue_lib",
     exports = [
         ":auto_service_lib",
-        "@rules_android_maven//:com_google_auto_auto_common",
+        "@maven//:com_google_auto_auto_common",
     ],
 )
 
@@ -523,7 +523,7 @@ java_plugin(
     name = "autovalue_plugin",
     processor_class = "com.google.auto.value.processor.AutoValueProcessor",
     deps = [
-        "@rules_android_maven//:com_google_auto_value_auto_value",
+        "@maven//:com_google_auto_value_auto_value",
     ],
 )
 
@@ -531,7 +531,7 @@ java_plugin(
     name = "auto_annotation_plugin",
     processor_class = "com.google.auto.value.processor.AutoAnnotationProcessor",
     deps = [
-        "@rules_android_maven//:com_google_auto_value_auto_value",
+        "@maven//:com_google_auto_value_auto_value",
     ],
 )
 
@@ -539,14 +539,14 @@ java_plugin(
     name = "auto_builder_plugin",
     processor_class = "com.google.auto.value.processor.AutoBuilderProcessor",
     deps = [
-        "@rules_android_maven//:com_google_auto_value_auto_value",
+        "@maven//:com_google_auto_value_auto_value",
     ],
 )
 
 java_library(
     name = "auto_value_api",
     exports = [
-        "@rules_android_maven//:com_google_auto_value_auto_value_annotations",
+        "@maven//:com_google_auto_value_auto_value_annotations",
     ],
 )
 
@@ -566,8 +566,8 @@ java_library(
 java_library(
     name = "error_prone_annotations",
     exports = [
-        "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
-        "@rules_android_maven//:com_google_errorprone_error_prone_type_annotations",
+        "@maven//:com_google_errorprone_error_prone_annotations",
+        "@maven//:com_google_errorprone_error_prone_type_annotations",
     ],
 )
 
@@ -575,8 +575,8 @@ java_library(
     name = "error_prone",
     exports = [
         ":error_prone_annotations",
-        "@rules_android_maven//:com_google_errorprone_error_prone_check_api",
-        "@rules_android_maven//:com_google_errorprone_error_prone_core",
+        "@maven//:com_google_errorprone_error_prone_check_api",
+        "@maven//:com_google_errorprone_error_prone_core",
     ],
 )
 
