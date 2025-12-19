@@ -179,6 +179,7 @@ def _starlark_process_test_impl(ctx):
         runfiles = r_java.runtime_output_jars + [ctx.executable._r_class_check]
         java = ctx.attr._host_javabase[java_common.JavaRuntimeInfo]
         args["java"] = java.java_executable_exec_path
+        java = ctx.attr._host_javabase[DefaultInfo]
 
     elif ctx.attr.expected_r_class_fields:
         fail("Expected a R.java file but none was generated")
@@ -191,7 +192,6 @@ set -eu
 
 EXPECTED_R_CLASS_FIELDS="{expected_r_class_fields}"
 if [ "{check_r_java}" == "True" ]; then
-
     # Check the contents of the resources jar, as it is always produced.
     # There are cases when it is produced empty (with only META-INF data).
     # If there is no R.class generated and the expectation is no resource
