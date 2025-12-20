@@ -2,13 +2,12 @@
 
 matrix:
   bazel: [
-    7.4.1,
-    8.2.1,
+    7.7.1,
+    8.5.0,
     last_green,
   ]
   platform: [
-    ubuntu2004,
-    macos,
+    ubuntu2404,
     macos_arm64,
     # windows # TODO: Windows unit tests don't work yet.
   ]
@@ -96,15 +95,20 @@ rules_bzlmod: &rules_bzlmod
   <<: *rules
 resource_rules_bzlmod: &resource_rules_bzlmod
   name: "Resource Rules Bzlmod"
+  build_targets:
+    - "//test/rules/resources/..."
+  test_targets:
+    - "//test/rules/resources/..."
   build_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
+    ? "--//rules/flags:manifest_merge_order=legacy"
   test_flags:
     <<: *rules_flags
     ? "--enable_bzlmod"
     ? "--enable_workspace=false"
-  <<: *resource_rules
+    ? "--//rules/flags:manifest_merge_order=legacy"
 
 tasks:
   tools:
@@ -115,20 +119,20 @@ tasks:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *rules
-  # TODO(#397): Resource tests need some more debugging.
-  ## resource_rules:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules
+  resource_rules:
+    # Resource tests have macOS compatibility issues, run only on Linux
+    platform: ubuntu2404
+    bazel: ${{ bazel }}
+    <<: *resource_rules
   tools_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
     <<: *tools_bzlmod
-  # TODO(#397): Resource tests need some more debugging.
-  ## resource_rules_bzlmod:
-  ##   platform: ${{ platform }}
-  ##   bazel: ${{ bazel }}
-  ##   <<: *resource_rules_bzlmod
+  resource_rules_bzlmod:
+    # Resource tests have macOS compatibility issues, run only on Linux
+    platform: ubuntu2404
+    bazel: ${{ bazel }}
+    <<: *resource_rules_bzlmod
   rules_bzlmod:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
@@ -140,7 +144,7 @@ tasks:
     <<: *rules_coverage
   macos_a_l_t_coverage:
     name: "Macos android_local_test coverage"
-    platform: macos
+    platform: macos_arm64
     bazel: ${{ bazel }}
     <<: *rules_coverage
 #  TODO: Make windows ALT coverage work

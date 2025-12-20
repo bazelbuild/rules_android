@@ -4,8 +4,4 @@
   <uses-sdk
       android:minSdkVersion="23"
       android:targetSdkVersion="24" />
-  <meta-data
-      android:name="com.foo"
-      android:value="bar"
-      android:featureFlag="!com.google.foo" />
 </manifest>

@@ -55,7 +55,7 @@ function main() {
   echo "== installing bazelisk ========================================="
   bazel_install_dir=$(mktemp -d)
   BAZELISK_VERSION="1.18.0"
-  export USE_BAZEL_VERSION="8.0.0rc7"
+  export USE_BAZEL_VERSION="9.0.0rc3"
   DownloadBazelisk "$BAZELISK_VERSION" linux amd64 "$bazel_install_dir"
   bazel="$bazel_install_dir/bazel"
   echo "============================================================="

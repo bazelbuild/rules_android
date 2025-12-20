@@ -57,8 +57,8 @@ def rules_android_workspace():
             # These technically aren't needed, but the protobuf version pulled
             # in by these older deps has compatibility issues with the newer
             # protobuf runtimes.
-            "com.google.protobuf:protobuf-java:4.31.1",
-            "com.google.protobuf:protobuf-java-util:4.31.1",
+            "com.google.protobuf:protobuf-java:4.33.1",
+            "com.google.protobuf:protobuf-java-util:4.33.1",
         ],
         repositories = [
             "https://maven.google.com",
@@ -94,8 +94,8 @@ def rules_android_workspace():
             "jakarta.inject:jakarta.inject-api:2.0.1",
             "junit:junit:4.13.2",
             "com.beust:jcommander:1.82",
-            "com.google.protobuf:protobuf-java:4.31.1",
-            "com.google.protobuf:protobuf-java-util:4.31.1",
+            "com.google.protobuf:protobuf-java:4.33.1",
+            "com.google.protobuf:protobuf-java-util:4.33.1",
             "com.google.code.findbugs:jsr305:3.0.2",
             "androidx.databinding:databinding-compiler:8.7.0",
             "org.ow2.asm:asm:9.6",
@@ -141,16 +141,17 @@ def rules_android_workspace():
     )
 
     maven_install(
-        # Specifically named since the worker API lib needs `@maven` to exist.
+        # Specifically named since the worker API lib needs `@bazel_worker_maven` to exist
+        # in WORKSPACE mode.
         # All lines in the artifacts list must be tagged "bazel worker api" for
         # the presubmit maven artifact consistency checker to pass.
-        name = "maven",
+        name = "bazel_worker_maven",
         artifacts = [ # bazel worker api
             "com.google.code.gson:gson:2.10.1",  # bazel worker api
             "com.google.errorprone:error_prone_annotations:2.23.0",  # bazel worker api
             "com.google.guava:guava:33.0.0-jre",  # bazel worker api
-            "com.google.protobuf:protobuf-java:4.27.2",  # bazel worker api
-            "com.google.protobuf:protobuf-java-util:4.27.2",  # bazel worker api
+            "com.google.protobuf:protobuf-java:4.33.1",  # bazel worker api
+            "com.google.protobuf:protobuf-java-util:4.33.1",  # bazel worker api
             "junit:junit:4.13.2",  # bazel worker api
             "org.mockito:mockito-core:5.4.0",  # bazel worker api
             "com.google.truth:truth:1.4.0",  # bazel worker api
@@ -170,12 +171,8 @@ def rules_android_workspace():
     gazelle_dependencies()
     # gazelle:repository go_repository name=org_golang_x_xerrors importpath=golang.org/x/xerrors
 
-    go_repository(
-        name = "org_golang_google_protobuf",
-        importpath = "google.golang.org/protobuf",
-        sum = "h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs8=",
-        version = "v1.31.0",
-    )
+    # Note: org_golang_google_protobuf is now set up by go_rules_dependencies()
+    # with proper patches for newer protobuf versions.
 
     go_repository(
         name = "com_github_google_go_cmp",

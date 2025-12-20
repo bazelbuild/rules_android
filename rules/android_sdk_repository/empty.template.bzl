@@ -74,11 +74,6 @@ filegroup(
     srcs = [":error_message"],
 )
 
-filegroup(
-    name = "dx_jar_import",
-    srcs = [":error_message"],
-)
-
 genrule(
     name = "invalid_android_sdk_repository_error",
     outs = [

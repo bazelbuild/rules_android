@@ -368,6 +368,7 @@ def _fix_databinding_compiled_resources(
         tools = [zip_tool],
         arguments = [compiled_resources.path, out_compiled_resources.path, zip_tool.executable.path],
         toolchain = None,
+        mnemonic = "FixDatabindingCompiledResources",
         command = """#!/bin/bash
 set -e
 
@@ -376,7 +377,8 @@ OUT_DIR=$(mktemp -d)
 CUR_PWD=$(pwd)
 
 if zipinfo -t "$1"; then
-    ORDERED_LIST=`(unzip -l "$1" | sed -e '1,3d' | head -n -2 | tr -s " " | cut -d " " -f5)`
+    # Use awk instead of 'head -n -2' for macOS compatibility (BSD head doesn't support negative counts)
+    ORDERED_LIST=`(unzip -l "$1" | sed -e '1,3d' | awk '{lines[NR]=$0} END{for(i=1;i<=NR-2;i++) print lines[i]}' | tr -s " " | cut -d " " -f5)`
 
     unzip -q "$1" -d "$IN_DIR"
 
@@ -385,7 +387,8 @@ if zipinfo -t "$1"; then
     for FILE in $ORDERED_LIST; do
         cd "$IN_DIR"
         if [ -f "$FILE" ]; then
-            sed -i 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE"
+            # Use sed with backup extension for macOS compatibility, then remove backup
+            sed -i.bak 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE" && rm -f "$FILE.bak"
             NEW_NAME=`echo "$FILE" | sed 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' | sed 's#'"$IN_DIR"'/##g'`
             mkdir -p `dirname "$OUT_DIR/$NEW_NAME"` && touch "$OUT_DIR/$NEW_NAME"
             cp -p "$FILE" "$OUT_DIR/$NEW_NAME"
