@@ -4,20 +4,20 @@ module(
     compatibility_level = 1,
 )
 
-bazel_dep(name = "platforms", version = "0.0.5")
+bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_license", version = "1.0.0")
-bazel_dep(name = "rules_java", version = "8.13.0")
-bazel_dep(name = "rules_cc", version = "0.1.1")
-bazel_dep(name = "rules_shell", version = "0.1.2")
+bazel_dep(name = "rules_java", version = "9.3.0")
+bazel_dep(name = "rules_cc", version = "0.2.14")
+bazel_dep(name = "rules_shell", version = "0.6.1")
 
-bazel_dep(name = "stardoc", version = "0.7.2", dev_dependency = True)
+bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
-bazel_dep(name = "protobuf", version = "31.1", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_jvm_external", version = "6.6")
-bazel_dep(name = "bazel_skylib", version = "1.0.3")
+bazel_dep(name = "protobuf", version = "33.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "rules_jvm_external", version = "6.9")
+bazel_dep(name = "bazel_skylib", version = "1.8.1")
 bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
 
 register_toolchains("//toolchains/android:all")
@@ -25,11 +25,11 @@ register_toolchains("//toolchains/android:all")
 register_toolchains("//toolchains/android_sdk:all")
 
 # go-related dependency setup
-bazel_dep(name = "rules_go", version = "0.51.0-rc2", repo_name = "io_bazel_rules_go")
-bazel_dep(name = "gazelle", version = "0.40.0", repo_name = "bazel_gazelle")
+bazel_dep(name = "rules_go", version = "0.59.0", repo_name = "io_bazel_rules_go")
+bazel_dep(name = "gazelle", version = "0.47.0", repo_name = "bazel_gazelle")
 bazel_dep(name = "abseil-py", version = "2.1.0", repo_name = "py_absl")
-bazel_dep(name = "bazel_worker_api", version = "0.0.4")
-bazel_dep(name = "bazel_worker_java", version = "0.0.4")
+bazel_dep(name = "bazel_worker_api", version = "0.0.8")
+bazel_dep(name = "bazel_worker_java", version = "0.0.8")
 
 go_sdk = use_extension("@io_bazel_rules_go//go:extensions.bzl", "go_sdk")
 go_sdk.download(version = "1.22.4")
@@ -46,7 +46,7 @@ use_repo(
 )
 
 # python-related dependency setup
-bazel_dep(name = "rules_python", version = "0.37.1", repo_name = "rules_python")
+bazel_dep(name = "rules_python", version = "1.6.0", repo_name = "rules_python")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
@@ -55,10 +55,9 @@ python.toolchain(
 )
 
 # proto-related dependency setup
-bazel_dep(name = "rules_proto", version = "6.0.2", repo_name = "rules_proto")
+bazel_dep(name = "rules_proto", version = "7.1.0", repo_name = "rules_proto")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
-
 # Maven for android_ide_common need to be separated into their own separate maven_install for now
 # due to compatibility issues with newer versions.
 maven.install(
@@ -79,8 +78,8 @@ maven.install(
         # These technically aren't needed, but the protobuf version pulled
         # in by these older deps has compatibility issues with the newer
         # protobuf runtimes.
-        "com.google.protobuf:protobuf-java:4.31.1",
-        "com.google.protobuf:protobuf-java-util:4.31.1",
+        "com.google.protobuf:protobuf-java:4.33.1",
+        "com.google.protobuf:protobuf-java-util:4.33.1",
     ],
     repositories = [
         "https://maven.google.com",
@@ -89,6 +88,7 @@ maven.install(
     use_starlark_android_rules = True,
 )
 use_repo(maven, "android_ide_common_30_1_3")
+
 maven.install(
     name = "rules_android_maven",
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
@@ -117,8 +117,8 @@ maven.install(
         "jakarta.inject:jakarta.inject-api:2.0.1",
         "junit:junit:4.13.2",
         "com.beust:jcommander:1.82",
-        "com.google.protobuf:protobuf-java:4.31.1",
-        "com.google.protobuf:protobuf-java-util:4.31.1",
+        "com.google.protobuf:protobuf-java:4.33.1",
+        "com.google.protobuf:protobuf-java-util:4.33.1",
         "com.google.code.findbugs:jsr305:3.0.2",
         "androidx.databinding:databinding-compiler:8.7.0",
         "org.ow2.asm:asm:9.6",
@@ -160,7 +160,6 @@ maven.install(
     # lock_file = "//:rules_android_maven_install.json",
     use_starlark_android_rules = True,
 )
-
 use_repo(
     maven,
     "rules_android_maven",
@@ -177,7 +176,7 @@ bazel_dep(
 )
 bazel_dep(
     name = "cgrindel_bazel_starlib",
-    version = "0.17.0",
+    version = "0.18.0",
     dev_dependency = True,
 )
 
@@ -187,7 +186,7 @@ bazel_binaries = use_extension(
     dev_dependency = True,
 )
 bazel_binaries.download(version = "last_green")
-use_repo(bazel_binaries, "bazel_binaries")
+use_repo(bazel_binaries, "bazel_binaries", "bazel_binaries_bazelisk", "build_bazel_bazel_last_green")
 
 # extension for apksignerextensions
 apksig_extension = use_extension("//bzlmod_extensions:apksig.bzl", "apksig_extension")
