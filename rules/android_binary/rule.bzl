@@ -131,7 +131,8 @@ def android_binary_macro(**attrs):
         attrs["$generate_proguard_outputs"] = True
 
     # Default value of generate_art_profile is True
-    if type(attrs.get("generate_art_profile", None)) == "select" or attrs.get("generate_art_profile", True):
+    attr_value = attrs.get("generate_art_profile", True)
+    if type(attr_value) == "select" or attr_value or attr_value == None:
         attrs["$generate_art_profile_outputs"] = True
 
     android_binary(**sanitize_attrs(attrs))
