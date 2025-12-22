@@ -31,7 +31,7 @@ then
 fi
 
 # Determine hasCode value based on has_dex parameter
-if [[ "$has_dex" == "True" ]]; then
+if [[ "$has_dex" == "true" ]]; then
   has_code_value="true"
 else
   has_code_value="false"

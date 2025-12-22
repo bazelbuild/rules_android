@@ -185,6 +185,7 @@ def _process_feature_module(
             inputs_to_merge.append(dex_files)
 
         # Merge into output
+        # Note: singlejar adds META-INF/MANIFEST.MF, but bundletool_module_builder filters it out
         _java.singlejar(
             ctx,
             inputs = inputs_to_merge,
