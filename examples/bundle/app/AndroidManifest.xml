@@ -7,6 +7,7 @@
         android:targetSdkVersion="30" />
 
     <application
+        android:name=".BundleApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
@@ -18,5 +19,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.example.bundle.features.assets.FeatureActivity"
+            android:exported="false"
+            android:splitName="asset_feature" />
     </application>
 </manifest>

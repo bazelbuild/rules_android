@@ -57,18 +57,3 @@ sh_binary(
     visibility = ["//visibility:public"],
 )
 
-genrule(
-    name = "gen_xmllint",
-    outs = ["xmllint.sh"],
-    cmd = """cat > $@ <<EOF
-xmllint \\$$@
-EOF
-""",
-    executable = True,
-)
-
-sh_binary(
-    name = "xmllint",
-    srcs = [":xmllint.sh"],
-    visibility = ["//visibility:public"],
-)

@@ -50,7 +50,7 @@ def _impl(ctx):
         args.add("")
     args.add(binary[ApkInfo].unsigned_apk.path)
     args.add(utils.dedupe_split_attr(ctx.split_attr.library).label)
-    args.add(get_android_toolchain(ctx).xmllint_tool.files_to_run.executable)
+    args.add(get_android_toolchain(ctx).android_kit.files_to_run.executable)
     args.add(get_android_toolchain(ctx).unzip_tool.files_to_run.executable)
     args.add(ctx.attr.is_asset_pack)
 
@@ -60,7 +60,7 @@ def _impl(ctx):
         outputs = [validation],
         arguments = [args],
         tools = [
-            get_android_toolchain(ctx).xmllint_tool.files_to_run.executable,
+            get_android_toolchain(ctx).android_kit.files_to_run.executable,
             get_android_toolchain(ctx).unzip_tool.files_to_run.executable,
         ],
         mnemonic = "ValidateFeatureModule",
