@@ -81,8 +81,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
             default = Label("//tools/jdk:toolchain_android_only"),
         ),
         _merge_manifests = attr.label(
-            default = ":merge_feature_manifests.par",
-            allow_single_file = True,
+            default = ":merge_feature_manifests",
             cfg = "exec",
             executable = True,
         ),
@@ -105,8 +104,19 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
 )
 
 ANDROID_FEATURE_MODULE_ATTRS = dict(
+    # binary is used when has_dex=False (with validation aspect)
     binary = attr.label(aspects = [android_feature_module_validation_aspect]),
+    # binary_with_dex is used when has_dex=True (without validation aspect)
+    binary_with_dex = attr.label(),
     feature_name = attr.string(),
+    fused = attr.bool(
+        default = True,
+        doc = "Whether the split is fused for the system image and for pre-L devices.",
+    ),
+    has_dex = attr.bool(
+        default = False,
+        doc = "Allows the library dependency to contain dex files (Kotlin/Java code).",
+    ),
     library = attr.label(
         allow_rules = ["android_library"],
         cfg = android_split_transition,

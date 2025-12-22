@@ -98,24 +98,28 @@ def _process_feature_module(
         _common.get_host_javabase(ctx),
     )
 
-    # Remove all dexes from the feature module apk. jvm / resources are not
-    # supported in feature modules. The android_feature_module rule has
-    # already validated that there are no transitive sources / resources, but
-    # we may get dexes via e.g. the legacy dex or the record globals.
-    binary = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "_filtered.apk")
-    _common.filter_zip_exclude(
-        ctx,
-        output = binary,
-        input = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk,
-        filter_types = [".dex"],
-    )
+    has_dex = bool(feature_target[AndroidFeatureModuleInfo].has_dex)
+    if has_dex:
+        binary = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk
+    else:
+        # Remove all dexes from the feature module apk. jvm / resources are not
+        # supported in feature modules. The android_feature_module rule has
+        # already validated that there are no transitive sources / resources, but
+        # we may get dexes via e.g. the legacy dex or the record globals.
+        binary = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "_filtered.apk")
+        _common.filter_zip_exclude(
+            ctx,
+            output = binary,
+            input = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk,
+            filter_types = [".dex"],
+        )
     res = feature_target[AndroidFeatureModuleInfo].library[StarlarkAndroidResourcesInfo]
     has_native_libs = bool(feature_target[AndroidFeatureModuleInfo].binary[AndroidIdeInfo].native_libs)
     is_asset_pack = bool(feature_target[AndroidFeatureModuleInfo].is_asset_pack)
 
     # Create res .proto-apk_, output depending on whether further manipulations
     # are required after busybox. This prevents action conflicts.
-    if has_native_libs or is_asset_pack:
+    if has_native_libs or is_asset_pack or has_dex:
         res_apk = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/res.proto-ap_")
     else:
         res_apk = out
@@ -155,25 +159,35 @@ def _process_feature_module(
         application_id = application_id,
     )
 
-    if not is_asset_pack and not has_native_libs:
+    if not is_asset_pack and not has_native_libs and not has_dex:
         return
 
     if is_asset_pack:
         # Return AndroidManifest.xml and assets from res-ap_
         _common.filter_zip_include(ctx, res_apk, out, ["AndroidManifest.xml", "assets/*"])
     else:
-        # Extract libs/ from split binary
-        native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
-        _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
-
         # Extract AndroidManifest.xml and assets from res-ap_
         filtered_res = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/filtered_res.zip")
         _common.filter_zip_include(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
 
+        inputs_to_merge = [filtered_res]
+
+        # Extract libs/ from split binary if present
+        if has_native_libs:
+            native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
+            _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
+            inputs_to_merge.append(native_libs)
+
+        # Extract dex files from split binary if has_dex is enabled
+        if has_dex:
+            dex_files = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/dex_files.zip")
+            _common.filter_zip_include(ctx, binary, dex_files, ["*.dex", "classes*.dex"])
+            inputs_to_merge.append(dex_files)
+
         # Merge into output
         _java.singlejar(
             ctx,
-            inputs = [filtered_res, native_libs],
+            inputs = inputs_to_merge,
             output = out,
             java_toolchain = _common.get_java_toolchain(ctx),
         )
@@ -201,6 +215,7 @@ def _create_feature_manifest(
         args.add(info.title_id)
         args.add(info.fused)
         args.add(aapt2.executable)
+        args.add(info.has_dex)
 
         ctx.actions.run(
             executable = feature_manifest_script,
@@ -219,6 +234,7 @@ def _create_feature_manifest(
     # Rule has a manifest (already validated by android_feature_module).
     # Generate a priority manifest and then merge the user supplied manifest.
     is_asset_pack = feature_target[AndroidFeatureModuleInfo].is_asset_pack
+    has_dex = feature_target[AndroidFeatureModuleInfo].has_dex
     priority_manifest = ctx.actions.declare_file(
         ctx.label.name + "/" + feature_target.label.name + "/Priority_AndroidManifest.xml",
     )
@@ -230,6 +246,7 @@ def _create_feature_manifest(
     args.add(aapt2.executable)
     args.add(info.manifest)
     args.add(is_asset_pack)
+    args.add(has_dex)
 
     ctx.actions.run(
         executable = priority_feature_manifest_script,

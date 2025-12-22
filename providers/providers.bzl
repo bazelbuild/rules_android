@@ -105,6 +105,7 @@ AndroidFeatureModuleInfo = provider(
         binary = "String, target of the underlying split android_binary target",
         feature_name = "String, the name of the feature module. If unspecified, the target name will be used.",
         fused = "Boolean, whether the split is \"fused\" for the system image and for pre-L devices.",
+        has_dex = "Boolean, whether the split android_library contains dex code",
         library = "String, target of the underlying split android_library target",
         manifest = "Optional AndroidManifest.xml file to use for this feature.",
         min_sdk_version = "String, the min SDK version for this feature.",

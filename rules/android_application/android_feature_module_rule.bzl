@@ -33,10 +33,14 @@ load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
 visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
+    # Get the binary from the appropriate attribute based on has_dex
+    binary = ctx.attr.binary_with_dex if ctx.attr.has_dex else ctx.attr.binary
+
     validation = ctx.actions.declare_file(ctx.label.name + "_validation")
-    if ctx.attr.binary[AndroidIdeInfo].native_libs and ctx.attr.is_asset_pack:
+    if binary[AndroidIdeInfo].native_libs and ctx.attr.is_asset_pack:
         fail("Feature module %s is marked as an asset pack but contains native libraries" % ctx.label.name)
-    inputs = [ctx.attr.binary[ApkInfo].unsigned_apk]
+
+    inputs = [binary[ApkInfo].unsigned_apk]
     args = ctx.actions.args()
     args.add(validation.path)
     if ctx.file.manifest:
@@ -44,7 +48,7 @@ def _impl(ctx):
         inputs.append(ctx.file.manifest)
     else:
         args.add("")
-    args.add(ctx.attr.binary[ApkInfo].unsigned_apk.path)
+    args.add(binary[ApkInfo].unsigned_apk.path)
     args.add(utils.dedupe_split_attr(ctx.split_attr.library).label)
     args.add(get_android_toolchain(ctx).xmllint_tool.files_to_run.executable)
     args.add(get_android_toolchain(ctx).unzip_tool.files_to_run.executable)
@@ -66,7 +70,8 @@ def _impl(ctx):
 
     return [
         AndroidFeatureModuleInfo(
-            binary = ctx.attr.binary,
+            binary = binary,
+            has_dex = ctx.attr.has_dex,
             library = utils.dedupe_split_attr(ctx.split_attr.library),
             title_id = ctx.attr.title_id,
             title_lib = ctx.attr.title_lib,
@@ -95,10 +100,10 @@ def get_feature_module_paths(fqn):
     # Given a fqn to an android_feature_module, returns the absolute paths to
     # all implicitly generated targets
     return struct(
-        binary = Label("%s_bin" % fqn),
-        manifest_lib = Label("%s_AndroidManifest" % fqn),
-        title_strings_xml = Label("%s_title_strings_xml" % fqn),
-        title_lib = Label("%s_title_lib" % fqn),
+        binary = native.package_relative_label("%s_bin" % fqn),
+        manifest_lib = native.package_relative_label("%s_AndroidManifest" % fqn),
+        title_strings_xml = native.package_relative_label("%s_title_strings_xml" % fqn),
+        title_lib = native.package_relative_label("%s_title_lib" % fqn),
     )
 
 def android_feature_module_macro(_android_binary, _android_library, **attrs):
@@ -194,14 +199,18 @@ EOF
     }
     _android_binary(**binary_attrs)
 
+    has_dex = getattr(attrs, "has_dex", False)
     android_feature_module(
         name = attrs.name,
         library = attrs.library,
-        binary = str(targets.binary),
+        # Use binary_with_dex when has_dex=True to skip validation aspect
+        binary = None if has_dex else str(targets.binary),
+        binary_with_dex = str(targets.binary) if has_dex else None,
         title_id = title_id,
         title_lib = str(targets.title_lib),
         feature_name = getattr(attrs, "feature_name", attrs.name),
         fused = getattr(attrs, "fused", True),
+        has_dex = has_dex,
         manifest = getattr(attrs, "manifest", None),
         tags = tags,
         transitive_configs = transitive_configs,

@@ -20,6 +20,7 @@ split="${4}"
 aapt="${5}"
 in_manifest="${6}" # Developer-provided manifest for the feature module
 is_asset_pack="${7}"
+has_dex="${8}"
 
 aapt_cmd="$aapt dump xmltree $base_apk --file AndroidManifest.xml"
 version_code=$(${aapt_cmd} | grep "http://schemas.android.com/apk/res/android:versionCode" | cut -d "=" -f2 | head -n 1)
@@ -34,6 +35,13 @@ if [[ -z "$min_sdk" ]]
 then
 	echo "Base app missing minsdk in AndroidManifest.xml"
 	exit 1
+fi
+
+# Determine hasCode value based on has_dex parameter
+if [[ "$has_dex" == "True" ]]; then
+  has_code_value="true"
+else
+  has_code_value="false"
 fi
 
 if [ "$is_asset_pack" = true ]
@@ -58,7 +66,7 @@ else
 			android:versionCode="$version_code"
 			android:isFeatureSplit="true">
 
-		<application android:hasCode="false" /> <!-- currently only supports asset splits -->
+		<application android:hasCode="$has_code_value" />
 		<uses-sdk android:minSdkVersion="$min_sdk" />
 	</manifest>
 	EOF
