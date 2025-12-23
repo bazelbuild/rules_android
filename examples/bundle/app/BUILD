@@ -13,8 +13,11 @@ android_application(
 
 android_library(
     name = "lib",
-    srcs = ["BasicActivity.java"],
+    srcs = ["BasicActivity.java", "BundleApplication.java"],
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
-    deps = ["@maven//:com_google_guava_guava",]
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_android_play_core",
+    ]
 )

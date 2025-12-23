@@ -15,21 +15,59 @@
 package com.examples.bundle.app;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.android.play.core.splitinstall.SplitInstallManager;
+import com.google.android.play.core.splitinstall.SplitInstallManagerFactory;
+import com.google.android.play.core.splitinstall.SplitInstallRequest;
+import com.google.android.play.core.splitinstall.SplitInstallStateUpdatedListener;
+import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus;
+
 /**
  * The main activity of the Basic Sample App.
  */
 public class BasicActivity extends Activity {
 
+  private static final String FEATURE_MODULE_NAME = "asset_feature";
+  private static final String FEATURE_ACTIVITY_CLASS =
+      "com.example.bundle.features.assets.FeatureActivity";
+
+  private SplitInstallManager splitInstallManager;
+  private TextView statusTextView;
+
+  private final SplitInstallStateUpdatedListener listener = state -> {
+    switch (state.status()) {
+      case SplitInstallSessionStatus.DOWNLOADING:
+        statusTextView.setText("Downloading feature module...");
+        break;
+      case SplitInstallSessionStatus.INSTALLING:
+        statusTextView.setText("Installing feature module...");
+        break;
+      case SplitInstallSessionStatus.INSTALLED:
+        statusTextView.setText("Feature module installed!");
+        launchFeatureActivity();
+        break;
+      case SplitInstallSessionStatus.FAILED:
+        statusTextView.setText("Installation failed: " + state.errorCode());
+        break;
+      case SplitInstallSessionStatus.CANCELED:
+        statusTextView.setText("Installation canceled");
+        break;
+    }
+  };
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.basic_activity);
+
+    splitInstallManager = SplitInstallManagerFactory.create(this);
+    statusTextView = findViewById(R.id.text_hello);
 
     final Button buttons[] = {
       findViewById(R.id.button_id_fizz), findViewById(R.id.button_id_buzz),
@@ -47,6 +85,53 @@ public class BasicActivity extends Activity {
               }
             }
           });
+    }
+
+    Button loadFeatureButton = findViewById(R.id.button_load_feature);
+    loadFeatureButton.setOnClickListener(v -> loadFeatureModule());
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    splitInstallManager.registerListener(listener);
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    splitInstallManager.unregisterListener(listener);
+  }
+
+  private void loadFeatureModule() {
+    if (splitInstallManager.getInstalledModules().contains(FEATURE_MODULE_NAME)) {
+      statusTextView.setText("Feature already installed!");
+      launchFeatureActivity();
+      return;
+    }
+
+    statusTextView.setText("Requesting feature module...");
+
+    SplitInstallRequest request = SplitInstallRequest.newBuilder()
+        .addModule(FEATURE_MODULE_NAME)
+        .build();
+
+    splitInstallManager.startInstall(request)
+        .addOnSuccessListener(sessionId -> {
+          statusTextView.setText("Installation started (session " + sessionId + ")");
+        })
+        .addOnFailureListener(e -> {
+          statusTextView.setText("Failed to start install: " + e.getMessage());
+        });
+  }
+
+  private void launchFeatureActivity() {
+    try {
+      Intent intent = new Intent();
+      intent.setClassName(getPackageName(), FEATURE_ACTIVITY_CLASS);
+      startActivity(intent);
+    } catch (Exception e) {
+      statusTextView.setText("Failed to launch: " + e.getMessage());
     }
   }
 

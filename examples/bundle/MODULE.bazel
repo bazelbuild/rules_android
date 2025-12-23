@@ -40,6 +40,7 @@ maven.install(
     aar_import_bzl_label = "@rules_android//rules:rules.bzl",
     artifacts = [
         "com.google.guava:guava:32.1.2-android",
+        "com.google.android.play:core:1.10.3",
     ],
     repositories = [
         "https://maven.google.com",
