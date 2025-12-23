@@ -196,6 +196,7 @@ EOF
         "feature_flags": getattr(attrs, "feature_flags", None),
         "$enable_manifest_merging": False,
         "testonly": testonly,
+        "proguard_specs": getattr(attrs, "proguard_specs", []),
     }
     _android_binary(**binary_attrs)
 

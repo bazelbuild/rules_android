@@ -124,6 +124,11 @@ ANDROID_FEATURE_MODULE_ATTRS = dict(
         doc = "android_library target to include as a feature split.",
     ),
     manifest = attr.label(allow_single_file = True),
+    proguard_specs = attr.label_list(
+        allow_empty = True,
+        allow_files = True,
+        doc = "Proguard specification files to apply to this feature module.",
+    ),
     title_id = attr.string(),
     title_lib = attr.string(),
     _feature_module_validation_script = attr.label(
