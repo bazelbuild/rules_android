@@ -263,11 +263,6 @@ _ATTRS = dict(
         default = "//toolchains/android:unzip",
         executable = True,
     ),
-    xmllint_tool = attr.label(
-        cfg = "exec",
-        default = "//toolchains/android:xmllint",
-        executable = True,
-    ),
     xsltproc_tool = attr.label(
         cfg = "exec",
         default = Label("//tools/android/xslt:xslt"),
@@ -315,10 +310,10 @@ _ATTRS = dict(
         executable = True,
     ),
     deploy_info_writer = attr.label(
-      allow_single_file = True,
-      cfg = "exec",
-      default = Label("//src/tools/deploy_info"),
-      executable = True,
+        allow_single_file = True,
+        cfg = "exec",
+        default = Label("//src/tools/deploy_info"),
+        executable = True,
     ),
     translation_merger = attr.label(
         cfg = "exec",
