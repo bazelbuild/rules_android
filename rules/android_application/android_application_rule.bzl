@@ -55,10 +55,12 @@ load(
 load(
     "//rules:utils.bzl",
     "ANDROID_SDK_TOOLCHAIN_TYPE",
+    "ANDROID_TOOLCHAIN_TYPE",
     "get_android_sdk",
     "get_android_toolchain",
     _log = "log",
 )
+load("//rules:proguard.bzl", "proguard")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
@@ -98,24 +100,28 @@ def _process_feature_module(
         _common.get_host_javabase(ctx),
     )
 
-    # Remove all dexes from the feature module apk. jvm / resources are not
-    # supported in feature modules. The android_feature_module rule has
-    # already validated that there are no transitive sources / resources, but
-    # we may get dexes via e.g. the legacy dex or the record globals.
-    binary = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "_filtered.apk")
-    _common.filter_zip_exclude(
-        ctx,
-        output = binary,
-        input = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk,
-        filter_types = [".dex"],
-    )
+    has_dex = bool(feature_target[AndroidFeatureModuleInfo].has_dex)
+    if has_dex:
+        binary = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk
+    else:
+        # Remove all dexes from the feature module apk. jvm / resources are not
+        # supported in feature modules. The android_feature_module rule has
+        # already validated that there are no transitive sources / resources, but
+        # we may get dexes via e.g. the legacy dex or the record globals.
+        binary = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "_filtered.apk")
+        _common.filter_zip_exclude(
+            ctx,
+            output = binary,
+            input = feature_target[AndroidFeatureModuleInfo].binary[ApkInfo].unsigned_apk,
+            filter_types = [".dex"],
+        )
     res = feature_target[AndroidFeatureModuleInfo].library[StarlarkAndroidResourcesInfo]
     has_native_libs = bool(feature_target[AndroidFeatureModuleInfo].binary[AndroidIdeInfo].native_libs)
     is_asset_pack = bool(feature_target[AndroidFeatureModuleInfo].is_asset_pack)
 
     # Create res .proto-apk_, output depending on whether further manipulations
     # are required after busybox. This prevents action conflicts.
-    if has_native_libs or is_asset_pack:
+    if has_native_libs or is_asset_pack or has_dex:
         res_apk = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/res.proto-ap_")
     else:
         res_apk = out
@@ -155,25 +161,36 @@ def _process_feature_module(
         application_id = application_id,
     )
 
-    if not is_asset_pack and not has_native_libs:
+    if not is_asset_pack and not has_native_libs and not has_dex:
         return
 
     if is_asset_pack:
         # Return AndroidManifest.xml and assets from res-ap_
         _common.filter_zip_include(ctx, res_apk, out, ["AndroidManifest.xml", "assets/*"])
     else:
-        # Extract libs/ from split binary
-        native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
-        _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
-
         # Extract AndroidManifest.xml and assets from res-ap_
         filtered_res = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/filtered_res.zip")
         _common.filter_zip_include(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
 
+        inputs_to_merge = [filtered_res]
+
+        # Extract libs/ from split binary if present
+        if has_native_libs:
+            native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
+            _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
+            inputs_to_merge.append(native_libs)
+
+        # Extract dex files from split binary if has_dex is enabled
+        if has_dex:
+            dex_files = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/dex_files.zip")
+            _common.filter_zip_include(ctx, binary, dex_files, ["*.dex", "classes*.dex"])
+            inputs_to_merge.append(dex_files)
+
         # Merge into output
+        # Note: singlejar adds META-INF/MANIFEST.MF, but bundletool_module_builder filters it out
         _java.singlejar(
             ctx,
-            inputs = [filtered_res, native_libs],
+            inputs = inputs_to_merge,
             output = out,
             java_toolchain = _common.get_java_toolchain(ctx),
         )
@@ -201,6 +218,7 @@ def _create_feature_manifest(
         args.add(info.title_id)
         args.add(info.fused)
         args.add(aapt2.executable)
+        args.add(info.has_dex)
 
         ctx.actions.run(
             executable = feature_manifest_script,
@@ -219,6 +237,7 @@ def _create_feature_manifest(
     # Rule has a manifest (already validated by android_feature_module).
     # Generate a priority manifest and then merge the user supplied manifest.
     is_asset_pack = feature_target[AndroidFeatureModuleInfo].is_asset_pack
+    has_dex = feature_target[AndroidFeatureModuleInfo].has_dex
     priority_manifest = ctx.actions.declare_file(
         ctx.label.name + "/" + feature_target.label.name + "/Priority_AndroidManifest.xml",
     )
@@ -230,6 +249,7 @@ def _create_feature_manifest(
     args.add(aapt2.executable)
     args.add(info.manifest)
     args.add(is_asset_pack)
+    args.add(has_dex)
 
     ctx.actions.run(
         executable = priority_feature_manifest_script,
@@ -329,8 +349,14 @@ def _impl(ctx):
             get_android_toolchain(ctx).bundletool_module_builder.files_to_run,
     )
 
+    feature_module_proguard_mappings = []
+
     # Convert each feature to module zip.
     for feature in ctx.attr.feature_modules:
+        # Collect proguard mapping files from feature modules
+        if ProguardMappingInfo in feature[AndroidFeatureModuleInfo].binary:
+            feature_module_proguard_mappings.append(feature[AndroidFeatureModuleInfo].binary[ProguardMappingInfo].proguard_mapping)
+
         proto_apk = ctx.actions.declare_file(
             "%s.proto-ap_" % feature.label.name,
             sibling = base_proto_apk,
@@ -357,9 +383,6 @@ def _impl(ctx):
         )
 
     metadata = dict()
-    if ProguardMappingInfo in ctx.attr.base_module:
-        metadata["com.android.tools.build.obfuscation/proguard.map"] = ctx.attr.base_module[ProguardMappingInfo].proguard_mapping
-
     if ctx.file.device_group_config:
         metadata["com.android.tools.build.bundletool/DeviceGroupConfig.json"] = ctx.file.device_group_config
 
@@ -373,6 +396,29 @@ def _impl(ctx):
         base_art_profile_info = ctx.attr.base_module[ArtProfileInfo]
         metadata["com.android.tools.build.profiles/baseline.prof"] = base_art_profile_info.baseline_profile
         metadata["com.android.tools.build.profiles/baseline.profm"] = base_art_profile_info.baseline_profile_metadata
+
+    # Collect all proguard mapping files (base + feature modules)
+    proguard_maps_to_merge = list(feature_module_proguard_mappings)
+    if ProguardMappingInfo in ctx.attr.base_module:
+        proguard_maps_to_merge.append(ctx.attr.base_module[ProguardMappingInfo].proguard_mapping)
+
+    if proguard_maps_to_merge:
+        if len(proguard_maps_to_merge) == 1:
+            # Only one mapping, no need to merge
+            metadata["com.android.tools.build.obfuscation/proguard.map"] = proguard_maps_to_merge[0]
+        else:
+            # Multiple mappings, merge them
+            merged_proguard_mapping = ctx.actions.declare_file(ctx.label.name + "_merged_proguard.map")
+
+            # TODO: this isn't working, because `proguard_maps_merger` doesn't exist in the toolchain.
+            proguard.merge_proguard_maps(
+                ctx,
+                output = merged_proguard_mapping,
+                inputs = proguard_maps_to_merge,
+                proguard_maps_merger = get_android_toolchain(ctx).proguard_maps_merger.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+            )
+            metadata["com.android.tools.build.obfuscation/proguard.map"] = merged_proguard_mapping
 
     # Create .aab
     _bundletool.build(

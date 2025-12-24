@@ -3,6 +3,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
 load("@rules_java//java:defs.bzl", "java_library")
 
 exports_files([
+    "bundle_keystore_properties.tmpl",
     "data_binding_annotation_template.txt",
     "res_v3_dummy_AndroidManifest.xml",
     "res_v3_dummy_R.txt",
