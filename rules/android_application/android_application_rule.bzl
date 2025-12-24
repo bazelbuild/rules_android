@@ -55,10 +55,12 @@ load(
 load(
     "//rules:utils.bzl",
     "ANDROID_SDK_TOOLCHAIN_TYPE",
+    "ANDROID_TOOLCHAIN_TYPE",
     "get_android_sdk",
     "get_android_toolchain",
     _log = "log",
 )
+load("//rules:proguard.bzl", "proguard")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
@@ -347,8 +349,14 @@ def _impl(ctx):
             get_android_toolchain(ctx).bundletool_module_builder.files_to_run,
     )
 
+    feature_module_proguard_mappings = []
+
     # Convert each feature to module zip.
     for feature in ctx.attr.feature_modules:
+        # Collect proguard mapping files from feature modules
+        if ProguardMappingInfo in feature[AndroidFeatureModuleInfo].binary:
+            feature_module_proguard_mappings.append(feature[AndroidFeatureModuleInfo].binary[ProguardMappingInfo].proguard_mapping)
+
         proto_apk = ctx.actions.declare_file(
             "%s.proto-ap_" % feature.label.name,
             sibling = base_proto_apk,
@@ -375,9 +383,6 @@ def _impl(ctx):
         )
 
     metadata = dict()
-    if ProguardMappingInfo in ctx.attr.base_module:
-        metadata["com.android.tools.build.obfuscation/proguard.map"] = ctx.attr.base_module[ProguardMappingInfo].proguard_mapping
-
     if ctx.file.device_group_config:
         metadata["com.android.tools.build.bundletool/DeviceGroupConfig.json"] = ctx.file.device_group_config
 
@@ -391,6 +396,29 @@ def _impl(ctx):
         base_art_profile_info = ctx.attr.base_module[ArtProfileInfo]
         metadata["com.android.tools.build.profiles/baseline.prof"] = base_art_profile_info.baseline_profile
         metadata["com.android.tools.build.profiles/baseline.profm"] = base_art_profile_info.baseline_profile_metadata
+
+    # Collect all proguard mapping files (base + feature modules)
+    proguard_maps_to_merge = list(feature_module_proguard_mappings)
+    if ProguardMappingInfo in ctx.attr.base_module:
+        proguard_maps_to_merge.append(ctx.attr.base_module[ProguardMappingInfo].proguard_mapping)
+
+    if proguard_maps_to_merge:
+        if len(proguard_maps_to_merge) == 1:
+            # Only one mapping, no need to merge
+            metadata["com.android.tools.build.obfuscation/proguard.map"] = proguard_maps_to_merge[0]
+        else:
+            # Multiple mappings, merge them
+            merged_proguard_mapping = ctx.actions.declare_file(ctx.label.name + "_merged_proguard.map")
+
+            # TODO: this isn't working, because `proguard_maps_merger` doesn't exist in the toolchain.
+            proguard.merge_proguard_maps(
+                ctx,
+                output = merged_proguard_mapping,
+                inputs = proguard_maps_to_merge,
+                proguard_maps_merger = get_android_toolchain(ctx).proguard_maps_merger.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+            )
+            metadata["com.android.tools.build.obfuscation/proguard.map"] = merged_proguard_mapping
 
     # Create .aab
     _bundletool.build(
