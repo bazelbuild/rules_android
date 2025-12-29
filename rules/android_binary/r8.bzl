@@ -13,7 +13,7 @@
 # limitations under the License.
 """R8 processor steps for android_binary."""
 
-load("//providers:providers.bzl", "AndroidDexInfo", "AndroidPreDexJarInfo")
+load("//providers:providers.bzl", "AndroidDexInfo", "AndroidPreDexJarInfo", "ProguardMappingInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load("//rules:common.bzl", "common")
@@ -124,8 +124,70 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
             providers = [
                 android_dex_info,
                 AndroidPreDexJarInfo(pre_dex_jar = deploy_jar),
+                ProguardMappingInfo(proguard_mapping = proguard_mappings_output_file),
             ],
         ),
+    )
+
+# TODO: Unify with process_r8 or extract the common parts.
+def process_feature_splits_r8(ctx, base_deploy_jar, feature_deploy_jars, proguard_specs):
+    """Runs R8 with feature splits for consistent obfuscation across base and features.
+
+    Args:
+        ctx: Rule context.
+        base_deploy_jar: File. The deploy jar for the base module.
+        feature_deploy_jars: Dict[str, File]. Map of feature name to deploy jar.
+        proguard_specs: List of files with proguard specs.
+
+    Returns:
+        struct with base_dex_zip, feature_dex_zips, proguard_mapping
+    """
+    base_dex_zip = ctx.actions.declare_file(ctx.label.name + "_r8_base.zip")
+    proguard_mapping = ctx.actions.declare_file(ctx.label.name + "_r8.map")
+
+    feature_dex_zips = {}
+    for feature_name in feature_deploy_jars.keys():
+        feature_dex_zips[feature_name] = ctx.actions.declare_file(ctx.label.name + "_r8_feature_" + feature_name + ".zip")
+
+    android_jar = get_android_sdk(ctx).android_jar
+    min_sdk_version = getattr(ctx.attr, "min_sdk_version", None)
+
+    args = ctx.actions.args()
+    args.add("--release")
+    if min_sdk_version:
+        args.add("--min-api", min_sdk_version)
+    args.add("--output", base_dex_zip)
+    args.add_all(proguard_specs, before_each = "--pg-conf")
+    args.add("--lib", android_jar)
+    args.add("--pg-map-output", proguard_mapping)
+
+    for feature_name, feature_jar in feature_deploy_jars.items():
+        # R8 --feature flag syntax: --feature <input-jar> <output-dex>
+        args.add("--feature")
+        args.add(feature_jar)
+        args.add(feature_dex_zips[feature_name])
+
+    args.add(base_deploy_jar)
+
+    inputs = [android_jar, base_deploy_jar] + proguard_specs + list(feature_deploy_jars.values())
+    outputs = [base_dex_zip, proguard_mapping] + list(feature_dex_zips.values())
+
+    java.run(
+        ctx = ctx,
+        host_javabase = common.get_host_javabase(ctx),
+        executable = get_android_toolchain(ctx).r8.files_to_run,
+        arguments = [args],
+        inputs = depset(inputs),
+        outputs = outputs,
+        mnemonic = "AndroidR8FeatureSplits",
+        jvm_flags = ["-Xmx8G"],
+        progress_message = "R8 Optimizing, Desugaring, and Dexing %{label}",
+    )
+
+    return struct(
+        base_dex_zip = base_dex_zip,
+        feature_dex_zips = feature_dex_zips,
+        proguard_mapping = proguard_mapping,
     )
 
 def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused_ctxs):

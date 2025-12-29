@@ -17,6 +17,7 @@ load(
     "//providers:providers.bzl",
     "AndroidFeatureModuleInfo",
     "AndroidIdeInfo",
+    "AndroidPreDexJarInfo",
     "ApkInfo",
 )
 load("//rules:acls.bzl", "acls")
@@ -29,12 +30,20 @@ load(
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
-    # Get the binary from the appropriate attribute based on has_dex
-    binary = ctx.attr.binary_with_dex if ctx.attr.has_dex else ctx.attr.binary
+    # Get the binary from the appropriate attribute based on has_code
+    binary = ctx.attr.binary_with_code if ctx.attr.has_code else ctx.attr.binary
+    pre_dexed_jar = binary[AndroidPreDexJarInfo].pre_dex_jar
+
+    # Collect proguard_specs from library dependencies of the feature module
+    proguard_specs = []
+    for library in ctx.attr.library:
+        if ProguardSpecInfo in library:
+            proguard_specs.extend(library[ProguardSpecInfo].specs.to_list())
 
     validation = ctx.actions.declare_file(ctx.label.name + "_validation")
     if binary[AndroidIdeInfo].native_libs and ctx.attr.is_asset_pack:
@@ -71,13 +80,15 @@ def _impl(ctx):
     return [
         AndroidFeatureModuleInfo(
             binary = binary,
-            has_dex = ctx.attr.has_dex,
+            has_code = ctx.attr.has_code,
             library = utils.dedupe_split_attr(ctx.split_attr.library),
             title_id = ctx.attr.title_id,
             title_lib = ctx.attr.title_lib,
             feature_name = ctx.attr.feature_name,
             fused = ctx.attr.fused,
             manifest = ctx.file.manifest,
+            pre_dexed_jar = pre_dexed_jar,
+            proguards_specs = proguard_specs,
             is_asset_pack = ctx.attr.is_asset_pack,
         ),
         OutputGroupInfo(_validation = depset([validation])),
@@ -190,6 +201,7 @@ EOF
         "manifest": str(targets.manifest_lib),
         "deps": [attrs.library],
         "multidex": "native",
+        "proguard_specs": [],  # No optimization here; unified R8 at android_application handles it.
         "tags": tags,
         "transitive_configs": transitive_configs,
         "visibility": visibility,
@@ -199,18 +211,18 @@ EOF
     }
     _android_binary(**binary_attrs)
 
-    has_dex = getattr(attrs, "has_dex", False)
+    has_code = getattr(attrs, "has_code", False)
     android_feature_module(
         name = attrs.name,
         library = attrs.library,
-        # Use binary_with_dex when has_dex=True to skip validation aspect
-        binary = None if has_dex else str(targets.binary),
-        binary_with_dex = str(targets.binary) if has_dex else None,
+        # Use binary_with_code when has_code=True to skip validation aspect
+        binary = None if has_code else str(targets.binary),
+        binary_with_code = str(targets.binary) if has_code else None,
         title_id = title_id,
         title_lib = str(targets.title_lib),
         feature_name = getattr(attrs, "feature_name", attrs.name),
         fused = getattr(attrs, "fused", True),
-        has_dex = has_dex,
+        has_code = has_code,
         manifest = getattr(attrs, "manifest", None),
         tags = tags,
         transitive_configs = transitive_configs,

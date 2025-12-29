@@ -8,6 +8,7 @@ android_application(
     },
     feature_modules = ["//features/assets:feature_module"],
     manifest = "AndroidManifest.xml",
+    proguard_specs = ["proguard.cfg"],
     deps = [":lib"],
 )
 

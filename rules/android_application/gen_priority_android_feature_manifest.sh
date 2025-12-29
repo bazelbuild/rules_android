@@ -20,7 +20,7 @@ split="${4}"
 aapt="${5}"
 in_manifest="${6}" # Developer-provided manifest for the feature module
 is_asset_pack="${7}"
-has_dex="${8}"
+has_code="${8}"
 
 aapt_cmd="$aapt dump xmltree $base_apk --file AndroidManifest.xml"
 version_code=$(${aapt_cmd} | grep "http://schemas.android.com/apk/res/android:versionCode" | cut -d "=" -f2 | head -n 1)
@@ -37,8 +37,8 @@ then
 	exit 1
 fi
 
-# Determine hasCode value based on has_dex parameter
-if [[ "$has_dex" == "true" ]]; then
+# Determine hasCode value based on has_code parameter
+if [[ "$has_code" == "true" ]]; then
   has_code_value="true"
 else
   has_code_value="false"

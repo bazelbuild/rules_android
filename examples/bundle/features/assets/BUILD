@@ -16,6 +16,6 @@ android_feature_module(
     title = "asset_feature",
     library = ":lib",
     feature_name = "asset_feature",
-    has_dex = True,
+    has_code = True,
     visibility = ["//visibility:public"],
 )
