@@ -8,7 +8,7 @@ bazel_dep(name = "rules_jvm_external", version = "6.7")
 
 bazel_dep(
     name = "rules_android",
-    version = "0.6.6",
+    version = "0.7.0",
 )
 
 
