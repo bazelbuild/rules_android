@@ -20,6 +20,7 @@ split="${4}"
 title_id="${5}"
 fused="${6}"
 aapt="${7}"
+has_code="${8}"
 
 aapt_cmd="$aapt dump xmltree $base_apk --file AndroidManifest.xml"
 version_code=$(${aapt_cmd} | grep "http://schemas.android.com/apk/res/android:versionCode" | cut -d "=" -f2 | head -n 1 )
@@ -27,6 +28,13 @@ if [[ -z "$version_code" ]]
 then
   echo "Base app missing versionCode in AndroidManifest.xml"
   exit 1
+fi
+
+# Determine hasCode value based on has_code parameter
+if [[ "$has_code" == "true" ]]; then
+  has_code_value="true"
+else
+  has_code_value="false"
 fi
 
 cat >$out_manifest <<EOF
@@ -46,6 +54,6 @@ cat >$out_manifest <<EOF
       <dist:on-demand /></dist:delivery>
   </dist:module>
 
-  <application android:hasCode="false" /> <!-- currently only supports asset splits -->
+  <application android:hasCode="$has_code_value" />
 </manifest>
 EOF
