@@ -126,6 +126,7 @@ def android_binary_macro(**attrs):
 
     # Required for ACLs check in _outputs(), since the callback can't access the native module.
     attrs["$package_name"] = native.package_name()
+    target_fqn = "//%s:%s" % (native.package_name(), attrs["name"])
 
     if type(attrs.get("proguard_specs", None)) == "select" or attrs.get("proguard_specs", None):
         attrs["$generate_proguard_outputs"] = True
@@ -134,5 +135,11 @@ def android_binary_macro(**attrs):
     attr_value = attrs.get("generate_art_profile", True)
     if type(attr_value) == "select" or attr_value or attr_value == None:
         attrs["$generate_art_profile_outputs"] = True
+
+    # Remove mutlidex attrs which are no longer needed now that our minimum supported API level is
+    # higher than 21.
+    if acls.in_drop_multidex_attrs(target_fqn):
+        for attr in ["multidex", "main_dex_list", "main_dex_list_opts", "main_dex_proguard_specs"]:
+            attrs.pop(attr, default = None)
 
     android_binary(**sanitize_attrs(attrs))
