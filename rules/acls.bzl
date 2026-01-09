@@ -60,6 +60,7 @@ load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLO
 load("//rules/acls:desugaring_runtime_jar_classpath.bzl", "DESUGAR_USE_RUNTIME_JARS")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
 load("//rules/acls:disable_optimizing_dexer.bzl", "DISABLE_OPTIMIZING_DEXER")
+load("//rules/acls:drop_multidex_attrs.bzl", "DROP_MULTIDEX_ATTRS")
 load("//rules/acls:enable_exported_lint_checks.bzl", "ENABLE_EXPORTED_LINT_CHECKS")
 load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOURCES")
 load("//rules/acls:gpu_override.bzl", "CAN_USE_GPU_OVERRIDE")
@@ -231,6 +232,9 @@ def _get_aapt2_feature_flags(_):
 def _use_baseline_as_startup_profile(fqn):
     return matches(fqn, USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT_DICT) and not matches(fqn, USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT)
 
+def _in_drop_multidex_attrs(fqn):
+    return matches(fqn, DROP_MULTIDEX_ATTRS_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -303,6 +307,7 @@ RESOURCE_TRANSLATION_MERGING_FALLBACK_DICT = make_dict(RESOURCE_TRANSLATION_MERG
 ENABLE_EXPORTED_LINT_CHECKS_DICT = make_dict(ENABLE_EXPORTED_LINT_CHECKS)
 USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT)
 USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK)
+DROP_MULTIDEX_ATTRS_DICT = make_dict(DROP_MULTIDEX_ATTRS)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -403,6 +408,7 @@ acls = struct(
     in_enable_exported_lint_checks = _in_enable_exported_lint_checks,
     get_aapt2_feature_flags = _get_aapt2_feature_flags,
     use_baseline_as_startup_profile = _use_baseline_as_startup_profile,
+    in_drop_multidex_attrs = _in_drop_multidex_attrs,
 )
 
 # Visible for testing
