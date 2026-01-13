@@ -24,9 +24,6 @@ load(
 )
 load("@robolectric//bazel:robolectric.bzl", "robolectric_repositories")
 load("@rules_jvm_external//:defs.bzl", "maven_install")
-load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies")
-load("@rules_proto//proto:setup.bzl", "rules_proto_setup")
-load("@rules_proto//proto:toolchains.bzl", "rules_proto_toolchains")
 load("@rules_python//python:repositories.bzl", "py_repositories", "python_register_toolchains")
 load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_shell_toolchains")
 
@@ -57,8 +54,8 @@ def rules_android_workspace():
             # These technically aren't needed, but the protobuf version pulled
             # in by these older deps has compatibility issues with the newer
             # protobuf runtimes.
-            "com.google.protobuf:protobuf-java:4.33.1",
-            "com.google.protobuf:protobuf-java-util:4.33.1",
+            "com.google.protobuf:protobuf-java:4.33.4",
+            "com.google.protobuf:protobuf-java-util:4.33.4",
         ],
         repositories = [
             "https://maven.google.com",
@@ -94,8 +91,8 @@ def rules_android_workspace():
             "jakarta.inject:jakarta.inject-api:2.0.1",
             "junit:junit:4.13.2",
             "com.beust:jcommander:1.82",
-            "com.google.protobuf:protobuf-java:4.33.1",
-            "com.google.protobuf:protobuf-java-util:4.33.1",
+            "com.google.protobuf:protobuf-java:4.33.4",
+            "com.google.protobuf:protobuf-java-util:4.33.4",
             "com.google.code.findbugs:jsr305:3.0.2",
             "androidx.databinding:databinding-compiler:8.7.0",
             "org.ow2.asm:asm:9.6",
@@ -150,8 +147,8 @@ def rules_android_workspace():
             "com.google.code.gson:gson:2.10.1",  # bazel worker api
             "com.google.errorprone:error_prone_annotations:2.23.0",  # bazel worker api
             "com.google.guava:guava:33.0.0-jre",  # bazel worker api
-            "com.google.protobuf:protobuf-java:4.33.1",  # bazel worker api
-            "com.google.protobuf:protobuf-java-util:4.33.1",  # bazel worker api
+            "com.google.protobuf:protobuf-java:4.33.4",  # bazel worker api
+            "com.google.protobuf:protobuf-java-util:4.33.4",  # bazel worker api
             "junit:junit:4.13.2",  # bazel worker api
             "org.mockito:mockito-core:5.4.0",  # bazel worker api
             "com.google.truth:truth:1.4.0",  # bazel worker api
@@ -162,6 +159,7 @@ def rules_android_workspace():
             "https://maven.google.com",
         ],
     )
+
     go_rules_dependencies()
 
     _GO_TOOLCHAIN_VERSION = "1.22.4"
@@ -203,10 +201,6 @@ def rules_android_workspace():
     )
 
     robolectric_repositories()
-
-    rules_proto_dependencies()
-    rules_proto_toolchains()
-    rules_proto_setup()
 
     py_repositories()
 
