@@ -98,7 +98,7 @@ java_library(
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
         "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:com_google_protobuf_protobuf_java",
+        "@com_google_protobuf//java/core",
         ":android_common_30_1_3",
         ":android_databinding_wrapper_lib",
         ":android_options_utils",

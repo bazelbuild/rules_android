@@ -6,6 +6,10 @@ load("prereqs.bzl", "rules_android_prereqs")
 
 rules_android_prereqs(dev_mode = True)
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
+
+
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
 bazel_features_deps()
 
@@ -14,12 +18,6 @@ compatibility_proxy_repo()
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
 rules_java_dependencies()
-
-# note that the following line is what is minimally required from protobuf for the java rules
-# consider using the protobuf_deps() public API from @com_google_protobuf//:protobuf_deps.bzl
-load("@com_google_protobuf//bazel/private:proto_bazel_features.bzl", "proto_bazel_features")  # buildifier: disable=bzl-visibility
-
-proto_bazel_features(name = "proto_bazel_features")
 
 # register toolchains
 load("@rules_java//java:repositories.bzl", "rules_java_toolchains")
