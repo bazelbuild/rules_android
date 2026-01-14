@@ -15,7 +15,7 @@ bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
-bazel_dep(name = "protobuf", version = "33.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_jvm_external", version = "6.9")
 bazel_dep(name = "bazel_skylib", version = "1.8.1")
 bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
@@ -78,8 +78,8 @@ maven.install(
         # These technically aren't needed, but the protobuf version pulled
         # in by these older deps has compatibility issues with the newer
         # protobuf runtimes.
-        "com.google.protobuf:protobuf-java:4.33.1",
-        "com.google.protobuf:protobuf-java-util:4.33.1",
+        "com.google.protobuf:protobuf-java:4.33.4",
+        "com.google.protobuf:protobuf-java-util:4.33.4",
     ],
     repositories = [
         "https://maven.google.com",
@@ -117,8 +117,8 @@ maven.install(
         "jakarta.inject:jakarta.inject-api:2.0.1",
         "junit:junit:4.13.2",
         "com.beust:jcommander:1.82",
-        "com.google.protobuf:protobuf-java:4.33.1",
-        "com.google.protobuf:protobuf-java-util:4.33.1",
+        "com.google.protobuf:protobuf-java:4.33.4",
+        "com.google.protobuf:protobuf-java-util:4.33.4",
         "com.google.code.findbugs:jsr305:3.0.2",
         "androidx.databinding:databinding-compiler:8.7.0",
         "org.ow2.asm:asm:9.6",
