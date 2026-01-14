@@ -63,7 +63,7 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://github.com/bazelbuild/rules_jvm_external/releases/download/%s/rules_jvm_external-%s.tar.gz" % (RULES_JVM_EXTERNAL_TAG, RULES_JVM_EXTERNAL_TAG),
     )
 
-    PROTOBUF_VERSION = "33.1"
+    PROTOBUF_VERSION = "33.4"
     PROTOBUF_HASH = "fda132cb0c86400381c0af1fe98bd0f775cb566cb247cdcc105e344e00acc30e"
     maybe(
         http_archive,
