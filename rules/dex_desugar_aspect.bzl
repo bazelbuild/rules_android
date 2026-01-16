@@ -35,6 +35,7 @@ _ATTR_ASPECTS = [
     "_build_stamp_deps",  # for build stamp runtime class deps
     "_build_stamp_mergee_manifest_lib",  # for empty build stamp Service class implementation
     "_desugared_lib_config",  # For java8 desugaring config file
+    "_proto_toolchain_for_javalite",  # To get from proto_library through proto_lang_toolchain rule to proto runtime library.
     "_toolchain",  # For _java_lite_grpc_library
     "deps",
     "exports",
