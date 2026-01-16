@@ -140,6 +140,7 @@ def android_binary_macro(**attrs):
     # higher than 21.
     if acls.in_drop_multidex_attrs(target_fqn):
         for attr in ["multidex", "main_dex_list", "main_dex_list_opts", "main_dex_proguard_specs"]:
-            attrs.pop(attr, default = None)
+            if attr in attrs:
+                attrs.pop(attr)
 
     android_binary(**sanitize_attrs(attrs))
