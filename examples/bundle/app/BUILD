@@ -1,0 +1,24 @@
+load("@rules_android//android:rules.bzl", "android_application", "android_library")
+
+android_application(
+    name = "assets",
+    manifest_values = {
+        "applicationId" : "com.examples.bundle.app",
+        "versionCode": "0",
+    },
+    feature_modules = ["//features/assets:feature_module"],
+    manifest = "AndroidManifest.xml",
+    proguard_specs = ["proguard.cfg"],
+    deps = [":lib"],
+)
+
+android_library(
+    name = "lib",
+    srcs = ["BasicActivity.java", "BundleApplication.java"],
+    manifest = "AndroidManifest.xml",
+    resource_files = glob(["res/**"]),
+    deps = [
+        "@maven//:com_google_guava_guava",
+        "@maven//:com_google_android_play_core",
+    ]
+)
