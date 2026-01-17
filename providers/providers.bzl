@@ -44,6 +44,7 @@ StarlarkApkInfo = provider(
         keystore = "Keystore used to sign the APK. Deprecated, prefer signing_keys.",
         signing_keys = "List of keys used to sign the APK",
         signing_lineage = "Optional sigining lineage file",
+        keystore_signing_password = "Keystore password (defaults to android)",
         signed_apk = "Signed APK",
         unsigned_apk = "Unsigned APK",
     ),
@@ -190,6 +191,7 @@ ApkInfo = provider(
         signed_apk = "Returns a signed APK built from the target.",
         signing_keys = "Returns a list of signing keystores that were used to sign the APK.",
         signing_min_v3_rotation_api_version = "Returns the minimum API version for signing the APK with key rotation.",
+        keystore_signing_password = "Returns the keystore password (defaults to android)",
     ),
 )
 
