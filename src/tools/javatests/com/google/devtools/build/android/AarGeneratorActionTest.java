@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -254,7 +255,9 @@ public class AarGeneratorActionTest {
 
         zout.close();
 
-        Files.setLastModifiedTime(classes, FileTime.from(AarGeneratorAction.DEFAULT_TIMESTAMP));
+        Files.setLastModifiedTime(
+            classes,
+            FileTime.from(JarTime.DEFAULT_TIMESTAMP.atZone(ZoneId.systemDefault()).toInstant()));
       }
     }
 
@@ -569,9 +572,10 @@ public class AarGeneratorActionTest {
         aarData.proguardSpecs);
 
     assertThat(getZipEntryTimestamps(aar))
-        .containsExactly(AarGeneratorAction.DEFAULT_TIMESTAMP.toEpochMilli());
+        .containsExactly(
+            JarTime.DEFAULT_TIMESTAMP.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
     assertThat(Files.getLastModifiedTime(aar).toInstant())
-        .isEqualTo(AarGeneratorAction.DEFAULT_TIMESTAMP);
+        .isEqualTo(JarTime.DEFAULT_TIMESTAMP.atZone(ZoneId.systemDefault()).toInstant());
   }
 
   @Test public void testAssetResourceSubdirs() throws Exception {
