@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.devtools.build.android.AndroidOptionsUtils;
+import com.google.devtools.build.android.JarTime;
 import com.google.devtools.build.buildjar.proto.JavaCompilation.CompilationUnit;
 import com.google.devtools.build.buildjar.proto.JavaCompilation.Manifest;
 import java.io.BufferedOutputStream;
@@ -33,8 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -52,10 +51,6 @@ import java.util.zip.ZipOutputStream;
  * from idl processing.
  */
 public class IdlClass {
-  // Cribbed from AarGeneratorAction.java
-  private static final Instant DEFAULT_TIMESTAMP =
-      LocalDateTime.of(2010, 1, 1, 0, 0, 0).atZone(ZoneId.systemDefault()).toInstant();
-
   public static void main(String[] args) throws IOException {
     IdlClassOptions idlClassOptions = new IdlClassOptions();
     String[] preprocessedArgs = AndroidOptionsUtils.runArgFilePreprocessor(args);
@@ -187,7 +182,7 @@ public class IdlClass {
 
       for (Path path : files) {
         ZipEntry entry = new ZipEntry(tempDir.relativize(path).toString());
-        entry.setTime(DEFAULT_TIMESTAMP.toEpochMilli());
+        entry.setTimeLocal(JarTime.DEFAULT_TIMESTAMP);
         entry.setSize(Files.size(path));
         entry.setCompressedSize(Files.size(path));
         entry.setCrc(Hashing.crc32().hashBytes(Files.readAllBytes(path)).padToLong());
@@ -199,6 +194,8 @@ public class IdlClass {
     } catch (IOException e) {
       throw new IOException("Failed to write output jar: " + outputJar, e);
     }
-    Files.setLastModifiedTime(outputJar, FileTime.from(DEFAULT_TIMESTAMP));
+    Files.setLastModifiedTime(
+        outputJar,
+        FileTime.from(JarTime.DEFAULT_TIMESTAMP.atZone(ZoneId.systemDefault()).toInstant()));
   }
 }
