@@ -159,6 +159,7 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
     # 1. Convert the resource APK to proto format (resource shrinker operates on a proto apk)
     proto_resource_apk = ctx.actions.declare_file(ctx.label.name + "_proto_resource_apk.ap_")
     ctx.actions.run(
+        use_default_shell_env = True,
         arguments = [ctx.actions.args()
             .add("convert")
             .add(packaged_resources_ctx.resources_apk)  # input apk
@@ -192,6 +193,7 @@ def process_resource_shrinking_r8(ctx, r8_ctx, packaged_resources_ctx, **_unused
     # 3. Convert back to a binary APK
     resource_apk_shrunk = ctx.actions.declare_file(ctx.label.name + "_resource_apk_shrunk.ap_")
     ctx.actions.run(
+        use_default_shell_env = True,
         arguments = [ctx.actions.args()
             .add("convert")
             .add(proto_resource_apk_shrunk)  # input apk

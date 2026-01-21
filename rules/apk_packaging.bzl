@@ -306,6 +306,7 @@ def _zipalign_apk(
     args.add(out_apk)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = zip_aligner,
         inputs = [in_apk],
         outputs = [out_apk],
@@ -377,6 +378,7 @@ def _sign_apk(
     args.add(in_apk)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = apk_signer,
         outputs = outputs,
         inputs = inputs,
@@ -400,6 +402,7 @@ def _create_deploy_info(
     args.add("--deploy_info", deploy_info)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = deploy_info_writer,
         arguments = [args],
         outputs = [deploy_info],

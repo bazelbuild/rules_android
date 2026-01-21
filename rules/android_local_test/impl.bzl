@@ -13,6 +13,10 @@
 # limitations under the License.
 """Bazel rule for Android local test."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
@@ -34,10 +38,6 @@ load(
     "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -561,6 +561,7 @@ def filter_jdeps(ctx, in_jdeps, out_jdeps, filter_suffix):
     args.add("--out")
     args.add(out_jdeps.path)
     ctx.actions.run(
+        use_default_shell_env = True,
         inputs = [in_jdeps],
         outputs = [out_jdeps],
         executable = get_android_toolchain(ctx).jdeps_tool.files_to_run,

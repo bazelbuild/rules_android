@@ -13,9 +13,9 @@
 # limitations under the License.
 """Bazel Java APIs for the Android rules."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/private:android_support.bzl", "android_support")  # buildifier: disable=bzl-visibility
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":path.bzl", _path = "path")
 load(":utils.bzl", "log")
 
@@ -421,6 +421,7 @@ def _singlejar(
     args.use_param_file("@%s")
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = java_toolchain[java_common.JavaToolchainInfo].single_jar,
         toolchain = "@bazel_tools//tools/jdk:toolchain_type",
         arguments = [args],
@@ -450,7 +451,7 @@ def _run(
       supports_workers: This action is worker-compatible (enabled with --strategy=MyAction=worker).
       supports_multiplex_workers: This action is multiplex worker-compatible.
       execution_requirements: Information to schedule the action, in key-value pairs.
-      **args: Additional arguments to pass to ctx.actions.run(). Some will get modified.
+      **args: Additional arguments to pass to ctx.actions.run(use_default_shell_env = True,). Some will get modified.
     """
 
     if type(ctx) != "ctx":
@@ -495,7 +496,7 @@ def _run(
         if supports_multiplex_workers:
             execution_requirements["supports-multiplex-workers"] = "1"
 
-    ctx.actions.run(execution_requirements = execution_requirements, mnemonic = mnemonic, **args)
+    ctx.actions.run(use_default_shell_env = True, execution_requirements = execution_requirements, mnemonic = mnemonic, **args)
 
 def _create_deploy_jar(
         ctx,
@@ -571,6 +572,7 @@ def _check_one_version(
     )
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = tool,
         arguments = [args],
         outputs = [output],

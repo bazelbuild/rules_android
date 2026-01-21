@@ -368,7 +368,7 @@ def create_android_sdk_rules(
     native.genrule(
         name = "generate_fail_sh",
         outs = ["fail.sh"],
-        cmd = "echo -e '#!/bin/bash\\nexit 1' >> $@; chmod +x $@",
+        cmd = "echo -e '#!/usr/bin/env bash\\nexit 1' >> $@; chmod +x $@",
         executable = 1,
     )
 
@@ -390,7 +390,7 @@ def create_android_sdk_rules(
         outs = ["dx_binary.sh"],
         cmd = "\n".join([
             "cat > $@ <<'EOF'",
-            "#!/bin/bash",
+            "#!/usr/bin/env bash",
             "",
             "echo dx_binary should not be used anymore.",
             "exit 1",
@@ -405,7 +405,7 @@ def create_android_sdk_rules(
         outs = ["main_dex_list_creator.sh"],
         cmd = "\n".join([
             "cat > $@ <<'EOF'",
-            "#!/bin/bash",
+            "#!/usr/bin/env bash",
             "",
             "echo main_dex_list_creator should not be used anymore.",
             "exit 1",

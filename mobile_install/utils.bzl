@@ -13,10 +13,11 @@
 # limitations under the License.
 """Utilities for by the Mobile-Install aspect."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
-load("@rules_java//java/common:java_common.bzl", "java_common")
+
 # Copybara: placeholder for GeneratedExtensionRegistryInfo load
 load("//tools/jdk:jvmopts.bzl", "BASE_JVMOPTS")
 load(":constants.bzl", "constants")
@@ -24,7 +25,7 @@ load(":constants.bzl", "constants")
 visibility(PROJECT_VISIBILITY)
 
 _PACKAGE_NAME_EXTRACTION_SCRIPT = """
-    #!/bin/bash
+    #!/usr/bin/env bash
     set -e  # exit on failure
     umask 022  # set default file/dir creation mode to 755
 
@@ -185,6 +186,7 @@ def dex(ctx, jar, out_dex_shards, deps = None):
     ]
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = java,
         tools = [ctx.executable._desugar_dex_sharding],
         arguments = jvm_flags + ["-jar", ctx.executable._desugar_dex_sharding.path, args],
@@ -273,7 +275,6 @@ def merge_dex_shards(
     """
     args = ctx.actions.args()
 
-
     args.add("--multidex", "best_effort")
     args.add("--output", out_dex_zip.path)
     args.add_all(dex_archives, before_each = "--input")
@@ -281,6 +282,7 @@ def merge_dex_shards(
     args.set_param_file_format("multiline")
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._dexmerger,
         arguments = [args],
         tools = [],
@@ -307,6 +309,7 @@ def strip_r(ctx, jar, out_jar):
     args.add("-out", out_jar)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = ["repack", args],
         inputs = [jar],

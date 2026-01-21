@@ -13,13 +13,13 @@
 # limitations under the License.
 """Bazel Dex Commands."""
 
+load("@bazel_skylib//lib:collections.bzl", "collections")
 load("//providers:providers.bzl", "StarlarkAndroidDexInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@bazel_skylib//lib:collections.bzl", "collections")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
 
 visibility(PROJECT_VISIBILITY)
@@ -444,6 +444,7 @@ def _dex(
             execution_requirements["supports-multiplex-workers"] = "1"
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = dex_exec,
         arguments = [args],
         inputs = [input],
@@ -502,6 +503,7 @@ def _optimizing_dex(
         args.add("--lib", library_jar)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = dex_exec,
         arguments = [args],
         inputs = inputs,
@@ -561,6 +563,7 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
             args.add("--min-api", min_sdk_version)
 
         ctx.actions.run(
+            use_default_shell_env = True,
             executable = get_android_toolchain(ctx).build_java8_legacy_dex.files_to_run,
             inputs = [binary_jar, bootclasspath_jar],
             outputs = [java8_legacy_dex_rules, java8_legacy_dex_map, java8_legacy_dex],
@@ -595,6 +598,7 @@ def _dex_merge(
         args.add("--main-dex-list", main_dex_list)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = dexmerger,
         arguments = [args],
         inputs = inputs,
@@ -685,6 +689,7 @@ def _optimized_dex_merge(
     args.add("@" + param_file.path)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = optimizing_dexer,
         arguments = [args],
         inputs = inputs,
@@ -754,6 +759,7 @@ def _generate_main_dex_list(
     args.add_all(proguard_specs, before_each = "--main-dex-rules")
     args.add(jar)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = legacy_main_dex_list_generator,
         arguments = [args],
         outputs = [main_dex_list],
@@ -780,6 +786,7 @@ def _transform_dex_list_through_proguard_map(
     args.add("--output", obfuscated_main_dex_list)
     args.add("--obfuscation_map", proguard_output_map)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = dex_list_obfuscator,
         arguments = [args],
         outputs = [obfuscated_main_dex_list],
