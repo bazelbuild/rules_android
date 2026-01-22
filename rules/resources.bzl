@@ -1386,7 +1386,7 @@ def _process_starlark(
             _generate_dummy_manifest(
                 ctx,
                 out_manifest = generated_manifest,
-                java_package = java_package if java_package else ctx.label.package.replace("/", "."),
+                java_package = java_package if java_package else ctx.label.package.replace("/", ".").replace("-", "."),
                 min_sdk_version = _min_sdk_version.DEPOT_FLOOR,
             )
             r_txt = ctx.actions.declare_file(ctx.label.name + "_symbols/R.txt")
