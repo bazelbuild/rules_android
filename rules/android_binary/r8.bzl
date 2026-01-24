@@ -35,7 +35,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 
-def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_ctxs):
+def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, manifest_ctx, **_unused_ctxs):
     """Runs R8 for desugaring, optimization, and dexing.
 
     Args:
@@ -44,6 +44,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
       jvm_ctx: Context from the java processor.
       packaged_resources_ctx: Context from resource processing.
       build_info_ctx: Context from build info processor.
+      manifest_ctx: Context from manifest processing (provides min SDK version).
       **_unused_ctxs: Unused context.
 
     Returns:
@@ -80,7 +81,14 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
-    min_sdk_version = getattr(ctx.attr, "min_sdk_version", None)
+
+    # Get min SDK version from manifest context (populated from attribute or manifest_values)
+    min_sdk_version = manifest_ctx.processed_min_sdk_version
+
+    # For native multidex, min SDK must be at least 21 (Android 5.0+)
+    if ctx.attr.multidex == "native" and min_sdk_version < 21:
+        fail("Native multidex requires minSdkVersion >= 21, but got %s. " % min_sdk_version +
+             "Either set minSdkVersion to 21 or higher, or use multidex = 'legacy'.")
 
     neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
     neverlink_jars = depset(transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])

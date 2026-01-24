@@ -1056,10 +1056,21 @@ def _bump_min_sdk(
             floor,
         )
 
+    # Determine processed_min_sdk_version from multiple sources, taking the max:
+    # 1. min_sdk_version attribute (if set)
+    # 2. manifest_values["minSdkVersion"] (if present and numeric)
+    # 3. floor value
+    effective_min_sdk = floor if floor else 0
+
     if min_sdk_version != 0:
-        manifest_ctx[_PROCESSED_MIN_SDK_VERSION] = max(min_sdk_version, floor)
-    else:
-        manifest_ctx[_PROCESSED_MIN_SDK_VERSION] = 0
+        effective_min_sdk = max(effective_min_sdk, min_sdk_version)
+
+    if manifest_values and _MIN_SDK_VERSION in manifest_values:
+        manifest_min_sdk_str = manifest_values[_MIN_SDK_VERSION]
+        if manifest_min_sdk_str.isdigit():
+            effective_min_sdk = max(effective_min_sdk, int(manifest_min_sdk_str))
+
+    manifest_ctx[_PROCESSED_MIN_SDK_VERSION] = effective_min_sdk
 
     if not manifest or floor <= 0:
         manifest_ctx[_PROCESSED_MANIFEST] = manifest
