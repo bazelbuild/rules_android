@@ -18,6 +18,7 @@ load("//rules:acls.bzl", "acls")
 load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
+load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(
     "//rules:processing_pipeline.bzl",
     "ProviderInfo",
@@ -80,15 +81,26 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
-    min_sdk_version = getattr(ctx.attr, "min_sdk_version", None)
+
+    # Get min SDK version from attribute, manifest_values, or depot floor
+    effective_min_sdk = min_sdk_version.DEPOT_FLOOR
+    min_sdk_attr = getattr(ctx.attr, "min_sdk_version", 0)
+    if min_sdk_attr:
+        effective_min_sdk = max(effective_min_sdk, min_sdk_attr)
+    manifest_values = getattr(ctx.attr, "manifest_values", {})
+    if "minSdkVersion" in manifest_values:
+        manifest_min_sdk_str = manifest_values["minSdkVersion"]
+        if manifest_min_sdk_str.isdigit():
+            effective_min_sdk = max(effective_min_sdk, int(manifest_min_sdk_str))
+        else:
+            fail("minSdkVersion must be an integer")
 
     neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
     neverlink_jars = depset(transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])
 
     args = ctx.actions.args()
     args.add("--release")
-    if min_sdk_version:
-        args.add("--min-api", min_sdk_version)
+    args.add("--min-api", effective_min_sdk)
     args.add("--output", dexes_zip)
     args.add_all(proguard_specs, before_each = "--pg-conf")
     args.add("--lib", android_jar)
