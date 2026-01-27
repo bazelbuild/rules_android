@@ -80,6 +80,8 @@ create_android_sdk_rules(
     default_api_level = __default_api_level__,
 )
 
+exports_files(["platform-tools/adb"])
+
 alias(
     name = "adb",
     actual = "platform-tools/adb",
