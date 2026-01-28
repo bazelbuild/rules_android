@@ -118,6 +118,7 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
                 # TODO(timpeut): verify we can require JavaInfo
                 # providers = [JavaInfo],
                 cfg = native_libs_transition,
+                aspects = additional_aspects,
             ),
             srcs = attr.label_list(
                 # TODO(timpeut): order independent
