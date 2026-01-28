@@ -72,4 +72,5 @@ def _collect_transitive_neverlink_libs(ctx, deps, runtime_jars):
 android_neverlink_aspect = aspect(
     implementation = _android_neverlink_aspect_impl,
     attr_aspects = _ATTRS,
+    required_providers = [JavaInfo],
 )
