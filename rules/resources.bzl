@@ -13,13 +13,13 @@
 # limitations under the License.
 """Bazel Android Resources."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
 load(":path.bzl", _path = "path")
@@ -178,9 +178,11 @@ def _generate_dummy_manifest(
         out_manifest = None,
         java_package = None,
         min_sdk_version = 0):
+    sanitized_package = java_package.replace("-", ".").replace("/", ".") if java_package else "com.default"
+
     content = """<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="%s">""" % (java_package or "com.default")
+    package="%s">""" % sanitized_package
 
     min_sdk_version = max(min_sdk_version, _min_sdk_version.DEPOT_FLOOR)
     content = content + """
@@ -1386,7 +1388,7 @@ def _process_starlark(
             _generate_dummy_manifest(
                 ctx,
                 out_manifest = generated_manifest,
-                java_package = java_package if java_package else ctx.label.package.replace("/", "."),
+                java_package = java_package if java_package else ctx.label.package,
                 min_sdk_version = _min_sdk_version.DEPOT_FLOOR,
             )
             r_txt = ctx.actions.declare_file(ctx.label.name + "_symbols/R.txt")
