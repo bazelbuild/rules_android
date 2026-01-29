@@ -74,6 +74,7 @@ def _gen_java_from_idl(
     aidl_lib_files = [aidl_lib[DefaultInfo].files] if aidl_lib and not uses_aosp_compiler else []
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = aidl,
         arguments = [args],
         inputs = depset(

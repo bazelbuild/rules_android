@@ -13,10 +13,10 @@
 # limitations under the License.
 """Bazel common library for the Android rules."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("//rules/android_common:reexport_android_common.bzl", _native_android_common = "native_android_common")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/android_common:reexport_android_common.bzl", _native_android_common = "native_android_common")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", _log = "log")
 
 visibility(PROJECT_VISIBILITY)
@@ -54,6 +54,7 @@ def _filter_zip_include(ctx, in_zip, out_zip, filters = []):
     args.add("--out")
     args.add(out_zip.path)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = get_android_toolchain(ctx).zip_tool.files_to_run,
         arguments = [args],
         inputs = [in_zip],
@@ -107,6 +108,7 @@ def _filter_zip_exclude(
     args.add("--outputMode", compression_mode)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = get_android_toolchain(ctx).zip_filter.files_to_run,
         arguments = [args],
         inputs = [input] + filter_zips,

@@ -21,7 +21,7 @@ load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
 
-_DEPLOY_SCRIPT = '''#!/bin/bash
+_DEPLOY_SCRIPT = '''#!/usr/bin/env bash
 set -e  # exit on failure
 umask 022  # set default file/dir creation mode to 755
 

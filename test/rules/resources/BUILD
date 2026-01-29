@@ -1043,7 +1043,7 @@ genrule(
     name = "generated_resources",
     srcs = ["databinding_res/res/layout/category.xml"],
     outs = ["gen_databinding_res/res/layout/category.xml"],
-    cmd = """#!/bin/bash
+    cmd = """#!/usr/bin/env bash
 cp $< $@
 """,
 )

@@ -32,6 +32,7 @@ def _ijar(ctx, input, output):
     args.add("--target_label", ctx.label)
     ijar_bin = ctx.attr._java_toolchain[java_common.JavaToolchainInfo].ijar
     ctx.actions.run(
+        use_default_shell_env = True,
         inputs = [input],
         outputs = [output],
         executable = ijar_bin,
@@ -65,6 +66,7 @@ def _android_system(ctx):
     args.add("--output_auxiliary_jar", auxiliary_jar)
     args.add_joined("--exclusions", ctx.attr.exclusions, join_with = ",")
     ctx.actions.run(
+        use_default_shell_env = True,
         mnemonic = "SplitCoreJar",
         inputs = [merged_interface_jar] + core_jars,
         outputs = [core_jar, auxiliary_jar],
@@ -77,6 +79,7 @@ def _android_system(ctx):
     args.add("--input", core_jar)
     args.add("--output", module_info)
     ctx.actions.run(
+        use_default_shell_env = True,
         mnemonic = "JarToModuleInfo",
         inputs = [core_jar],
         outputs = [module_info],
@@ -93,6 +96,7 @@ def _android_system(ctx):
     args.add("--java_home", java_runtime.java_home)
     args.add("--module_info", module_info)
     ctx.actions.run(
+        use_default_shell_env = True,
         inputs = depset(
             [
                 core_jar,
