@@ -15,6 +15,7 @@
 
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
 
@@ -52,6 +53,7 @@ def make_rule(
             ANDROID_SDK_TOOLCHAIN_TYPE,
             "@bazel_tools//tools/jdk:toolchain_type",
         ] + additional_toolchains,
+        provides = [JavaInfo],
     )
 
 android_local_test = make_rule()
