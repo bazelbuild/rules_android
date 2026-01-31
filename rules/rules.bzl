@@ -42,6 +42,10 @@ load(
     _android_application = "android_application",
 )
 load(
+    "//rules/android_application:android_feature_module.bzl",
+    _android_feature_module = "android_feature_module",
+)
+load(
     "//rules/android_binary:rule.bzl",
     _android_binary = "android_binary_macro",
 )
@@ -76,6 +80,7 @@ RULES_ANDROID_VERSION = "0.1.0"
 aar_import = _aar_import
 android_application = _android_application
 android_binary = _android_binary
+android_feature_module = _android_feature_module
 android_library = _android_library
 android_local_test = _android_local_test
 android_sandboxed_sdk = _android_sandboxed_sdk
