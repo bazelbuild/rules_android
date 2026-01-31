@@ -93,6 +93,7 @@ def _convert(
     args.add(input)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = aapt,
         arguments = [args],
         inputs = [input],
@@ -210,6 +211,7 @@ echo $(tac $1) > $2
     args.add("-o", out_resource_apk)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = aapt,
         arguments = [args],
         inputs = depset(

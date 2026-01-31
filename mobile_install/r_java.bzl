@@ -13,8 +13,8 @@
 # limitations under the License.
 """Methods to create and process R.java."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
@@ -83,6 +83,7 @@ def _make_r_jar(ctx, r_java, packages, out_r_jar):
 
     # Call action binary.
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = [rjar_args],
         tools = ctx.attr._jar_tool[DefaultInfo].files,

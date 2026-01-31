@@ -13,6 +13,7 @@
 # limitations under the License.
 """android_application rule."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load(
     "//providers:providers.bzl",
     "AndroidArchivedSandboxedSdkInfo",
@@ -60,7 +61,6 @@ load(
     _log = "log",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
 load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
 
@@ -203,6 +203,7 @@ def _create_feature_manifest(
         args.add(aapt2.executable)
 
         ctx.actions.run(
+            use_default_shell_env = True,
             executable = feature_manifest_script,
             inputs = [base_apk],
             outputs = [manifest],
@@ -232,6 +233,7 @@ def _create_feature_manifest(
     args.add(is_asset_pack)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = priority_feature_manifest_script,
         inputs = [base_apk, info.manifest],
         outputs = [priority_manifest],
@@ -252,6 +254,7 @@ def _create_feature_manifest(
     if is_asset_pack:
         args.add("--is_asset_pack")
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.attr._merge_manifests.files_to_run,
         inputs = [priority_manifest, info.manifest],
         outputs = [manifest],

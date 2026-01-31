@@ -76,6 +76,7 @@ def make_native_libs_zip(ctx, native_libs, aar_native_libs, sibling, arch = None
     args.add("-out", native_zip)
     args.add("-architecture", arch)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = ["nativelib", args],
         inputs = depset(transitive = inputs),
