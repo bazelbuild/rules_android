@@ -528,4 +528,5 @@ def android_application_macro(_android_binary, **attrs):
         manifest_values = attrs.get("manifest_values"),
         visibility = attrs.get("visibility", None),
         tags = attrs.get("tags", []),
+        exec_properties = attrs.get("exec_properties", None),
     )
