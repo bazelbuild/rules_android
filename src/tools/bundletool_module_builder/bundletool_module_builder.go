@@ -65,7 +65,12 @@ func unzipApkAndCreateModule(internalApkPath, outputModulePath, runtimeEnabledSD
 	defer zipWriter.Close()
 
 	for _, f := range r.File {
-		f.Name = fileNameInOutput(f.Name)
+		newName := fileNameInOutput(f.Name)
+		// Skip entries with empty output names (e.g., META-INF)
+		if newName == "" {
+			continue
+		}
+		f.Name = newName
 		if err := zipWriter.Copy(f); err != nil {
 			return err
 		}
@@ -104,6 +109,9 @@ func fileNameInOutput(oldName string) string {
 	// Dex files need to be moved under dex/ dir.
 	case strings.HasSuffix(oldName, ".dex"):
 		return "dex/" + oldName
+	// Skip META-INF entries (they conflict between modules in the AAB)
+	case strings.HasPrefix(oldName, "META-INF/"):
+		return ""
 	// All other files (probably JVM metadata files) should be moved to root/ dir.
 	default:
 		return "root/" + oldName

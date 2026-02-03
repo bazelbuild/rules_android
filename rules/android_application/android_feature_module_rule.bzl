@@ -17,6 +17,7 @@ load(
     "//providers:providers.bzl",
     "AndroidFeatureModuleInfo",
     "AndroidIdeInfo",
+    "AndroidPreDexJarInfo",
     "ApkInfo",
 )
 load("//rules:acls.bzl", "acls")
@@ -29,14 +30,26 @@ load(
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
+    # Get the binary from the appropriate attribute based on has_code
+    binary = ctx.attr.binary_with_code if ctx.attr.has_code else ctx.attr.binary
+    pre_dexed_jar = binary[AndroidPreDexJarInfo].pre_dex_jar
+
+    # Collect proguard_specs from library dependencies of the feature module
+    proguard_specs = []
+    for library in ctx.attr.library:
+        if ProguardSpecInfo in library:
+            proguard_specs.extend(library[ProguardSpecInfo].specs.to_list())
+
     validation = ctx.actions.declare_file(ctx.label.name + "_validation")
-    if ctx.attr.binary[AndroidIdeInfo].native_libs and ctx.attr.is_asset_pack:
+    if binary[AndroidIdeInfo].native_libs and ctx.attr.is_asset_pack:
         fail("Feature module %s is marked as an asset pack but contains native libraries" % ctx.label.name)
-    inputs = [ctx.attr.binary[ApkInfo].unsigned_apk]
+
+    inputs = [binary[ApkInfo].unsigned_apk]
     args = ctx.actions.args()
     args.add(validation.path)
     if ctx.file.manifest:
@@ -44,9 +57,9 @@ def _impl(ctx):
         inputs.append(ctx.file.manifest)
     else:
         args.add("")
-    args.add(ctx.attr.binary[ApkInfo].unsigned_apk.path)
+    args.add(binary[ApkInfo].unsigned_apk.path)
     args.add(utils.dedupe_split_attr(ctx.split_attr.library).label)
-    args.add(get_android_toolchain(ctx).xmllint_tool.files_to_run.executable)
+    args.add(get_android_toolchain(ctx).android_kit.files_to_run.executable)
     args.add(get_android_toolchain(ctx).unzip_tool.files_to_run.executable)
     args.add(ctx.attr.is_asset_pack)
 
@@ -56,7 +69,7 @@ def _impl(ctx):
         outputs = [validation],
         arguments = [args],
         tools = [
-            get_android_toolchain(ctx).xmllint_tool.files_to_run.executable,
+            get_android_toolchain(ctx).android_kit.files_to_run.executable,
             get_android_toolchain(ctx).unzip_tool.files_to_run.executable,
         ],
         mnemonic = "ValidateFeatureModule",
@@ -66,13 +79,16 @@ def _impl(ctx):
 
     return [
         AndroidFeatureModuleInfo(
-            binary = ctx.attr.binary,
+            binary = binary,
+            has_code = ctx.attr.has_code,
             library = utils.dedupe_split_attr(ctx.split_attr.library),
             title_id = ctx.attr.title_id,
             title_lib = ctx.attr.title_lib,
             feature_name = ctx.attr.feature_name,
             fused = ctx.attr.fused,
             manifest = ctx.file.manifest,
+            pre_dexed_jar = pre_dexed_jar,
+            proguards_specs = proguard_specs,
             is_asset_pack = ctx.attr.is_asset_pack,
         ),
         OutputGroupInfo(_validation = depset([validation])),
@@ -95,10 +111,10 @@ def get_feature_module_paths(fqn):
     # Given a fqn to an android_feature_module, returns the absolute paths to
     # all implicitly generated targets
     return struct(
-        binary = Label("%s_bin" % fqn),
-        manifest_lib = Label("%s_AndroidManifest" % fqn),
-        title_strings_xml = Label("%s_title_strings_xml" % fqn),
-        title_lib = Label("%s_title_lib" % fqn),
+        binary = native.package_relative_label("%s_bin" % fqn),
+        manifest_lib = native.package_relative_label("%s_AndroidManifest" % fqn),
+        title_strings_xml = native.package_relative_label("%s_title_strings_xml" % fqn),
+        title_lib = native.package_relative_label("%s_title_lib" % fqn),
     )
 
 def android_feature_module_macro(_android_binary, _android_library, **attrs):
@@ -185,6 +201,7 @@ EOF
         "manifest": str(targets.manifest_lib),
         "deps": [attrs.library],
         "multidex": "native",
+        "proguard_specs": [],  # No optimization here; unified R8 at android_application handles it.
         "tags": tags,
         "transitive_configs": transitive_configs,
         "visibility": visibility,
@@ -194,14 +211,18 @@ EOF
     }
     _android_binary(**binary_attrs)
 
+    has_code = getattr(attrs, "has_code", False)
     android_feature_module(
         name = attrs.name,
         library = attrs.library,
-        binary = str(targets.binary),
+        # Use binary_with_code when has_code=True to skip validation aspect
+        binary = None if has_code else str(targets.binary),
+        binary_with_code = str(targets.binary) if has_code else None,
         title_id = title_id,
         title_lib = str(targets.title_lib),
         feature_name = getattr(attrs, "feature_name", attrs.name),
         fused = getattr(attrs, "fused", True),
+        has_code = has_code,
         manifest = getattr(attrs, "manifest", None),
         tags = tags,
         transitive_configs = transitive_configs,

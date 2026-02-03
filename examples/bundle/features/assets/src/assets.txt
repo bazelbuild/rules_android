@@ -1,0 +1,1 @@
+This text originates from a dynamically loaded feature.

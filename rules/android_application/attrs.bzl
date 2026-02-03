@@ -32,6 +32,10 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
     dict(
         manifest_values = attr.string_dict(),
         base_module = attr.label(allow_files = False),
+        proguard_specs = attr.label_list(
+            allow_files = True,
+            doc = "Proguard specification files for R8 processing with feature modules.",
+        ),
         bundle_config_file = attr.label(
             allow_single_file = [".pb.json"],
             doc = ("Path to config.pb.json file, see " +
@@ -81,8 +85,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
             default = Label("//tools/jdk:toolchain_android_only"),
         ),
         _merge_manifests = attr.label(
-            default = ":merge_feature_manifests.par",
-            allow_single_file = True,
+            default = ":merge_feature_manifests",
             cfg = "exec",
             executable = True,
         ),
@@ -105,8 +108,19 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
 )
 
 ANDROID_FEATURE_MODULE_ATTRS = dict(
+    # binary is used when has_code=False (with validation aspect)
     binary = attr.label(aspects = [android_feature_module_validation_aspect]),
+    # binary_with_code is used when has_code=True (without validation aspect)
+    binary_with_code = attr.label(),
     feature_name = attr.string(),
+    fused = attr.bool(
+        default = True,
+        doc = "Whether the split is fused for the system image and for pre-L devices.",
+    ),
+    has_code = attr.bool(
+        default = False,
+        doc = "Whether the feature module contains code (Kotlin/Java). Maps to android:hasCode in manifest.",
+    ),
     library = attr.label(
         allow_rules = ["android_library"],
         cfg = android_split_transition,
