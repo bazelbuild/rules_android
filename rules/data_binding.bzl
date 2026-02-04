@@ -87,6 +87,7 @@ def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_
     args.add_all(class_infos, before_each = "-dependencyClassInfoList")
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = data_binding_exec,
         arguments = ["GEN_BASE_CLASSES", args],
         inputs = inputs,

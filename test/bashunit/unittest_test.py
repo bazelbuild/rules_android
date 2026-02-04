@@ -33,7 +33,7 @@ import unittest
 # For now, we still need to reference the "old" runfiles.bash path in the
 # bashunit library.
 _TEST_PREAMBLE = """
-#!/bin/bash
+#!/usr/bin/env bash
 # --- begin runfiles.bash initialization ---
 if [[ -f "${RUNFILES_DIR:-/dev/null}/bazel_tools/tools/bash/runfiles/runfiles.bash" ]]; then
   source "${RUNFILES_DIR}/bazel_tools/tools/bash/runfiles/runfiles.bash"

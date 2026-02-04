@@ -401,7 +401,7 @@ def _run_validation(
         )
 
     ctx.actions.run_shell(
-        command = """#!/bin/bash
+        command = """#!/usr/bin/env bash
 set -eu
 set -o pipefail # Returns the executables failure code, if it fails.
 

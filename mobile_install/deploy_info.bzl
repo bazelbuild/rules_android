@@ -42,6 +42,7 @@ def make_deploy_info_pb(ctx, manifest, apks):
     args.add("--deploy_info", deploy_info_pb)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._deploy_info,
         arguments = [args],
         outputs = [deploy_info_pb],

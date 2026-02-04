@@ -33,6 +33,7 @@ def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
     args.add("-force_debuggable", compilation_mode.get(ctx) != compilation_mode.OPT)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = ["manifest", args],
         tools = [ctx.executable._aapt2],
@@ -52,6 +53,7 @@ def _patch_split_manifests(ctx, orig_manifest, split_manifests, out_manifest_pac
     args.add("-pkg", out_manifest_package_name)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = ["patch", args],
         inputs = [orig_manifest],
@@ -79,6 +81,7 @@ def _make_split_apk(ctx, dirs, artifacts, debug_signing_keys, debug_signing_line
     args.add_joined("-dir", dir_paths.keys(), join_with = ",")
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = ["repack", args],
         inputs = inputs,
