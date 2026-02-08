@@ -95,7 +95,7 @@ ATTRS = _attrs.add(
             ),
         ),
         exports_manifest = _attrs.tristate.create(
-            default = _attrs.tristate.no,
+            default = _attrs.tristate.yes,
             doc = (
                 "Whether to export manifest entries to `android_binary` targets that " +
                 "depend on this target. `uses-permissions` attributes are never exported."
