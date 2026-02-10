@@ -198,10 +198,10 @@ tasks:
       - "//java/com/basicapp:basic_app"
       - "//java/com/basicapp:basic_app_bundle"
 
-ubuntu_bzlmod:
-  name: "Ubuntu 20.04 (Bazel LTS, bzlmod)"
-  bazel: last_rc # TODO: change to 9.x when released
-  platform: ubuntu2004
-  build_flags:
-    - "--enable_bzlmod"
-    - "--ignore_dev_dependency"
+  ubuntu_bzlmod:
+    name: "DEBUG Ubuntu 20.04 (Bazel LTS, bzlmod)"
+    bazel: last_rc # TODO: change to 9.x when released
+    platform: ubuntu2004
+    build_flags:
+      - "--enable_bzlmod"
+      - "--ignore_dev_dependency"
