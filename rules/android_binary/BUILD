@@ -14,6 +14,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//:__subpackages__"],
     deps = [
+        "//rules:add_constraints_bzl",
         "//rules:android_platforms_transition_bzl",
         "//rules:android_split_transition_bzl",
         "//rules:common_bzl",
