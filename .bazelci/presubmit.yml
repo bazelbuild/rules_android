@@ -15,6 +15,9 @@ matrix:
 tools_flags: &tools_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
+tools_flags: &tools_flags
+  ? "--enable_bzlmod=false"
+  ? "--enable_workspace=true"
 rules_flags: &rules_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
