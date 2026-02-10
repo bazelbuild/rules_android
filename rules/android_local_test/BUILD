@@ -21,6 +21,7 @@ bzl_library(
     name = "bzl",
     srcs = glob(["*.bzl"]),
     deps = [
+        "//rules:add_constraints_bzl",
         "//rules:common_bzl",
         "//rules:min_sdk_version_bzl",
         "//rules:visibility_bzl",
