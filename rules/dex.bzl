@@ -52,6 +52,7 @@ def _process_incremental_dexing(
         postprocessing_output_map = None,
         startup_profile = None,
         build_metadata_output = None,
+        input_dump_output = None,
         inclusion_filter_jar = None,
         desugar_dict = {},
         transitive_runtime_jars_for_archive = [],
@@ -173,6 +174,7 @@ def _process_incremental_dexing(
             postprocessing_output_map = postprocessing_output_map,
             startup_profile = startup_profile,
             build_metadata_output = build_metadata_output,
+            input_dump_output = input_dump_output,
             optimizing_dexer = optimizing_dexer,
             min_sdk_config = min_sdk_config,
             toolchain_type = toolchain_type,
@@ -618,6 +620,7 @@ def _optimized_dex_merge(
         postprocessing_output_map = None,
         startup_profile = None,
         build_metadata_output = None,
+        input_dump_output = None,
         optimizing_dexer = None,
         min_sdk_config = None,
         toolchain_type = None):
@@ -647,6 +650,10 @@ def _optimized_dex_merge(
     if build_metadata_output:
         outputs.append(build_metadata_output)
         args.add("--build_metadata_output", build_metadata_output)
+
+    if input_dump_output:
+        outputs.append(input_dump_output)
+        args.add("--input_dump_output", input_dump_output)
 
     if postprocessing_output_map:
         param_file_args.add("--pg-map-output", postprocessing_output_map)

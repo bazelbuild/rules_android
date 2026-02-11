@@ -325,6 +325,10 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
     if should_optimize_dex and acls.in_d8_optimization_metadata(str(ctx.label)):
         build_metadata_output = ctx.actions.declare_file(ctx.label.name + "_d8_optimization_info.json")
 
+    input_dump_output = None
+    if should_optimize_dex and ctx.var.get("generate_d8_dump") == "true":
+        input_dump_output = ctx.actions.declare_file(ctx.label.name + "_d8_dump.zip")
+
     if proguard_output_map:
         # Proguard map from preprocessing will be merged with Proguard map for desugared
         # library.
@@ -373,6 +377,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
             postprocessing_output_map = postprocessing_output_map,
             startup_profile = optimize_ctx.proguard_output.startup_profile_rewritten,
             build_metadata_output = build_metadata_output,
+            input_dump_output = input_dump_output,
             inclusion_filter_jar = binary_jar if is_instrumentation(ctx) and not is_binary_optimized else None,
             transitive_runtime_jars_for_archive = deploy_ctx.transitive_runtime_jars_for_archive,
             desugar_dict = deploy_ctx.desugar_dict,
@@ -447,13 +452,17 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
     if postprocessing_output_map:
         providers.append(ProguardMappingInfo(proguard_mapping = postprocessing_output_map))
 
+    implicit_outputs = [final_proguard_output_map] if final_proguard_output_map else []
+    if input_dump_output:
+        implicit_outputs.append(input_dump_output)
+
     return ProviderInfo(
         name = "dex_ctx",
         value = struct(
             dex_info = dex_info,
             java8_legacy_dex_map = java8_legacy_dex_map,
             providers = providers,
-            implicit_outputs = [final_proguard_output_map] if final_proguard_output_map else [],
+            implicit_outputs = implicit_outputs,
         ),
     )
 
