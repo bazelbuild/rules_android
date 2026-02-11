@@ -593,7 +593,7 @@ def _create_optimization_actions(
             optimize_resources = optimize_resources,
             final = True,
             mnemonic = mnemonic,
-            progress_message = "Trimming binary with %s: %s" % (mnemonic, ctx.label),
+            progress_message = "Trimming %s with %s" % (ctx.label, mnemonic),
             proguard_tool = proguard_tool,
         )
         return outputs
@@ -624,7 +624,7 @@ def _create_optimization_actions(
         runtype = "INITIAL",
         next_stage_output = last_stage_output,
         mnemonic = mnemonic,
-        progress_message = "Trimming binary with %s: Verification/Shrinking Pass" % mnemonic,
+        progress_message = "Trimming %s with %s: Verification/Shrinking Pass" % (ctx.label, mnemonic),
         proguard_tool = proguard_tool,
     )
     for i in range(1, num_passes + 1):
@@ -697,7 +697,7 @@ def _create_optimization_actions(
         runtype = "FINAL",
         last_stage_output = last_stage_output,
         mnemonic = mnemonic,
-        progress_message = "Trimming binary with %s: Obfuscation and Final Output Pass" % mnemonic,
+        progress_message = "Trimming %s with %s: Obfuscation and Final Output Pass" % (ctx.label, mnemonic),
         proguard_tool = proguard_tool,
     )
     return outputs
@@ -729,7 +729,7 @@ def _create_single_optimization_action(
         runtype = "OPTIMIZATION" + runtype_suffix,
         last_stage_output = last_stage_output,
         next_stage_output = next_stage_output,
-        progress_message = "Trimming binary with %s: Optimization%s Pass %d" % (mnemonic, runtype_suffix, optimization_pass_num),
+        progress_message = "Trimming %s with %s: Optimization%s Pass %d" % (ctx.label, mnemonic, runtype_suffix, optimization_pass_num),
         proguard_tool = proguard_tool,
     )
     return next_stage_output
