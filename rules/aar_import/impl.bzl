@@ -39,6 +39,7 @@ load(
     _utils = "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
@@ -432,10 +433,13 @@ def _collect_proguard(
         ctx,
         out_proguard,
         aar,
-        aar_embedded_proguard_extractor):
+        aar_embedded_proguard_extractor,
+        extract_r8_rules = False):
     args = ctx.actions.args()
     args.add("--input_aar", aar)
     args.add("--output_proguard_file", out_proguard)
+    if extract_r8_rules:
+        args.add("--extract_r8_rules")
     ctx.actions.run(
         executable = aar_embedded_proguard_extractor,
         arguments = [args],
@@ -566,6 +570,7 @@ def impl(ctx):
         proguard_spec,
         aar,
         _get_android_toolchain(ctx).aar_embedded_proguard_extractor.files_to_run,
+        extract_r8_rules = _flags.get(ctx).aar_import_extract_r8_rules,
     ))
 
     lint_providers = _process_lint_rules(

@@ -33,6 +33,7 @@ load(
     "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", _flags = "flags")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -81,6 +82,24 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
+
+    # Optionally extract proguard specs embedded in the deploy JAR (META-INF/proguard/
+    # and META-INF/com.android.tools/) so they are passed to R8.
+    if _flags.get(ctx).r8_extract_embedded_proguard_specs:
+        jar_embedded_proguard = ctx.actions.declare_file(ctx.label.name + "_jar_embedded_proguard.pro")
+        jar_extractor_args = ctx.actions.args()
+        jar_extractor_args.add("--input_jar", deploy_jar)
+        jar_extractor_args.add("--output_proguard_file", jar_embedded_proguard)
+        ctx.actions.run(
+            executable = get_android_toolchain(ctx).jar_embedded_proguard_extractor.files_to_run,
+            arguments = [jar_extractor_args],
+            inputs = [deploy_jar],
+            outputs = [jar_embedded_proguard],
+            mnemonic = "JarEmbeddedProguardExtractor",
+            progress_message = "Extracting proguard specs from deploy jar for %{label}",
+            toolchain = None,
+        )
+        proguard_specs = proguard_specs + [jar_embedded_proguard]
 
     # Get min SDK version from attribute, manifest_values, or depot floor
     effective_min_sdk = min_sdk_version.DEPOT_FLOOR
