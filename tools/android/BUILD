@@ -438,6 +438,17 @@ py_binary(
 )
 
 py_binary(
+    name = "jar_embedded_proguard_extractor",
+    srcs = ["jar_embedded_proguard_extractor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_binary(
     name = "aar_native_libs_zip_creator",
     srcs = [
         "aar_native_libs_zip_creator.py",
@@ -477,6 +488,12 @@ py_test(
     name = "aar_embedded_proguard_extractor_test",
     srcs = ["aar_embedded_proguard_extractor_test.py"],
     deps = [":aar_embedded_proguard_extractor"],
+)
+
+py_test(
+    name = "jar_embedded_proguard_extractor_test",
+    srcs = ["jar_embedded_proguard_extractor_test.py"],
+    deps = [":jar_embedded_proguard_extractor"],
 )
 
 py_test(
