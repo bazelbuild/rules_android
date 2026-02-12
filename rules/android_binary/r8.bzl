@@ -83,10 +83,11 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     # and META-INF/com.android.tools/) so they are passed to R8.
     jar_embedded_proguard = ctx.actions.declare_file(ctx.label.name + "_jar_embedded_proguard.pro")
     jar_extractor_args = ctx.actions.args()
-    jar_extractor_args.add("--input_jar", deploy_jar)
+    jar_extractor_args.add("--input_archive", deploy_jar)
     jar_extractor_args.add("--output_proguard_file", jar_embedded_proguard)
+    jar_extractor_args.add("--archive_type", "jar")
     ctx.actions.run(
-        executable = get_android_toolchain(ctx).jar_embedded_proguard_extractor.files_to_run,
+        executable = get_android_toolchain(ctx).archive_embedded_proguard_extractor.files_to_run,
         arguments = [jar_extractor_args],
         inputs = [deploy_jar],
         outputs = [jar_embedded_proguard],

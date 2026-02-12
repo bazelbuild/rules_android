@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A tool for extracting the proguard spec file from an AAR."""
+"""A tool for extracting proguard spec files from a JAR or AAR."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -31,11 +31,15 @@ from tools.android import junction
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("input_aar", None, "Input AAR")
-flags.mark_flag_as_required("input_aar")
+flags.DEFINE_string("input_archive", None, "Input JAR or AAR")
+flags.mark_flag_as_required("input_archive")
 flags.DEFINE_string("output_proguard_file", None,
                     "Output parameter file for proguard")
 flags.mark_flag_as_required("output_proguard_file")
+flags.DEFINE_enum("archive_type", None, ["jar", "aar"],
+                  "Type of archive: jar or aar")
+flags.mark_flag_as_required("archive_type")
+
 
 def _ExtractR8Rules(jar, output):
   """Extract R8 rules from META-INF/com.android.tools/ inside a JAR.
@@ -49,9 +53,21 @@ def _ExtractR8Rules(jar, output):
       output.write(b"\n")
       output.write(jar.read(entry))
 
-# Attempt to extract proguard spec from AAR. If the file doesn't exist, an empty
-# proguard spec file will be created
-def ExtractEmbeddedProguard(aar, output):
+
+def ExtractEmbeddedProguardFromJar(jar, output):
+  """Extract proguard specs from a JAR file."""
+  legacy_prefix = "META-INF/proguard/"
+  r8_prefix = "META-INF/com.android.tools/"
+
+  for entry in sorted(jar.namelist()):
+    if not entry.endswith("/") and (
+        entry.startswith(legacy_prefix) or entry.startswith(r8_prefix)):
+      output.write(b"\n")
+      output.write(jar.read(entry))
+
+
+def ExtractEmbeddedProguardFromAar(aar, output):
+  """Extract proguard specs from an AAR file."""
   proguard_spec = "proguard.txt"
   classes_jar = "classes.jar"
 
@@ -64,28 +80,29 @@ def ExtractEmbeddedProguard(aar, output):
       _ExtractR8Rules(jar, output)
 
 
-def _Main(input_aar, output_proguard_file):
-  with zipfile.ZipFile(input_aar, "r") as aar:
+def _Main(input_archive, output_proguard_file, archive_type):
+  with zipfile.ZipFile(input_archive, "r") as archive:
     with open(output_proguard_file, "wb") as output:
-      ExtractEmbeddedProguard(aar, output)
+      if archive_type == "jar":
+        ExtractEmbeddedProguardFromJar(archive, output)
+      else:
+        ExtractEmbeddedProguardFromAar(archive, output)
 
 
 def main(unused_argv):
   if os.name == "nt":
-    # Shorten paths unconditionally, because the extracted paths in
-    # ExtractEmbeddedJars (which we cannot yet predict, because they depend on
-    # the names of the Zip entries) may be longer than MAX_PATH.
-    aar_long = os.path.abspath(FLAGS.input_aar)
+    archive_long = os.path.abspath(FLAGS.input_archive)
     proguard_long = os.path.abspath(FLAGS.output_proguard_file)
 
-    with junction.TempJunction(os.path.dirname(aar_long)) as aar_junc:
+    with junction.TempJunction(os.path.dirname(archive_long)) as archive_junc:
       with junction.TempJunction(
           os.path.dirname(proguard_long)) as proguard_junc:
         _Main(
-            os.path.join(aar_junc, os.path.basename(aar_long)),
-            os.path.join(proguard_junc, os.path.basename(proguard_long)))
+            os.path.join(archive_junc, os.path.basename(archive_long)),
+            os.path.join(proguard_junc, os.path.basename(proguard_long)),
+            FLAGS.archive_type)
   else:
-    _Main(FLAGS.input_aar, FLAGS.output_proguard_file)
+    _Main(FLAGS.input_archive, FLAGS.output_proguard_file, FLAGS.archive_type)
 
 
 if __name__ == "__main__":
