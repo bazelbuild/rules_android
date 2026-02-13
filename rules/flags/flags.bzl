@@ -41,53 +41,9 @@ _IntFlagInfo = provider(
         value = "flag value",
     ),
 )
-_NativeBoolFlagInfo = provider(
-    doc = "Provides information about a native boolean flag",
-    fields = dict(
-        name = "flag name, the name of the native flag being accessed.",
-        value = "flag value, derived from config_setting targets that access the value",
-    ),
-)
 FlagsInfo = provider(
     doc = "Provides all flags",
 )
-
-def _native_bool_impl(ctx):
-    return _NativeBoolFlagInfo(
-        name = ctx.label.name,
-        value = ctx.attr.value,
-    )
-
-native_bool_flag = rule(
-    implementation = _native_bool_impl,
-    attrs = dict(
-        value = attr.bool(mandatory = True),
-    ),
-    provides = [_NativeBoolFlagInfo],
-)
-
-def native_bool_flag_macro(name, description):
-    """Provides access to a native boolean flag from Starlark.
-
-    Args:
-      name: The name of the native flag to access.
-      description: The description of the flag.
-    """
-    native.config_setting(
-        name = name + "_on",
-        values = {name: "True"},
-    )
-    native.config_setting(
-        name = name + "_off",
-        values = {name: "False"},
-    )
-    native_bool_flag(
-        name = name,
-        value = select({
-            (":" + name + "_on"): True,
-            (":" + name + "_off"): False,
-        }),
-    )
 
 def _get_bool(v):
     v = v.lower()
@@ -178,7 +134,7 @@ int_flag = rule(
     provides = [_IntFlagInfo],
 )
 
-def _flags_impl_internal(bool_flags, bool_flag_groups, int_flags, native_bool_flags):
+def _flags_impl_internal(bool_flags, bool_flag_groups, int_flags):
     flags = dict()
 
     # For each group, set all flags to the group value
@@ -202,12 +158,6 @@ def _flags_impl_internal(bool_flags, bool_flag_groups, int_flags, native_bool_fl
     for i in int_flags:
         flags[i.name] = i.value
 
-    # Set native bool flags
-    for n in native_bool_flags:
-        if n.name in flags:
-            fail("Flag '%s' defined as both native and non-native flag type" % n.name)
-        flags[n.name] = n.value
-
     return FlagsInfo(**flags)
 
 def _flags_impl(ctx):
@@ -215,7 +165,6 @@ def _flags_impl(ctx):
         utils.collect_providers(_BoolFlagInfo, ctx.attr.targets),
         utils.collect_providers(_BoolFlagGroupInfo, ctx.attr.targets),
         utils.collect_providers(_IntFlagInfo, ctx.attr.targets),
-        utils.collect_providers(_NativeBoolFlagInfo, ctx.attr.targets),
     )
 
 flags_rule = rule(
@@ -242,7 +191,6 @@ flags = struct(
     DEFINE_bool = bool_flag,
     DEFINE_bool_group = bool_flag_group,
     DEFINE_int = int_flag,
-    EXPOSE_native_bool = native_bool_flag_macro,
     FLAGS = _flags_macro,
     FlagsInfo = FlagsInfo,
     get = _get_flags,
@@ -252,9 +200,7 @@ exported_for_test = struct(
     BoolFlagGroupInfo = _BoolFlagGroupInfo,
     BoolFlagInfo = _BoolFlagInfo,
     IntFlagInfo = _IntFlagInfo,
-    NativeBoolFlagInfo = _NativeBoolFlagInfo,
     bool_impl = _bool_impl,
     flags_impl_internal = _flags_impl_internal,
     int_impl = _int_impl,
-    native_bool_flag_macro = native_bool_flag_macro,
 )
