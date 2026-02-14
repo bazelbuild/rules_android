@@ -13,13 +13,13 @@
 # limitations under the License.
 """Bazel Bundletool Commands."""
 
+load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load(
     "//rules:utils.bzl",
     "ANDROID_TOOLCHAIN_TYPE",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load(":common.bzl", _common = "common")
 load(":java.bzl", _java = "java")
 
@@ -258,6 +258,7 @@ def _build_sdk_module(
     args.add("--internal_apk_path", internal_apk)
     args.add("--output_module_path", out)
     ctx.actions.run(
+        use_default_shell_env = True,
         inputs = [internal_apk],
         outputs = [out],
         executable = bundletool_module_builder,
@@ -414,6 +415,7 @@ def _proto_apk_to_module(
 
     args.add("--output_module_path", out)
     ctx.actions.run(
+        use_default_shell_env = True,
         inputs = inputs,
         outputs = [out],
         executable = bundletool_module_builder,

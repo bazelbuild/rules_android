@@ -1,4 +1,4 @@
-#!/bin/bash --posix
+#!/usr/bin/env bash --posix
 
 java_executable="%java_executable%"
 bundletool="%bundletool_path%"

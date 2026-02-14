@@ -209,6 +209,7 @@ def _expand_wildcards(
     args.add("--output", output)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = profgen,
         outputs = [output],
         inputs = [deploy_jar, profile],

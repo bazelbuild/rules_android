@@ -51,6 +51,7 @@ def _impl(ctx):
     args.add(ctx.attr.is_asset_pack)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._feature_module_validation_script,
         inputs = inputs,
         outputs = [validation],

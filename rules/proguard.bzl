@@ -13,9 +13,9 @@
 # limitations under the License.
 """Bazel Android Proguard library for the Android rules."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":acls.bzl", "acls")
 load(":android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load(":baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
@@ -45,6 +45,7 @@ def _validate_proguard_spec(
     args.add("--output", out_validated_proguard_spec)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = proguard_allowlister,
         arguments = [args],
         inputs = [proguard_spec],
@@ -163,6 +164,7 @@ def _generate_min_sdk_version_assumevalues(
     outputs.append(output)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         inputs = inputs,
         outputs = outputs,
         executable = generate_exec,
@@ -328,6 +330,7 @@ def _optimization_action(
         outputs.append(next_stage_output)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         outputs = outputs,
         inputs = inputs,
         executable = proguard_tool,

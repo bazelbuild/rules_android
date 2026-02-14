@@ -40,7 +40,7 @@ sh_binary(
     name = "create_system",
     srcs = ["create_system.sh"],
     # Required on Windows to avoid "LAUNCHER ERROR: Rlocation failed", because providing it via
-    # the "tools" parameter of ctx.actions.run() doesn't seem to be enough.
+    # the "tools" parameter of ctx.actions.run(use_default_shell_env = True,) doesn't seem to be enough.
     data = ["//tools/android:unzip"],
     visibility = ["//visibility:public"],
 )

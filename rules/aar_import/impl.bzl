@@ -13,6 +13,9 @@
 # limitations under the License.
 """Implementation."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo")
 load(
     "//rules:acls.bzl",
@@ -39,9 +42,6 @@ load(
     _utils = "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -102,6 +102,7 @@ def _extract_resources(
     args.add("--output_res_dir", out_resources_dir.path)
     args.add("--output_assets_dir", out_assets_dir.path)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = aar_resources_extractor_tool,
         arguments = [args],
         inputs = [aar],
@@ -122,6 +123,7 @@ def _extract_native_libs(
     args.add("--cpu", cpu)
     args.add("--output_zip", output_zip)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = aar_native_libs_zip_creator_tool,
         arguments = [args],
         inputs = [aar],
@@ -195,6 +197,7 @@ def _extract_jars(
     args.add("--build_target", ctx.label)
     args.add("--output_singlejar_param_file", out_jars_params_file)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = aar_embedded_jars_extractor_tool,
         arguments = [args],
         inputs = [aar],
@@ -216,6 +219,7 @@ def _merge_jars(
     args.add("--normalize")
     args.add("@" + jars_param_file.path)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = single_jar_tool,
         arguments = [args],
         inputs = [jars_tree_artifact, jars_param_file],
@@ -388,6 +392,7 @@ def _validate_rule(
     args.add("-output", validation_output)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = checks,
         arguments = [args],
         inputs = [aar, manifest],
@@ -437,6 +442,7 @@ def _collect_proguard(
     args.add("--input_aar", aar)
     args.add("--output_proguard_file", out_proguard)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = aar_embedded_proguard_extractor,
         arguments = [args],
         inputs = [aar],

@@ -13,13 +13,13 @@
 # limitations under the License.
 """Bazel Android Resources."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
 load(":path.bzl", _path = "path")
@@ -225,6 +225,7 @@ def _add_g3itr(
     args.add(manifest)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = xsltproc,
         arguments = [args],
         inputs = [manifest, instrument_xslt],
@@ -301,6 +302,7 @@ echo "$SORTED" >> $3
     args.add(manifest_params, format = "--flagfile=%s")
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = legacy_merger,
         arguments = [args],
         inputs = depset([manifest, manifest_params], transitive = [mergee_manifests]),
@@ -369,7 +371,7 @@ def _fix_databinding_compiled_resources(
         arguments = [compiled_resources.path, out_compiled_resources.path, zip_tool.executable.path],
         toolchain = None,
         mnemonic = "FixDatabindingCompiledResources",
-        command = """#!/bin/bash
+        command = """#!/usr/bin/env bash
 set -e
 
 IN_DIR=$(mktemp -d)
@@ -867,6 +869,7 @@ def _liteparse(ctx, out_r_pb, resource_files, android_kit):
     args.add("--out", out_r_pb)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = android_kit,
         arguments = ["liteparse", args],
         inputs = resource_files,
@@ -904,6 +907,7 @@ def _fastr(ctx, r_pbs, package, manifest, android_kit):
     args.add_joined("-resourcePbs", r_pbs, join_with = ",")
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = android_kit,
         arguments = ["rstub", args],
         inputs = inputs,
@@ -1081,6 +1085,7 @@ def _bump_min_sdk(
     )
     args.add("-output", out_manifest.path)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = get_android_toolchain(ctx).android_kit.files_to_run,
         inputs = [manifest],
         outputs = [out_manifest, log],
@@ -1129,6 +1134,7 @@ def _set_default_min_sdk(
     )
     args.add("-output", out_manifest.path)
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = get_android_toolchain(ctx).android_kit.files_to_run,
         inputs = [manifest],
         outputs = [out_manifest, log],
@@ -1169,6 +1175,7 @@ def _validate_manifest(
     args.add("--expected_min_sdk_version", min_sdk_version)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = manifest_validation_tool,
         arguments = [args],
         outputs = [output],

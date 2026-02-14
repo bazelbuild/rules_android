@@ -154,6 +154,7 @@ def _bucketize_resources(ctx, data):
             args.add_joined("-res_paths", data[res_dir], join_with = ",")
 
         ctx.actions.run(
+            use_default_shell_env = True,
             executable = ctx.executable._android_kit,
             arguments = ["bucketize", args],
             inputs = data[res_dir],
@@ -191,6 +192,7 @@ def _compile_bucketized_resources(ctx, data):
                 sibling = res_bucket,
             )
             ctx.actions.run(
+                use_default_shell_env = True,
                 executable = ctx.executable._android_kit,
                 arguments = [
                     "compile",
@@ -241,6 +243,7 @@ def _compile_library_resouces(ctx, data):
             args.add("-in", res_dir)
             args.add("-out", out)
             ctx.actions.run(
+                use_default_shell_env = True,
                 executable = ctx.executable._android_kit,
                 arguments = ["compile", args],
                 inputs = data[res_type][res_dir] + ctx.attr._aapt2[DefaultInfo].files.to_list(),
@@ -290,6 +293,7 @@ def link_resources(
     args.add_joined("-asset_dirs", assets_dirs, join_with = ",")
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = ["link", args],
         inputs = depset(
@@ -323,6 +327,7 @@ def liteparse(ctx):
     args.add("--out", r_pb)
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = ["liteparse", args],
         inputs = ctx.rule.files.resource_files,
@@ -349,6 +354,7 @@ def compiletime_r_srcjar(ctx, output_srcjar, r_pbs, package):
     args.add_joined("-resourcePbs", r_pbs, join_with = ",")
 
     ctx.actions.run(
+        use_default_shell_env = True,
         executable = ctx.executable._android_kit,
         arguments = ["rstub", args],
         inputs = r_pbs,
