@@ -434,8 +434,9 @@ def _collect_proguard(
         aar,
         aar_embedded_proguard_extractor):
     args = ctx.actions.args()
-    args.add("--input_aar", aar)
+    args.add("--input_archive", aar)
     args.add("--output_proguard_file", out_proguard)
+    args.add("--archive_type", "aar")
     ctx.actions.run(
         executable = aar_embedded_proguard_extractor,
         arguments = [args],
@@ -565,7 +566,7 @@ def impl(ctx):
         ctx,
         proguard_spec,
         aar,
-        _get_android_toolchain(ctx).aar_embedded_proguard_extractor.files_to_run,
+        _get_android_toolchain(ctx).archive_embedded_proguard_extractor.files_to_run,
     ))
 
     lint_providers = _process_lint_rules(

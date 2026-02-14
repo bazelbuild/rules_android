@@ -31,10 +31,10 @@ _ATTRS = dict(
         default = "//tools/android:aar_embedded_jars_extractor",
         executable = True,
     ),
-    aar_embedded_proguard_extractor = attr.label(
+    archive_embedded_proguard_extractor = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "//tools/android:aar_embedded_proguard_extractor",
+        default = "//tools/android:archive_embedded_proguard_extractor",
         executable = True,
     ),
     aar_native_libs_zip_creator = attr.label(
