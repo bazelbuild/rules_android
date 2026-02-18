@@ -14,6 +14,7 @@
 """Bazel rule for Android local test."""
 
 load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
+load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
@@ -160,11 +161,7 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         plugins = utils.collect_providers(JavaPluginInfo, ctx.attr.plugins),
         java_toolchain = common.get_java_toolchain(ctx),
     )
-    if getattr(java_common, "add_constraints", None):
-        java_info = java_common.add_constraints(
-            java_info,
-            constraints = ["android"],
-        )
+    java_info = add_constraints(java_info, constraints = ["android"])
 
     # TODO(timpeut): some conformance tests require a filtered JavaInfo
     # with no transitive_ deps.
