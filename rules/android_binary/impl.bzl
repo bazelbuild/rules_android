@@ -15,6 +15,7 @@
 
 load("//providers:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
 load("//rules:acls.bzl", "acls")
+load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:apk_packaging.bzl", _apk_packaging = "apk_packaging")
 load("//rules:baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load("//rules:common.bzl", "common")
@@ -231,11 +232,7 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
         strict_deps = "DEFAULT",
         java_toolchain = common.get_java_toolchain(ctx),
     )
-    if getattr(java_common, "add_constraints", None):
-        java_info = java_common.add_constraints(
-            java_info,
-            constraints = ["android"],
-        )
+    java_info = add_constraints(java_info, constraints = ["android"])
 
     java_infos = [packaged_resources_ctx.r_java]
     if proto_ctx.java_info:

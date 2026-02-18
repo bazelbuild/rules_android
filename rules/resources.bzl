@@ -15,9 +15,9 @@
 
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
+load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
@@ -839,6 +839,8 @@ def _package(
         source_jar = r_java,
     )
 
+    java_info = add_constraints(java_info, constraints = ["android"])
+
     packaged_resources_ctx[_R_JAVA] = java_info
     packaged_resources_ctx[_DATA_BINDING_LAYOUT_INFO] = data_binding_layout_info
 
@@ -1606,6 +1608,8 @@ def _process_starlark(
         )
 
         packages_to_r_txts_depset.setdefault(java_package, []).append(depset([out_aapt2_r_txt]))
+
+        java_info = add_constraints(java_info, constraints = ["android"])
 
         resources_ctx[_R_JAVA] = java_info
         resources_ctx[_DATA_BINDING_LAYOUT_INFO] = data_binding_layout_info
