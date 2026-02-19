@@ -38,6 +38,7 @@ def process(
         debug_signing_keys = [],
         debug_signing_lineage_file = None,
         key_rotation_min_sdk = None,
+        keystore_signing_password = "android",
         apk = None,
         sibling = None):
     """Processes the data in the mi and return data to pass up the graph.
@@ -57,6 +58,7 @@ def process(
       debug_signing_keys: Debug keystores to be used to sign the apk.
       debug_signing_lineage_file: File containing the signing lineage.
       key_rotation_min_sdk: String of the minimum API level to rotate signing keys for.
+      keystore_signing_password: String. The password for the signing keystores.
       apk: The generated apk for the app.
       sibling: The path to the launcher file.
 
@@ -109,6 +111,7 @@ def process(
         debug_signing_keys,
         debug_signing_lineage_file,
         key_rotation_min_sdk,
+        keystore_signing_password,
         sibling,
     )
 
