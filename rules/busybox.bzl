@@ -311,15 +311,17 @@ def _package(
         map_each = _make_package_resources_flags,
         join_with = ",",
     )
+    # Reverse so the current library's node (first in preorder) ends up last,
+    # matching busybox last-wins semantics: a library's resources override its deps.
     args.add_joined(
         "--directData",
-        direct_resources_nodes,
+        reversed(direct_resources_nodes.to_list()),
         map_each = _make_package_resources_flags,
         join_with = ",",
     )
     args.add_joined(
         "--directAssets",
-        direct_resources_nodes,
+        reversed(direct_resources_nodes.to_list()),
         map_each = _make_package_assets_flags,
         join_with = "&",
         omit_if_empty = True,
@@ -532,9 +534,11 @@ def _merge_assets(
             symbols = symbols,
         ),
     )
+    # Reverse so the current library's node (first in preorder) ends up last,
+    # matching busybox last-wins semantics.
     args.add_joined(
         "--directData",
-        direct_resources_nodes,
+        reversed(direct_resources_nodes.to_list()),
         map_each = _make_merge_assets_flags,
         join_with = "&",
     )
@@ -782,9 +786,11 @@ def _merge_compiled(
         ),
     )
     input_files.append(compiled_resources)
+    # Reverse so the current library's node (first in preorder) ends up last,
+    # matching busybox last-wins semantics.
     args.add_joined(
         "--directData",
-        direct_resources_nodes,
+        reversed(direct_resources_nodes.to_list()),
         map_each = _make_merge_compiled_flags,
         join_with = "&",
     )
