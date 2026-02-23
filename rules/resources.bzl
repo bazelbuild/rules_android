@@ -286,6 +286,7 @@ def _legacy_merge_manifests(
     manifest_args.set_param_file_format("multiline")
     manifest_args.add_joined(mergee_manifests, map_each = _legacy_mergee_manifest, join_with = "\n")
     ctx.actions.run_shell(
+        mnemonic = "StarlarkLegacyMergeManifestsParams",
         command = """
 # Sorts the mergee manifests by path and combines with other busybox args.
 set -e
