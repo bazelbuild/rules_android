@@ -40,10 +40,11 @@ def _adapt(target, ctx):
     """
     if not ctx.rule.attr.deps:
         return []
-    if getattr(ctx.rule.attr, "_aspect_proto_toolchain_for_javalite"):
-        toolchain_dep = [ctx.rule.attr._aspect_proto_toolchain_for_javalite]
-    else:
-        toolchain_dep = [ctx.rule.attr._proto_toolchain_for_javalite]
+    toolchain_dep = []
+    if getattr(ctx.rule.attr, "_aspect_proto_toolchain_for_javalite", None):
+        toolchain_dep.append(ctx.rule.attr._aspect_proto_toolchain_for_javalite)
+    if getattr(ctx.rule.attr, "_proto_toolchain_for_javalite", None):
+        toolchain_dep.append(ctx.rule.attr._proto_toolchain_for_javalite)
     return [
         providers.make_mi_android_dex_info(
             deps = providers.collect(
