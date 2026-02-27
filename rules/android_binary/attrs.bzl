@@ -168,6 +168,12 @@ ATTRS = _attrs.replace(
                       """,
                 cfg = android_platforms_transition,
             ),
+            keystore_signing_password = attr.string(
+                doc = """
+                    The password for the KeyStore that contains the signer's key and certificate.
+                """,
+                default = "android",
+            ),
             key_rotation_min_sdk = attr.string(
                 doc = """
                       Sets the minimum Android platform version (API Level) for which an APK's
