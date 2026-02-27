@@ -345,14 +345,22 @@ def _process_jars(
     if enable_imports_deps_check:
         validation_results.append(jdeps_artifact)
 
+    stamp_jar = java_common.stamp_jar(
+                actions = ctx.actions,
+                jar = out_jar,
+                target_label = ctx.label,
+                java_toolchain = java_toolchain,
+            )
+    java_toolchain = ctx.attr._java_toolchain[java_common.JavaToolchainInfo]
+    compile_jar = java_common.run_ijar(
+        actions = ctx.actions,
+        jar = stamp_jar,
+        target_label = ctx.label,
+        java_toolchain = java_toolchain,
+    )
     java_info = JavaInfo(
         out_jar,
-        compile_jar = java_common.stamp_jar(
-            actions = ctx.actions,
-            jar = out_jar,
-            target_label = ctx.label,
-            java_toolchain = java_toolchain,
-        ),
+        compile_jar = compile_jar,
         source_jar = source_jar,
         neverlink = False,
         deps = r_java_info + java_infos,  # TODO(djwhang): Exports are not deps.
