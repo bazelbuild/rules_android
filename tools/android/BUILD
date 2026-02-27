@@ -427,8 +427,8 @@ py_binary(
 )
 
 py_binary(
-    name = "aar_embedded_proguard_extractor",
-    srcs = ["aar_embedded_proguard_extractor.py"],
+    name = "archive_embedded_proguard_extractor",
+    srcs = ["archive_embedded_proguard_extractor.py"],
     visibility = ["//visibility:public"],
     deps = [
         ":json_worker_wrapper",
@@ -474,9 +474,9 @@ py_test(
 )
 
 py_test(
-    name = "aar_embedded_proguard_extractor_test",
-    srcs = ["aar_embedded_proguard_extractor_test.py"],
-    deps = [":aar_embedded_proguard_extractor"],
+    name = "archive_embedded_proguard_extractor_test",
+    srcs = ["archive_embedded_proguard_extractor_test.py"],
+    deps = [":archive_embedded_proguard_extractor"],
 )
 
 py_test(
