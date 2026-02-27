@@ -251,6 +251,15 @@ public class Aapt2ResourcePackagingAction {
         splitter = ColonSplitter.class,
         description = "List of reource only APK files to link against.")
     public List<Path> resourceApks = ImmutableList.of();
+
+    @Option(
+        name = "legacyResourceOrder",
+        defaultValue = "false",
+        category = "config",
+        documentationCategory = OptionDocumentationCategory.UNCATEGORIZED,
+        effectTags = {OptionEffectTag.UNKNOWN},
+        help = "If passed, resource merge conflicts will give precedence to value defined last in directData/transitiveData inputs.")
+    public boolean legacyResourceOrder;
   }
 
   public static void main(String[] args) throws Exception {
@@ -351,12 +360,22 @@ public class Aapt2ResourcePackagingAction {
         AndroidResourceOutputs.copyManifestToOutput(compiled, options.manifestOutput);
       }
 
-      List<CompiledResources> compiledResourceDeps =
-          // Last defined dependencies will overwrite previous one, so always place direct
-          // after transitive.
-          concat(options.transitiveData.stream(), options.directData.stream())
-              .map(DependencyAndroidData::getCompiledSymbols)
-              .collect(toList());
+      List<CompiledResources> compiledResourceDeps;
+      if (options.legacyResourceOrder) {
+        // Last defined dependencies will overwrite previous one, so always place direct
+        // after transitive.
+        compiledResourceDeps = concat(options.transitiveData.stream(), options.directData.stream())
+                .map(DependencyAndroidData::getCompiledSymbols)
+                .collect(toList());
+      } else {
+        // In this case, we do not want last defined resource to overwrite previous one.
+        // This allow, for example, resources defined in primary target to have precendence
+        // over resources defined in a direct dependency.
+        compiledResourceDeps = concat(options.directData.stream(), options.transitiveData.stream())
+                .map(DependencyAndroidData::getCompiledSymbols)
+                .collect(toList());
+        Collections.reverse(compiledResourceDeps);
+      }
 
       // NB: "-A" options are in *decreasing* precedence, while "-R" options are in *increasing*
       // precedence.  While this is internally inconsistent, it matches AAPTv1's treatment of "-A".
