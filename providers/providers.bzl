@@ -488,6 +488,35 @@ AndroidSdkInfo, _AndroidSdkInfo_raw = provider(
     ),
 )
 
+# buildifier: disable=name-conventions
+AndroidSdkTargetsInfo = provider(
+    doc = "Provides targets from the Android SDK.",
+    fields = dict(
+        build_tools_version = "String, the version of the build tools.",
+        framework_aidl = "Target for the framework aidl.",
+        aidl_lib = "Target for the aidl lib.",
+        android_jar = "Target for the android jar.",
+        source_properties = "Target for the source properties.",
+        shrinked_android_jar = "Target for the shrinked android jar.",
+        main_dex_classes = "Target for the main dex classes.",
+        adb = "Target for adb.",
+        dx = "Target for dx.",
+        main_dex_list_creator = "Target for the main dex list creator.",
+        aidl = "Target for aidl.",
+        aapt = "Target for aapt.",
+        aapt2 = "Target for aapt2.",
+        apk_builder = "Target for apk builder.",
+        apk_signer = "Target for apk signer.",
+        proguard = "Target for proguard.",
+        legacy_main_dex_list_generator = "Target for legacy main dex list generator.",
+        zip_align = "Target for zipalign.",
+        core_for_system_modules_jar = "Target for core-for-system-modules.jar.",
+        org_apache_http_legacy = "Target for org_apache_http_legacy.",
+        sdk_path = "Target for the sdk_path filegroup.",
+        files = "Target for the files filegroup.",
+    ),
+)
+
 # See b/419287003 for more details of why this provider is needed.
 AndroidLocalizedFilesInfo = provider(
     doc = "AndroidLocalizedFilesInfo",
