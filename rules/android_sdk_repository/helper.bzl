@@ -26,27 +26,27 @@ _bool_flag = rule(
     build_setting = config.bool(flag = True),
 )
 
-def _int_flag_impl(ctx):
+def _string_flag_impl(ctx):
     allowed_values = ctx.attr.values
     value = ctx.build_setting_value
     if len(allowed_values) != 0 and value not in ctx.attr.values:
         fail(
-            "Error setting %s: invalid value '%d'. Allowed values are %s" % (
+            "Error setting %s: invalid value '%s'. Allowed values are %s" % (
                 ctx.label,
                 value,
                 ",".join([str(val) for val in allowed_values]),
             ),
         )
 
-int_flag = rule(
-    implementation = _int_flag_impl,
-    build_setting = config.int(flag = True),
+string_flag = rule(
+    implementation = _string_flag_impl,
+    build_setting = config.string(flag = True),
     attrs = {
-        "values": attr.int_list(
+        "values": attr.string_list(
             doc = "The list of allowed values for this setting. An error is raised if any other value is given.",
         ),
     },
-    doc = "An int-typed build setting that can be set on the command line",
+    doc = "An string-typed build setting that can be set on the command line",
 )
 
 def _create_config_setting_rule():
@@ -94,15 +94,15 @@ def create_android_sdk_rules(
       build_tools_version: string, the version of Android's build tools to use.
       build_tools_directory: string, the directory name of the build tools in
           sdk's build-tools directory.
-      api_levels: list of ints, the API levels from which to get android.jar
+      api_levels: list of strings, the API levels from which to get android.jar
           et al. and create android_sdk rules.
-      default_api_level: int, the API level to alias the default sdk to if
+      default_api_level: string, the API level to alias the default sdk to if
           --android_sdk is not specified on the command line.
     """
 
     _create_config_setting_rule()
 
-    int_flag(
+    string_flag(
         name = "api_level",
         build_setting_default = default_api_level,
         values = api_levels,
@@ -154,7 +154,7 @@ def create_android_sdk_rules(
                    "build-tools/%s/lib/d8.jar" % build_tools_directory,
                    ":build_tools_libs",
                ] + [
-            "platforms/android-%d/%s" % (api_level, filename)
+            "platforms/android-%s/%s" % (api_level, filename)
             for api_level in api_levels
             for filename in ["android.jar", "core-for-system-modules.jar", "framework.aidl"]
         ] + select({
@@ -164,44 +164,44 @@ def create_android_sdk_rules(
     )
 
     for api_level in api_levels:
-        if api_level >= 23:
+        if api_level >= "23":
             # Android 23 removed most of org.apache.http from android.jar and moved it
             # to a separate jar.
             java_import(
-                name = "org_apache_http_legacy-%d" % api_level,
-                jars = ["platforms/android-%d/optional/org.apache.http.legacy.jar" % api_level],
+                name = "org_apache_http_legacy-%s" % api_level,
+                jars = ["platforms/android-%s/optional/org.apache.http.legacy.jar" % api_level],
             )
 
-        if api_level >= 28:
+        if api_level >= "28":
             # Android 28 removed most of android.test from android.jar and moved it
             # to separate jars.
             java_import(
-                name = "legacy_test-%d" % api_level,
+                name = "legacy_test-%s" % api_level,
                 jars = [
-                    "platforms/android-%d/optional/android.test.base.jar" % api_level,
-                    "platforms/android-%d/optional/android.test.mock.jar" % api_level,
-                    "platforms/android-%d/optional/android.test.runner.jar" % api_level,
+                    "platforms/android-%s/optional/android.test.base.jar" % api_level,
+                    "platforms/android-%s/optional/android.test.mock.jar" % api_level,
+                    "platforms/android-%s/optional/android.test.runner.jar" % api_level,
                 ],
                 neverlink = 1,
             )
 
-        if api_level >= 29:
+        if api_level >= "29":
             # Android 29 is min api that compatible with Car App Library
             java_import(
-                name = "android_car-%d" % api_level,
-                jars = ["platforms/android-%d/optional/android.car.jar" % api_level],
+                name = "android_car-%s" % api_level,
+                jars = ["platforms/android-%s/optional/android.car.jar" % api_level],
                 neverlink = 1,
             )
 
         native.config_setting(
-            name = "api_%d_enabled" % api_level,
+            name = "api_%s_enabled" % api_level,
             flag_values = {
                 ":api_level": str(api_level),
             },
         )
 
         android_sdk(
-            name = "sdk-%d" % api_level,
+            name = "sdk-%s" % api_level,
             aapt = select({
                 ":windows": "build-tools/%s/aapt.exe" % build_tools_directory,
                 "//conditions:default": ":aapt_binary",
@@ -218,7 +218,7 @@ def create_android_sdk_rules(
                 ":windows": "build-tools/%s/aidl.exe" % build_tools_directory,
                 "//conditions:default": ":aidl_binary",
             }),
-            android_jar = "platforms/android-%d/android.jar" % api_level,
+            android_jar = "platforms/android-%s/android.jar" % api_level,
             apksigner = ":apksigner",
             build_tools_version = build_tools_version,
             dx = select({
@@ -226,7 +226,7 @@ def create_android_sdk_rules(
                 "dx_standalone_dexer": ":dx_binary",
                 "//conditions:default": ":d8_compat_dx",
             }),
-            framework_aidl = "platforms/android-%d/framework.aidl" % api_level,
+            framework_aidl = "platforms/android-%s/framework.aidl" % api_level,
             legacy_main_dex_list_generator = ":generate_main_dex_list",
             main_dex_classes = "build-tools/%s/mainDexClasses.rules" % build_tools_directory,
             main_dex_list_creator = ":main_dex_list_creator",
@@ -243,34 +243,34 @@ def create_android_sdk_rules(
         )
 
         native.toolchain(
-            name = "sdk-%d-toolchain" % api_level,
+            name = "sdk-%s-toolchain" % api_level,
             exec_compatible_with = HOST_CONSTRAINTS,
-            toolchain = ":sdk-%d" % api_level,
+            toolchain = ":sdk-%s" % api_level,
             toolchain_type = ":sdk_toolchain_type",
             target_settings = [
-                ":api_%d_enabled" % api_level,
+                ":api_%s_enabled" % api_level,
             ],
         )
 
     create_dummy_sdk_toolchain()
 
-    if default_api_level >= 29:
+    if default_api_level >= "29":
         native.alias(
             name = "android_car",
-            actual = "android_car-%d" % default_api_level,
+            actual = "android_car-%s" % default_api_level,
         )
 
     native.alias(
         name = "org_apache_http_legacy",
-        actual = ":org_apache_http_legacy-%d" % default_api_level,
+        actual = ":org_apache_http_legacy-%s" % default_api_level,
     )
 
     sdk_alias_dict = {
-        "//conditions:default": "sdk-%d" % default_api_level,
+        "//conditions:default": "sdk-%s" % default_api_level,
     }
 
     for api_level in api_levels:
-        sdk_alias_dict[":api_%d_enabled" % api_level] = "sdk-%d" % api_level
+        sdk_alias_dict[":api_%s_enabled" % api_level] = "sdk-%s" % api_level
 
     native.alias(
         name = "sdk",
@@ -282,12 +282,12 @@ def create_android_sdk_rules(
 
     native.alias(
         name = "sdk-toolchain",
-        actual = ":sdk-%d-toolchain" % default_api_level,
+        actual = ":sdk-%s-toolchain" % default_api_level,
     )
 
     java_import(
         name = "core-for-system-modules-jar",
-        jars = ["platforms/android-%d/core-for-system-modules.jar" % default_api_level],
+        jars = ["platforms/android-%s/core-for-system-modules.jar" % default_api_level],
     )
 
     java_binary(
