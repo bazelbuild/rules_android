@@ -13,4 +13,5 @@
 # limitations under the License.
 """Allowlist for dropping multidex attributes from android_binary."""
 DROP_MULTIDEX_ATTRS = [
+    "//:__subpackages__",
 ]

@@ -16,7 +16,7 @@
 load("//providers:providers.bzl", "StarlarkApkInfo")
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
 load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
-load("//rules:android_split_transition.bzl", "android_split_transition", "android_transition")
+load("//rules:android_split_transition.bzl", "android_split_transition")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -120,9 +120,6 @@ ATTRS = _attrs.replace(
                 default = _attrs.tristate.auto,
             ),
             dexopts = attr.string_list(),
-            main_dex_list = attr.label(allow_single_file = True, cfg = android_platforms_transition),
-            main_dex_list_opts = attr.string_list(),
-            main_dex_proguard_specs = attr.label_list(allow_empty = True, allow_files = True, cfg = android_transition),
             min_sdk_version = attr.int(),
             incremental_dexing = _attrs.tristate.create(
                 default = _attrs.tristate.auto,
@@ -133,10 +130,6 @@ ATTRS = _attrs.replace(
             feature_flags = attr.label_keyed_string_dict(
                 allow_rules = ["config_feature_flag"],
                 providers = [config_common.FeatureFlagInfo],
-            ),
-            multidex = attr.string(
-                default = "native",
-                values = ["native", "legacy", "manual_main_dex"],
             ),
             debug_key = attr.label(
                 cfg = "exec",

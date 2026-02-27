@@ -184,7 +184,6 @@ EOF
         "custom_package": getattr(attrs, "custom_package", None),
         "manifest": str(targets.manifest_lib),
         "deps": [attrs.library],
-        "multidex": "native",
         "tags": tags,
         "transitive_configs": transitive_configs,
         "visibility": visibility,

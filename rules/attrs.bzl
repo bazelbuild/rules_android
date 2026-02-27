@@ -264,21 +264,10 @@ ANDROID_BINARY_ATTRS = _add(
             allow_files = False,
             allow_rules = ["android_binary"],
         ),
-        main_dex_list = attr.label(
-            allow_files = True,
-        ),
-        main_dex_list_opts = attr.string_list(),
-        main_dex_proguard_specs = attr.label_list(
-            allow_files = True,
-        ),
         manifest_values = attr.string_dict(),
         manifest_merger = attr.string(
             default = "auto",
             values = ["auto", "legacy", "android", "force_android"],
-        ),
-        multidex = attr.string(
-            default = "native",
-            values = ["native", "legacy", "manual_main_dex"],
         ),
         nocompress_extensions = attr.string_list(),
         proguard_apply_dictionary = attr.label(
