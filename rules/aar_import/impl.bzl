@@ -13,7 +13,7 @@
 # limitations under the License.
 """Implementation."""
 
-load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo")
+load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "BaselineProfileProvider")
 load(
     "//rules:acls.bzl",
     _acls = "acls",
@@ -574,6 +574,18 @@ def impl(ctx):
         unzip_tool = unzip_tool,
     )
     providers.extend(lint_providers)
+
+    # Extract baseline-prof.txt from the AAR if present, otherwise create an empty file.
+    baseline_prof = create_aar_artifact(ctx, "baseline-prof.txt")
+    extract_single_file(
+        ctx,
+        baseline_prof,
+        aar,
+        "baseline-prof.txt",
+        unzip_tool,
+        create_empty_file = True,
+    )
+    providers.append(BaselineProfileProvider(files = depset([baseline_prof])))
 
     validation_outputs.append(_validate_rule(
         ctx,
