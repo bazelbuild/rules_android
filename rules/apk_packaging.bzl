@@ -334,6 +334,10 @@ def _sign_apk(
     args = ctx.actions.args()
     args.add("sign")
 
+    # Preserves alignment previously done by `zipalign`.
+    # Starting from Android SDK Build Tools v35, apksig no longer preserves alignment by default.
+    args.add("--alignment-preserved", "true")
+
     if signing_lineage:
         inputs.append(signing_lineage)
         args.add("--lineage", signing_lineage)
