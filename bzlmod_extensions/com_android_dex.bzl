@@ -22,8 +22,13 @@ def com_android_dex(_ctx = None):
     # NOTE(b/317109605): Cannot depend on a stable sha256 hash for googlesource repositories.
     http_archive(
         name = "com_android_dex",
-        url = "https://android.googlesource.com/platform/dalvik/+archive/5a81c499a569731e2395f7c8d13c0e0d4e17a2b6.tar.gz",
+        urls = [
+            # Original download URL. Does not always return stable sha256sums, and can flake out.
+            # "https://android.googlesource.com/platform/dalvik/+archive/5a81c499a569731e2395f7c8d13c0e0d4e17a2b6.tar.gz",
+            "https://mirror.bazel.build/android.googlesource.com/platform/dalvik/+archive/5a81c499a569731e2395f7c8d13c0e0d4e17a2b6.tar.gz",
+        ],
         build_file = Label("//bzlmod_extensions:com_android_dex.BUILD"),
+        sha256 = "86b4848c038bf687fadc812239cb01fb8d1d15cef3125b480a0448360992b95d",
     )
 
 com_android_dex_extension = module_extension(
