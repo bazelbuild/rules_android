@@ -24,7 +24,12 @@ def apksig(_ctx = None):
     # NOTE(b/317109605): Cannot depend on a stable sha256 hash for googlesource repositories.
     http_archive(
         name = "apksig",
-        url = "https://android.googlesource.com/platform/tools/apksig/+archive/%s.tar.gz" % APKSIG_COMMIT,
+        urls = [
+            # Original download URL. Does not always return stable sha256sums, and can flake out.
+            # "https://android.googlesource.com/platform/tools/apksig/+archive/%s.tar.gz" % APKSIG_COMMIT,
+            "https://mirror.bazel.build/android.googlesource.com/platform/tools/apksig/+archive/%s.tar.gz" % APKSIG_COMMIT,
+        ],
+        sha256 = "12e44fdbd219c5e1cc62099c2a01d775957603d2d4f693f8285f9d95d9a04e77",
         build_file = Label("//bzlmod_extensions:apksig.BUILD"),
     )
 
