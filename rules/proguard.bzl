@@ -139,7 +139,7 @@ def _get_proguard_specs(
         proguard_deps,
     )
 
-    if len(proguard_specs) > 0 and ctx.fragments.android.assume_min_sdk_version:
+    if len(proguard_specs) > 0:
         # NB: Order here is important. We're including generated Proguard specs before the user's
         # specs so that they can override values.
         proguard_specs = proguard_specs_for_manifest + proguard_specs
