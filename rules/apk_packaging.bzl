@@ -56,6 +56,7 @@ def _process(
         signing_key_rotation_min_sdk = None,
         stamp_signing_key = None,
         deterministic_signing = False,
+        zipalign_alignment = 4,
         java_toolchain = None,
         deploy_info_writer = None,
         zip_aligner = None,
@@ -86,6 +87,7 @@ def _process(
         signing_key_rotation_min_sdk: The minimum API version for signing the APK with key rotation.
         stamp_signing_key: File. The keystore to be used to sign the APK with stamp signing.
         deterministic_signing: Boolean. Whether to enable deterministic DSA signing.
+        zipalign_alignment: Integer. The alignment to zipalign the APK.
         java_toolchain: The JavaToolchain target.
         deploy_info_writer: FilesToRunProvider. The executable to write the deploy info proto file.
         zip_aligner: FilesToRunProvider. The executable to zipalign the APK.
@@ -122,6 +124,7 @@ def _process(
         ctx,
         out_apk = zipaligned_apk,
         in_apk = unsigned_apk,
+        alignment = zipalign_alignment,
         zip_aligner = zip_aligner,
         toolchain_type = toolchain_type,
     )
@@ -294,14 +297,15 @@ def _zipalign_apk(
         ctx,
         out_apk = None,
         in_apk = None,
+        alignment = 4,
         zip_aligner = None,
         toolchain_type = None):
     """ Zipaligns an unsigned apk."""
     args = ctx.actions.args()
 
     # note usage: https://cs.android.com/android/platform/superproject/main/+/main:build/make/tools/zipalign/ZipAlignMain.cpp
-    args.add("-P", "16")
-    args.add("4")
+    args.add("-P", 16)
+    args.add(str(alignment))
     args.add(in_apk)
     args.add(out_apk)
 

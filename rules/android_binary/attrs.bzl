@@ -120,6 +120,10 @@ ATTRS = _attrs.replace(
                 default = _attrs.tristate.auto,
             ),
             dexopts = attr.string_list(),
+            zipalign_alignment = attr.int(
+                default = 4,
+                doc = "alignment in bytes, e.g. '4' provides 32-bit alignment",
+            ),
             min_sdk_version = attr.int(),
             incremental_dexing = _attrs.tristate.create(
                 default = _attrs.tristate.auto,

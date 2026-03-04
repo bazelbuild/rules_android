@@ -963,6 +963,7 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
         signing_lineage = ctx.file.debug_signing_lineage_file,
         signing_key_rotation_min_sdk = ctx.attr.key_rotation_min_sdk,
         deterministic_signing = False,
+        zipalign_alignment = ctx.attr.zipalign_alignment,
         java_toolchain = common.get_java_toolchain(ctx),
         deploy_info_writer = get_android_toolchain(ctx).deploy_info_writer.files_to_run,
         zip_aligner = get_android_sdk(ctx).zip_align,
