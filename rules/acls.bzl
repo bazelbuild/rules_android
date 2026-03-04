@@ -66,7 +66,6 @@ load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOU
 load("//rules/acls:gpu_override.bzl", "CAN_USE_GPU_OVERRIDE")
 load("//rules/acls:install_apps_in_data.bzl", "INSTALL_APPS_IN_DATA")
 load("//rules/acls:lint_registry_rollout.bzl", "LINT_REGISTRY_FALLBACK", "LINT_REGISTRY_ROLLOUT")
-load("//rules/acls:local_test_multi_proto.bzl", "LOCAL_TEST_MULTI_PROTO_PKG")
 load("//rules/acls:optimizer_execution_requirements.bzl", "OPTIMIZER_EXECUTION_REQUIREMENTS")
 load(
     "//rules/acls:partial_jetification_targets.bzl",
@@ -147,9 +146,6 @@ def _in_gpu_override(fqn):
 
 def _in_install_apps_in_data(fqn):
     return matches(fqn, AIT_INSTALL_APPS_IN_DATA_DICT)
-
-def _in_local_test_multi_proto(fqn):
-    return matches(fqn, LOCAL_TEST_MULTI_PROTO_PKG_DICT)
 
 def _in_test_to_instrument_test_rollout(fqn):
     return not matches(fqn, TEST_TO_INSTRUMENT_TEST_FALLBACK_DICT) and matches(fqn, TEST_TO_INSTRUMENT_TEST_ROLLOUT_DICT)
@@ -273,7 +269,6 @@ B122039567_DICT = make_dict(B122039567)
 CAN_USE_DEX2OAT_OPTIONS_DICT = make_dict(CAN_USE_DEX2OAT_OPTIONS)
 CAN_USE_GPU_OVERRIDE_DICT = make_dict(CAN_USE_GPU_OVERRIDE)
 AIT_INSTALL_APPS_IN_DATA_DICT = make_dict(INSTALL_APPS_IN_DATA)
-LOCAL_TEST_MULTI_PROTO_PKG_DICT = make_dict(LOCAL_TEST_MULTI_PROTO_PKG)
 TEST_TO_INSTRUMENT_TEST_FALLBACK_DICT = make_dict(TEST_TO_INSTRUMENT_TEST_FALLBACK)
 TEST_TO_INSTRUMENT_TEST_ROLLOUT_DICT = make_dict(TEST_TO_INSTRUMENT_TEST_ROLLOUT)
 ALLOW_RESOURCE_CONFLICTS_DICT = make_dict(ALLOW_RESOURCE_CONFLICTS)
@@ -383,7 +378,6 @@ acls = struct(
     in_dex2oat_opts = _in_dex2oat_opts,
     in_gpu_override = _in_gpu_override,
     in_install_apps_in_data = _in_install_apps_in_data,
-    in_local_test_multi_proto = _in_local_test_multi_proto,
     in_test_to_instrument_test_rollout = _in_test_to_instrument_test_rollout,
     in_allow_resource_conflicts = _in_allow_resource_conflicts,
     in_partial_jetification_targets = _in_partial_jetification_targets,
