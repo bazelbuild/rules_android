@@ -304,7 +304,7 @@ def _zipalign_apk(
     args = ctx.actions.args()
 
     # note usage: https://cs.android.com/android/platform/superproject/main/+/main:build/make/tools/zipalign/ZipAlignMain.cpp
-    args.add("-P", 16)
+    args.add("-P", "16")
     args.add(str(alignment))
     args.add(in_apk)
     args.add(out_apk)
