@@ -317,7 +317,6 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
         is_binary_optimized = is_binary_optimized,
         incremental_dexing_after_proguard_by_default = ctx.fragments.android.incremental_dexing_after_proguard_by_default,
         incremental_dexing_shards_after_proguard = ctx.fragments.android.incremental_dexing_shards_after_proguard,
-        use_incremental_dexing = ctx.fragments.android.use_incremental_dexing,
     )
 
     classes_dex_zip = _dex.get_dx_artifact(ctx, "classes.dex.zip")
@@ -497,7 +496,6 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, packaged_r
         java_toolchain = java_toolchain,
         build_target = ctx.label.name,
         deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
-        check_desugar_deps = ctx.fragments.android.check_desugar_deps,
     )
 
     if is_instrumentation(ctx):

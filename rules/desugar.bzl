@@ -55,9 +55,7 @@ def _desugar(
 
     input_file_deps = [input]
     if library_desugaring:
-        if ctx.fragments.android.check_desugar_deps:
-            args.add("--emit_dependency_metadata_as_needed")
-
+        args.add("--emit_dependency_metadata_as_needed")
         if ctx.fragments.android.desugar_java8_libs:
             args.add("--desugar_supported_core_libs")
 

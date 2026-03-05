@@ -500,8 +500,7 @@ def _get_effective_incremental_dexing(
         has_forbidden_dexopts = False,
         incremental_dexing_after_proguard_by_default = True,
         incremental_dexing_shards_after_proguard = True,
-        is_binary_optimized = False,
-        use_incremental_dexing = True):
+        is_binary_optimized = False):
     if (is_binary_optimized and
         force_incremental_dexing == _tristate.yes and incremental_dexing_shards_after_proguard <= 0):
         fail("Target cannot be incrementally dexed because it uses Proguard")
@@ -517,8 +516,7 @@ def _get_effective_incremental_dexing(
     if has_forbidden_dexopts or (is_binary_optimized and not incremental_dexing_after_proguard_by_default):
         return False
 
-    # use_incremental_dexing config flag will take effect if incremental_dexing attr is not set
-    return use_incremental_dexing
+    return True
 
 def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_jar = None, bootclasspath_jar = None, min_sdk_version = 0):
     if not build_customized_files:

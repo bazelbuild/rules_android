@@ -101,9 +101,7 @@ def _aspect_impl(target, ctx):
 
     min_sdk_version = _min_sdk_version.get(ctx)
 
-    if incremental_dexing == _tristate.no or \
-       (not ctx.fragments.android.use_incremental_dexing and
-        incremental_dexing == _tristate.auto):
+    if incremental_dexing == _tristate.no:
         return []
 
     extra_toolchain_jars = _get_platform_based_toolchain_jars(ctx)
