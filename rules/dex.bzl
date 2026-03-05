@@ -498,7 +498,6 @@ def _get_dx_artifact(ctx, basename, min_sdk_version = 0):
 def _get_effective_incremental_dexing(
         force_incremental_dexing = _tristate.auto,
         has_forbidden_dexopts = False,
-        incremental_dexing_after_proguard_by_default = True,
         incremental_dexing_shards_after_proguard = True,
         is_binary_optimized = False):
     if (is_binary_optimized and
@@ -513,7 +512,7 @@ def _get_effective_incremental_dexing(
 
     # If there are incompatible dexopts and the incremental_dexing attr is not set, we silently don't run
     # incremental dexing.
-    if has_forbidden_dexopts or (is_binary_optimized and not incremental_dexing_after_proguard_by_default):
+    if has_forbidden_dexopts:
         return False
 
     return True
