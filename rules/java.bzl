@@ -13,9 +13,9 @@
 # limitations under the License.
 """Bazel Java APIs for the Android rules."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/private:android_support.bzl", "android_support")  # buildifier: disable=bzl-visibility
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":path.bzl", _path = "path")
 load(":utils.bzl", "log")
 
@@ -512,7 +512,7 @@ def _create_deploy_jar(
         progress_message = "Building deploy jar %s" % output.short_path,
         java_toolchain = java_toolchain,
         build_target = build_target,
-        check_desugar_deps = True,
+        check_desugar_deps = False,
         compression = False,
         deploy_manifest_lines = deploy_manifest_lines,
         resource_set = _resource_set_for_deploy_jar,
