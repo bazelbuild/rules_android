@@ -51,13 +51,13 @@ def _readdir_only_dirs(dir_path):
     Returns:
         list[path]
     """
-    paths = set()
+    paths = []
     for p in dir_path.readdir():
         if p.is_dir:
-            paths.add(p)
+            paths.append(p)
         else:
             print("WARNING: encountered non-directory path '%s' in '%s'" % (p, dir_path))
-    return list(paths)
+    return paths
 
 def _read_api_levels(repo_ctx, android_sdk_path):
     platforms_dir = "%s/%s" % (android_sdk_path, _PLATFORMS_DIR)
