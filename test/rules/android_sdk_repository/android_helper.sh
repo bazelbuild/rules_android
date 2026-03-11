@@ -241,41 +241,6 @@ platform(
 EOF
 }
 
-function write_android_sdk_provider() {
-  mkdir -p sdk_check
-  cat > sdk_check/check.bzl <<EOF
-load("//third_party/bazel_rules/rules_android/rules:utils.bzl", "get_android_sdk")
-def _find_api_level(android_jar):
-    # expected format in WORKSPACE: external/androidsdk/platforms/android-LEVEL/android.jar
-    # expected format in bzlmod: external/rules_android++android_sdk_repository_extension+androidsdk/platforms/android-LEVEL/android.jar
-    prefix_workspace = "external/androidsdk/platforms/android-"
-    prefix_bzlmod = "external/rules_android++android_sdk_repository_extension+androidsdk/platforms/android-"
-    prefix = None
-    if android_jar.startswith(prefix_bzlmod):
-        prefix = prefix_bzlmod
-    elif android_jar.startswith(prefix_workspace):
-        prefix = prefix_workspace
-    else:
-        return "unknown"
-    if not android_jar.endswith("/android.jar"):
-        return "unknown"
-    level = android_jar.removeprefix(prefix)
-    level = level.removesuffix("/android.jar")
-    return level
-def _show_sdk_info_impl(ctx):
-    print("SDK check results:")
-    android_sdk = get_android_sdk(ctx)
-    print("build_tools_version: %s" % android_sdk.build_tools_version)
-    print("api_level: %s" % _find_api_level(android_sdk.android_jar.path))
-show_sdk_info = rule(
-    implementation = _show_sdk_info_impl,
-    attrs = {
-        "_android_sdk": attr.label(default = "@androidsdk//:sdk"),
-    },
-)
-EOF
-}
-
 function write_android_sdk_provider_platforms() {
   mkdir -p sdk_check
   cat > sdk_check/check.bzl <<EOF
