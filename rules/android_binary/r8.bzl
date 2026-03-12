@@ -17,6 +17,7 @@ load("//providers:providers.bzl", "AndroidDexInfo", "AndroidPreDexJarInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load("//rules:common.bzl", "common")
+load("//rules:dex.bzl", "dex")
 load("//rules:java.bzl", "java")
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(
@@ -80,6 +81,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
+    desugared_lib_config = ctx.file._desugared_lib_config
 
     # Get min SDK version from attribute, manifest_values, or depot floor
     effective_min_sdk = min_sdk_version.DEPOT_FLOOR
@@ -107,12 +109,17 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     args.add(deploy_jar)  # jar to optimize + desugar + dex
     args.add("--pg-map-output", proguard_mappings_output_file)
 
+    r8_inputs = [android_jar, deploy_jar] + proguard_specs
+    if ctx.fragments.android.desugar_java8_libs and desugared_lib_config:
+        args.add("--desugared-lib", desugared_lib_config)
+        r8_inputs.append(desugared_lib_config)
+
     java.run(
         ctx = ctx,
         host_javabase = common.get_host_javabase(ctx),
         executable = get_android_toolchain(ctx).r8.files_to_run,
         arguments = [args],
-        inputs = depset([android_jar, deploy_jar] + proguard_specs, transitive = [neverlink_jars]),
+        inputs = depset(r8_inputs, transitive = [neverlink_jars]),
         outputs = [dexes_zip, proguard_mappings_output_file],
         mnemonic = "AndroidR8",
         jvm_flags = ["-Xmx8G"],
