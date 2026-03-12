@@ -17,7 +17,6 @@ load("//providers:providers.bzl", "AndroidDexInfo", "AndroidPreDexJarInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load("//rules:common.bzl", "common")
-load("//rules:dex.bzl", "dex")
 load("//rules:java.bzl", "java")
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(
