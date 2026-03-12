@@ -13,12 +13,10 @@
 # limitations under the License.
 """R8 processor steps for android_binary."""
 
-load("@rules_java//java/common:java_common.bzl", "java_common")
 load("//providers:providers.bzl", "AndroidDexInfo", "AndroidPreDexJarInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load("//rules:common.bzl", "common")
-load("//rules:dex.bzl", "dex")
 load("//rules:java.bzl", "java")
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(
@@ -99,9 +97,6 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
     neverlink_jars = depset(transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])
 
-    desugared_lib_config = ctx.file._desugared_lib_config
-    desugar_java8_libs = ctx.fragments.android.desugar_java8_libs
-
     args = ctx.actions.args()
     args.add("--release")
     args.add("--min-api", effective_min_sdk)
@@ -112,51 +107,21 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     args.add(deploy_jar)  # jar to optimize + desugar + dex
     args.add("--pg-map-output", proguard_mappings_output_file)
 
-    r8_inputs = [android_jar, deploy_jar] + proguard_specs
-    if desugar_java8_libs and desugared_lib_config:
-        args.add("--desugared-lib", desugared_lib_config)
-        r8_inputs.append(desugared_lib_config)
-
     java.run(
         ctx = ctx,
         host_javabase = common.get_host_javabase(ctx),
         executable = get_android_toolchain(ctx).r8.files_to_run,
         arguments = [args],
-        inputs = depset(r8_inputs, transitive = [neverlink_jars]),
+        inputs = depset([android_jar, deploy_jar] + proguard_specs, transitive = [neverlink_jars]),
         outputs = [dexes_zip, proguard_mappings_output_file],
         mnemonic = "AndroidR8",
         jvm_flags = ["-Xmx8G"],
         progress_message = "R8 Optimizing, Desugaring, and Dexing %{label}",
     )
 
-    # Build and append the core library desugaring runtime (java8 legacy dex).
-    # This contains backported implementations of java.time, java.util.stream, etc.
-    final_classes_dex_zip = dexes_zip
-    if desugar_java8_libs:
-        java8_legacy_dex, java8_legacy_dex_map = dex.get_java8_legacy_dex_and_map(
-            ctx,
-            bootclasspath_jar = utils.only(common.get_java_toolchain(ctx)[java_common.JavaToolchainInfo].bootclasspath.to_list()),
-            binary_jar = deploy_jar,
-            # Use the prebuilt legacy dex rather than building a customized one.
-            # The deploy jar still references standard java.time.* APIs (not j$.* backports),
-            # so tracereferences won't find references to the desugared library.
-            # R8 handles the retargeting internally via --desugared-lib.
-            build_customized_files = False,
-            min_sdk_version = min_sdk_version.clamp(effective_min_sdk),
-        )
-
-        final_classes_dex_zip = ctx.actions.declare_file(ctx.label.name + "_final_classes_dex.zip")
-        dex.append_desugar_dexes(
-            ctx,
-            output = final_classes_dex_zip,
-            input = dexes_zip,
-            dexes = [java8_legacy_dex],
-            dex_zips_merger = get_android_toolchain(ctx).dex_zips_merger.files_to_run,
-        )
-
     android_dex_info = AndroidDexInfo(
         deploy_jar = deploy_jar,
-        final_classes_dex_zip = final_classes_dex_zip,
+        final_classes_dex_zip = dexes_zip,
         # R8 preserves the Java resources (i.e. non-Java-class files) in its output zip, so no need
         # to provide a Java resources zip.
         java_resource_jar = None,
@@ -165,7 +130,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     return ProviderInfo(
         name = "r8_ctx",
         value = struct(
-            final_classes_dex_zip = final_classes_dex_zip,
+            final_classes_dex_zip = dexes_zip,
             dex_info = android_dex_info,
             providers = [
                 android_dex_info,
