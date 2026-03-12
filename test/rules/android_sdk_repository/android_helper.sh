@@ -31,19 +31,17 @@ source "$(rlocation rules_android/test/bashunit/unittest.bash)" || \
 function set_up() {
   # Clean out the repository.
   rm -rf *
-  touch WORKSPACE
+  touch MODULE.bazel
 
   cat > .bazelrc <<EOF
-# Re-enable workspace after https://github.com/bazelbuild/bazel/commit/5881c38c54416add9faec35b7731954f4baf12d8
-common --enable_workspace=true
-
-common --experimental_google_legacy_api
+common --noenable_workspace
+common --enable_bzlmod
 EOF
 
   # Clean out the test android SDK if any
   rm -rf "${TEST_TMPDIR}/android_sdk"
 
-  # Make sure the rules exist and seed the WORKSPACE.
+  # Make sure the rules exist and setup the MODULE.bazel.
   rm -rf "${TEST_TMPDIR}/rules_android"
   set_up_rules
 }
@@ -66,8 +64,17 @@ EOF
 
 touch "${dest_dir}/providers/BUILD"
 
-  cat > "${dest_dir}/WORKSPACE" <<EOF
-workspace(name = "android_sdk_repository_src")
+  cat > "${dest_dir}/MODULE.bazel" <<EOF
+module(name = "rules_android")
+
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "rules_java", version = "9.3.0")
+bazel_dep(name = "rules_cc", version = "0.2.14")
+bazel_dep(name = "rules_shell", version = "0.6.1")
+
+rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
+use_repo(rules_java_toolchains, "remote_java_tools")
 EOF
 
   cat > "${dest_dir}/rules/BUILD" <<EOF
@@ -88,12 +95,55 @@ genrule(
 )
 EOF
 
-  cat >> WORKSPACE <<EOF
-local_repository(
+  cat >> MODULE.bazel <<EOF
+# Needed for platform integration tests.
+bazel_dep(name = "platforms", version = "1.0.0")
+
+bazel_dep(
     name = "rules_android",
+    version = "0.7.1",
+)
+
+
+# Local override to enable this app to be used for rules_android presubmit
+# integration testing. If you're basing your app's MODULE file on this
+# example, you do *not* need the following override.
+local_path_override(
+    module_name = "rules_android",
     path = "${dest_dir}",
 )
-load("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository")
+
+remote_android_extensions = use_extension(
+    "@rules_android//bzlmod_extensions:android_extensions.bzl",
+    "remote_android_tools_extensions")
+use_repo(remote_android_extensions, "android_tools")
+
+EOF
+}
+
+function setup_android_sdk_bzlmod() {
+  local sdk_path="$1"
+  local api_level="$2"
+
+  # Start the SDK stanza
+  cat >> MODULE.bazel <<EOF
+android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
+EOF
+  # Optionally add sdk_path
+  if [[ ! -z "${sdk_path}" ]]; then
+    local config="path = \"${sdk_path}\""
+    if [[ ! -z "${api_level}" ]]; then
+      config="$config, api_level=${api_level}"
+    fi
+    cat >> MODULE.bazel <<EOF
+android_sdk_repository_extension.configure(${config})
+EOF
+  fi
+  # Register the extension and its toolchains
+  cat >> MODULE.bazel <<EOF
+use_repo(android_sdk_repository_extension, "androidsdk")
+
+register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
 EOF
 }
 
@@ -145,8 +195,8 @@ function add_build_tools() {
 
 function create_android_sdk_basic() {
   local sdk_path="$(create_android_sdk)"
-  add_platforms "${sdk_path}" 31
-  add_build_tools "${sdk_path}" 30.0.3
+  add_platforms "${sdk_path}" 35
+  add_build_tools "${sdk_path}" 36.0.0
   echo "${sdk_path}"
 }
 
@@ -191,43 +241,24 @@ platform(
 EOF
 }
 
-function write_android_sdk_provider() {
-  mkdir -p sdk_check
-  cat > sdk_check/check.bzl <<EOF
-load("//third_party/bazel_rules/rules_android/rules:utils.bzl", "get_android_sdk")
-def _find_api_level(android_jar):
-    # expected format: external/androidsdk/platforms/android-LEVEL/android.jar
-    if not android_jar.startswith("external/androidsdk/platforms/android-"):
-        return "unknown"
-    if not android_jar.endswith("/android.jar"):
-        return "unknown"
-    level = android_jar.removeprefix("external/androidsdk/platforms/android-")
-    level = level.removesuffix("/android.jar")
-    return level
-def _show_sdk_info_impl(ctx):
-    print("SDK check results:")
-    android_sdk = get_android_sdk(ctx)
-    print("build_tools_version: %s" % android_sdk.build_tools_version)
-    print("api_level: %s" % _find_api_level(android_sdk.android_jar.path))
-show_sdk_info = rule(
-    implementation = _show_sdk_info_impl,
-    attrs = {
-        "_android_sdk": attr.label(default = "@androidsdk//:sdk"),
-    },
-)
-EOF
-}
-
 function write_android_sdk_provider_platforms() {
   mkdir -p sdk_check
   cat > sdk_check/check.bzl <<EOF
 def _find_api_level(android_jar):
-    # expected format: external/androidsdk/platforms/android-LEVEL/android.jar
-    if not android_jar.startswith("external/androidsdk/platforms/android-"):
+    # expected format in WORKSPACE: external/androidsdk/platforms/android-LEVEL/android.jar
+    # expected format in bzlmod: external/rules_android++android_sdk_repository_extension+androidsdk/platforms/android-LEVEL/android.jar
+    prefix_workspace = "external/androidsdk/platforms/android-"
+    prefix_bzlmod = "external/rules_android++android_sdk_repository_extension+androidsdk/platforms/android-"
+    prefix = None
+    if android_jar.startswith(prefix_bzlmod):
+        prefix = prefix_bzlmod
+    elif android_jar.startswith(prefix_workspace):
+        prefix = prefix_workspace
+    else:
         return "unknown"
     if not android_jar.endswith("/android.jar"):
         return "unknown"
-    level = android_jar.removeprefix("external/androidsdk/platforms/android-")
+    level = android_jar.removeprefix(prefix)
     level = level.removesuffix("/android.jar")
     return level
 def _show_sdk_info_impl(ctx):

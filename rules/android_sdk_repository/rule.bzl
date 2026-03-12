@@ -41,13 +41,29 @@ _DIRS_TO_LINK = [
 
 _MIN_BUILD_TOOLS_VERSION = parse_android_revision("35.0.0")
 
+
+def _readdir_only_dirs(dir_path):
+    """Calls starlark path#readdir(), but skips non-directory paths.
+
+    Parameters:
+        dir_path : path
+            A Starlark `path` object.
+    Returns:
+        list[path]
+    """
+    paths = []
+    for p in dir_path.readdir():
+        if p.is_dir:
+            paths.append(p)
+    return paths
+
 def _read_api_levels(repo_ctx, android_sdk_path):
     platforms_dir = "%s/%s" % (android_sdk_path, _PLATFORMS_DIR)
     api_levels = []
     platforms_path = repo_ctx.path(platforms_dir)
     if not platforms_path.exists:
         return api_levels
-    for entry in platforms_path.readdir():
+    for entry in _readdir_only_dirs(platforms_path):
         name = entry.basename
         if name.startswith("android-"):
             level = name[len("android-"):]
@@ -61,7 +77,7 @@ def _newest_build_tools(repo_ctx, android_sdk_path):
     build_tools_path = repo_ctx.path(build_tools_dir)
     if not build_tools_path.exists:
         return None
-    for entry in build_tools_path.readdir():
+    for entry in _readdir_only_dirs(build_tools_path):
         name = entry.basename
         if is_android_revision(name):
             revision = parse_android_revision(name)
@@ -77,9 +93,9 @@ def _find_system_images(repo_ctx, android_sdk_path):
         return system_images
 
     # The directory structure needed is "system-images/android-API/apis-enabled/arch"
-    for api_entry in system_images_path.readdir():
-        for enabled_entry in api_entry.readdir():
-            for arch_entry in enabled_entry.readdir():
+    for api_entry in _readdir_only_dirs(system_images_path):
+        for enabled_entry in _readdir_only_dirs(api_entry):
+            for arch_entry in _readdir_only_dirs(enabled_entry):
                 image_path = "%s/%s/%s/%s" % (
                     _SYSTEM_IMAGES_DIR,
                     api_entry.basename,

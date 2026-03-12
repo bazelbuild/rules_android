@@ -38,23 +38,14 @@ function test_dummy_sdk() {
   # Create android SDK
   local sdk_path="$(create_android_sdk_basic)"
 
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${sdk_path}",
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" ""
 
   "${BIT_BAZEL_BINARY}" query @androidsdk//:sdk-dummy >& $TEST_log || fail "Dummy SDK missing"
 }
 
 # Check that the empty BUILD file was created.
 function test_android_sdk_repository_no_path_or_android_home() {
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-)
-EOF
+  setup_android_sdk_bzlmod "" ""
 
   verify_no_android_sdk
   "${BIT_BAZEL_BINARY}" build @androidsdk//:files >& $TEST_log && fail "Should have failed" || true
@@ -66,12 +57,7 @@ function test_android_sdk_repository_path_from_attribute() {
   local sdk_path="$(create_android_sdk_basic)"
 
   # Add to repository.
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${sdk_path}",
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" ""
 
   # Verify the SDK is created correctly.
   verify_android_sdk
@@ -82,11 +68,7 @@ function test_android_sdk_repository_path_from_environment() {
   local sdk_path="$(create_android_sdk_basic)"
 
   # Add to repository.
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" ""
 
   export ANDROID_HOME="${sdk_path}"
   # Verify the SDK is created correctly.
@@ -98,12 +80,7 @@ function test_android_sdk_repository_fails_invalid_path() {
   mkdir -p "$TEST_TMPDIR/android_sdk"
 
   # Add to repository with the invalid path
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "$TEST_TMPDIR/android_sdk",
-)
-EOF
+  setup_android_sdk_bzlmod "$TEST_TMPDIR/android_sdk" ""
 
   "${BIT_BAZEL_BINARY}" query @androidsdk//:files >& $TEST_log && fail "Should have failed" || true
   expect_log "No Android SDK apis found in the Android SDK"
@@ -115,18 +92,18 @@ function test_build_tools_largest() {
   # crashes.
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31
-  add_build_tools "${sdk_path}" 10.1.2 20.2.3 30.3.4 .DStore
+  add_build_tools "${sdk_path}" 10.1.2 20.2.3 36.0.0 .DStore
+
+  # Create an invalid system image file in the images directory
+  mkdir -p "${sdk_path}"/system-images
+  # See https://github.com/bazelbuild/rules_android/issues/422 and similar issues.
+  touch "${sdk_path}"/system-images/.DStore
 
   # Add to repository.
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${sdk_path}",
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" ""
 
   check_android_sdk_provider
-  expect_log "build_tools_version: 30.3.4"
+  expect_log "build_tools_version: 36.0.0"
 }
 
 # TODO(rules-android): Fix API selection with platforms.
@@ -134,15 +111,10 @@ function ignore_test_api_level_default() {
   # create several api levels
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31 23 45
-  add_build_tools "${sdk_path}" 30.3.4
+  add_build_tools "${sdk_path}" 36.0.0
 
   # Add to repository.
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${sdk_path}",
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" ""
 
   # Should be the largest API level available
   check_android_sdk_provider
@@ -154,16 +126,9 @@ function ignore_test_api_level_specific() {
   # create several api levels
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31 23 45
-  add_build_tools "${sdk_path}" 30.3.4
+  add_build_tools "${sdk_path}" 36.0.0
 
-  # Add to repository.
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${sdk_path}",
-    api_level = 31,
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" "31"
 
   check_android_sdk_provider
   expect_log "api_level: 31"
@@ -173,16 +138,10 @@ function test_api_level_specific_missing() {
   # create several api levels
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31 23 45
-  add_build_tools "${sdk_path}" 30.3.4
+  add_build_tools "${sdk_path}" 36.0.0
 
   # Add to repository.
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${sdk_path}",
-    api_level = 30,
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" "30"
 
   "${BIT_BAZEL_BINARY}" query @androidsdk//:files >& $TEST_log && fail "Should have failed" || true
   expect_log "Android SDK api level 30 was requested but it is not installed"
@@ -192,15 +151,10 @@ function test_api_level_flag() {
   # create several api levels
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31 23 45
-  add_build_tools "${sdk_path}" 30.3.4
+  add_build_tools "${sdk_path}" 36.0.0
 
   # Add to repository.
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${sdk_path}",
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" ""
 
   check_android_sdk_provider --@androidsdk//:api_level=31
   expect_log "api_level: 31"
@@ -210,20 +164,28 @@ function test_non_numeric_api_level() {
   # create a couple numeric api levels, and a non-numeric api level
   local sdk_path="$(create_android_sdk)"
   add_platforms "${sdk_path}" 31 23 TiramisuPrivacySandbox
-  add_build_tools "${sdk_path}" 30.3.4
+  add_build_tools "${sdk_path}" 36.0.0
 
   # Add to repository.
-  cat >> WORKSPACE <<EOF
-android_sdk_repository(
-    name = "androidsdk",
-    path = "${sdk_path}",
-)
-EOF
+  setup_android_sdk_bzlmod "${sdk_path}" ""
 
   check_android_sdk_provider
   # Non-numeric api level should be ignored, and highest numeric api level
   # should still be picked.
   expect_log "api_level: 31"
+}
+
+function test_unsupported_build_tools_level() {
+  # build-tools levels below 35.0.0 are no longer supported
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 31 23 45
+  add_build_tools "${sdk_path}" 34.99.99
+
+  # Add to repository.
+  setup_android_sdk_bzlmod "${sdk_path}" ""
+
+  "${BIT_BAZEL_BINARY}" query @androidsdk//:files >& $TEST_log && fail "Should have failed" || true
+  expect_log "Bazel requires Android build tools version 35.0.0 or newer"
 }
 
 run_suite "Android integration tests for SDK"
