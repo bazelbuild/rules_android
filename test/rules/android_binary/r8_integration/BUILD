@@ -24,3 +24,13 @@ build_test(
     name = "android_binary_with_neverlink_deps_build_test",
     targets = ["//test/rules/android_binary/r8_integration/java/com/neverlink:android_binary_with_neverlink_deps"],
 )
+
+py_test(
+    name = "r8_desugaring_test",
+    srcs = ["r8_desugaring_test.py"],
+    args = ["$(location @androidsdk//:dexdump)"],
+    data = [
+        "//test/rules/android_binary/r8_integration/java/com/desugaring:desugaring_app_r8",
+        "@androidsdk//:dexdump",
+    ],
+)
