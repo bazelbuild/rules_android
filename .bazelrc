@@ -28,3 +28,4 @@ build:windows --define=protobuf_allow_msvc=true
 
 common --enable_platform_specific_config
 
+common --desugar_java8_libs
