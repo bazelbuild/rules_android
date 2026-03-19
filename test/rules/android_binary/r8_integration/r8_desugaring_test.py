@@ -37,7 +37,7 @@ class R8DesugaringTest(unittest.TestCase):
         stderr=subprocess.PIPE,
         check=True,
     )
-    return str(dexdump_proc.stdout)
+    return dexdump_proc.stdout.decode()
 
   def test_duration_to_seconds_is_desugared(self):
     output = self._get_dexdump_output("desugaring_app_r8.apk")
