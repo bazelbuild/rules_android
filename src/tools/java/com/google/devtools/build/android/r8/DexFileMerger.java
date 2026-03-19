@@ -69,6 +69,8 @@ public class DexFileMerger {
 
   private static final int NATIVE_MULTIDEX_API_LEVEL = 21;
 
+  private static final Pattern SHARD_FILENAME_PATTERN = Pattern.compile("([0-9]+)\\..*");
+
   /** Strategies for outputting multiple {@code .dex} files supported by {@link DexFileMerger}. */
   public enum MultidexStrategy {
     /** Create exactly one .dex file. The operation will fail if .dex limits are exceeded. */
@@ -266,9 +268,8 @@ public class DexFileMerger {
   }
 
   private static int parseFileIndexFromShardFilename(String inputArchive) {
-    Pattern namingPattern = Pattern.compile("([0-9]+)\\..*");
     String name = new File(inputArchive).getName();
-    Matcher matcher = namingPattern.matcher(name);
+    Matcher matcher = SHARD_FILENAME_PATTERN.matcher(name);
     if (!matcher.matches()) {
       throw new IllegalStateException(
           String.format(
