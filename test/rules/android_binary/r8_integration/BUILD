@@ -1,5 +1,11 @@
+load("@bazel_binaries//:defs.bzl", "bazel_binaries")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load(
+    "@rules_bazel_integration_test//bazel_integration_test:defs.bzl",
+    "script_test",
+)
 load("@rules_python//python:py_test.bzl", "py_test")
+load("@rules_shell//shell:sh_library.bzl", "sh_library")
 load(":test.bzl", "r8_neverlink_deps_test")
 
 py_test(
@@ -25,12 +31,32 @@ build_test(
     targets = ["//test/rules/android_binary/r8_integration/java/com/neverlink:android_binary_with_neverlink_deps"],
 )
 
-py_test(
-    name = "r8_desugaring_test",
-    srcs = ["r8_desugaring_test.py"],
-    args = ["$(location @androidsdk//:dexdump)"],
+sh_library(
+    name = "r8_desugaring_helper",
+    testonly = True,
+    srcs = ["r8_desugaring_helper.sh"],
     data = [
-        "//test/rules/android_binary/r8_integration/java/com/desugaring:desugaring_app_r8",
-        "@androidsdk//:dexdump",
+        "//:MODULE.bazel",
+        "//rules:bzl",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        "//test/bashunit",
+        "@rules_shell//shell/runfiles",
+    ],
+)
+
+script_test(
+    name = "r8_desugaring_integration_test",
+    size = "enormous",
+    srcs = ["r8_desugaring_integration_test.sh"],
+    bazel_binaries = bazel_binaries,
+    bazel_version = bazel_binaries.versions.current,
+    tags = ["manual"],
+    timeout = "eternal",
+    deps = [
+        ":r8_desugaring_helper",
+        "//test/bashunit",
+        "@rules_shell//shell/runfiles",
     ],
 )
