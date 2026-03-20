@@ -58,9 +58,9 @@ java_test(
         ":simple_jar",
     ],
     jvm_flags = [
-        "-Djsimplejar=google3/$(location :jsimple_jar)",
-        "-Dmultidexjar=google3/$(location :multidex_jar)",
-        "-Dsimplejar=google3/$(location :simple_jar)",
+        "-Djsimplejar=_main/$(location :jsimple_jar)",
+        "-Dmultidexjar=_main/$(location :multidex_jar)",
+        "-Dsimplejar=_main/$(location :simple_jar)",
     ],
     runtime_deps = [
         ":tests",
