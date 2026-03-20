@@ -16,18 +16,15 @@ package com.google.devtools.build.android.dexer;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.devtools.build.android.r8.CompatDexBuilder;
 import com.google.devtools.build.runfiles.Runfiles;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,7 +33,10 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.annotation.Nullable;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -44,79 +44,94 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class DexFileSplitterTest {
 
-  private static final Path INPUT_JAR;
-  private static final Path INPUT_JAR2;
-  private static final Path MIXED_JAR;
-  private static final Path MAIN_DEX_LIST_FILE;
+  private static final Path SIMPLE_JAR;
+  private static final Path MULTIDEX_JAR;
+  private static final Path JSIMPLE_JAR;
+
+  private static final int SMALL_IDX_PER_DEX = 200; // A contrived small value for testing.
+  private static final int REAL_WORLD_IDX_PER_DEX =
+      256 * 256; // 65,536, typically the real world value.
+
+  @Rule public TemporaryFolder tmp = new TemporaryFolder();
 
   static {
     try {
       Runfiles runfiles = Runfiles.create();
 
-      INPUT_JAR = Paths.get(runfiles.rlocation(System.getProperty("testinputjar")));
-      INPUT_JAR2 = Paths.get(runfiles.rlocation(System.getProperty("testinputjar2")));
-      MIXED_JAR = Paths.get(runfiles.rlocation(System.getProperty("mixedinputjar")));
-      MAIN_DEX_LIST_FILE = Paths.get(runfiles.rlocation(System.getProperty("testmaindexlist")));
+      // Look in the BUILD file for the corresponding genrules that codegen these jars.
+      SIMPLE_JAR = Paths.get(runfiles.rlocation(System.getProperty("simplejar")));
+      MULTIDEX_JAR = Paths.get(runfiles.rlocation(System.getProperty("multidexjar")));
+      JSIMPLE_JAR = Paths.get(runfiles.rlocation(System.getProperty("jsimplejar")));
     } catch (Exception e) {
       throw new ExceptionInInitializerError(e);
     }
   }
 
+  private Path simpleDexArchive;
+  private Path multidexArchive;
+  private Path jsimpleDexArchive;
+
+  @Before
+  public void setUp() throws Exception {
+    simpleDexArchive = buildDexArchive(SIMPLE_JAR, "simple.dex.zip");
+    multidexArchive = buildDexArchive(MULTIDEX_JAR, "multidex.dex.zip");
+    jsimpleDexArchive = buildDexArchive(JSIMPLE_JAR, "jsimple.dex.zip");
+  }
+
   @Test
   public void testSingleInputSingleOutput() throws Exception {
-    Path dexArchive = buildDexArchive();
-    ImmutableList<Path> outputArchives = runDexSplitter(256 * 256, "from_single", dexArchive);
+    ImmutableList<Path> outputArchives =
+        runDexSplitter(REAL_WORLD_IDX_PER_DEX, "from_single", simpleDexArchive);
     assertThat(outputArchives).hasSize(1);
 
-    ImmutableSet<String> expectedFiles = dexEntries(dexArchive);
+    ImmutableSet<String> expectedFiles = dexEntries(simpleDexArchive);
     assertThat(dexEntries(outputArchives.get(0))).containsExactlyElementsIn(expectedFiles);
   }
 
   @Test
   public void testDuplicateInputIgnored() throws Exception {
-    Path dexArchive = buildDexArchive();
     ImmutableList<Path> outputArchives =
-        runDexSplitter(256 * 256, "from_duplicate", dexArchive, dexArchive);
+        runDexSplitter(
+            REAL_WORLD_IDX_PER_DEX, "from_duplicate", simpleDexArchive, simpleDexArchive);
     assertThat(outputArchives).hasSize(1);
 
-    ImmutableSet<String> expectedFiles = dexEntries(dexArchive);
+    ImmutableSet<String> expectedFiles = dexEntries(simpleDexArchive);
     assertThat(dexEntries(outputArchives.get(0))).containsExactlyElementsIn(expectedFiles);
   }
 
   @Test
   public void testSingleInputMultidexOutput() throws Exception {
-    Path dexArchive = buildDexArchive();
-    ImmutableList<Path> outputArchives = runDexSplitter(200, "multidex_from_single", dexArchive);
+    ImmutableList<Path> outputArchives =
+        runDexSplitter(SMALL_IDX_PER_DEX, "multidex_from_single", multidexArchive);
     assertThat(outputArchives.size()).isGreaterThan(1);
 
-    ImmutableSet<String> expectedEntries = dexEntries(dexArchive);
+    ImmutableSet<String> expectedEntries = dexEntries(multidexArchive);
     assertExpectedEntries(outputArchives, expectedEntries);
   }
 
   @Test
   public void testMultipleInputsMultidexOutput() throws Exception {
-    Path dexArchive = buildDexArchive();
-    Path dexArchive2 = buildDexArchive(INPUT_JAR2, "jar2.dex.zip");
-    ImmutableList<Path> outputArchives = runDexSplitter(200, "multidex", dexArchive, dexArchive2);
+    ImmutableList<Path> outputArchives =
+        runDexSplitter(SMALL_IDX_PER_DEX, "multidex", multidexArchive, simpleDexArchive);
     assertThat(outputArchives.size()).isGreaterThan(1);
 
     HashSet<String> expectedEntries = new HashSet<>();
-    expectedEntries.addAll(dexEntries(dexArchive));
-    expectedEntries.addAll(dexEntries(dexArchive2));
+    expectedEntries.addAll(dexEntries(multidexArchive));
+    expectedEntries.addAll(dexEntries(simpleDexArchive));
     assertExpectedEntries(outputArchives, expectedEntries);
   }
 
   /**
-   * Tests that the same input creates identical output in 2 runs.  Flakiness here would indicate
+   * Tests that the same input creates identical output in 2 runs. Flakiness here would indicate
    * race conditions or other concurrency issues.
    */
   @Test
   public void testDeterminism() throws Exception {
-    Path dexArchive = buildDexArchive();
-    Path dexArchive2 = buildDexArchive(INPUT_JAR2, "jar2.dex.zip");
-    ImmutableList<Path> outputArchives = runDexSplitter(200, "det1", dexArchive, dexArchive2);
+    ImmutableList<Path> outputArchives =
+        runDexSplitter(SMALL_IDX_PER_DEX, "det1", multidexArchive, simpleDexArchive);
     assertThat(outputArchives.size()).isGreaterThan(1);
-    ImmutableList<Path> outputArchives2 = runDexSplitter(200, "det2", dexArchive, dexArchive2);
+    ImmutableList<Path> outputArchives2 =
+        runDexSplitter(SMALL_IDX_PER_DEX, "det2", multidexArchive, simpleDexArchive);
     assertThat(outputArchives2).hasSize(outputArchives.size()); // paths differ though
 
     Path outputRoot2 = outputArchives2.get(0).getParent();
@@ -143,119 +158,114 @@ public class DexFileSplitterTest {
 
   @Test
   public void testMainDexList() throws Exception {
-    Path dexArchive = buildDexArchive();
+    Path mainDexFile = tmp.newFile("main_dex_list.txt").toPath();
+    Files.write(mainDexFile, ImmutableList.of("multidex/Class2.class"), UTF_8);
+
     ImmutableList<Path> outputArchives =
         runDexSplitter(
-            200,
-            /*inclusionFilterJar=*/ null,
+            SMALL_IDX_PER_DEX,
+            /* inclusionFilterJar= */ null,
             "main_dex_list",
-            MAIN_DEX_LIST_FILE,
-            /*minimalMainDex=*/ false,
-            dexArchive);
+            mainDexFile,
+            /* minimalMainDex= */ false,
+            simpleDexArchive,
+            multidexArchive);
 
-    ImmutableSet<String> expectedEntries = dexEntries(dexArchive);
+    HashSet<String> expectedEntries = new HashSet<>();
+    expectedEntries.addAll(dexEntries(simpleDexArchive));
+    expectedEntries.addAll(dexEntries(multidexArchive));
     assertThat(outputArchives.size()).isGreaterThan(1);
-    assertThat(dexEntries(outputArchives.get(0)))
-        .containsAtLeastElementsIn(expectedMainDexEntries());
+    assertThat(dexEntries(outputArchives.get(0))).contains("multidex/Class2.class.dex");
     assertExpectedEntries(outputArchives, expectedEntries);
   }
 
   @Test
   public void testMainDexList_containsForbidden() throws Exception {
-    Path dexArchive = buildDexArchive();
-    Path mainDexFile = Files.createTempFile("main_dex_list", ".txt");
+    Path mainDexFile = tmp.newFile("main_dex_list.txt").toPath();
     Files.write(mainDexFile, ImmutableList.of("com/google/Ok.class", "j$/my/Bad.class"), UTF_8);
-    try {
-      runDexSplitter(
-          256 * 256,
-          /*inclusionFilterJar=*/ null,
-          "invalid_main_dex_list",
-          mainDexFile,
-          /*minimalMainDex=*/ false,
-          dexArchive);
-      fail("IllegalArgumentException expected");
-    } catch (IllegalArgumentException e) {
-      assertThat(e).hasMessageThat().contains("j$");
-    }
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runDexSplitter(
+                    REAL_WORLD_IDX_PER_DEX,
+                    /* inclusionFilterJar= */ null,
+                    "invalid_main_dex_list",
+                    mainDexFile,
+                    /* minimalMainDex= */ false,
+                    simpleDexArchive));
+    assertThat(e).hasMessageThat().contains("j$");
   }
 
   @Test
   public void testMinimalMainDex() throws Exception {
-    Path dexArchive = buildDexArchive();
+    Path mainDexFile = tmp.newFile("minimal_main_dex_list.txt").toPath();
+    Files.write(mainDexFile, ImmutableList.of("multidex/Class1.class"), UTF_8);
+
     ImmutableList<Path> outputArchives =
         runDexSplitter(
-            256 * 256,
-            /*inclusionFilterJar=*/ null,
+            REAL_WORLD_IDX_PER_DEX,
+            /* inclusionFilterJar= */ null,
             "minimal_main_dex",
-            MAIN_DEX_LIST_FILE,
-            /*minimalMainDex=*/ true,
-            dexArchive);
+            mainDexFile,
+            /* minimalMainDex= */ true,
+            multidexArchive);
 
-    ImmutableSet<String> expectedEntries = dexEntries(dexArchive);
+    ImmutableSet<String> expectedEntries = dexEntries(multidexArchive);
     assertThat(outputArchives.size()).isGreaterThan(1);
-    assertThat(dexEntries(outputArchives.get(0)))
-        .containsExactlyElementsIn(expectedMainDexEntries());
+    assertThat(dexEntries(outputArchives.get(0))).containsExactly("multidex/Class1.class.dex");
     assertExpectedEntries(outputArchives, expectedEntries);
   }
 
   @Test
   public void testInclusionFilterJar() throws Exception {
-    Path dexArchive = buildDexArchive();
-    Path dexArchive2 = buildDexArchive(INPUT_JAR2, "jar2.dex.zip");
     ImmutableList<Path> outputArchives =
         runDexSplitter(
-            256 * 256,
-            INPUT_JAR2,
+            REAL_WORLD_IDX_PER_DEX,
+            SIMPLE_JAR,
             "filtered",
-            /*mainDexList=*/ null,
-            /*minimalMainDex=*/ false,
-            dexArchive,
-            dexArchive2);
+            /* mainDexList= */ null,
+            /* minimalMainDex= */ false,
+            multidexArchive,
+            simpleDexArchive);
 
     // Only expect entries from the Jar we filtered by
-    assertExpectedEntries(outputArchives, dexEntries(dexArchive2));
+    assertExpectedEntries(outputArchives, dexEntries(simpleDexArchive));
   }
 
   @Test
   public void testMixedInput_keptSeparate() throws Exception {
-    Path dexArchive = buildDexArchive();
-    Path mixedArchive = buildDexArchive(MIXED_JAR, "mixed.jar.dex.zip");
     ImmutableList<Path> outputArchives =
-        runDexSplitter(256 * 256, "mixed_input", dexArchive, mixedArchive);
+        runDexSplitter(
+            REAL_WORLD_IDX_PER_DEX,
+            "mixed_input",
+            simpleDexArchive,
+            jsimpleDexArchive,
+            multidexArchive);
     assertThat(outputArchives).hasSize(3);
-    assertThat(dexEntries(outputArchives.get(0))).contains("aaa/Baz.class.dex");
-    assertThat(dexEntries(outputArchives.get(1))).containsExactly("j$/test/Foo.class.dex");
-    assertThat(dexEntries(outputArchives.get(2))).containsExactly("zzz/Bar.class.dex");
+    assertThat(dexEntries(outputArchives.get(0))).containsExactly("base/SimpleClass.class.dex");
+    assertThat(dexEntries(outputArchives.get(1))).containsExactly("j$/Foo.class.dex");
+    assertThat(dexEntries(outputArchives.get(2))).contains("multidex/Class1.class.dex");
   }
 
-  private static Iterable<String> expectedMainDexEntries() throws IOException {
-    return Iterables.transform(
-        Files.readAllLines(MAIN_DEX_LIST_FILE),
-        new Function<String, String>() {
-          @Override
-          public String apply(String input) {
-            return input + ".dex";
-          }
-        });
-  }
+
 
   @Test
   public void testMultidexOffWithMultidexFlags() throws Exception {
-    Path dexArchive = buildDexArchive();
-    try {
-      runDexSplitter(
-          200,
-          /*inclusionFilterJar=*/ null,
-          "should_fail",
-          /*mainDexList=*/ null,
-          /*minimalMainDex=*/ true,
-          dexArchive);
-      fail("Expected IllegalArgumentException");
-    } catch (IllegalArgumentException e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo("--minimal-main-dex not allowed without --main-dex-list");
-    }
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runDexSplitter(
+                    SMALL_IDX_PER_DEX,
+                    /* inclusionFilterJar= */ null,
+                    "should_fail",
+                    /* mainDexList= */ null,
+                    /* minimalMainDex= */ true,
+                    simpleDexArchive));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo("--minimal-main-dex not allowed without --main-dex-list");
   }
 
   private void assertExpectedEntries(
@@ -273,7 +283,7 @@ public class DexFileSplitterTest {
     try (ZipFile input = new ZipFile(dexArchive.toFile())) {
       ImmutableSet<String> result =
           input.stream()
-              .map(ZipEntryName.INSTANCE)
+              .map(ZipEntry::getName)
               .filter(Predicates.containsPattern(".*\\.class.dex$"))
               .collect(ImmutableSet.<String>toImmutableSet());
       assertThat(result).isNotEmpty();
@@ -302,8 +312,7 @@ public class DexFileSplitterTest {
       throws IOException {
     DexFileSplitter.Options options = new DexFileSplitter.Options();
     options.inputArchives = ImmutableList.copyOf(dexArchives);
-    options.outputDirectory =
-        FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"), outputRoot);
+    options.outputDirectory = tmp.newFolder(outputRoot).toPath();
     options.maxNumberOfIdxPerDex = maxNumberOfIdxPerDex;
     options.mainDexListFile = mainDexList;
     options.minimalMainDex = minimalMainDex;
@@ -327,13 +336,9 @@ public class DexFileSplitterTest {
     }
   }
 
-  private Path buildDexArchive() throws Exception {
-    return buildDexArchive(INPUT_JAR, "libtests.dex.zip");
-  }
-
   private Path buildDexArchive(Path inputJar, String outputZip) throws Exception {
     // Use Jar file that has this test in it as the input Jar
-    Path outputZipPath = FileSystems.getDefault().getPath(System.getenv("TEST_TMPDIR"), outputZip);
+    Path outputZipPath = tmp.getRoot().toPath().resolve(outputZip);
     int maxThreads = 1;
     String positionInfo = "lines"; // com.android.dx.dex.code.PositionList.LINES;
     CompatDexBuilder.main(
@@ -343,18 +348,8 @@ public class DexFileSplitterTest {
           "--output_zip",
           outputZipPath.toString(),
           "--num-threads=" + Integer.toString(maxThreads),
-          "--positions=",
-          positionInfo
+          "--positions=" + positionInfo
         });
     return outputZipPath;
-  }
-
-  // Can't use lambda for Java 7 compatibility so we can run this Jar through dx without desugaring.
-  private enum ZipEntryName implements Function<ZipEntry, String> {
-    INSTANCE;
-    @Override
-    public String apply(ZipEntry input) {
-      return input.getName();
-    }
   }
 }
