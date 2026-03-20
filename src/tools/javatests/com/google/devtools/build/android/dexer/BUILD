@@ -31,10 +31,6 @@ java_library(
     }),
     javacopts = ["-source 8 -target 8"],
     resources = ["testresource.txt"],
-    tags = [
-        # TODO(#381): Unsupported option --input?
-        "manual",
-    ],
     deps = [
         ":dexbuilder_import",
         "//src/tools/java/com/google/devtools/build/android/dexer:DexFileSplitter_lib",
@@ -55,45 +51,80 @@ java_library(
 java_test(
     name = "AllTests",
     size = "small",
+    srcs = ["AllTests.java"],
     data = [
-        "test_main_dex_list.txt",
-        ":mixed_testinput",
-        ":testdata",
-        ":tests",
+        ":jsimple_jar",
+        ":multidex_jar",
+        ":simple_jar",
     ],
     jvm_flags = [
-        "-Dtestmaindexlist=io_bazel/$(location :test_main_dex_list.txt)",
-        "-Dtestinputjar=io_bazel/$(location :tests)",
-        "-Dtestinputjar2=io_bazel/$(location :testdata)",
-        "-Dmixedinputjar=io_bazel/$(location :mixed_testinput)",
-    ],
-    tags = [
-        # TODO(#381): Unsupported option --input?
-        "manual",
+        "-Djsimplejar=google3/$(location :jsimple_jar)",
+        "-Dmultidexjar=google3/$(location :multidex_jar)",
+        "-Dsimplejar=google3/$(location :simple_jar)",
     ],
     runtime_deps = [
         ":tests",
     ],
+    deps = [
+        ":tests",
+        "@rules_android_maven//:junit_junit",
+    ],
 )
 
 genrule(
-    name = "mixed_srcjar_gen",
-    outs = ["mixed.srcjar"],
+    name = "jsimple_jar_gen",
+    outs = ["jsimple.srcjar"],
     cmd = """set -eu
         readonly tmpdir="$$(mktemp -d)"
-        echo "package j$$.test; public class Foo {}" > "$${tmpdir}/Foo.java"
-        echo "package zzz; public class Bar {}" > "$${tmpdir}/Bar.java"
-        echo "package aaa; public class Baz {}" > "$${tmpdir}/Baz.java"
-        $(location //tools/jdk:singlejar) --output $@ \\
-            --resources \\
-            "$${tmpdir}/Foo.java:j$$/test/Foo.java" \\
-            "$${tmpdir}/Bar.java:zzz/Bar.java" \\
-            "$${tmpdir}/Baz.java:aaa/Baz.java"
+        echo "package j$$; public class Foo {}" > "$${tmpdir}/Foo.java"
+        $(location //tools/jdk:singlejar) --output $@ --resources "$${tmpdir}/Foo.java:j$$/test/Foo.java"
         rm -rf "$${tmpdir}" """,
     tools = ["//tools/jdk:singlejar"],
 )
 
 java_library(
-    name = "mixed_testinput",
-    srcs = [":mixed_srcjar_gen"],
+    name = "jsimple_jar",
+    srcs = [":jsimple_jar_gen"],
+)
+
+genrule(
+    name = "simple_jar_gen",
+    outs = ["simple.srcjar"],
+    cmd = """set -eu
+        readonly tmpdir="$$(mktemp -d)"
+        echo "package base; public class SimpleClass { public int field; public void method() {} }" > "$${tmpdir}/SimpleClass.java"
+        $(location //tools/jdk:singlejar) --output $@ --resources "$${tmpdir}/SimpleClass.java:base/SimpleClass.java"
+        rm -rf "$${tmpdir}" """,
+    tools = ["//tools/jdk:singlejar"],
+)
+
+java_library(
+    name = "simple_jar",
+    srcs = [":simple_jar_gen"],
+)
+
+genrule(
+    name = "multidex_jar_gen",
+    outs = ["multidex.srcjar"],
+    cmd = """set -eu
+        readonly tmpdir="$$(mktemp -d)"
+        for i in $$(seq 1 4); do
+          echo "package multidex; public class Class$${i} {" > "$${tmpdir}/Class$${i}.java"
+          for j in $$(seq 1 60); do
+            echo "  public void method$${j}() {}" >> "$${tmpdir}/Class$${i}.java"
+          done
+          echo "}" >> "$${tmpdir}/Class$${i}.java"
+        done
+        args=""
+        for f in "$${tmpdir}"/*.java; do
+          args+=" $${f}:multidex/$$(basename "$${f}")"
+        done
+        $(location //tools/jdk:singlejar) --output $@ --resources $${args}
+        rm -rf "$${tmpdir}" """,
+    tools = ["//tools/jdk:singlejar"],
+)
+
+java_library(
+    name = "multidex_jar",
+    srcs = [":multidex_jar_gen"],
 )
