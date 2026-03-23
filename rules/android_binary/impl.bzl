@@ -277,7 +277,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
     proguard_output_map = optimize_ctx.proguard_output.mapping if is_binary_optimized else None
     binary_jar = proguarded_jar if proguarded_jar else deploy_jar
     binary_runtime_jars = deploy_ctx.binary_runtime_jars
-    forbidden_dexopts = ctx.fragments.android.get_target_dexopts_that_prevent_incremental_dexing
+    forbidden_dexopts = _dex.FORBIDDEN_DEXOPTS
 
     should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
 
@@ -444,7 +444,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, packaged_r
         binary_runtime_jars.extend(ctx.attr._jacoco_runtime[0][DefaultInfo].files.to_list())
 
     info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
-    incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, _dex.DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING)
     dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
     if ctx.fragments.android.desugar_java8:
         desugared_jars = []
