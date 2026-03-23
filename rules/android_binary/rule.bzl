@@ -136,11 +136,4 @@ def android_binary_macro(**attrs):
     if type(attr_value) == "select" or attr_value or attr_value == None:
         attrs["$generate_art_profile_outputs"] = True
 
-    # Remove mutlidex attrs which are no longer needed now that our minimum supported API level is
-    # higher than 21.
-    if acls.in_drop_multidex_attrs(target_fqn):
-        for attr in ["multidex", "main_dex_list", "main_dex_list_opts", "main_dex_proguard_specs"]:
-            if attr in attrs:
-                attrs.pop(attr)
-
     android_binary(**sanitize_attrs(attrs))
