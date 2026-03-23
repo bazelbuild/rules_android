@@ -32,6 +32,14 @@ _DEXOPTS_SUPPORTED_IN_DEXBUILDER = ["--no-locals", "--no-optimize", "--no-warnin
 # allowlist only when optimized dexing is enabled.
 _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX = ["--disable_outlining"]
 
+# Dexing flags that are not allowed in incremental dexing.
+# This is likely obsolete at this point, but keeping it here for safety.
+_FORBIDDEN_DEXOPTS = ["--positions=none"]
+
+# Dexing flags that are allowed in incremental dexing.
+# Previously this was exposed via the --dexopts_supported_in_incremental_dexing native flag.
+_DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING = ["--no-optimize", "--no-locals"]
+
 _tristate = _attrs.tristate
 
 def _resource_set_for_monolithic_dexing(_os, _inputs_size):
@@ -64,7 +72,7 @@ def _process_incremental_dexing(
         toolchain_type = None):
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
     should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
-    incremental_dexopt_filter = list(ctx.fragments.android.get_dexopts_supported_in_incremental_dexing)
+    incremental_dexopt_filter = list(_DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING)
     if should_optimize_dex:
         incremental_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
     incremental_dexopts = _filter_dexopts(
@@ -702,4 +710,6 @@ dex = struct(
     normalize_dexopts = _normalize_dexopts,
     process_monolithic_dexing = _process_monolithic_dexing,
     process_incremental_dexing = _process_incremental_dexing,
+    FORBIDDEN_DEXOPTS = _FORBIDDEN_DEXOPTS,
+    DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING = _DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING,
 )

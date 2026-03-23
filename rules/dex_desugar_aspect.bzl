@@ -197,7 +197,7 @@ def _get_platform_based_toolchain_jars(ctx):
     return []
 
 def _get_aspect_dexopts(ctx):
-    return _power_set(_dex.normalize_dexopts(ctx.fragments.android.get_dexopts_supported_in_incremental_dexing))
+    return _power_set(_dex.normalize_dexopts(_dex.DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING))
 
 def _get_boot_classpath(target, ctx):
     if JavaInfo in target:
