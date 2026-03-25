@@ -13,6 +13,7 @@
 # limitations under the License.
 """Creates the apk(s)."""
 
+load("//rules:acls.bzl", "acls")
 load("//rules:utils.bzl", "compilation_mode", "get_android_sdk")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "utils")
@@ -31,6 +32,7 @@ def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
     args.add("-sdk_jar", android_jar)
     args.add("-res", resources_zip)
     args.add("-force_debuggable", compilation_mode.get(ctx) != compilation_mode.OPT)
+    args.add("-feature_flags", acls.get_aapt2_feature_flags(str(ctx.label)))
 
     ctx.actions.run(
         executable = ctx.executable._android_kit,

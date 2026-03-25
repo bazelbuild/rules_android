@@ -56,13 +56,14 @@ var (
 			"sdk_jar",
 			"res",
 			"attr",
+			"feature_flags",
 		},
 	}
 
 	// Flag variables
-	aapt2, manifest, out, sdkJar, res string
-	attr                              flags.StringList
-	forceDebuggable                   bool
+	aapt2, manifest, out, sdkJar, res, feature_flags string
+	attr                                             flags.StringList
+	forceDebuggable                                  bool
 
 	initOnce sync.Once
 )
@@ -77,6 +78,7 @@ func Init() {
 		flag.StringVar(&res, "res", "", "Path to res")
 		flag.BoolVar(&forceDebuggable, "force_debuggable", false, "Whether to force set android:debuggable=true.")
 		flag.Var(&attr, "attr", "(optional) attr(s) to set. {element}:{attr}:{value}.")
+		flag.StringVar(&feature_flags, "feature_flags", "", "Feature flags to pass to aapt2.")
 	})
 }
 
@@ -106,6 +108,9 @@ func Run() {
 		manifestPath = patchManifest(manifest, patchedManifest, attr)
 	}
 	args := []string{"link", "-o", aaptOut.Name(), "--manifest", manifestPath, "-I", sdkJar, "-I", res}
+	if feature_flags != "" {
+		args = append(args, "--feature-flags", feature_flags)
+	}
 	if forceDebuggable {
 		args = append(args, "--debug-mode")
 	}
