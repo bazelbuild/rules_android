@@ -27,6 +27,7 @@ from absl import flags
 
 from tools.android import json_worker_wrapper
 from tools.android import junction
+from tools.android import proguard_extractor_lib
 
 FLAGS = flags.FLAGS
 
@@ -35,21 +36,24 @@ flags.mark_flag_as_required("input_aar")
 flags.DEFINE_string("output_proguard_file", None,
                     "Output parameter file for proguard")
 flags.mark_flag_as_required("output_proguard_file")
+flags.DEFINE_boolean(
+    "extract_r8_rules", False, "Also extract R8-targeted rules from classes.jar"
+)
 
 
 # Attempt to extract proguard spec from AAR. If the file doesn't exist, an empty
 # proguard spec file will be created
-def ExtractEmbeddedProguard(aar, output):
-  proguard_spec = "proguard.txt"
+def ExtractEmbeddedProguard(aar, output, extract_r8_rules=False):
+  if extract_r8_rules:
+    proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, output)
+  else:
+    proguard_extractor_lib.ExtractEmbeddedProguardFromAarLegacy(aar, output)
 
-  if proguard_spec in aar.namelist():
-    output.write(aar.read(proguard_spec))
 
-
-def _Main(input_aar, output_proguard_file):
+def _Main(input_aar, output_proguard_file, extract_r8_rules):
   with zipfile.ZipFile(input_aar, "r") as aar:
     with open(output_proguard_file, "wb") as output:
-      ExtractEmbeddedProguard(aar, output)
+      ExtractEmbeddedProguard(aar, output, extract_r8_rules)
 
 
 def main(unused_argv):
@@ -65,9 +69,11 @@ def main(unused_argv):
           os.path.dirname(proguard_long)) as proguard_junc:
         _Main(
             os.path.join(aar_junc, os.path.basename(aar_long)),
-            os.path.join(proguard_junc, os.path.basename(proguard_long)))
+            os.path.join(proguard_junc, os.path.basename(proguard_long)),
+            FLAGS.extract_r8_rules,
+        )
   else:
-    _Main(FLAGS.input_aar, FLAGS.output_proguard_file)
+    _Main(FLAGS.input_aar, FLAGS.output_proguard_file, FLAGS.extract_r8_rules)
 
 
 if __name__ == "__main__":

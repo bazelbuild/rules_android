@@ -426,6 +426,12 @@ py_binary(
     ],
 )
 
+py_library(
+    name = "proguard_extractor_lib",
+    srcs = ["proguard_extractor_lib.py"],
+    visibility = ["//visibility:private"],
+)
+
 py_binary(
     name = "aar_embedded_proguard_extractor",
     srcs = ["aar_embedded_proguard_extractor.py"],
@@ -433,6 +439,19 @@ py_binary(
     deps = [
         ":json_worker_wrapper",
         ":junction_lib",
+        ":proguard_extractor_lib",
+        "@py_absl//absl:app",
+    ],
+)
+
+py_binary(
+    name = "jar_embedded_proguard_extractor",
+    srcs = ["jar_embedded_proguard_extractor.py"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":json_worker_wrapper",
+        ":junction_lib",
+        ":proguard_extractor_lib",
         "@py_absl//absl:app",
     ],
 )
@@ -476,7 +495,19 @@ py_test(
 py_test(
     name = "aar_embedded_proguard_extractor_test",
     srcs = ["aar_embedded_proguard_extractor_test.py"],
-    deps = [":aar_embedded_proguard_extractor"],
+    deps = [
+        ":aar_embedded_proguard_extractor",
+        ":proguard_extractor_lib",
+    ],
+)
+
+py_test(
+    name = "jar_embedded_proguard_extractor_test",
+    srcs = ["jar_embedded_proguard_extractor_test.py"],
+    deps = [
+        ":jar_embedded_proguard_extractor",
+        ":proguard_extractor_lib",
+    ],
 )
 
 py_test(
@@ -488,10 +519,10 @@ py_test(
 py_test(
     name = "junction_test",
     srcs = ["junction_test.py"],
-    deps = [":junction_lib"],
     # TODO: This test was migrated from Bazel and is missing some
     # Bazel-intrinsic test deps.
     tags = ["manual"],
+    deps = [":junction_lib"],
 )
 
 java_binary(
