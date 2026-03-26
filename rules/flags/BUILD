@@ -1,7 +1,7 @@
 # Flags for Android rules and mobile-install
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag", "string_list_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "int_flag", "string_flag", "string_list_flag")
 load("//rules/flags:additional_flags.bzl", "additional_flags")
 load("//rules/flags:configurations.bzl", "configurations")
 load("//rules/flags:flag_defs.bzl", "define_flags")
@@ -191,6 +191,13 @@ label_flag(
 bool_flag(
     name = "experimental_get_android_java_resources_from_optimized_jar",
     build_setting_default = False,
+    scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
+int_flag(
+    name = "incremental_dexing_after_proguard",
+    build_setting_default = 50,
     scope = "universal",
     visibility = ["//visibility:public"],
 )
