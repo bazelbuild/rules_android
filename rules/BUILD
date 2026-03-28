@@ -129,6 +129,21 @@ bzl_library(
     ],
 )
 
+# Publicly-visible single-file `rules.bzl` target, for users of
+# `bazelbuild/bazel-skylib`'s `bazel_skylib_gazelle_plugin`:
+# https://registry.bazel.build/modules/bazel_skylib_gazelle_plugin
+bzl_library(
+    name = "rules",
+    srcs = ["rules.bzl"],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        ":bzl",
+    ],
+)
+
+
 bzl_library(
     name = "min_sdk_version_bzl",
     srcs = ["min_sdk_version.bzl"],
