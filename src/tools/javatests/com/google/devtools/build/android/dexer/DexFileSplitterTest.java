@@ -50,6 +50,7 @@ public class DexFileSplitterTest {
   private static final Path SIMPLE_JAR;
   private static final Path MULTIDEX_JAR;
   private static final Path JSIMPLE_JAR;
+  private static final Path FIELDS_TYPES_JAR;
 
   private static final int SMALL_IDX_PER_DEX = 200; // A contrived small value for testing.
   private static final int REAL_WORLD_IDX_PER_DEX =
@@ -65,6 +66,7 @@ public class DexFileSplitterTest {
       SIMPLE_JAR = Paths.get(runfiles.rlocation(System.getProperty("simplejar")));
       MULTIDEX_JAR = Paths.get(runfiles.rlocation(System.getProperty("multidexjar")));
       JSIMPLE_JAR = Paths.get(runfiles.rlocation(System.getProperty("jsimplejar")));
+      FIELDS_TYPES_JAR = Paths.get(runfiles.rlocation(System.getProperty("fields_types_jar")));
     } catch (Exception e) {
       throw new ExceptionInInitializerError(e);
     }
@@ -73,12 +75,14 @@ public class DexFileSplitterTest {
   private Path simpleDexArchive;
   private Path multidexArchive;
   private Path jsimpleDexArchive;
+  private Path fieldsTypesDexArchive;
 
   @Before
   public void setUp() throws Exception {
     simpleDexArchive = buildDexArchive(SIMPLE_JAR, "simple.dex.zip");
     multidexArchive = buildDexArchive(MULTIDEX_JAR, "multidex.dex.zip");
     jsimpleDexArchive = buildDexArchive(JSIMPLE_JAR, "jsimple.dex.zip");
+    fieldsTypesDexArchive = buildDexArchive(FIELDS_TYPES_JAR, "fields_types.dex.zip");
   }
 
   @Test
@@ -300,6 +304,34 @@ public class DexFileSplitterTest {
     assertThrows(
         Exception.class,
         () -> runDexSplitter(REAL_WORLD_IDX_PER_DEX, "corrupt_run", corruptZip));
+  }
+
+  @Test
+  public void testFieldsTypesOverflow() throws Exception {
+    // fieldsTypesDexArchive has 10 fields.
+    // simpleDexArchive has 1 field.
+    // Combined they have 11 fields.
+    // Setting maxNumberOfIdxPerDex to 10 should trigger overflow when adding simpleDexArchive!
+    ImmutableList<Path> outputArchives =
+        runDexSplitter(10, "fields_types_overflow", fieldsTypesDexArchive, simpleDexArchive);
+
+    // It should split into 2 shards.
+    assertThat(outputArchives).hasSize(2);
+  }
+
+  @Test
+  public void testShardTrackingContinuity() throws Exception {
+    // multidexArchive has 4 classes with 60 methods each (total 240).
+    // With limit 100, combined pairs of classes will exceed limit (60 + 60 = 120 > 100).
+    // It should produce 4 shards if tracking is correct across shards.
+    // Shard 1: Class 1
+    // Shard 2: Class 2
+    // Shard 3: Class 3
+    // Shard 4: Class 4
+    ImmutableList<Path> outputArchives =
+        runDexSplitter(100, "shard_tracking_continuity", multidexArchive);
+
+    assertThat(outputArchives).hasSize(4);
   }
 
 
