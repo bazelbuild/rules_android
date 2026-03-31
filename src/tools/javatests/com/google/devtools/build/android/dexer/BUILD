@@ -128,3 +128,31 @@ java_library(
     name = "multidex_jar",
     srcs = [":multidex_jar_gen"],
 )
+
+# Generates a jar with a single class with 10 fields of 10 different types.
+genrule(
+    name = "fields_types_jar_gen",
+    outs = ["fields_types.srcjar"],
+    cmd = """set -eu
+        readonly tmpdir="$$(mktemp -d)"
+        echo "package base; public class FieldsTypesClass {" > "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f1;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f2;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f3;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f4;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int j5;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f6;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f7;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f8;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f9;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "  public int f10;" >> "$${tmpdir}/FieldsTypesClass.java"
+        echo "}" >> "$${tmpdir}/FieldsTypesClass.java"
+        $(location //tools/jdk:singlejar) --output $@ --resources "$${tmpdir}/FieldsTypesClass.java:base/FieldsTypesClass.java"
+        rm -rf "$${tmpdir}" """,
+    tools = ["//tools/jdk:singlejar"],
+)
+
+java_library(
+    name = "fields_types_jar",
+    srcs = [":fields_types_jar_gen"],
+)
