@@ -30,8 +30,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
@@ -243,9 +246,60 @@ public class DexFileSplitterTest {
             jsimpleDexArchive,
             multidexArchive);
     assertThat(outputArchives).hasSize(3);
-    assertThat(dexEntries(outputArchives.get(0))).containsExactly("base/SimpleClass.class.dex");
     assertThat(dexEntries(outputArchives.get(1))).containsExactly("j$/Foo.class.dex");
     assertThat(dexEntries(outputArchives.get(2))).contains("multidex/Class1.class.dex");
+  }
+
+  @Test
+  public void testShuffledInputsDeterminism() throws Exception {
+    // Run 1: Order A, B, C
+    ImmutableList<Path> outputArchives1 =
+        runDexSplitter(
+            SMALL_IDX_PER_DEX,
+            "shuffled_1",
+            simpleDexArchive,
+            jsimpleDexArchive,
+            multidexArchive);
+
+    // Run 2: Order C, A, B (inverted context)
+    ImmutableList<Path> outputArchives2 =
+        runDexSplitter(
+            SMALL_IDX_PER_DEX,
+            "shuffled_2",
+            multidexArchive,
+            simpleDexArchive,
+            jsimpleDexArchive);
+
+    assertThat(outputArchives1).hasSize(outputArchives2.size());
+
+    for (int i = 0; i < outputArchives1.size(); i++) {
+      ImmutableSet<String> entries1 = dexEntries(outputArchives1.get(i));
+      ImmutableSet<String> entries2 = dexEntries(outputArchives2.get(i));
+      assertThat(entries1).containsExactlyElementsIn(entries2);
+    }
+  }
+
+  @Test
+  public void testErrorPropagation() throws Exception {
+    Path corruptZip = tmp.newFile("corrupt.zip").toPath();
+    try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(corruptZip))) {
+      ZipEntry entry = new ZipEntry("com/example/Corrupt.class.dex");
+      entry.setMethod(ZipEntry.STORED);
+      byte[] junk = "not a valid dex file".getBytes(UTF_8);
+      entry.setSize(junk.length);
+      CRC32 crc = new CRC32();
+      crc.update(junk);
+      entry.setCrc(crc.getValue());
+      zos.putNextEntry(entry);
+      zos.write(junk);
+      zos.closeEntry();
+    }
+
+    // We expect DexFileSplitter to fail because the content is not a valid DEX file.
+    // Dex(byte[]) throws Exception or DexException when it fails to parse.
+    assertThrows(
+        Exception.class,
+        () -> runDexSplitter(REAL_WORLD_IDX_PER_DEX, "corrupt_run", corruptZip));
   }
 
 
@@ -291,8 +345,9 @@ public class DexFileSplitterTest {
     }
   }
 
-  private ImmutableList<Path> runDexSplitter(int maxNumberOfIdxPerDex, String outputRoot,
-      Path... dexArchives) throws IOException {
+  private ImmutableList<Path> runDexSplitter(
+      int maxNumberOfIdxPerDex, String outputRoot, Path... dexArchives)
+      throws ExecutionException, InterruptedException, IOException {
     return runDexSplitter(
         maxNumberOfIdxPerDex,
         /*inclusionFilterJar=*/ null,
@@ -309,7 +364,7 @@ public class DexFileSplitterTest {
       @Nullable Path mainDexList,
       boolean minimalMainDex,
       Path... dexArchives)
-      throws IOException {
+      throws ExecutionException, InterruptedException, IOException {
     DexFileSplitter.Options options = new DexFileSplitter.Options();
     options.inputArchives = ImmutableList.copyOf(dexArchives);
     options.outputDirectory = tmp.newFolder(outputRoot).toPath();

@@ -57,17 +57,41 @@ class DexLimitTracker {
   }
 
   public void track(Dex dexFile) {
-    int fieldCount = dexFile.fieldIds().size();
-    for (int fieldIndex = 0; fieldIndex < fieldCount; ++fieldIndex) {
-      fieldsSeen.add(FieldDescriptor.fromDex(dexFile, fieldIndex));
-    }
-    int methodCount = dexFile.methodIds().size();
-    for (int methodIndex = 0; methodIndex < methodCount; ++methodIndex) {
-      methodsSeen.add(MethodDescriptor.fromDex(dexFile, methodIndex));
-    }
-    int typeCount = dexFile.typeIds().size();
-    for (int typeIndex = 0; typeIndex < typeCount; ++typeIndex) {
-      typesSeen.add(typeName(dexFile, typeIndex));
+    track(new DexTrackerInfo(dexFile));
+  }
+
+  public void track(DexTrackerInfo info) {
+    fieldsSeen.addAll(info.fields);
+    methodsSeen.addAll(info.methods);
+    typesSeen.addAll(info.types);
+  }
+
+  static class DexTrackerInfo {
+    final ImmutableList<FieldDescriptor> fields;
+    final ImmutableList<MethodDescriptor> methods;
+    final ImmutableList<String> types;
+
+    DexTrackerInfo(Dex dexFile) {
+      int fieldCount = dexFile.fieldIds().size();
+      ImmutableList.Builder<FieldDescriptor> fieldsBuilder = ImmutableList.builderWithExpectedSize(fieldCount);
+      for (int fieldIndex = 0; fieldIndex < fieldCount; ++fieldIndex) {
+        fieldsBuilder.add(FieldDescriptor.fromDex(dexFile, fieldIndex));
+      }
+      fields = fieldsBuilder.build();
+
+      int methodCount = dexFile.methodIds().size();
+      ImmutableList.Builder<MethodDescriptor> methodsBuilder = ImmutableList.builderWithExpectedSize(methodCount);
+      for (int methodIndex = 0; methodIndex < methodCount; ++methodIndex) {
+        methodsBuilder.add(MethodDescriptor.fromDex(dexFile, methodIndex));
+      }
+      methods = methodsBuilder.build();
+
+      int typeCount = dexFile.typeIds().size();
+      ImmutableList.Builder<String> typesBuilder = ImmutableList.builderWithExpectedSize(typeCount);
+      for (int typeIndex = 0; typeIndex < typeCount; ++typeIndex) {
+        typesBuilder.add(typeName(dexFile, typeIndex));
+      }
+      types = typesBuilder.build();
     }
   }
 
