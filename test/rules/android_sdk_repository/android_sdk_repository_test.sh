@@ -188,4 +188,17 @@ function test_unsupported_build_tools_level() {
   expect_log "Bazel requires Android build tools version 35.0.0 or newer"
 }
 
+function test_platforms_with_minor_versions() {
+  # platforms start use minor versions starts from API level 36
+  local sdk_path="$(create_android_sdk)"
+  add_platforms "${sdk_path}" 36 36.1
+  add_build_tools "${sdk_path}" 36.1.0
+
+  # Add to repository.
+  setup_android_sdk_bzlmod "${sdk_path}" ""
+
+  check_android_sdk_provider
+  expect_log "api_level: 36.1"
+}
+
 run_suite "Android integration tests for SDK"
