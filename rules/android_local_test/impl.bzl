@@ -522,7 +522,7 @@ tmp_dir=$(mktemp -d)
 
 cd $tmp_dir
 mkdir -p {dir_name}
-cp $base/{f} {dir_name}
+cp -p $base/{f} {dir_name}
 $base/{zip_tool} -jt -X -q $base/{out_zip} {dir_name}/$(basename {f})
 """.format(
         zip_tool = get_android_toolchain(ctx).zip_tool.files_to_run.executable.path,
