@@ -508,10 +508,48 @@ _AUTOMATIC_EXEC_GROUPS_ENABLED = dict(
     _use_auto_exec_groups = attr.bool(default = True),
 )
 
+# Mapping of CPU constraint_value targets to Android ABI directory names.
+# See https://developer.android.com/ndk/guides/abis
+_CPU_CONSTRAINTS = dict(
+    _cpu_constraints = attr.label_keyed_string_dict(
+        default = {
+            "@platforms//cpu:arm64": "arm64-v8a",
+            "@platforms//cpu:armv7": "armeabi-v7a",
+            "@platforms//cpu:x86_32": "x86",
+            "@platforms//cpu:x86_64": "x86_64",
+            "@platforms//cpu:riscv64": "riscv64",
+        },
+    ),
+)
+
+def _get_abi_name(ctx, cpu_constraints):
+    """Returns the Android ABI name for the current target platform.
+
+    Args:
+        ctx: The rule context.
+        cpu_constraints: A label_keyed_string_dict mapping constraint_value
+            targets to ABI name strings (e.g. {"@platforms//cpu:arm64": "arm64-v8a"}).
+
+    Returns:
+        The ABI name string, or None if no constraint matches.
+    """
+    for target, abi in cpu_constraints.items():
+        constraint = target[platform_common.ConstraintValueInfo]
+        if ctx.target_platform_has_constraint(constraint):
+            return abi
+
+    fail(("Target platform %s does not match one of the " +
+          "applicable CPU constraints for aar_import %s. " +
+          "Applicable CPU constraints are listed in " +
+          "https://blog.bazel.build/2023/11/15/android-platforms.html") %
+         (ctx.fragments.platform.platform, ctx.label))
+
 attrs = struct(
     ANDROID_SDK = _ANDROID_SDK,
     compilation_attributes = _compilation_attributes,
+    CPU_CONSTRAINTS = _CPU_CONSTRAINTS,
     DATA_CONTEXT = _DATA_CONTEXT,
+    get_abi_name = _get_abi_name,
     JAVA_RUNTIME = _JAVA_RUNTIME,
     ANDROID_TOOLCHAIN_ATTRS = _ANDROID_TOOLCHAIN_ATTRS,
     tristate = _tristate,
