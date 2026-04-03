@@ -155,6 +155,7 @@ def _process_native_libs(ctx, **_unused_ctxs):
     native_libs_info = _process_native_deps(
         ctx,
         filename = "nativedeps",
+        cpu_constraints = ctx.attr._cpu_constraints,
     )
     providers.append(native_libs_info)
     return ProviderInfo(

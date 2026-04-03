@@ -38,6 +38,7 @@ load(
     _get_android_toolchain = "get_android_toolchain",
     _utils = "utils",
 )
+load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_java//java/common:java_common.bzl", "java_common")
@@ -527,19 +528,7 @@ def impl(ctx):
     providers.extend(jvm_ctx.providers)
     validation_outputs.extend(jvm_ctx.validation_results)
 
-    native_libs_cpu = None
-    for target, cpu in ctx.attr._cpu_constraints.items():
-        constraint = target[platform_common.ConstraintValueInfo]
-        if ctx.target_platform_has_constraint(constraint):
-            native_libs_cpu = cpu
-            break
-    if native_libs_cpu == None:
-        fail(("Target platform %s does not match one of the " +
-              "applicable CPU constraints for aar_import %s. " +
-              "Applicable CPU constraints are listed in " +
-              "https://blog.bazel.build/2023/11/15/android-platforms.html") %
-             (ctx.fragments.platform.platform, ctx.label))
-
+    native_libs_cpu = _attrs.get_abi_name(ctx, ctx.attr._cpu_constraints)
     native_libs = create_aar_artifact(ctx, "native_libs.zip")
     _extract_native_libs(
         ctx,
