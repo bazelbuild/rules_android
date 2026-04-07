@@ -41,6 +41,7 @@ def _impl(ctx):
         zip_align = ctx.attr.zipalign.files_to_run,
         system = None,
         legacy_main_dex_list_generator = ctx.attr.legacy_main_dex_list_generator.files_to_run if ctx.attr.legacy_main_dex_list_generator else None,
+        core_for_system_modules_jar = ctx.file.core_for_system_modules_jar if ctx.attr.core_for_system_modules_jar else None,
     )
     return [
         android_sdk_info,

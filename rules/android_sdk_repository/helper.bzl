@@ -240,6 +240,7 @@ def create_android_sdk_rules(
                 ":windows": "build-tools/%s/zipalign.exe" % build_tools_directory,
                 "//conditions:default": ":zipalign_binary",
             }),
+            core_for_system_modules_jar = "platforms/android-%d/core-for-system-modules.jar" % api_level,
         )
 
         native.toolchain(

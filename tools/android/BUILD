@@ -2,7 +2,7 @@ load("@rules_java//java:defs.bzl", "java_binary", "java_import", "java_library",
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
-load(":defs.bzl", "android_jar", "run_ijar", "run_singlejar")
+load(":defs.bzl", "android_jar", "core_for_system_modules_jar", "run_ijar", "run_singlejar")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -25,6 +25,11 @@ config_setting(
 
 android_jar(
     name = "android_jar",
+    visibility = ["//visibility:public"],
+)
+
+core_for_system_modules_jar(
+    name = "core_for_system_modules_jar",
     visibility = ["//visibility:public"],
 )
 
