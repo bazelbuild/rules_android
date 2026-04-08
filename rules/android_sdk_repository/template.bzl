@@ -77,7 +77,7 @@ create_android_sdk_rules(
     build_tools_version = "__build_tools_version__",
     build_tools_directory = "__build_tools_directory__",
     api_levels = [__api_levels__],
-    default_api_level = __default_api_level__,
+    default_api_level = "__default_api_level__",
 )
 
 exports_files(["platform-tools/adb"])
