@@ -63,13 +63,37 @@ public class DexFileSplitterTest {
       Runfiles runfiles = Runfiles.create();
 
       // Look in the BUILD file for the corresponding genrules that codegen these jars.
-      SIMPLE_JAR = Paths.get(runfiles.rlocation(System.getProperty("simplejar")));
-      MULTIDEX_JAR = Paths.get(runfiles.rlocation(System.getProperty("multidexjar")));
-      JSIMPLE_JAR = Paths.get(runfiles.rlocation(System.getProperty("jsimplejar")));
-      FIELDS_TYPES_JAR = Paths.get(runfiles.rlocation(System.getProperty("fields_types_jar")));
+      SIMPLE_JAR = getRunfile(runfiles, "simplejar");
+      MULTIDEX_JAR = getRunfile(runfiles, "multidexjar");
+      JSIMPLE_JAR = getRunfile(runfiles, "jsimplejar");
+      FIELDS_TYPES_JAR = getRunfile(runfiles, "fields_types_jar");
     } catch (Exception e) {
       throw new ExceptionInInitializerError(e);
     }
+  }
+
+  private static Path getRunfile(Runfiles runfiles, String property) {
+    String path = System.getProperty(property);
+    // This code lives simultaneously in a repo called google3 as well as the current repo
+    // rules_android. We check both prefixes to ensure the runfiles can be found in both
+    // environments.
+    String google3Path = runfiles.rlocation("google3/" + path);
+    if (google3Path != null && Files.exists(Paths.get(google3Path))) {
+      return Paths.get(google3Path);
+    }
+    String rulesAndroidPath = runfiles.rlocation("rules_android/" + path);
+    if (rulesAndroidPath != null && Files.exists(Paths.get(rulesAndroidPath))) {
+      return Paths.get(rulesAndroidPath);
+    }
+
+    // Fallback for cases where neither prefix works (e.g. absolute paths or other prefixes)
+    String rlocation = runfiles.rlocation(path);
+    if (rlocation != null) {
+      return Paths.get(rlocation);
+    }
+
+    throw new RuntimeException(
+        "Could not find runfile for property " + property + ": " + path);
   }
 
   private Path simpleDexArchive;

@@ -59,10 +59,10 @@ java_test(
         ":simple_jar",
     ],
     jvm_flags = [
-        "-Dfields_types_jar=rules_android/$(location :fields_types_jar)",
-        "-Djsimplejar=rules_android/$(location :jsimple_jar)",
-        "-Dmultidexjar=rules_android/$(location :multidex_jar)",
-        "-Dsimplejar=rules_android/$(location :simple_jar)",
+        "-Dfields_types_jar=$(location :fields_types_jar)",
+        "-Djsimplejar=$(location :jsimple_jar)",
+        "-Dmultidexjar=$(location :multidex_jar)",
+        "-Dsimplejar=$(location :simple_jar)",
     ],
     runtime_deps = [
         ":tests",
