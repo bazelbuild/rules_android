@@ -53,14 +53,16 @@ java_test(
     size = "small",
     srcs = ["AllTests.java"],
     data = [
+        ":fields_types_jar",
         ":jsimple_jar",
         ":multidex_jar",
         ":simple_jar",
     ],
     jvm_flags = [
-        "-Djsimplejar=google3/$(location :jsimple_jar)",
-        "-Dmultidexjar=google3/$(location :multidex_jar)",
-        "-Dsimplejar=google3/$(location :simple_jar)",
+        "-Dfields_types_jar=rules_android/$(location :fields_types_jar)",
+        "-Djsimplejar=rules_android/$(location :jsimple_jar)",
+        "-Dmultidexjar=rules_android/$(location :multidex_jar)",
+        "-Dsimplejar=rules_android/$(location :simple_jar)",
     ],
     runtime_deps = [
         ":tests",
