@@ -461,6 +461,7 @@ public class ResourceLinker {
                 Streams.concat(
                         assetDirs.stream().map(Path::toString),
                         compiled.getAssetsStrings().stream())
+                    .distinct() // Deduplicate assets dirs, there are often duplicates.
                     .collect(toList()))
             .addRepeated("-I", StaticLibrary.toPathStrings(linkAgainst))
             .addRepeated("-I", StaticLibrary.toPathStrings(resourceApks))
