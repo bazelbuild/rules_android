@@ -483,16 +483,17 @@ def _get_jvm_flags(ctx, main_class, robolectric_properties_path, additional_jvm_
     ]
 
 def _zip_file(ctx, f, dir_name, out_zip):
+    singlejar = common.get_java_toolchain(ctx)[java_common.JavaToolchainInfo].single_jar
     cmd = """
 base=$(pwd)
 tmp_dir=$(mktemp -d)
 
 cd $tmp_dir
 mkdir -p {dir_name}
-cp -p $base/{f} {dir_name}
-$base/{zip_tool} -jt -X -q $base/{out_zip} {dir_name}/$(basename {f})
+cp $base/{f} {dir_name}
+$base/{singlejar} --output $base/{out_zip} --normalize --exclude_build_data --warn_duplicate_resources --resources {dir_name}/$(basename {f})
 """.format(
-        zip_tool = get_android_toolchain(ctx).zip_tool.files_to_run.executable.path,
+        singlejar = singlejar.executable.path,
         f = f.path,
         dir_name = dir_name,
         out_zip = out_zip.path,
@@ -500,7 +501,7 @@ $base/{zip_tool} -jt -X -q $base/{out_zip} {dir_name}/$(basename {f})
     ctx.actions.run_shell(
         command = cmd,
         inputs = [f],
-        tools = get_android_toolchain(ctx).zip_tool.files,
+        tools = [singlejar],
         outputs = [out_zip],
         mnemonic = "AddToZip",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
