@@ -53,14 +53,16 @@ java_test(
     size = "small",
     srcs = ["AllTests.java"],
     data = [
+        ":fields_types_jar",
         ":jsimple_jar",
         ":multidex_jar",
         ":simple_jar",
     ],
     jvm_flags = [
-        "-Djsimplejar=google3/$(location :jsimple_jar)",
-        "-Dmultidexjar=google3/$(location :multidex_jar)",
-        "-Dsimplejar=google3/$(location :simple_jar)",
+        "-Dfields_types_jar=$(location :fields_types_jar)",
+        "-Djsimplejar=$(location :jsimple_jar)",
+        "-Dmultidexjar=$(location :multidex_jar)",
+        "-Dsimplejar=$(location :simple_jar)",
     ],
     runtime_deps = [
         ":tests",
