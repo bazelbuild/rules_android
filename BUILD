@@ -6,6 +6,8 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+exports_files(["MODULE.bazel"])
+
 license(
     name = "license",
     package_name = "bazelbuild/rules_android",
