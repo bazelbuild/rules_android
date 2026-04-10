@@ -133,7 +133,7 @@ EOF
   if [[ ! -z "${sdk_path}" ]]; then
     local config="path = \"${sdk_path}\""
     if [[ ! -z "${api_level}" ]]; then
-      config="$config, api_level=${api_level}"
+      config="$config, api_level=\"${api_level}\""
     fi
     cat >> MODULE.bazel <<EOF
 android_sdk_repository_extension.configure(${config})
