@@ -666,6 +666,7 @@ def _optimized_dex_merge(
         outputs = outputs,
         mnemonic = "OptimizingDex",
         progress_message = "Optimized dexing for " + ctx.label.name,
+        execution_requirements = acls.get_optimizer_execution_requirements(ctx.label.package),
         toolchain = toolchain_type,
     )
 
