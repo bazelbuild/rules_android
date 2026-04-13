@@ -161,17 +161,22 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
             dexes = [java8_legacy_dex],
             dex_zips_merger = get_android_toolchain(ctx).dex_zips_merger.files_to_run,
         )
+        # DexReducer (append_desugar_dexes) strips non-.dex entries from its output.
+        # Use R8's direct output (dexes_zip) for resource extraction because R8 renames
+        # META-INF/services/* files to match obfuscated class names. Using the unprocessed
+        # deploy_jar would provide original filenames that don't match the renamed code.
+        java_resource_jar = dexes_zip
     else:
         final_classes_dex_zip = dexes_zip
+        # R8 preserves Java resources (including META-INF/services) in its output zip
+        # with correctly renamed filenames, and no DexReducer runs in this path, so no
+        # separate resource jar is needed.
+        java_resource_jar = None
 
     android_dex_info = AndroidDexInfo(
         deploy_jar = deploy_jar,
         final_classes_dex_zip = final_classes_dex_zip,
-        # The deploy jar contains Java resources (non-class files like metadata) that must be
-        # extracted and included in the final APK. While R8 preserves them in its direct output,
-        # the DexReducer (used by append_desugar_dexes) strips non-.dex entries, so we must
-        # always provide the deploy jar for separate resource extraction.
-        java_resource_jar = deploy_jar,
+        java_resource_jar = java_resource_jar,
     )
 
     return ProviderInfo(
