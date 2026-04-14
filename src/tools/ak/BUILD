@@ -44,6 +44,12 @@ go_library(
     ],
 )
 
+go_test(
+    name = "manifestutils_test",
+    srcs = ["manifestutils_test.go"],
+    embed = [":manifestutils"],
+)
+
 go_library(
     name = "akcommands",
     srcs = ["akcommands.go"],

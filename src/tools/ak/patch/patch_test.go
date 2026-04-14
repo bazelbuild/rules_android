@@ -68,28 +68,32 @@ const (
 
 func TestParsing(t *testing.T) {
 	tests := []struct {
-		name        string
-		manifestXML string
-		wantPkg     string
-		wantApp     string
+		name             string
+		manifestXML      string
+		wantPkg          string
+		wantApp          string
+		wantLaunchAction string
 	}{
 		{
-			name:        "withAppClass",
-			manifestXML: manifestWithAppClass,
-			wantPkg:     "com.google.android.other",
-			wantApp:     "android.app.OtherApplication",
+			name:             "withAppClass",
+			manifestXML:      manifestWithAppClass,
+			wantPkg:          "com.google.android.other",
+			wantApp:          "android.app.OtherApplication",
+			wantLaunchAction: "com.google.android.test.Activity",
 		},
 		{
-			name:        "withAppClassAtEnd",
-			manifestXML: manifestWithAppClassAtEnd,
-			wantPkg:     "com.google.android.end",
-			wantApp:     "android.app.EndApplication",
+			name:             "withAppClassAtEnd",
+			manifestXML:      manifestWithAppClassAtEnd,
+			wantPkg:          "com.google.android.end",
+			wantApp:          "android.app.EndApplication",
+			wantLaunchAction: "com.google.android.test.Activity",
 		},
 		{
-			name:        "noAppClass",
-			manifestXML: manifestWithNoAppClass,
-			wantPkg:     "com.google.android.test",
-			wantApp:     "",
+			name:             "noAppClass",
+			manifestXML:      manifestWithNoAppClass,
+			wantPkg:          "com.google.android.test",
+			wantApp:          "",
+			wantLaunchAction: "com.google.android.test.Activity",
 		},
 	}
 	for _, test := range tests {
@@ -101,6 +105,9 @@ func TestParsing(t *testing.T) {
 			}
 			if manifest.Application.Name != test.wantApp {
 				t.Errorf("Parsed application class name not correct: got: %q wanted: %q", manifest.Application.Name, test.wantApp)
+			}
+			if got := manifest.LauncherActivity(); got != test.wantLaunchAction {
+				t.Errorf("LauncherActivity() not correct: got: %q wanted: %q", got, test.wantLaunchAction)
 			}
 		})
 	}

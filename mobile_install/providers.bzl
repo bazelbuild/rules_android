@@ -33,6 +33,7 @@ MIAppInfo = provider(
     doc = "A provider with all relevant details about an app",
     fields = dict(
         manifest_package_name = "A file containing the manifest package name",
+        launcher_activity = "A file containing the launcher activity name",
         merged_manifest = "The Merged manifest file",
         splits = "The split apk files for the app",
         r_dex = "The R dex files",

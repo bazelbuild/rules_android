@@ -63,6 +63,7 @@ def _make_deploy_script(
 def _make_app_runner(
         ctx,
         manifest_package_name_path,
+        launcher_activity_path,
         out_launcher,
         out_launcher_flags,
         splits = None,
@@ -79,6 +80,7 @@ def _make_app_runner(
     args = {
         "is_cmd": str(ctx.attr._mi_is_cmd).lower(),
         "manifest_package_name_path": getattr(manifest_package_name_path, path_type),
+        "launcher_activity_path": getattr(launcher_activity_path, path_type),
     }
     if splits:
         args["splits"] = [getattr(s, path_type) for s in splits]
@@ -141,6 +143,7 @@ def make_direct_launcher(
     if getattr(mi_app_info, "merged_manifest", None):
         runfiles.append(mi_app_info.merged_manifest)
     runfiles.append(mi_app_info.manifest_package_name)
+    runfiles.append(mi_app_info.launcher_activity)
 
     splits = None
     if hasattr(mi_app_info, "splits"):
@@ -167,6 +170,7 @@ def make_direct_launcher(
     runfiles.extend(_make_app_runner(
         ctx,
         mi_app_info.manifest_package_name,
+        mi_app_info.launcher_activity,
         launcher,
         launcher_flags,
         splits = splits,

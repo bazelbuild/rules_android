@@ -36,8 +36,9 @@ var (
 	adbPath        = flag.String("adb", "", "Path to the adb binary to use with mobile-install.")
 	device         = flag.String("device", "", "The adb device serial number.")
 	javaHome       = flag.String("java_home", "", "Path to JDK.")
-	launchActivity = flag.String("launch_activity", "", "Activity to launch via am start -n package/.activity_to_launch.")
-	appPackagePath = flag.String("manifest_package_name_path", "", "Path to file containing the manifest package name.")
+	launchActivity       = flag.String("launch_activity", "", "Activity to launch via am start -n package/.activity_to_launch.")
+	launcherActivityPath = flag.String("launcher_activity_path", "", "Path to file containing the auto-detected launcher activity name.")
+	appPackagePath       = flag.String("manifest_package_name_path", "", "Path to file containing the manifest package name.")
 	splits         = flags.NewStringList("splits", "The list of split apk paths.")
 	start          = flag.String("start", "", "start_type from mobile-install.")
 	startType      = flag.String("start_type", "", "start_type (deprecated, use --start).")
@@ -192,8 +193,15 @@ func main() {
 		d.WaitForDebugger(ctx, appPackage)
 	}
 	if *launchApp && !isAndroidStudio() {
+		activity := *launchActivity
+		if activity == "" && *launcherActivityPath != "" {
+			activity = strings.TrimSpace(string(deployment.ReadFile(*launcherActivityPath)))
+		}
+		if activity != "" {
+			pprint.Info("Found launch activity: %s", activity)
+		}
 		pprint.Info("Finished deploying changes. Launching app")
-		if err = d.Launch(ctx, appPackage, *launchActivity); err != nil {
+		if err = d.Launch(ctx, appPackage, activity); err != nil {
 			pprint.Warning("Unable to launch app. Specify an activity with --launch_activity.")
 			pprint.Warning("Original error: %s", err.Error())
 		}

@@ -42,17 +42,18 @@ var (
 		Init:  Init,
 		Run:   Run,
 		Desc:  desc,
-		Flags: []string{"in", "out", "attr", "app", "oldapp", "pkg"},
+		Flags: []string{"in", "out", "attr", "app", "oldapp", "pkg", "launcher_activity"},
 	}
 
 	// Variables that hold flag values
-	split  flags.StringList
-	attr   flags.StringList
-	in     string
-	out    string
-	app    string
-	oldApp string
-	pkg    string
+	split            flags.StringList
+	attr             flags.StringList
+	in               string
+	out              string
+	app              string
+	oldApp           string
+	pkg              string
+	launcherActivity string
 
 	initOnce sync.Once
 )
@@ -66,6 +67,7 @@ func Init() {
 		flag.Var(&split, "split", "(optional) splits(s) to write. {name}:{file}.")
 		flag.StringVar(&oldApp, "oldapp", "", "(optional) Path to output the old application class name.")
 		flag.StringVar(&pkg, "pkg", "", "(optional) Path to output the package name.")
+		flag.StringVar(&launcherActivity, "launcher_activity", "", "(optional) Path to output the launcher activity name.")
 	})
 }
 
@@ -107,6 +109,13 @@ func Run() {
 			if err != nil {
 				log.Fatalf("ioutil.WriteFile(%q) failed: %v", oldApp, err)
 			}
+		}
+	}
+
+	if launcherActivity != "" {
+		activity := manifest.LauncherActivity()
+		if err := ioutil.WriteFile(launcherActivity, []byte(activity), 0644); err != nil {
+			log.Fatalf("ioutil.WriteFile(%q) failed: %v", launcherActivity, err)
 		}
 	}
 

@@ -45,7 +45,7 @@ def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
         progress_message = "MI Compiling AndroidManifest.xml from " + manifest.path,
     )
 
-def _patch_split_manifests(ctx, orig_manifest, split_manifests, out_manifest_package_name):
+def _patch_split_manifests(ctx, orig_manifest, split_manifests, out_manifest_package_name, out_launcher_activity):
     args = ctx.actions.args()
     args.add("-in", orig_manifest)
     args.add("-split", ",".join(["%s:%s" % (k, v.path) for k, v in split_manifests.items()]))
@@ -53,12 +53,13 @@ def _patch_split_manifests(ctx, orig_manifest, split_manifests, out_manifest_pac
     # prefer setting hasCode to always false. Otherwise dex2oat runs on installation
     args.add("-attr", "application:hasCode:false")
     args.add("-pkg", out_manifest_package_name)
+    args.add("-launcher_activity", out_launcher_activity)
 
     ctx.actions.run(
         executable = ctx.executable._android_kit,
         arguments = ["patch", args],
         inputs = [orig_manifest],
-        outputs = [out_manifest_package_name] + split_manifests.values(),
+        outputs = [out_manifest_package_name, out_launcher_activity] + split_manifests.values(),
         mnemonic = "PatchAndroidManifest",
         progress_message = "MI Patch split manifests",
     )
@@ -108,6 +109,7 @@ def make_split_apks(
         sibling):
     """Create a split for each dex and for resources"""
     manifest_package_name = utils.isolated_declare_file(ctx, "manifest_package_name.txt", sibling = sibling)
+    launcher_activity = utils.isolated_declare_file(ctx, "launcher_activity.txt", sibling = sibling)
     manifests = {}
     artifacts = {}
     dirs = {}
@@ -161,7 +163,7 @@ def make_split_apks(
         if swigdeps_file:
             dirs[name] = [swigdeps_file]
 
-    _patch_split_manifests(ctx, manifest, manifests, manifest_package_name)
+    _patch_split_manifests(ctx, manifest, manifests, manifest_package_name, launcher_activity)
     for k, v in manifests.items():
         compiled = utils.isolated_declare_file(
             ctx,
@@ -211,7 +213,7 @@ def make_split_apks(
     _make_split_apk(ctx, [compiled], [resource_apk, java8_legacy], debug_signing_keys, debug_signing_lineage_file, key_rotation_min_sdk, zipalign_alignment, base)
     splits.append(base)
 
-    return manifest_package_name, splits
+    return manifest_package_name, launcher_activity, splits
 
 def _zipalign_sign(ctx, unsigned_apk, signed_apk, debug_signing_keys, debug_signing_lineage_file, key_rotation_min_sdk, zipalign_alignment):
     """Zipalign and signs the given apk."""

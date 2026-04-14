@@ -98,7 +98,7 @@ def process(
     if not debug_signing_keys:
         debug_signing_keys = [debug_key]
 
-    manifest_package_name, splits = make_split_apks(
+    manifest_package_name, launcher_activity, splits = make_split_apks(
         ctx,
         merged_manifest,
         r_dex,
@@ -116,6 +116,7 @@ def process(
 
     return MIAppInfo(
         manifest_package_name = manifest_package_name,
+        launcher_activity = launcher_activity,
         merged_manifest = merged_manifest,
         r_dex = r_dex,
         merged_dex_shards = merged_dex_shards,

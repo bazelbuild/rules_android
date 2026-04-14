@@ -56,10 +56,57 @@ type Manifest struct {
 	Application     Application `xml:"application"`
 }
 
+// IntentFilter represents an <intent-filter> element in the manifest.
+type IntentFilter struct {
+	Actions    []IntentAction `xml:"action"`
+	Categories []Category     `xml:"category"`
+}
+
+// IntentAction represents an <action> element inside an <intent-filter>.
+type IntentAction struct {
+	Name string `xml:"http://schemas.android.com/apk/res/android name,attr"`
+}
+
+// Category represents a <category> element inside an <intent-filter>.
+type Category struct {
+	Name string `xml:"http://schemas.android.com/apk/res/android name,attr"`
+}
+
+// Activity represents an <activity> element in the manifest.
+type Activity struct {
+	Name          string         `xml:"http://schemas.android.com/apk/res/android name,attr"`
+	IntentFilters []IntentFilter `xml:"intent-filter"`
+}
+
 // Application is the XML tag that we want to parse.
 type Application struct {
-	XMLName xml.Name `xml:"application"`
-	Name    string   `xml:"http://schemas.android.com/apk/res/android name,attr"`
+	XMLName    xml.Name   `xml:"application"`
+	Name       string     `xml:"http://schemas.android.com/apk/res/android name,attr"`
+	Activities []Activity `xml:"activity"`
+}
+
+// LauncherActivity returns the fully qualified name of the activity with a
+// MAIN+LAUNCHER intent filter, or "" if none is found.
+func (m *Manifest) LauncherActivity() string {
+	for _, a := range m.Application.Activities {
+		for _, f := range a.IntentFilters {
+			hasMain, hasLauncher := false, false
+			for _, action := range f.Actions {
+				if action.Name == "android.intent.action.MAIN" {
+					hasMain = true
+				}
+			}
+			for _, cat := range f.Categories {
+				if cat.Name == "android.intent.category.LAUNCHER" {
+					hasLauncher = true
+				}
+			}
+			if hasMain && hasLauncher {
+				return a.Name
+			}
+		}
+	}
+	return ""
 }
 
 // Encoder takes the xml.Token and encodes it, interface allows us to use xml2.Encoder.
