@@ -29,6 +29,13 @@ bzl_library(
     ],
 )
 
+bool_flag(
+    name = "desugar_for_android",
+    build_setting_default = True,
+    scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
 string_flag(
     name = "runfiles_root_prefix",
     build_setting_default = "rules_android/",
