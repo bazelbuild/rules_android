@@ -217,7 +217,7 @@ def extract_jar_resources(ctx, jar, out_resources):
     # Filters .class and directories from Jar files
     ctx.actions.run_shell(
         command = (
-            'cp $2 $1; chmod 644 $1; zip -qd $1 "*.class" "*/";' + "err=$?; if" +
+            'cp $2 $1; chmod 644 $1; zip -qd $1 "*.class" "*/" > /dev/null 2>&1;' + "err=$?; if" +
             " [ 0 -ne $err ] && [ 12 -ne $err ]; then exit ${err}; fi"
         ),
         arguments = [out_resources.path, jar.path],
