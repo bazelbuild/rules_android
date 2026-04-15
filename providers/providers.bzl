@@ -503,6 +503,16 @@ AndroidBuildStampInfo = provider(
     ),
 )
 
+AndroidBytecodeTransformerInfo = provider(
+    doc = "AndroidBytecodeTransformerInfo",
+    fields = dict(
+        bytecode_transformer = "Deploy jar of the bytecode transformer and all processors",
+        processor_order = "List of processor names in the order they should be applied",
+        package_prefix = "String prefix (e.g. 'com.google') to limit processing to this package prefix, or empty to process all classes",
+        extra_params = "List of extra parameters to pass to the bytecode transformer",
+    ),
+)
+
 # Keep these symobols until rules/providers.bzl is deleted from release.
 AndroidResourcesInfo = None
 AndroidManifestInfo = None
