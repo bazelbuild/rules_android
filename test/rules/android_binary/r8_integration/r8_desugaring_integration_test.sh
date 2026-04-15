@@ -38,6 +38,9 @@ function test_desugaring_enabled() {
   apk_dex_contains 'Lcom/test/app/DurationUser;' || \
     fail "DurationUser class not found in DEX"
 
+  apk_dex_contains 'Lcom/test/app/TimeUnitUser;' || \
+    fail "TimeUnitUser class not found in DEX"
+
   if apk_dex_contains 'java/time/Duration;.*toSeconds'; then
     fail "Expected Duration.toSeconds() to be desugared but raw java/time reference found"
   fi
@@ -98,6 +101,54 @@ function test_serviceloader_metadata_consistent_with_dex_when_desugaring() {
   # Verify at least one META-INF/services entry exists (R8's renamed version).
   obfuscated_apk_contains_file 'META-INF/services/' || \
     fail "No META-INF/services entries found in APK."
+}
+
+# Test: with minSdkVersion=28 and --desugar_java8_libs, R8 must still apply
+# java.time type rewriting (java.time.* → j$.time.*) so that retargeted call
+# signatures match the pre-built desugar library.
+#
+# Without the fix (capping R8's --min-api to DEPOT_FLOOR when --desugared-lib is
+# used), R8 at --min-api 28 considers java.time available and skips type
+# rewriting. This creates a signature mismatch: retargeted calls use
+# java.time.Duration but the desugar library defines methods with
+# j$.time.Duration → NoSuchMethodError at runtime.
+function test_desugaring_with_high_min_sdk_rewrites_java_time() {
+  build_high_min_sdk_app --desugar_java8_libs
+
+  # With correct desugaring, ALL java.time references must be rewritten to
+  # j$.time — even though java.time is natively available at API 28. This is
+  # required because the pre-built desugar library uses j$.time types in its
+  # method signatures.
+  if high_min_sdk_apk_dex_contains 'java/time/Duration'; then
+    fail "java/time/Duration found in DEX with minSdkVersion=28. " \
+         "R8 did not rewrite java.time types to j\$.time, which will cause " \
+         "NoSuchMethodError when calling desugared methods like " \
+         "DesugarTimeUnit.convert() or DesugarDuration.toSeconds()."
+  fi
+
+  # j$.time.Duration must be present (the rewritten type).
+  high_min_sdk_apk_dex_contains 'j\$/time/Duration' || \
+    fail "j\$/time/Duration not found in DEX — java.time type rewriting not applied"
+
+  # Desugar library backport classes must be included.
+  high_min_sdk_apk_dex_contains 'Lj\$/' || \
+    fail "Expected j\$.* desugared library classes in the APK"
+}
+
+# Test: with minSdkVersion=28, TimeUnit.convert(Duration) (added in API 33)
+# must be desugared — the raw platform reference must not appear.
+function test_desugaring_with_high_min_sdk_timeunit_convert() {
+  build_high_min_sdk_app --desugar_java8_libs
+
+  high_min_sdk_apk_dex_contains 'Lcom/test/app/TimeUnitUser;' || \
+    fail "TimeUnitUser class not found in DEX"
+
+  # The raw TimeUnit.convert reference must be absent (retargeted to
+  # DesugarTimeUnit.convert by the desugaring config).
+  if high_min_sdk_apk_dex_contains 'TimeUnit;.*convert.*Duration'; then
+    fail "Raw TimeUnit.convert(Duration) reference found in DEX with " \
+         "minSdkVersion=28. Expected it to be desugared."
+  fi
 }
 
 run_suite "R8 desugaring integration tests"

@@ -36,6 +36,8 @@ APP_TARGET="//app"
 APK_PATH="bazel-bin/app/app.apk"
 OBFUSCATED_APP_TARGET="//app:app_obfuscated"
 OBFUSCATED_APK_PATH="bazel-bin/app/app_obfuscated.apk"
+HIGH_MIN_SDK_APP_TARGET="//app:app_high_min_sdk"
+HIGH_MIN_SDK_APK_PATH="bazel-bin/app/app_high_min_sdk.apk"
 
 # Resolve the real filesystem path of the rules_android source tree.
 function get_rules_android_path() {
@@ -189,36 +191,49 @@ EOF
   cat > app/BUILD <<'EOF'
 load("@rules_android//rules:rules.bzl", "android_binary")
 
+_COMMON_SRCS = [
+    "MainActivity.java",
+    "DurationUser.java",
+    "TimeUnitUser.java",
+    "ServiceUser.java",
+]
+
+_COMMON_DEPS = [
+    "//lib:lib_with_resources",
+    "//spi:spi_lib",
+]
+
 android_binary(
     name = "app",
-    srcs = [
-        "MainActivity.java",
-        "DurationUser.java",
-        "ServiceUser.java",
-    ],
+    srcs = _COMMON_SRCS,
     manifest = "AndroidManifest.xml",
     proguard_specs = ["proguard.cfg"],
     resource_files = glob(["res/**"]),
-    deps = [
-        "//lib:lib_with_resources",
-        "//spi:spi_lib",
-    ],
+    deps = _COMMON_DEPS,
 )
 
 android_binary(
     name = "app_obfuscated",
-    srcs = [
-        "MainActivity.java",
-        "DurationUser.java",
-        "ServiceUser.java",
-    ],
+    srcs = _COMMON_SRCS,
     manifest = "AndroidManifest.xml",
     proguard_specs = ["proguard_obfuscated.cfg"],
     resource_files = glob(["res/**"]),
-    deps = [
-        "//lib:lib_with_resources",
-        "//spi:spi_lib",
-    ],
+    deps = _COMMON_DEPS,
+)
+
+# App with minSdkVersion=28 — exercises the code path where R8's --min-api
+# must be capped to DEPOT_FLOOR for correct core library desugaring. Without
+# the cap, java.time types are not rewritten to j$.time (since java.time is
+# natively available at API 26+), but the pre-built desugar library uses
+# j$.time types, causing a signature mismatch and NoSuchMethodError at runtime.
+android_binary(
+    name = "app_high_min_sdk",
+    srcs = _COMMON_SRCS,
+    manifest = "AndroidManifest.xml",
+    manifest_values = {"minSdkVersion": "28"},
+    proguard_specs = ["proguard.cfg"],
+    resource_files = glob(["res/**"]),
+    deps = _COMMON_DEPS,
 )
 EOF
 
@@ -250,9 +265,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        long seconds = DurationUser.getSeconds(Duration.ofMinutes(5));
+        Duration d = Duration.ofMinutes(5);
+        long seconds = DurationUser.getSeconds(d);
+        long converted = TimeUnitUser.convertDuration(d);
         String svc = ServiceUser.loadService();
-        setTitle("Seconds: " + seconds + ", Resource: " + ResourceReader.getMetadata() + ", Service: " + svc);
+        setTitle("s=" + seconds + " c=" + converted + " r=" + ResourceReader.getMetadata() + " svc=" + svc);
     }
 }
 EOF
@@ -265,6 +282,19 @@ import java.time.Duration;
 public class DurationUser {
     public static long getSeconds(Duration duration) {
         return duration.toSeconds();
+    }
+}
+EOF
+
+  cat > app/TimeUnitUser.java <<'EOF'
+package com.test.app;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
+public class TimeUnitUser {
+    public static long convertDuration(Duration duration) {
+        return TimeUnit.SECONDS.convert(duration);
     }
 }
 EOF
@@ -290,6 +320,7 @@ EOF
 -dontobfuscate
 -keep class com.test.app.MainActivity { *; }
 -keep class com.test.app.DurationUser { *; }
+-keep class com.test.app.TimeUnitUser { *; }
 -keep class com.test.app.ServiceUser { *; }
 -keep class com.test.lib.ResourceReader { *; }
 EOF
@@ -334,17 +365,25 @@ function build_obfuscated_app() {
     fail "Failed to build ${OBFUSCATED_APP_TARGET}"
 }
 
-# Returns 0 if any dex in the APK contains a string matching the given pattern.
-# Usage: apk_dex_contains <grep_pattern>
-function apk_dex_contains() {
-  local pattern="$1"
-  if [[ ! -f "${APK_PATH}" ]]; then
-    echo "APK not found at ${APK_PATH}" >&2
+# Build the high-min-sdk app (minSdkVersion=28) with extra Bazel flags.
+# Usage: build_high_min_sdk_app [--desugar_java8_libs | --nodesugar_java8_libs]
+function build_high_min_sdk_app() {
+  "${BIT_BAZEL_BINARY}" build "$@" -- ${HIGH_MIN_SDK_APP_TARGET} >& $TEST_log || \
+    fail "Failed to build ${HIGH_MIN_SDK_APP_TARGET}"
+}
+
+# Returns 0 if any dex in the given APK contains a string matching the pattern.
+# Usage: _apk_dex_contains_at <apk_path> <grep_pattern>
+function _apk_dex_contains_at() {
+  local apk_path="$1"
+  local pattern="$2"
+  if [[ ! -f "${apk_path}" ]]; then
+    echo "APK not found at ${apk_path}" >&2
     return 1
   fi
 
   local tmpdir=$(mktemp -d)
-  unzip -o "${APK_PATH}" '*.dex' -d "${tmpdir}" > /dev/null 2>&1
+  unzip -o "${apk_path}" '*.dex' -d "${tmpdir}" > /dev/null 2>&1
 
   local found=false
   for dex in "${tmpdir}"/classes*.dex; do
@@ -356,6 +395,18 @@ function apk_dex_contains() {
 
   rm -rf "${tmpdir}"
   [[ "${found}" == "true" ]]
+}
+
+# Returns 0 if any dex in the APK contains a string matching the given pattern.
+# Usage: apk_dex_contains <grep_pattern>
+function apk_dex_contains() {
+  _apk_dex_contains_at "${APK_PATH}" "$1"
+}
+
+# Returns 0 if any dex in the high-min-sdk APK contains a string matching the pattern.
+# Usage: high_min_sdk_apk_dex_contains <grep_pattern>
+function high_min_sdk_apk_dex_contains() {
+  _apk_dex_contains_at "${HIGH_MIN_SDK_APK_PATH}" "$1"
 }
 
 # Returns 0 if the APK contains a file matching the given path.
