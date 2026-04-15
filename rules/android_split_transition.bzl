@@ -32,7 +32,14 @@ load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
 
-def _android_split_transition_impl(settings, _):
+def _android_split_transition_impl(settings, attrs):
+    settings = dict(settings)
+
+    # Propagate the bytecode_transformer setting. This is used for incremental bytecode injection,
+    # and is read in the dex_desugar_aspect.
+    if getattr(attrs, "bytecode_transformer", None):
+        settings["//rules/flags:bytecode_transformer"] = getattr(attrs, "bytecode_transformer", None)
+
     # Always use `--android_platforms` when toolchain resolution is enabled.
     platforms_to_split = utils.get_cls(settings, "android_platforms")
     if not platforms_to_split:
@@ -94,6 +101,7 @@ _INPUTS = [
     "//command_line_option:compiler",
     "//command_line_option:dynamic_mode",
     "//command_line_option:platforms",
+    "//rules/flags:bytecode_transformer",
 ]
 
 _OUTPUTS = [
@@ -103,6 +111,7 @@ _OUTPUTS = [
     "//command_line_option:compiler",
     "//command_line_option:dynamic_mode",
     "//command_line_option:platforms",
+    "//rules/flags:bytecode_transformer",
 ]
 android_split_transition = transition(
     implementation = _android_split_transition_impl,

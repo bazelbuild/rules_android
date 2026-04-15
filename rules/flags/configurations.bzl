@@ -18,20 +18,36 @@ load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
 
 visibility(PROJECT_VISIBILITY)
 
+_CONFIG_VISIBILITY = [
+    "//mobile_install:__subpackages__",
+    "//rules:__subpackages__",
+    "//test:__subpackages__",
+    "//third_party/java_src/desugar_jdk_libs:__subpackages__",
+    # Visibility so that release mi can depend on the released version of this file
+    # We do not expect released mi to depend on this head target, though
+    "//tools/android/mi/bin/release:__subpackages__",
+    "//tools/android/mi/testing:__subpackages__",
+]
+
 def configurations(name = "configurations"):
     # Configuration setting for propagating an android_binary's min_sdk_version to its transitive
     # dependencies.
     int_setting(
         name = "min_sdk_version",
         build_setting_default = 0,
-        visibility = [
-            "//mobile_install:__subpackages__",
-            "//rules:__subpackages__",
-            "//test:__subpackages__",
-            "//third_party/java_src/desugar_jdk_libs:__subpackages__",
-            # Visibility so that release mi can depend on the released version of this file
-            # We do not expect released mi to depend on this head target, though
-            "//tools/android/mi/bin/release:__subpackages__",
-            "//tools/android/mi/testing:__subpackages__",
-        ],
+        visibility = _CONFIG_VISIBILITY,
+    )
+
+    # Dummy empty target
+    native.filegroup(
+        name = "dummy",
+        srcs = [],
+    )
+
+    # Configuration setting for propagating an android_binary's bytecode_transformer to its
+    # transitive dependencies. This is used to enable incremental bytecode transformations.
+    native.label_flag(
+        name = "bytecode_transformer",
+        build_setting_default = ":dummy",
+        visibility = _CONFIG_VISIBILITY,
     )
