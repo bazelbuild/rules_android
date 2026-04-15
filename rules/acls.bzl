@@ -55,6 +55,7 @@ load("//rules/acls:android_test_lockdown.bzl", "ANDROID_TEST_LOCKDOWN_GENERATOR_
 load("//rules/acls:b122039567.bzl", "B122039567")
 load("//rules/acls:baseline_profiles_optimizer_integration.bzl", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION_FALLBACK")
 load("//rules/acls:baseline_profiles_rollout.bzl", "BASELINE_PROFILES_ROLLOUT")
+load("//rules/acls:bytecode_transformers.bzl", "BYTECODE_TRANSFORMERS")
 load("//rules/acls:d8_optimization_metadata.bzl", "D8_OPTIMIZATION_METADATA")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
 load("//rules/acls:desugaring_runtime_jar_classpath.bzl", "DESUGAR_USE_RUNTIME_JARS")
@@ -227,6 +228,9 @@ def _get_aapt2_feature_flags(_):
 def _use_baseline_as_startup_profile(fqn):
     return matches(fqn, USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT_DICT) and not matches(fqn, USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT)
 
+def _in_allowed_bytecode_transformers(fqn):
+    return matches(fqn, BYTECODE_TRANSFORMERS_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -298,6 +302,7 @@ RESOURCE_TRANSLATION_MERGING_FALLBACK_DICT = make_dict(RESOURCE_TRANSLATION_MERG
 ENABLE_EXPORTED_LINT_CHECKS_DICT = make_dict(ENABLE_EXPORTED_LINT_CHECKS)
 USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT)
 USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK)
+BYTECODE_TRANSFORMERS_DICT = make_dict(BYTECODE_TRANSFORMERS)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -397,6 +402,7 @@ acls = struct(
     in_enable_exported_lint_checks = _in_enable_exported_lint_checks,
     get_aapt2_feature_flags = _get_aapt2_feature_flags,
     use_baseline_as_startup_profile = _use_baseline_as_startup_profile,
+    in_allowed_bytecode_transformers = _in_allowed_bytecode_transformers,
 )
 
 # Visible for testing
