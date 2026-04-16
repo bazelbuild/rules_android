@@ -13,9 +13,10 @@
 # limitations under the License.
 """Aspect that transitively build .dex archives and desugar jars."""
 
-load("//providers:providers.bzl", "AndroidIdeInfo", "StarlarkAndroidDexInfo")
+load("//providers:providers.bzl", "AndroidBytecodeTransformerInfo", "AndroidIdeInfo", "StarlarkAndroidDexInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@bazel_skylib//lib:partial.bzl", "partial")
 load(":acls.bzl", "acls")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
@@ -113,16 +114,32 @@ def _aspect_impl(target, ctx):
     runtime_jars = _get_produced_runtime_jars(target, ctx, extra_toolchain_jars)
     bootclasspath = _get_boot_classpath(target, ctx)
     desugar_classpath = _get_desugar_classpath(target[JavaInfo]) if JavaInfo in target else depset([])
+
+    bt = ctx.attr._bytecode_transformer
+    bytecode_transformer = bt[AndroidBytecodeTransformerInfo] if AndroidBytecodeTransformerInfo in bt else None
+
     if runtime_jars:
         basename_clash = _check_basename_clash(runtime_jars)
         aspect_dexopts = _get_aspect_dexopts(ctx)
         for jar in runtime_jars:
             if ctx.fragments.android.desugar_java8:
+                jar_to_desugar = jar
                 unique_desugar_filename = (jar.path if basename_clash else jar.basename) + "_desugared.jar"
                 desugared_jar = _dex.get_dx_artifact(ctx, unique_desugar_filename, min_sdk_version)
+
+                # Optionally transform the jar before desugaring
+                if bytecode_transformer:
+                    jar_to_desugar = _dex.get_dx_artifact(ctx, (jar.path if basename_clash else jar.basename) + "_injected.jar", min_sdk_version)
+                    partial.call(
+                        bytecode_transformer.transformer_fn,
+                        ctx,
+                        jar,
+                        jar_to_desugar,
+                    )
+
                 _desugar.desugar(
                     ctx,
-                    input = jar,
+                    input = jar_to_desugar,
                     output = desugared_jar,
                     bootclasspath = bootclasspath,
                     classpath = desugar_classpath,
@@ -254,6 +271,11 @@ dex_desugar_aspect = aspect(
     attr_aspects = _ATTR_ASPECTS,
     attrs = _attrs.add(
         {
+            "_bytecode_transformer": attr.label(
+                default = Label(
+                    "//rules/flags:bytecode_transformer",
+                ),
+            ),
             "_desugar_java8": attr.label(
                 default = Label("//tools/android:desugar_java8"),
                 allow_files = True,

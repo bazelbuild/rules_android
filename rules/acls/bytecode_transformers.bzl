@@ -18,4 +18,5 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 visibility(PROJECT_VISIBILITY)
 
 BYTECODE_TRANSFORMERS = [
+    "//:__subpackages__",
 ]
