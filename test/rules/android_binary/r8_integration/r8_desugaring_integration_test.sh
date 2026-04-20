@@ -80,4 +80,24 @@ function test_java_resources_preserved_without_desugaring() {
     fail "Java resource 'com/test/data/metadata.txt' not found in APK even without desugaring."
 }
 
+# Test: with obfuscation + desugaring, META-INF/services entries must come from
+# R8's processed output (with obfuscated names), not the unprocessed deploy jar.
+# Reproduces a crash where DexReducer strips R8's correctly renamed service
+# files and the deploy jar provides originals that don't match obfuscated DEX.
+function test_serviceloader_metadata_consistent_with_dex_when_desugaring() {
+  build_obfuscated_app --desugar_java8_libs
+
+  # R8 renames MyService during obfuscation, so the original service filename
+  # must NOT appear in the APK. If it does, resources came from the unprocessed
+  # deploy jar instead of R8's output.
+  if obfuscated_apk_contains_file 'META-INF/services/com.test.spi.MyService'; then
+    fail "APK contains META-INF/services/com.test.spi.MyService with original class name. " \
+         "java_resource_jar likely points to the unprocessed deploy jar instead of R8 output."
+  fi
+
+  # Verify at least one META-INF/services entry exists (R8's renamed version).
+  obfuscated_apk_contains_file 'META-INF/services/' || \
+    fail "No META-INF/services entries found in APK."
+}
+
 run_suite "R8 desugaring integration tests"

@@ -34,6 +34,8 @@ _WORKSPACE_INITIALIZED=false
 
 APP_TARGET="//app"
 APK_PATH="bazel-bin/app/app.apk"
+OBFUSCATED_APP_TARGET="//app:app_obfuscated"
+OBFUSCATED_APK_PATH="bazel-bin/app/app_obfuscated.apk"
 
 # Resolve the real filesystem path of the rules_android source tree.
 function get_rules_android_path() {
@@ -114,6 +116,7 @@ EOF
 function create_app() {
   mkdir -p app/res/layout app/res/values
   mkdir -p lib/com/test/data
+  mkdir -p spi/META-INF/services
 
   # --- Library with a Java resource file ---
   cat > lib/com/test/data/metadata.txt <<'EOF'
@@ -146,7 +149,43 @@ java_library(
 )
 EOF
 
-  # --- App using java.time APIs and the resource library ---
+  # --- ServiceLoader library (interface + impl + META-INF/services) ---
+  cat > spi/MyService.java <<'EOF'
+package com.test.spi;
+
+public interface MyService {
+    String getName();
+}
+EOF
+
+  cat > spi/MyServiceImpl.java <<'EOF'
+package com.test.spi;
+
+public class MyServiceImpl implements MyService {
+    @Override
+    public String getName() {
+        return "impl";
+    }
+}
+EOF
+
+  cat > spi/META-INF/services/com.test.spi.MyService <<'EOF'
+com.test.spi.MyServiceImpl
+EOF
+
+  cat > spi/BUILD <<'EOF'
+load("@rules_java//java:java_library.bzl", "java_library")
+
+java_library(
+    name = "spi_lib",
+    srcs = ["MyService.java", "MyServiceImpl.java"],
+    resources = ["META-INF/services/com.test.spi.MyService"],
+    resource_strip_prefix = "spi",
+    visibility = ["//visibility:public"],
+)
+EOF
+
+  # --- App using java.time APIs, resource library, and ServiceLoader ---
   cat > app/BUILD <<'EOF'
 load("@rules_android//rules:rules.bzl", "android_binary")
 
@@ -155,11 +194,31 @@ android_binary(
     srcs = [
         "MainActivity.java",
         "DurationUser.java",
+        "ServiceUser.java",
     ],
     manifest = "AndroidManifest.xml",
     proguard_specs = ["proguard.cfg"],
     resource_files = glob(["res/**"]),
-    deps = ["//lib:lib_with_resources"],
+    deps = [
+        "//lib:lib_with_resources",
+        "//spi:spi_lib",
+    ],
+)
+
+android_binary(
+    name = "app_obfuscated",
+    srcs = [
+        "MainActivity.java",
+        "DurationUser.java",
+        "ServiceUser.java",
+    ],
+    manifest = "AndroidManifest.xml",
+    proguard_specs = ["proguard_obfuscated.cfg"],
+    resource_files = glob(["res/**"]),
+    deps = [
+        "//lib:lib_with_resources",
+        "//spi:spi_lib",
+    ],
 )
 EOF
 
@@ -192,7 +251,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         long seconds = DurationUser.getSeconds(Duration.ofMinutes(5));
-        setTitle("Seconds: " + seconds + ", Resource: " + ResourceReader.getMetadata());
+        String svc = ServiceUser.loadService();
+        setTitle("Seconds: " + seconds + ", Resource: " + ResourceReader.getMetadata() + ", Service: " + svc);
     }
 }
 EOF
@@ -209,10 +269,39 @@ public class DurationUser {
 }
 EOF
 
+  cat > app/ServiceUser.java <<'EOF'
+package com.test.app;
+
+import com.test.spi.MyService;
+import java.util.ServiceLoader;
+
+public class ServiceUser {
+    public static String loadService() {
+        ServiceLoader<MyService> loader = ServiceLoader.load(MyService.class);
+        for (MyService svc : loader) {
+            return svc.getName();
+        }
+        return "none";
+    }
+}
+EOF
+
   cat > app/proguard.cfg <<'EOF'
 -dontobfuscate
 -keep class com.test.app.MainActivity { *; }
 -keep class com.test.app.DurationUser { *; }
+-keep class com.test.app.ServiceUser { *; }
+-keep class com.test.lib.ResourceReader { *; }
+EOF
+
+  # Proguard config WITH obfuscation — lets R8 rename service interfaces.
+  # -dontoptimize prevents R8 from inlining ServiceLoader calls, ensuring
+  # META-INF/services files are preserved (but renamed to match obfuscated names).
+  cat > app/proguard_obfuscated.cfg <<'EOF'
+-dontoptimize
+-keep class com.test.app.MainActivity { *; }
+-keep class com.test.app.DurationUser { *; }
+-keep class com.test.app.ServiceUser { *; }
 -keep class com.test.lib.ResourceReader { *; }
 EOF
 
@@ -236,6 +325,13 @@ EOF
 function build_app() {
   "${BIT_BAZEL_BINARY}" build "$@" -- ${APP_TARGET} >& $TEST_log || \
     fail "Failed to build ${APP_TARGET}"
+}
+
+# Build the obfuscated app (R8 renaming enabled) with extra Bazel flags.
+# Usage: build_obfuscated_app [--desugar_java8_libs | --nodesugar_java8_libs]
+function build_obfuscated_app() {
+  "${BIT_BAZEL_BINARY}" build "$@" -- ${OBFUSCATED_APP_TARGET} >& $TEST_log || \
+    fail "Failed to build ${OBFUSCATED_APP_TARGET}"
 }
 
 # Returns 0 if any dex in the APK contains a string matching the given pattern.
@@ -272,4 +368,16 @@ function apk_contains_file() {
   fi
 
   ( set +o pipefail; zipinfo -1 "${APK_PATH}" 2>/dev/null | grep -q "${path}" )
+}
+
+# Returns 0 if the given file path exists in the obfuscated APK.
+# Usage: obfuscated_apk_contains_file <path>
+function obfuscated_apk_contains_file() {
+  local path="$1"
+  if [[ ! -f "${OBFUSCATED_APK_PATH}" ]]; then
+    echo "APK not found at ${OBFUSCATED_APK_PATH}" >&2
+    return 1
+  fi
+
+  ( set +o pipefail; zipinfo -1 "${OBFUSCATED_APK_PATH}" 2>/dev/null | grep -q "${path}" )
 }
