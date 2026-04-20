@@ -24,6 +24,12 @@ _ANDROID_RESOURCES_STRICT_DEPS = "android_resources_strict_deps"
 # name to ResourceProcessorBusyBox.
 _FEATURE_ANNOTATE_R_FIELDS_FROM_TRANSITIVE_DEPS = "annotate_r_fields_from_transitive_deps"
 
+# Disables the complex optimizations of the C2 compiler to favor faster startup times.
+_C1_ONLY_FLAGS = [
+    "-XX:+TieredCompilation",
+    "-XX:TieredStopAtLevel=1",
+]
+
 def _sanitize_assets_dir(assets_dir):
     sanitized_assets_dir = "/".join(
         [
@@ -429,6 +435,7 @@ def _package(
         outputs = output_files,
         mnemonic = "PackageAndroidResources",
         progress_message = "Packaging Android Resources in %s" % ctx.label,
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _parse(
@@ -650,6 +657,7 @@ def _validate_and_link(
         mnemonic = "LinkAndroidResources",
         progress_message =
             "Linking Android Resources in " + out_file.short_path,
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _compile(
@@ -814,6 +822,7 @@ def _merge_compiled(
         mnemonic = "StarlarkMergeCompiledAndroidResources",
         progress_message =
             "Merging compiled Android Resources in " + out_class_jar.short_path,
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _java_run(ctx, mnemonic = None, *args, **kwargs):
