@@ -1313,6 +1313,7 @@ def _optimize(
         in_apk,
         resource_path_shortening_map = None,
         resource_optimization_config = None,
+        enable_sparse_encoding = False,
         aapt = None,
         busybox = None,
         host_javabase = None):
@@ -1324,6 +1325,7 @@ def _optimize(
         in_apk: File. The resource ap_ package to be optimized.
         resource_path_shortening_map: File. The output path shortening map. Optional.
         resource_optimization_config: File. The input optimization config. Optional.
+        enable_sparse_encoding: Boolean. Enable sparse encoding, no-op unless minSdk 32+
         aapt: FilesToRunProvider. The AAPT executable.
         busybox: FilesToRunProvider. The ResourceBusyBox executable.
         host_javabase: Target. The host javabase.
@@ -1347,6 +1349,8 @@ def _optimize(
         args.add("--collapse-resource-names")
         args.add("--resources-config-path", resource_optimization_config)
         input_files.append(resource_optimization_config)
+    if enable_sparse_encoding:
+        args.add("--enable-sparse-encoding")
     args.add("-o", out_apk)
     args.add(in_apk)
 

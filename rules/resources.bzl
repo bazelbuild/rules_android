@@ -1970,6 +1970,7 @@ def _optimize(
         resources_apk = None,
         resource_optimization_config = None,
         is_resource_shrunk = False,
+        enable_sparse_encoding = False,
         aapt = None,
         busybox = None,
         host_javabase = None):
@@ -1981,6 +1982,7 @@ def _optimize(
         resource_optimization_config: File. The resource optimization config outputted
           by resource shrinking. It will only be used if resource name obfuscation is enabled.
         is_resource_shrunk: Boolean. Whether the resources has been shrunk or not.
+        enable_sparse_encoding: Boolean. Whether to enable sparse encoding, no-op unless minSdk 32+.
         aapt: FilesToRunProvider. The AAPT executable.
         busybox: FilesToRunProvider. The ResourceBusyBox executable.
         host_javabase: Target. The host javabase.
@@ -1996,7 +1998,8 @@ def _optimize(
     use_resource_path_shortening_map = _is_resource_path_shortening_enabled(ctx)
     use_resource_optimization_config = _is_resource_name_obfuscation_enabled(ctx, is_resource_shrunk)
 
-    if not (use_resource_path_shortening_map or use_resource_optimization_config):
+    if not (use_resource_path_shortening_map or use_resource_optimization_config or
+            enable_sparse_encoding):
         return _ResourcesOptimizeContextInfo(**optimize_ctx)
 
     optimized_resource_apk = ctx.actions.declare_file(ctx.label.name + "_optimized.ap_")
@@ -2013,6 +2016,7 @@ def _optimize(
         in_apk = resources_apk,
         resource_path_shortening_map = optimize_ctx[_RESOURCE_PATH_SHORTENING_MAP],
         resource_optimization_config = resource_optimization_config if use_resource_optimization_config else None,
+        enable_sparse_encoding = enable_sparse_encoding,
         aapt = aapt,
         busybox = busybox,
         host_javabase = host_javabase,
