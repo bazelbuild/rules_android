@@ -355,6 +355,7 @@ def _shard_dexes(
         inputs = inputs,
         arguments = [args],
         mnemonic = "ShardForMultidex",
+        execution_requirements = {"cpu:4": ""},  # see b/501344408
         progress_message = "Assembling dex files for " + ctx.label.name,
         use_default_shell_env = True,
         toolchain = toolchain_type,
