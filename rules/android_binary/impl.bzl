@@ -872,6 +872,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         ctx,
         resources_apk = shrunk_resource_output.resources_apk if enable_resource_shrinking else packaged_resources_ctx.resources_apk,
         resource_optimization_config = shrunk_resource_output.optimization_config if enable_resource_shrinking else None,
+        enable_sparse_encoding = ctx.attr.enable_sparse_encoding,
         is_resource_shrunk = enable_resource_shrinking,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         busybox = get_android_toolchain(ctx).android_resources_busybox.files_to_run,

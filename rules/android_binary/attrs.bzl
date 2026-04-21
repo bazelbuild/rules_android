@@ -189,6 +189,13 @@ ATTRS = _attrs.replace(
                       WARNING: Do not use outside of privacy sandbox build rules.
                       """,
             ),
+            enable_sparse_encoding = attr.bool(
+                default = False,
+                doc = """
+                      Whether to enable sparse encoding for the resource table. No-op unless
+                      minSdkVersion 32+. Will reduce APK size.
+                      """,
+            ),
             _java_toolchain = attr.label(
                 default = Label("//tools/jdk:toolchain_android_only"),
             ),
