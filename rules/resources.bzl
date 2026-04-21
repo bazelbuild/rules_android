@@ -16,6 +16,7 @@
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:add_constraints.bzl", "add_constraints")
+load("//rules:data_binding.bzl", _data_binding = "data_binding")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -378,8 +379,7 @@ OUT_DIR=$(mktemp -d)
 CUR_PWD=$(pwd)
 
 if zipinfo -t "$1"; then
-    # Use awk instead of 'head -n -2' for macOS compatibility (BSD head doesn't support negative counts)
-    ORDERED_LIST=`(unzip -l "$1" | sed -e '1,3d' | awk '{lines[NR]=$0} END{for(i=1;i<=NR-2;i++) print lines[i]}' | tr -s " " | cut -d " " -f5)`
+    ORDERED_LIST=`(zipinfo -1 "$1" | sort)`
 
     unzip -q "$1" -d "$IN_DIR"
 
@@ -389,7 +389,7 @@ if zipinfo -t "$1"; then
         cd "$IN_DIR"
         if [ -f "$FILE" ]; then
             # Use sed with backup extension for macOS compatibility, then remove backup
-            sed -i.bak 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE" && rm -f "$FILE.bak"
+            LC_ALL=C sed -i.bak 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE" && rm -f "$FILE.bak"
             NEW_NAME=`echo "$FILE" | sed 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' | sed 's#'"$IN_DIR"'/##g'`
             mkdir -p `dirname "$OUT_DIR/$NEW_NAME"` && touch "$OUT_DIR/$NEW_NAME"
             cp -p "$FILE" "$OUT_DIR/$NEW_NAME"
@@ -1200,6 +1200,7 @@ def _process_starlark(
         resource_files = None,
         neverlink = False,
         enable_data_binding = False,
+        data_binding_setter_store = None,
         fix_resource_transitivity = False,
         aapt = None,
         android_jar = None,
@@ -1380,6 +1381,12 @@ def _process_starlark(
     data_binding_layout_info = None
     processed_resources = resource_files
     processed_manifest = None
+
+    if data_binding_setter_store != None:
+        resources_ctx[_PROVIDERS].append(
+            _data_binding.process_aar(ctx, data_binding_setter_store)
+        )
+
     if not defines_resources:
         if aapt:
             # Generate an empty manifest with the right package

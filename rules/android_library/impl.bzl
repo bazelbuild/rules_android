@@ -33,6 +33,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
@@ -237,6 +238,13 @@ def _process_idl(ctx, **unused_sub_ctxs):
 def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
     if ctx.attr.enable_data_binding and not acls.in_databinding_allowed(str(ctx.label)):
         fail("This target is not allowed to use databinding and enable_data_binding is True.")
+
+    if ctx.attr._databinding_use_androidx[BuildSettingInfo].value:
+        template = get_android_toolchain(ctx).data_binding_annotation_template_androidx
+    else:
+        template = get_android_toolchain(ctx).data_binding_annotation_template_support_lib
+    data_binding_annotation_template = utils.only(template.files.to_list())
+
     return ProviderInfo(
         name = "db_ctx",
         value = _data_binding.process(
@@ -250,8 +258,7 @@ def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
             data_binding_exec = get_android_toolchain(ctx).data_binding_exec.files_to_run,
             data_binding_annotation_processor =
                 get_android_toolchain(ctx).data_binding_annotation_processor,
-            data_binding_annotation_template =
-                utils.only(get_android_toolchain(ctx).data_binding_annotation_template.files.to_list()),
+            data_binding_annotation_template = data_binding_annotation_template,
         ),
     )
 

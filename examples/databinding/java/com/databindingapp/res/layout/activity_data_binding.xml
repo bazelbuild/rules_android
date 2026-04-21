@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="android.view.View" />
+        <variable name="showBuzz" type="Boolean" />
+        <variable name="showFizz" type="Boolean" />
+    </data>
+
+    <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/helloText"
+            android:text="@string/hello_world"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/fizzButton"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="fizz"
+            android:visibility="@{showFizz ? View.VISIBLE : View.GONE}"
+        />
+        <Button
+            android:id="@+id/buzzButton"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:text="buzz"
+            android:visibility="@{showBuzz ? View.VISIBLE : View.GONE}"
+        />
+
+    </LinearLayout>
+</layout>
