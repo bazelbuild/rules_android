@@ -17,6 +17,7 @@ of split deps
 """
 
 load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidCcLinkParamsInfo", "AndroidNativeLibsInfo")
+load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
@@ -45,10 +46,6 @@ split_config_aspect = aspect(
     fragments = ["android"],
 )
 
-def _get_libs_dir_name(target_platform):
-    name = target_platform.name
-    return name
-
 def _get_cc_link_params_infos(ctx, deps):
     infos = []
     for dep in deps:
@@ -73,7 +70,7 @@ def _get_cc_link_params_infos(ctx, deps):
 
     return infos
 
-def process(ctx, filename, merged_libraries_map = {}):
+def process(ctx, filename, merged_libraries_map = {}, cpu_constraints = {}):
     """Links native deps into a shared library
 
     Args:
@@ -97,14 +94,13 @@ def process(ctx, filename, merged_libraries_map = {}):
     target_name = ctx.label.name
     native_libs_basename = None
     libs_name = None
+    abi_name = _attrs.get_abi_name(ctx, cpu_constraints) if cpu_constraints else None
     libs = dict()
     for key, deps in ctx.split_attr.deps.items():
         cc_toolchain_dep = ctx.split_attr._cc_toolchain_split[key]
         cc_toolchain = cc_toolchain_dep[cc_common.CcToolchainInfo]
         build_config = cc_toolchain_dep[SplitConfigInfo].build_config
-        libs_dir_name = _get_libs_dir_name(
-            cc_toolchain_dep[SplitConfigInfo].target_platform,
-        )
+        libs_dir_name = abi_name
         linker_input = cc_common.create_linker_input(
             owner = ctx.label,
             user_link_flags = ["-Wl,-soname=lib" + target_name],
