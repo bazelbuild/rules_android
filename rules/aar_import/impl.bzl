@@ -27,6 +27,7 @@ load(
     "//rules:java.bzl",
     _java = "java",
 )
+load("//rules:native_deps.bzl", "merge_transitive_native_libs")
 load(
     "//rules:resources.bzl",
     _resources = "resources",
@@ -562,6 +563,9 @@ def impl(ctx):
             ),
         ),
     )
+
+    if _acls.in_aar_import_propagate_native_libs(str(ctx.label)):
+        providers.append(merge_transitive_native_libs(ctx, ctx.attr.deps + ctx.attr.exports))
 
     # Will be empty if there's no proguard.txt file in the aar
     proguard_spec = create_aar_artifact(ctx, "proguard.txt")
