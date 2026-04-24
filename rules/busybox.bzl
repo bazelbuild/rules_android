@@ -429,7 +429,7 @@ def _package(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [aapt, busybox],
+        tools = [aapt],
         arguments = [args],
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
@@ -558,7 +558,6 @@ def _merge_assets(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = depset(
             assets + [symbols],
@@ -815,7 +814,6 @@ def _merge_compiled(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
@@ -945,7 +943,6 @@ def _merge_manifests(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = depset(directs, transitive = transitives),
         outputs = outputs,
@@ -1076,7 +1073,6 @@ def _generate_binary_r(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = depset([r_txt, manifest], transitive = transitive_r_txts + transitive_manifests),
         outputs = [out_class_jar],
@@ -1151,7 +1147,6 @@ def _make_aar(
         ctx = ctx,
         host_javabase = host_javabase,
         executable = busybox,
-        tools = [busybox],
         arguments = [args],
         inputs = (
             resource_files +
