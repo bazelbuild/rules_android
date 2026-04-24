@@ -17,6 +17,7 @@ of split deps
 """
 
 load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidCcLinkParamsInfo", "AndroidNativeLibsInfo")
+load("//rules:utils.bzl", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
@@ -72,6 +73,23 @@ def _get_cc_link_params_infos(ctx, deps):
                 )
 
     return infos
+
+def merge_transitive_native_libs(ctx, deps):
+    """Returns a single merged AndroidCcLinkParamsInfo for all deps."""
+    return AndroidCcLinkParamsInfo(
+        link_params = cc_common.merge_cc_infos(
+            cc_infos = _get_cc_link_params_infos(ctx, deps) + [
+                info.link_params
+                for info in utils.collect_providers(
+                    AndroidCcLinkParamsInfo,
+                    deps,
+                )
+            ] + utils.collect_providers(
+                CcInfo,
+                deps,
+            ),
+        ),
+    )
 
 def process(ctx, filename, merged_libraries_map = {}):
     """Links native deps into a shared library

@@ -31,6 +31,7 @@ load("//rules/acls:aapt2_feature_flags.bzl", "AAPT2_FEATURE_FLAGS")
 load("//rules/acls:aar_import_deps_checker.bzl", "AAR_IMPORT_DEPS_CHECKER_FALLBACK", "AAR_IMPORT_DEPS_CHECKER_ROLLOUT")
 load("//rules/acls:aar_import_explicit_exports_manifest.bzl", "AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST")
 load("//rules/acls:aar_import_exports_r_java.bzl", "AAR_IMPORT_EXPORTS_R_JAVA")
+load("//rules/acls:aar_import_propagate_native_libs.bzl", "AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK")
 load("//rules/acls:allow_resource_conflicts.bzl", "ALLOW_RESOURCE_CONFLICTS")
 load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
 load("//rules/acls:android_application_with_sandboxed_sdks_allowlist.bzl", "ANDROID_APPLICATION_WITH_SANDBOXED_SDKS_ALLOWLIST")
@@ -231,6 +232,9 @@ def _use_baseline_as_startup_profile(fqn):
 def _in_allowed_bytecode_transformers(fqn):
     return matches(fqn, BYTECODE_TRANSFORMERS_DICT)
 
+def _in_aar_import_propagate_native_libs(fqn):
+    return not matches(fqn, AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -303,6 +307,7 @@ ENABLE_EXPORTED_LINT_CHECKS_DICT = make_dict(ENABLE_EXPORTED_LINT_CHECKS)
 USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT)
 USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK)
 BYTECODE_TRANSFORMERS_DICT = make_dict(BYTECODE_TRANSFORMERS)
+AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK_DICT = make_dict(AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -403,6 +408,7 @@ acls = struct(
     get_aapt2_feature_flags = _get_aapt2_feature_flags,
     use_baseline_as_startup_profile = _use_baseline_as_startup_profile,
     in_allowed_bytecode_transformers = _in_allowed_bytecode_transformers,
+    in_aar_import_propagate_native_libs = _in_aar_import_propagate_native_libs,
 )
 
 # Visible for testing
