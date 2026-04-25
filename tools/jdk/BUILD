@@ -78,7 +78,7 @@ android_system(
         "//tools/android:desugar_java8_extra_bootclasspath",
     ],
     core_jars = [
-        "@androidsdk//:core-for-system-modules-jar",
+        "//tools/android:core_for_system_modules_jar",
     ],
 )
 

@@ -440,7 +440,8 @@ def _AndroidSdkInfo_init(
         proguard,
         zip_align,
         system,  # not used
-        legacy_main_dex_list_generator):
+        legacy_main_dex_list_generator,
+        core_for_system_modules_jar = None):
     return {
         "android_jar": android_jar,
         "legacy_main_dex_list_generator": legacy_main_dex_list_generator,
@@ -460,6 +461,7 @@ def _AndroidSdkInfo_init(
         "aidl_lib": aidl_lib,
         "framework_aidl": framework_aidl,
         "build_tools_version": build_tools_version,
+        "core_for_system_modules_jar": core_for_system_modules_jar,
     }
 
 # buildifier: disable=name-conventions
@@ -485,6 +487,7 @@ AndroidSdkInfo, _AndroidSdkInfo_raw = provider(
         proguard = "",
         legacy_main_dex_list_generator = "",
         zip_align = "",
+        core_for_system_modules_jar = "",
     ),
 )
 
