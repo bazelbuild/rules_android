@@ -54,6 +54,7 @@ def _process(
         signing_keys = [],
         signing_lineage = None,
         signing_key_rotation_min_sdk = None,
+        keystore_signing_password = "android",
         stamp_signing_key = None,
         deterministic_signing = False,
         zipalign_alignment = 4,
@@ -85,6 +86,7 @@ def _process(
         signing_keys: Sequence of Files. The keystores to be used to sign the APK.
         signing_lineage: File. The signing lineage for signing_keys.
         signing_key_rotation_min_sdk: The minimum API version for signing the APK with key rotation.
+        signing_password: String. The password for the signing keystores. Defaults to "android".
         stamp_signing_key: File. The keystore to be used to sign the APK with stamp signing.
         deterministic_signing: Boolean. Whether to enable deterministic DSA signing.
         zipalign_alignment: Integer. The alignment to zipalign the APK.
@@ -139,6 +141,7 @@ def _process(
         out_apk = signed_apk,
         in_apk = zipaligned_apk,
         signing_keys = signing_keys,
+        keystore_signing_password = keystore_signing_password,
         stamp_signing_key = stamp_signing_key,
         deterministic_signing = deterministic_signing,
         signing_lineage = signing_lineage,
@@ -324,6 +327,7 @@ def _sign_apk(
         out_apk,
         in_apk,
         signing_keys = [],
+        keystore_signing_password = "android",
         stamp_signing_key = None,
         deterministic_signing = True,
         signing_lineage = None,
@@ -359,7 +363,7 @@ def _sign_apk(
         if i > 0:
             args.add("--next-signer")
         args.add("--ks", signing_keys[i])
-        args.add("--ks-pass", "pass:android")
+        args.add("--ks-pass", "pass:{keystore_signing_password}".format(keystore_signing_password = keystore_signing_password))
 
     args.add("--v1-signing-enabled", ctx.fragments.android.apk_signing_method_v1)
     args.add("--v1-signer-name", "CERT")
@@ -379,7 +383,7 @@ def _sign_apk(
         inputs.append(stamp_signing_key)
         args.add("--stamp-signer")
         args.add("--ks", stamp_signing_key)
-        args.add("--ks-pass", "pass:android")
+        args.add("--ks-pass", "pass:{keystore_signing_password}".format(keystore_signing_password = keystore_signing_password))
 
     args.add("--out", out_apk)
     args.add(in_apk)
