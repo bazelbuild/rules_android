@@ -197,4 +197,19 @@ tasks:
     build_targets:
       - "//java/com/basicapp:basic_app"
       - "//java/com/basicapp:basic_app_bundle"
+  basicapp_pseudo_mi:
+    # Build the app using the mobile-install aspect
+    # Note that this does not actually run an install, just validates
+    # that at least the build part of MI works.
+    name: "Basic app pseudo mobile-install"
+    platform: ${{ platform }}
+    bazel: ${{ bazel }}
+    working_directory: examples/basicapp
+    build_flags:
+      <<: *rules_flags
+      ? "--enable_bzlmod"
+      ? "--enable_workspace=false"
+      ? "--aspects=@rules_android//mobile_install:mi.bzl%MIASPECT"
+    build_targets:
+      - "//java/com/basicapp:basic_app"
 
