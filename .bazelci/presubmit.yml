@@ -198,3 +198,4 @@ tasks:
       - "//java/com/basicapp:basic_app"
       - "//java/com/basicapp:basic_app_bundle"
 
+foobar
