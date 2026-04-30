@@ -201,6 +201,8 @@ tasks:
     # Build the app using the mobile-install aspect
     # Note that this does not actually run an install, just validates
     # that at least the build part of MI works.
+    # Note to users: Do NOT run bazel build with these aspect and output_group
+    # flags. These are for testing purposes only!
     name: "Basic app pseudo mobile-install"
     platform: ${{ platform }}
     bazel: ${{ bazel }}
@@ -210,6 +212,7 @@ tasks:
       ? "--enable_bzlmod"
       ? "--enable_workspace=false"
       ? "--aspects=@rules_android//mobile_install:mi.bzl%MIASPECT"
+      ? "--output_groups=mobile_install_INTERNAL_,mobile_install_launcher_INTERNAL_,-_,-defaults"
     build_targets:
       - "//java/com/basicapp:basic_app"
 
