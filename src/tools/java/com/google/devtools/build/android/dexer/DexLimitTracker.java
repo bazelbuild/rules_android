@@ -18,10 +18,10 @@ import com.android.dex.FieldId;
 import com.android.dex.MethodId;
 import com.android.dex.ProtoId;
 import com.android.dex.TypeList;
-import com.google.auto.value.AutoValue;
-import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.ImmutableList;
-import java.util.LinkedHashSet;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
+import java.util.HashSet;
 
 /**
  * Helper to track how many unique field and method references we've seen in a given set of .dex
@@ -29,9 +29,11 @@ import java.util.LinkedHashSet;
  */
 class DexLimitTracker {
 
-  private final LinkedHashSet<FieldDescriptor> fieldsSeen = new LinkedHashSet<>();
-  private final LinkedHashSet<MethodDescriptor> methodsSeen = new LinkedHashSet<>();
-  private final LinkedHashSet<String> typesSeen = new LinkedHashSet<>();
+  private static final Interner<String> interner = Interners.newWeakInterner();
+
+  private final HashSet<String> fieldsSeen = new HashSet<>();
+  private final HashSet<String> methodsSeen = new HashSet<>();
+  private final HashSet<String> typesSeen = new HashSet<>();
   private final int maxNumberOfIdxPerDex;
 
   public DexLimitTracker(int maxNumberOfIdxPerDex) {
@@ -67,22 +69,24 @@ class DexLimitTracker {
   }
 
   static class DexTrackerInfo {
-    final ImmutableList<FieldDescriptor> fields;
-    final ImmutableList<MethodDescriptor> methods;
+    final ImmutableList<String> fields;
+    final ImmutableList<String> methods;
     final ImmutableList<String> types;
 
     DexTrackerInfo(Dex dexFile) {
       int fieldCount = dexFile.fieldIds().size();
-      ImmutableList.Builder<FieldDescriptor> fieldsBuilder = ImmutableList.builderWithExpectedSize(fieldCount);
+      ImmutableList.Builder<String> fieldsBuilder =
+          ImmutableList.builderWithExpectedSize(fieldCount);
       for (int fieldIndex = 0; fieldIndex < fieldCount; ++fieldIndex) {
-        fieldsBuilder.add(FieldDescriptor.fromDex(dexFile, fieldIndex));
+        fieldsBuilder.add(fieldSignature(dexFile, fieldIndex));
       }
       fields = fieldsBuilder.build();
 
       int methodCount = dexFile.methodIds().size();
-      ImmutableList.Builder<MethodDescriptor> methodsBuilder = ImmutableList.builderWithExpectedSize(methodCount);
+      ImmutableList.Builder<String> methodsBuilder =
+          ImmutableList.builderWithExpectedSize(methodCount);
       for (int methodIndex = 0; methodIndex < methodCount; ++methodIndex) {
-        methodsBuilder.add(MethodDescriptor.fromDex(dexFile, methodIndex));
+        methodsBuilder.add(methodSignature(dexFile, methodIndex));
       }
       methods = methodsBuilder.build();
 
@@ -96,52 +100,29 @@ class DexLimitTracker {
   }
 
   private static String typeName(Dex dex, int typeIndex) {
-    return dex.typeNames().get(typeIndex);
+    return interner.intern(dex.typeNames().get(typeIndex));
   }
 
-  @AutoValue
-  abstract static class FieldDescriptor {
-    static FieldDescriptor fromDex(Dex dex, int fieldIndex) {
-      FieldId field = dex.fieldIds().get(fieldIndex);
-      String name = dex.strings().get(field.getNameIndex());
-      String declaringClass = typeName(dex, field.getDeclaringClassIndex());
-      String type = typeName(dex, field.getTypeIndex());
-      return new AutoValue_DexLimitTracker_FieldDescriptor(declaringClass, name, type);
-    }
-
-    abstract String declaringClass();
-    abstract String fieldName();
-    abstract String fieldType();
-
-    @Override
-    @Memoized
-    public abstract int hashCode();
+  private static String fieldSignature(Dex dex, int fieldIndex) {
+    FieldId field = dex.fieldIds().get(fieldIndex);
+    String name = dex.strings().get(field.getNameIndex());
+    String declaringClass = typeName(dex, field.getDeclaringClassIndex());
+    String type = typeName(dex, field.getTypeIndex());
+    return interner.intern(declaringClass + "." + name + ":" + type);
   }
 
-  @AutoValue
-  abstract static class MethodDescriptor {
-    static MethodDescriptor fromDex(Dex dex, int methodIndex) {
-      MethodId method = dex.methodIds().get(methodIndex);
-      ProtoId proto = dex.protoIds().get(method.getProtoIndex());
-      String name = dex.strings().get(method.getNameIndex());
-      String declaringClass = typeName(dex, method.getDeclaringClassIndex());
-      String returnType = typeName(dex, proto.getReturnTypeIndex());
-      TypeList parameterTypeIndices = dex.readTypeList(proto.getParametersOffset());
-      ImmutableList.Builder<String> parameterTypes = ImmutableList.builder();
-      for (short parameterTypeIndex : parameterTypeIndices.getTypes()) {
-        parameterTypes.add(typeName(dex, parameterTypeIndex & 0xFFFF));
-      }
-      return new AutoValue_DexLimitTracker_MethodDescriptor(
-          declaringClass, name, parameterTypes.build(), returnType);
+  private static String methodSignature(Dex dex, int methodIndex) {
+    MethodId method = dex.methodIds().get(methodIndex);
+    ProtoId proto = dex.protoIds().get(method.getProtoIndex());
+    String name = dex.strings().get(method.getNameIndex());
+    String declaringClass = typeName(dex, method.getDeclaringClassIndex());
+    String returnType = typeName(dex, proto.getReturnTypeIndex());
+    TypeList parameterTypeIndices = dex.readTypeList(proto.getParametersOffset());
+    StringBuilder parameterTypes = new StringBuilder();
+    for (short parameterTypeIndex : parameterTypeIndices.getTypes()) {
+      parameterTypes.append(typeName(dex, parameterTypeIndex & 0xFFFF));
     }
-
-    abstract String declaringClass();
-    abstract String methodName();
-    abstract ImmutableList<String> parameterTypes();
-    abstract String returnType();
-
-    @Override
-    @Memoized
-    public abstract int hashCode();
+    return interner.intern(
+        declaringClass + "." + name + ":" + returnType + "(" + parameterTypes + ")");
   }
 }
