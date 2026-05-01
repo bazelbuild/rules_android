@@ -86,6 +86,7 @@ def make_aspect(
         toolchains = [
             ANDROID_SDK_TOOLCHAIN_TYPE,
             ANDROID_TOOLCHAIN_TYPE,
+            "@bazel_tools//tools/jdk:toolchain_type",
         ],
         **opt_kwargs
     )

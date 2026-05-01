@@ -14,6 +14,7 @@
 """Creates the apk(s)."""
 
 load("//rules:acls.bzl", "acls")
+load("//rules:java.bzl", _java = "java")
 load("//rules:utils.bzl", "compilation_mode", "get_android_sdk")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "utils")
@@ -136,7 +137,25 @@ def make_split_apks(
         )
 
         if jar_resources:
-            artifacts[name] = jar_resources
+            # Pre-merge per-library jar_resources zips with singlejar so that
+            # META-INF/services/* entries are concatenated rather than
+            # silently dropped by repack's name-deduplication. ServiceLoader
+            # expects entries from every dep that contributes to a given
+            # service path to be merged into a single file.
+            merged_jar_resources = utils.isolated_declare_file(
+                ctx,
+                "merged_jar_resources.jar",
+                sibling = sibling,
+            )
+            _java.singlejar(
+                ctx,
+                inputs = jar_resources,
+                output = merged_jar_resources,
+                java_toolchain = ctx.attr._java_toolchain,
+                mnemonic = "MIMergeJarResources",
+                progress_message = "MI Merge jar resources",
+            )
+            artifacts[name] = [merged_jar_resources]
 
         if swigdeps_file:
             dirs[name] = [swigdeps_file]
