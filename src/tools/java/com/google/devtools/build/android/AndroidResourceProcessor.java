@@ -76,14 +76,13 @@ public class AndroidResourceProcessor {
         description = "Path to the android jar for resource packaging and building apks.")
     public Path androidJar;
 
+    @Deprecated
     @Parameter(
         names = "--useAaptCruncher",
+        hidden = true,
         description =
-            "Use the legacy aapt cruncher, defaults to true for non-LIBRARY packageTypes.  LIBRARY"
-                + " packages do not benefit from the additional processing as the resources will"
-                + " need to be reprocessed during the generation of the final apk. See"
-                + " https://code.google.com/p/android/issues/detail?id=67525 for a discussion of"
-                + " the different png crunching methods.")
+            "Deprecated. This flag is no longer used. It will be removed after a forthcoming"
+                + " Android rules release.")
     public TriState useAaptCruncher = TriState.AUTO;
 
     @Parameter(

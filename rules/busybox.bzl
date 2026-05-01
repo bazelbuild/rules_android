@@ -378,7 +378,6 @@ def _package(
     if out_file:
         args.add("--packagePath", out_file)
         output_files.append(out_file)
-    args.add("--useAaptCruncher=no")  # Unnecessary, used for AAPT1 only but added here to minimize diffs.
     if package_type:
         args.add("--packageType", package_type)
     if debug:
