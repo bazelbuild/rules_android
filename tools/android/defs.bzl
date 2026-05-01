@@ -33,6 +33,19 @@ android_jar = rule(
     ],
 )
 
+def _core_for_system_modules_jar_impl(ctx):
+    sdk = get_android_sdk(ctx)
+    if sdk.core_for_system_modules_jar:
+        return DefaultInfo(files = depset([sdk.core_for_system_modules_jar]))
+    return DefaultInfo(files = depset())
+
+core_for_system_modules_jar = rule(
+    implementation = _core_for_system_modules_jar_impl,
+    toolchains = [
+        ANDROID_SDK_TOOLCHAIN_TYPE,
+    ],
+)
+
 def _run_singlejar_impl(ctx):
     _java.singlejar(
         ctx,
