@@ -130,17 +130,21 @@ public class ResourceCompiler {
     private final Revision buildToolsVersion;
     private final Optional<Path> generatedResourcesOut;
 
+    private final boolean useAapt2Cruncher;
+
     private CompileTask(
         Path file,
         Path compiledResourcesOut,
         Path aapt2,
         Revision buildToolsVersion,
-        Optional<Path> generatedResourcesOut) {
+        Optional<Path> generatedResourcesOut,
+        boolean useAapt2Cruncher) {
       this.file = file;
       this.compiledResourcesOut = compiledResourcesOut;
       this.aapt2 = aapt2;
       this.buildToolsVersion = buildToolsVersion;
       this.generatedResourcesOut = generatedResourcesOut;
+      this.useAapt2Cruncher = useAapt2Cruncher;
     }
 
     @Override
@@ -225,6 +229,8 @@ public class ResourceCompiler {
                 .add("compile")
                 .add("-v")
                 .add("--legacy")
+                .when(!useAapt2Cruncher)
+                .thenAdd("--no-crunch")
                 .when(USE_VISIBILITY_FROM_AAPT2)
                 .thenAdd("--preserve-visibility-of-styleables")
                 .when(generatePseudoLocale)
@@ -341,18 +347,21 @@ public class ResourceCompiler {
     private final Path aapt2;
     private final Revision buildToolsVersion;
     private final Optional<Path> generatedResourcesOut;
+    private final boolean useAapt2Cruncher;
 
     public CompilingVisitor(
         ListeningExecutorService executorService,
         Path compiledResourcesOut,
         Path aapt2,
         Revision buildToolsVersion,
-        Optional<Path> generatedResourcesOut) {
+        Optional<Path> generatedResourcesOut,
+        boolean useAapt2Cruncher) {
       this.executorService = executorService;
       this.compiledResourcesOut = compiledResourcesOut;
       this.aapt2 = aapt2;
       this.buildToolsVersion = buildToolsVersion;
       this.generatedResourcesOut = generatedResourcesOut;
+      this.useAapt2Cruncher = useAapt2Cruncher;
     }
 
     @Override
@@ -401,7 +410,8 @@ public class ResourceCompiler {
                     compiledResourcesOut,
                     aapt2,
                     buildToolsVersion,
-                    generatedResourcesOut)));
+                    generatedResourcesOut,
+                    useAapt2Cruncher)));
       }
 
       ImmutableList.Builder<Path> compiled = ImmutableList.builder();
@@ -442,7 +452,8 @@ public class ResourceCompiler {
       Path compiledResources,
       Path aapt2,
       Revision buildToolsVersion,
-      boolean generatePseudoLocale) {
+      boolean generatePseudoLocale,
+      boolean useAapt2Cruncher) {
 
     return new ResourceCompiler(
         new CompilingVisitor(
@@ -452,7 +463,8 @@ public class ResourceCompiler {
             buildToolsVersion,
             generatePseudoLocale
                 ? Optional.of(compiledResources.resolve(CompiledType.GENERATED.asPrefix()))
-                : Optional.empty()));
+                : Optional.empty(),
+            useAapt2Cruncher));
   }
 
   private ResourceCompiler(CompilingVisitor compilingVisitor) {

@@ -101,7 +101,8 @@ public class CompileLibraryResourcesAction {
               compiledResources,
               aapt2Options.aapt2,
               aapt2Options.buildToolsVersion,
-              aapt2Options.generatePseudoLocale);
+              aapt2Options.generatePseudoLocale,
+              aapt2Options.useAapt2Cruncher != TriState.NO);
       options
           .resources
           .toData(options.manifest)

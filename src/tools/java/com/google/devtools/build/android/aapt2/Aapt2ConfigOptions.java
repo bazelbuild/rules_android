@@ -56,6 +56,11 @@ public class Aapt2ConfigOptions {
   public TriState useAaptCruncher = TriState.AUTO;
 
   @Parameter(
+      names = "--useAapt2Cruncher",
+      description = "Whether to use AAPT2 to crunch pngs. Defaults to true.")
+  public TriState useAapt2Cruncher = TriState.AUTO;
+
+  @Parameter(
       names = "--conditionalKeepRules",
       description = "Have AAPT2 produce conditional keep rules.")
   public TriState conditionalKeepRules = TriState.AUTO;
