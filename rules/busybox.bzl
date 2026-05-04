@@ -233,6 +233,7 @@ def _package(
         version_name = None,
         version_code = None,
         feature_flags = "",
+        crunch_png = True,
         android_jar = None,
         aapt = None,
         busybox = None,
@@ -290,6 +291,7 @@ def _package(
         code and resources by instructing AAPT2 to emit conditional Proguard keep rules.
       version_name: A string. The version name to stamp the generated manifest with. Optional.
       version_code: A string. The version code to stamp the generated manifest with. Optional.
+      crunch_png: A boolean. Determines whether `aapt2 compile` should crunch PNG files.
       android_jar: A File. The Android Jar.
       aapt: A FilesToRunProvider. The AAPT executable.
       busybox: A FilesToRunProvider. The ResourceProcessorBusyBox executable.
@@ -378,6 +380,8 @@ def _package(
     if out_file:
         args.add("--packagePath", out_file)
         output_files.append(out_file)
+    if not crunch_png:
+        args.add("--useAapt2Cruncher=no")
     if package_type:
         args.add("--packageType", package_type)
     if debug:
@@ -664,6 +668,7 @@ def _compile(
         assets = [],
         assets_dir = None,
         resource_files = [],
+        crunch_png = True,
         busybox = None,
         aapt = None,
         host_javabase = None):
@@ -676,7 +681,9 @@ def _compile(
       assets: A list of Files. The list of assets files or directories
         to process.
       assets_dir: String. The name of the assets directory.
+      crunch_png: Boolean. Determines whether `aapt2 compile` should crunch PNG
       busybox: A FilesToRunProvider. The ResourceProcessorBusyBox executable.
+        files.
       aapt: AAPT. Tool for compiling resources.
       host_javabase: Target. The host javabase.
     """
@@ -698,6 +705,8 @@ def _compile(
             assets_dir = assets_dir,
         ),
     )
+    if not crunch_png:
+        args.add("--useAapt2Cruncher=no")
     args.add("--output", out_file)
 
     _set_warning_level(ctx, args)

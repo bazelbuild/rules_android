@@ -500,6 +500,7 @@ def _package(
         generate_minsdk_proguard_config = False,
         build_java_with_final_resources = False,
         feature_flags = "",
+        crunch_png = True,
         aapt = None,
         has_local_proguard_specs = False,
         android_jar = None,
@@ -566,6 +567,7 @@ def _package(
         non-final resources for linking against when building any srcs. This is
         generally only desirable for test targets that aren't potentially
         running compile-time optimizations.
+      crunch_png: boolean. Determines whether `aapt2 compile` should crunch PNG files.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       has_local_proguard_specs: If the target has proguard specs.
       android_jar: File. The Android jar.
@@ -770,6 +772,7 @@ def _package(
         version_name = manifest_values[_VERSION_NAME] if _VERSION_NAME in manifest_values else None,
         version_code = manifest_values[_VERSION_CODE] if _VERSION_CODE in manifest_values else None,
         feature_flags = feature_flags,
+        crunch_png = crunch_png,
         android_jar = android_jar,
         aapt = aapt,
         busybox = busybox,
@@ -921,6 +924,7 @@ def _compile(
         out_compiled_resources = None,
         out_r_pb = None,
         resource_files = [],
+        crunch_png = True,
         aapt = None,
         android_kit = None,
         busybox = None,
@@ -932,6 +936,7 @@ def _compile(
       out_compiled_resources: File. The compiled resources output file.
       out_r_pb: File. The R.pb output file.
       resource_files: A list of Files. The resource files can be directories.
+      crunch_png: boolean. Determines whether `aapt2 compile` should crunch PNG files.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       android_kit: FilesToRunProvider. The android_kit executable or
         FilesToRunProvider.
@@ -944,6 +949,7 @@ def _compile(
         ctx,
         out_file = out_compiled_resources,
         resource_files = resource_files,
+        crunch_png = crunch_png,
         aapt = aapt,
         busybox = busybox,
         host_javabase = host_javabase,
@@ -1201,6 +1207,7 @@ def _process_starlark(
         neverlink = False,
         enable_data_binding = False,
         fix_resource_transitivity = False,
+        crunch_png = False,
         aapt = None,
         android_jar = None,
         android_kit = None,
@@ -1250,6 +1257,7 @@ def _process_starlark(
         produce build failures.
       fix_resource_transitivity: Whether to ensure that transitive resources are
         correctly marked as transitive.
+      crunch_png: boolean. Determines whether `aapt2 compile` should crunch PNG files.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       android_jar: File. The android Jar.
       android_kit: FilesToRunProvider. The android_kit executable or
@@ -1496,6 +1504,7 @@ def _process_starlark(
                 out_file = compiled_assets,
                 assets = assets,
                 assets_dir = assets_dir,
+                crunch_png = crunch_png,
                 aapt = aapt,
                 busybox = busybox,
                 host_javabase = host_javabase,
@@ -1525,6 +1534,7 @@ def _process_starlark(
             ctx,
             out_file = compiled_resources,
             resource_files = processed_resources,
+            crunch_png = crunch_png,
             aapt = aapt,
             busybox = busybox,
             host_javabase = host_javabase,

@@ -289,7 +289,8 @@ public class Aapt2ResourcePackagingAction {
               compiledResources,
               aaptConfigOptions.aapt2,
               aaptConfigOptions.buildToolsVersion,
-              aaptConfigOptions.generatePseudoLocale);
+              aaptConfigOptions.generatePseudoLocale,
+              aaptConfigOptions.useAapt2Cruncher != TriState.NO);
 
       profiler.recordEndOf("setup").startTask("compile");
       CompiledResources compiled =
