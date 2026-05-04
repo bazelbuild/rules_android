@@ -57,7 +57,11 @@ DEFAULT_GC_FLAGS = ["-Xmx8g"]
 
 # disable class loading by default for faster classloading and consistent environment across
 # local and remote execution
-DEFAULT_VERIFY_FLAGS = ["-Xverify:none"]
+DEFAULT_VERIFY_FLAGS = [
+    "-XX:+UnlockDiagnosticVMOptions",
+    "-XX:-BytecodeVerificationLocal",
+    "-XX:-BytecodeVerificationRemote",
+]
 
 def _validations_processor(ctx, **_unused_sub_ctxs):
     _check_src_pkg(ctx, True)
