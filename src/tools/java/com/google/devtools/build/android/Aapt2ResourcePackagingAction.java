@@ -389,6 +389,7 @@ public class Aapt2ResourcePackagingAction {
 
       final PackagedResources packagedResources =
           ResourceLinker.create(aaptConfigOptions.aapt2, executorService, linkedOut)
+              .aapt2CompatFlags(aaptConfigOptions.aapt2CompatFlags)
               .profileUsing(profiler)
               .customPackage(options.packageForR)
               .packageId(

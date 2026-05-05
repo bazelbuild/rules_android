@@ -31,6 +31,7 @@ bzl_library(
         "attrs.bzl",
         "bundletool.bzl",
         "busybox.bzl",
+        "busybox_compat.bzl",
         "common.bzl",
         "data_binding.bzl",
         "desugar.bzl",

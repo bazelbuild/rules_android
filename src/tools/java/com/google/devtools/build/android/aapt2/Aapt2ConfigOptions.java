@@ -18,11 +18,14 @@ import com.android.repository.Revision;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.devtools.build.android.Converters.CompatExistingPathConverter;
 import com.google.devtools.build.android.Converters.CompatRevisionConverter;
+import com.google.devtools.build.android.Converters.CompatStringDictionaryConverter;
 import com.google.devtools.build.android.TriState;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 /** Aapt2 specific configuration options. */
 @Parameters(separators = "= ")
@@ -127,4 +130,12 @@ public class Aapt2ConfigOptions {
       names = "--featureFlags",
       description = "Optional --feature-flags to pass to certain aapt2 commands.")
   public String featureFlags = "";
+
+  @Parameter(
+      names = "--aapt2_compat_flags",
+      converter = CompatStringDictionaryConverter.class,
+      description =
+          "Compatibility flags for managing different versions of aapt2, changes the flags that are"
+              + " passed to underlying aapt2 invocations.")
+  public Map<String, String> aapt2CompatFlags = ImmutableMap.of();
 }

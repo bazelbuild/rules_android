@@ -14,6 +14,7 @@
 """Bazel ResourcesBusyBox Commands."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load(":busybox_compat.bzl", "AAPT2_COMPAT_FLAGS")
 load(":java.bzl", _java = "java")
 
 visibility(PROJECT_VISIBILITY)
@@ -196,6 +197,9 @@ def _extract_filters(
         elif item:
             out_filters.append(item)
     return sorted(out_filters)
+
+def _format_compat_flags(flags):
+    return ",".join(["%s:%s" % (k, str(v).lower()) for k, v in flags.items()])
 
 def _package(
         ctx,
@@ -418,6 +422,7 @@ def _package(
         args.add("--packageForR", java_package)
     if feature_flags:
         args.add("--featureFlags", feature_flags)
+    args.add("--aapt2_compat_flags=%s" % _format_compat_flags(AAPT2_COMPAT_FLAGS))
 
     args.add_joined(
         "--resourceApks",
@@ -645,6 +650,7 @@ def _validate_and_link(
     input_files.extend(resource_apks)
     if feature_flags:
         args.add("--featureFlags", feature_flags)
+    args.add("--aapt2_compat_flags=%s" % _format_compat_flags(AAPT2_COMPAT_FLAGS))
 
     _set_warning_level(ctx, args)
 

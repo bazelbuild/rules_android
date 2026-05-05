@@ -168,6 +168,7 @@ public final class ValidateAndLinkResourcesAction {
 
       profiler.recordEndOf("validate").startTask("link");
       ResourceLinker.create(aapt2Options.aapt2, executorService, scopedTmp.getPath())
+          .aapt2CompatFlags(aapt2Options.aapt2CompatFlags)
           .profileUsing(profiler)
           // NB: these names are really confusing.
           //   .dependencies is meant for linking in android.jar

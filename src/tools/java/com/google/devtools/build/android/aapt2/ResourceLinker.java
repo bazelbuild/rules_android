@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.google.devtools.build.android.aapt2;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.devtools.build.android.ziputils.DataDescriptor.EXTCRC;
 import static com.google.devtools.build.android.ziputils.DataDescriptor.EXTLEN;
 import static com.google.devtools.build.android.ziputils.DataDescriptor.EXTSIZ;
@@ -38,6 +39,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.google.common.io.ByteSource;
@@ -71,6 +73,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -100,8 +103,16 @@ public class ResourceLinker {
   public static final String PROTO_EXTENSION = "-pb.apk";
 
   private boolean debug;
+  private Map<String, String> aapt2CompatFlags = ImmutableMap.of();
+
   private static final Predicate<DirectoryEntry> IS_FLAT_FILE =
       h -> h.getFilename().endsWith(".flat");
+
+  static final Predicate<DirectoryEntry> ALWAYS_TRUE = h -> true;
+
+  private boolean getCompatFlag(String key) {
+    return Boolean.parseBoolean(aapt2CompatFlags.getOrDefault(key, "false"));
+  }
 
   private static final Predicate<DirectoryEntry> COMMENT_ABSENT =
       h -> Strings.isNullOrEmpty(h.getComment());
@@ -289,7 +300,7 @@ public class ResourceLinker {
               .whenVersionIsAtLeast(new Revision(23))
               .thenAdd("--no-version-vectors")
               .addParameterableRepeated(
-                  "-R", compiledResourcesToPaths(compiled, IS_FLAT_FILE), workingDirectory)
+                  "-R", compiledResourcesToPaths(compiled, ALWAYS_TRUE), workingDirectory)
               .addRepeated("-I", pathsToLinkAgainst)
               .addRepeated("-I", resourceApkPathsToLinkAgainst)
               .add("--auto-add-overlay")
@@ -343,8 +354,7 @@ public class ResourceLinker {
     }
   }
 
-  private List<String> compiledResourcesToPaths(
-      CompiledResources compiled, Predicate<DirectoryEntry> shouldKeep) {
+  private ImmutableList<String> getRawCompiledArchivePaths(CompiledResources compiled) {
     // NB: "include" can have duplicates, in particular because Aapt2ResourcePackagingAction
     // creates this by concatenating two different options.  Since the *last* definition of anything
     // takes precedence, keep the last instance of each entry.
@@ -358,15 +368,48 @@ public class ResourceLinker {
             .collect(ImmutableList.toImmutableList())
             .reverse();
 
+    return dedupedZips.stream().map(Path::toString).collect(toImmutableList());
+  }
+
+  List<String> compiledResourcesToPaths(
+      CompiledResources compiled, Predicate<DirectoryEntry> addedPredicate) {
+    if (getCompatFlag("aapt2_skip_flat_files_fix") && addedPredicate == ALWAYS_TRUE) {
+      return getRawCompiledArchivePaths(compiled);
+    }
+
+    Predicate<DirectoryEntry> actualPredicate = addedPredicate;
+    if (!getCompatFlag("aapt2_skip_flat_files_fix")) {
+      actualPredicate = IS_FLAT_FILE.and(addedPredicate);
+    }
+
+    final Predicate<DirectoryEntry> finalPredicate = actualPredicate;
+    List<String> dedupedZips = getRawCompiledArchivePaths(compiled);
     return dedupedZips.stream()
-        .map(z -> executorService.submit(() -> filterZip(z, shouldKeep)))
+        .map(Path::of)
+        .map(z -> executorService.submit(() -> filterFlatFilesInZip(z, finalPredicate)))
         .map(rethrowLinkError(Future::get))
         // the process will always take as long as the longest Future
         .map(Path::toString)
         .collect(toList());
   }
 
-  private Path filterZip(Path path, Predicate<DirectoryEntry> shouldKeep) throws IOException {
+  private Path filterFlatFilesInZip(Path path, Predicate<DirectoryEntry> flatFileShouldKeep)
+      throws IOException {
+    // Fast path: check if filtering is necessary.
+    try (FileChannel inChannel = FileChannel.open(path, StandardOpenOption.READ)) {
+      final ZipIn zipIn = new ZipIn(inChannel, path.toString());
+      boolean needsFiltering = false;
+      for (DirectoryEntry entry : zipIn.centralDirectory().list()) {
+        if (!flatFileShouldKeep.test(entry)) {
+          needsFiltering = true;
+          break;
+        }
+      }
+      if (!needsFiltering) {
+        return path;
+      }
+    }
+
     Path outPath =
         workingDirectory
             .resolve("filtered")
@@ -380,7 +423,7 @@ public class ResourceLinker {
       final ZipOut zipOut = new ZipOut(outChannel, outPath.toString());
       zipIn.scanEntries(
           (in, header, dirEntry, data) -> {
-            if (shouldKeep.test(dirEntry)) {
+            if (flatFileShouldKeep.test(dirEntry)) {
               zipOut.nextEntry(dirEntry);
               zipOut.write(header);
               zipOut.write(data);
@@ -426,6 +469,10 @@ public class ResourceLinker {
       Path javaSourceDirectory,
       Path resourceIds)
       throws IOException {
+    Predicate<DirectoryEntry> flatFileShouldKeep =
+        generatePseudoLocale && resourceConfigs.stream().anyMatch(PSEUDO_LOCALE_FILTERS::contains)
+            ? USE_GENERATED
+            : USE_DEFAULT;
     profiler.startTask("fulllink");
     final Path linked = workingDirectory.resolve("bin." + PROTO_EXTENSION);
     logger.fine(
@@ -466,14 +513,7 @@ public class ResourceLinker {
             .addRepeated("-I", StaticLibrary.toPathStrings(linkAgainst))
             .addRepeated("-I", StaticLibrary.toPathStrings(resourceApks))
             .addParameterableRepeated(
-                "-R",
-                compiledResourcesToPaths(
-                    compiled,
-                    generatePseudoLocale
-                            && resourceConfigs.stream().anyMatch(PSEUDO_LOCALE_FILTERS::contains)
-                        ? IS_FLAT_FILE.and(USE_GENERATED)
-                        : IS_FLAT_FILE.and(USE_DEFAULT)),
-                workingDirectory)
+                "-R", compiledResourcesToPaths(compiled, flatFileShouldKeep), workingDirectory)
             // Add custom no-compress extensions. This ultimately doesn't matter - these files
             // may be compressed during a later intermediate step, but will be decompressed again
             // during final APK generation, in the native android_binary rule.
@@ -735,6 +775,12 @@ public class ResourceLinker {
   public ResourceLinker includeProguardLocationReferences(
       boolean includeProguardLocationReferences) {
     this.includeProguardLocationReferences = includeProguardLocationReferences;
+    return this;
+  }
+
+  @CanIgnoreReturnValue
+  public ResourceLinker aapt2CompatFlags(Map<String, String> aapt2CompatFlags) {
+    this.aapt2CompatFlags = aapt2CompatFlags;
     return this;
   }
 
