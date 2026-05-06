@@ -1207,7 +1207,7 @@ def _process_starlark(
         neverlink = False,
         enable_data_binding = False,
         fix_resource_transitivity = False,
-        crunch_png = False,
+        crunch_png = True,
         aapt = None,
         android_jar = None,
         android_kit = None,
