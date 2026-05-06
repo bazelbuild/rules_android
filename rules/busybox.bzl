@@ -488,6 +488,7 @@ def _parse(
         outputs = [out_symbols],
         mnemonic = "ParseAndroidResources",
         progress_message = "Parsing Android Resources in %s" % out_symbols.short_path,
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _make_merge_assets_flags(resources_node):
@@ -575,6 +576,7 @@ def _merge_assets(
         mnemonic = "MergeAndroidAssets",
         progress_message =
             "Merging Android Assets in %s" % out_assets_zip.short_path,
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _validate_and_link(
@@ -727,6 +729,7 @@ def _compile(
         outputs = [out_file],
         mnemonic = "CompileAndroidResources",
         progress_message = "Compiling Android Resources in %s" % out_file.short_path,
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _make_merge_compiled_flags(resources_node_info):
@@ -962,6 +965,7 @@ def _merge_manifests(
         outputs = outputs,
         mnemonic = "MergeManifests",
         progress_message = "Merging Android Manifests in %s" % out_file.short_path,
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _process_databinding(
@@ -1016,6 +1020,7 @@ def _process_databinding(
         outputs = [out_databinding_info] + out_databinding_processed_resources,
         mnemonic = "StarlarkProcessDatabinding",
         progress_message = "Processing data binding",
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _make_generate_binay_r_flags(resources_node):
@@ -1171,6 +1176,7 @@ def _make_aar(
         outputs = [out_aar],
         mnemonic = "StarlarkAARGenerator",
         progress_message = "Generating AAR package for %s" % ctx.label,
+        jvm_flags = _C1_ONLY_FLAGS,
     )
 
 def _shrink(
