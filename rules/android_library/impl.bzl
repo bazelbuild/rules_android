@@ -31,7 +31,6 @@ load("//rules:proguard.bzl", _proguard = "proguard")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("//rules/flags:flags.bzl", _flags = "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
@@ -168,7 +167,6 @@ def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_
         assets_dir = ctx.attr.assets_dir,
         exports_manifest = exports_manifest,
         java_package = java_package,
-        custom_package = ctx.attr.custom_package,
         neverlink = ctx.attr.neverlink,
         enable_data_binding = ctx.attr.enable_data_binding,
         deps = ctx.attr.deps,
@@ -176,8 +174,6 @@ def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_
         exports = ctx.attr.exports,
         feature_flags = acls.get_aapt2_feature_flags(str(ctx.label)),
 
-        # Processing behavior changing flags.
-        enable_res_v3 = _flags.get(ctx).android_enable_res_v3,
         # TODO(b/144163743): remove fix_resource_transitivity, which was only added to emulate
         # misbehavior on the Java side.
         fix_resource_transitivity = bool(ctx.attr.srcs),
@@ -190,12 +186,6 @@ def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_
         java_toolchain = _common.get_java_toolchain(ctx),
         host_javabase = _common.get_host_javabase(ctx),
         instrument_xslt = utils.only(get_android_toolchain(ctx).add_g3itr_xslt.files.to_list()),
-        res_v3_dummy_manifest = utils.only(
-            get_android_toolchain(ctx).res_v3_dummy_manifest.files.to_list(),
-        ),
-        res_v3_dummy_r_txt = utils.only(
-            get_android_toolchain(ctx).res_v3_dummy_r_txt.files.to_list(),
-        ),
         xsltproc = get_android_toolchain(ctx).xsltproc_tool.files_to_run,
         zip_tool = get_android_toolchain(ctx).zip_tool.files_to_run,
     )

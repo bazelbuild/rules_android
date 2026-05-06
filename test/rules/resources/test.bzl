@@ -44,9 +44,9 @@ visibility(PROJECT_VISIBILITY)
 
 _StarlarkResourcesTestingInfo = provider()
 
-def _starlark_process_impl(ctx):
+def _process_impl(ctx):
     java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package)
-    starlark_resources_ctx = _resources.process_starlark(
+    starlark_resources_ctx = _resources.process(
         ctx,
         java_package = java_package if ctx.attr.use_java_package else None,
         manifest = ctx.file.manifest,
@@ -72,19 +72,19 @@ def _starlark_process_impl(ctx):
         zip_tool = get_android_toolchain(ctx).zip_tool.files_to_run,
     )
 
-    validation_results = starlark_resources_ctx["validation_results"]
-    if starlark_resources_ctx["resources_apk"]:
-        validation_results.append(starlark_resources_ctx["resources_apk"])
+    validation_results = starlark_resources_ctx.validation_results
+    if starlark_resources_ctx.resources_apk:
+        validation_results.append(starlark_resources_ctx.resources_apk)
 
-    return starlark_resources_ctx["providers"] + [
+    return starlark_resources_ctx.providers + [
         OutputGroupInfo(_validation = validation_results),
         _StarlarkResourcesTestingInfo(
-            r_java = starlark_resources_ctx["r_java"],
+            r_java = starlark_resources_ctx.r_java,
         ),
     ]
 
 starlark_process = rule(
-    implementation = _starlark_process_impl,
+    implementation = _process_impl,
     attrs = dict(
         stamp_manifest = attr.bool(
             default = True,

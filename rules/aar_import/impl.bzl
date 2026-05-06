@@ -152,7 +152,7 @@ def _process_resources(
         aar_resources_extractor_tool,
     )
 
-    resources_ctx = _resources.process_starlark(
+    resources_ctx = _resources.process(
         ctx,
         manifest = manifest,
         assets = [assets],
@@ -183,7 +183,7 @@ def _process_resources(
 </manifest>
 """ % package)
 
-    return struct(**resources_ctx)
+    return resources_ctx
 
 def _extract_jars(
         ctx,
