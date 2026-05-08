@@ -464,7 +464,7 @@ def _run(
 
     # Set reasonable max heap default. Required to prevent runaway memory usage.
     # Can still be overridden by callers of this method.
-    jvm_flags = ["-Xms512M", "-Xmx3G", "-XX:+ExitOnOutOfMemoryError"] + jvm_flags
+    jvm_flags = ["-Xmx3G", "-Xmx3G", "-XX:+ExitOnOutOfMemoryError"] + jvm_flags
 
     # executable should be a File or a FilesToRunProvider
     jar = args.get("executable")
