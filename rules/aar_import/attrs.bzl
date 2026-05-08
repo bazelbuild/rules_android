@@ -63,6 +63,10 @@ ATTRS = _attrs.add(
         _flags = attr.label(
             default = "//rules/flags",
         ),
+        _jvm_args = attr.label(
+            default = "//rules/flags:jvm_args",
+            doc = "Additional flags to pass to the JVM when invoking tools.",
+        ),
         _java_toolchain = attr.label(
             default = Label("//tools/jdk:toolchain_android_only"),
         ),

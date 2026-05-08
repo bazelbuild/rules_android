@@ -150,6 +150,12 @@ string_list_flag(
 )
 
 string_list_flag(
+    name = "jvm_args",
+    build_setting_default = [],
+    visibility = ["//visibility:public"],
+)
+
+string_list_flag(
     name = "dexopts_supported_in_dexsharder",
     build_setting_default = ["--minimal-main-dex"],
     scope = "universal",

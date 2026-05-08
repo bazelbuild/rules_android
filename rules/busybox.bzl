@@ -14,6 +14,7 @@
 """Bazel ResourcesBusyBox Commands."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":busybox_compat.bzl", "AAPT2_COMPAT_FLAGS")
 load(":java.bzl", _java = "java")
 
@@ -840,11 +841,20 @@ def _merge_compiled(
         jvm_flags = _C1_ONLY_FLAGS,
     )
 
-def _java_run(ctx, mnemonic = None, *args, **kwargs):
+def _java_run(ctx, mnemonic = None, jvm_flags = [], *args, **kwargs):
     enable_workers = ctx.fragments.android.persistent_busybox_tools
     multiplex_workers = ctx.fragments.android.persistent_multiplex_busybox_tools
 
-    _java.run(ctx, mnemonic = mnemonic, supports_workers = enable_workers, supports_multiplex_workers = multiplex_workers, *args, **kwargs)
+    extra_jvm_flags = ctx.attr._jvm_args[BuildSettingInfo].value
+    _java.run(
+        ctx,
+        mnemonic = mnemonic,
+        supports_workers = enable_workers,
+        supports_multiplex_workers = multiplex_workers,
+        jvm_flags = jvm_flags + extra_jvm_flags,
+        *args,
+        **kwargs
+    )
 
 def _escape_mv(s):
     """Escapes `:` and `,` in manifest values so they can be used as a busybox flag."""
