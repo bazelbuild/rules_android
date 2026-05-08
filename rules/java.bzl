@@ -14,7 +14,7 @@
 """Bazel Java APIs for the Android rules."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("//rules/flags:mnemonic_flags.bzl", "extract_jvm_flags_for_mnemonic")
+load("//rules/flags:mnemonic_flags.bzl", "extract_values_for_mnemonic")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/private:android_support.bzl", "android_support")  # buildifier: disable=bzl-visibility
 load(":path.bzl", _path = "path")
@@ -469,8 +469,9 @@ def _run(
 
     # Additional JVM flags depending on the mnemonic
     if mnemonic and getattr(ctx.attr, "_mnemonic_jvm_flags", None):
-        extra_jvm_flags = extract_jvm_flags_for_mnemonic(ctx, mnemonic)
-        jvm_flags += extra_jvm_flags
+        extra_jvm_flags = extract_values_for_mnemonic(ctx, mnemonic)
+        if extra_jvm_flags:
+            jvm_flags += extra_jvm_flags
 
     # executable should be a File or a FilesToRunProvider
     jar = args.get("executable")

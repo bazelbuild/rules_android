@@ -14,7 +14,6 @@
 """Bazel ResourcesBusyBox Commands."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":busybox_compat.bzl", "AAPT2_COMPAT_FLAGS")
 load(":java.bzl", _java = "java")
 

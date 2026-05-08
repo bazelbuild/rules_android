@@ -63,12 +63,6 @@ ATTRS = _attrs.add(
         _flags = attr.label(
             default = "//rules/flags",
         ),
-        _mnemonic_jvm_flags = attr.label(
-            default = "//rules/flags:mnemonic_jvm_flags",
-            doc = "Additional JVM flags to set depending on the mnemonic " +
-                  "E.g --//rules/flags:mnemonic_jvm_flags=CompileAndroidResources=Xms1G " +
-                  " will add -Xms1G to all invocations of the CompileAndroidResources mnemonic",
-        ),
         _java_toolchain = attr.label(
             default = Label("//tools/jdk:toolchain_android_only"),
         ),
@@ -78,6 +72,12 @@ ATTRS = _attrs.add(
         ),
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
+        ),
+        _mnemonic_jvm_flags = attr.label(
+            default = "//rules/flags:mnemonic_jvm_flags",
+            doc = "Additional JVM flags to set depending on the mnemonic " +
+                  "E.g --//rules/flags:mnemonic_jvm_flags=CompileAndroidResources=Xms1G " +
+                  " will add -Xms1G to all invocations of the CompileAndroidResources mnemonic",
         ),
         _cpu_constraints = attr.label_keyed_string_dict(
             default = {

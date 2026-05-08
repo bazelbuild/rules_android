@@ -6,6 +6,7 @@ load("//rules/flags:additional_flags.bzl", "additional_flags")
 load("//rules/flags:configurations.bzl", "configurations")
 load("//rules/flags:flag_defs.bzl", "define_flags")
 load("//rules/flags:flags.bzl", "flags")
+load("//rules/flags:mnemonic_flags.bzl", "mnemonic_flag")
 
 licenses(["notice"])
 
@@ -150,12 +151,6 @@ string_list_flag(
 )
 
 string_list_flag(
-    name = "mnemonic_jvm_flags",
-    build_setting_default = [],
-    visibility = ["//visibility:public"],
-)
-
-string_list_flag(
     name = "dexopts_supported_in_dexsharder",
     build_setting_default = ["--minimal-main-dex"],
     scope = "universal",
@@ -212,6 +207,12 @@ int_flag(
     name = "incremental_dexing_after_proguard",
     build_setting_default = 50,
     scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
+mnemonic_flag(
+    name = "mnemonic_jvm_flags",
+    build_setting_default = "",
     visibility = ["//visibility:public"],
 )
 
