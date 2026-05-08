@@ -150,7 +150,7 @@ string_list_flag(
 )
 
 string_list_flag(
-    name = "jvm_args",
+    name = "mnemonic_jvm_flags",
     build_setting_default = [],
     visibility = ["//visibility:public"],
 )

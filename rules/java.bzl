@@ -14,6 +14,7 @@
 """Bazel Java APIs for the Android rules."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:mnemonic_flags.bzl", "extract_jvm_flags_for_mnemonic")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/private:android_support.bzl", "android_support")  # buildifier: disable=bzl-visibility
 load(":path.bzl", _path = "path")
@@ -465,6 +466,11 @@ def _run(
     # Set reasonable max heap default. Required to prevent runaway memory usage.
     # Can still be overridden by callers of this method.
     jvm_flags = ["-Xms3G", "-Xmx3G", "-XX:+ExitOnOutOfMemoryError"] + jvm_flags
+
+    # Additional JVM flags depending on the mnemonic
+    if mnemonic and getattr(ctx.attr, "_mnemonic_jvm_flags", None):
+        extra_jvm_flags = extract_jvm_flags_for_mnemonic(ctx, mnemonic)
+        jvm_flags += extra_jvm_flags
 
     # executable should be a File or a FilesToRunProvider
     jar = args.get("executable")

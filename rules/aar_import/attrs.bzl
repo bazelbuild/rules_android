@@ -63,9 +63,11 @@ ATTRS = _attrs.add(
         _flags = attr.label(
             default = "//rules/flags",
         ),
-        _jvm_args = attr.label(
-            default = "//rules/flags:jvm_args",
-            doc = "Additional flags to pass to the JVM when invoking tools.",
+        _mnemonic_jvm_flags = attr.label(
+            default = "//rules/flags:mnemonic_jvm_flags",
+            doc = "Additional JVM flags to set depending on the mnemonic " +
+                  "E.g --//rules/flags:mnemonic_jvm_flags=CompileAndroidResources=Xms1G " +
+                  " will add -Xms1G to all invocations of the CompileAndroidResources mnemonic",
         ),
         _java_toolchain = attr.label(
             default = Label("//tools/jdk:toolchain_android_only"),
