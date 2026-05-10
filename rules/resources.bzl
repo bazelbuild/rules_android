@@ -1189,7 +1189,7 @@ def _validate_manifest(
 
     return output
 
-def _process_starlark(
+def _process(
         ctx,
         java_package = None,
         manifest = None,
@@ -1271,7 +1271,7 @@ def _process_starlark(
       zip_tool: FilesToRunProvider. The zip tool executable or FilesToRunProvider.
 
     Returns:
-      A dict containing _ResourcesProcessContextInfo provider fields.
+      A _ResourcesProcessContextInfo.
     """
     if (xsltproc and not instrument_xslt) or (not xsltproc and instrument_xslt):
         fail(
@@ -1305,6 +1305,7 @@ def _process_starlark(
         # TODO(b/156530953): Move the validation result to the validation_outputs list when we are
         # done rolling out Starlark resources processing
         _VALIDATION_RESULTS: [],
+        _VALIDATION_OUTPUTS: [],
         _DEFINES_RESOURCES: defines_resources,
         _R_JAVA: None,
         _DATA_BINDING_LAYOUT_INFO: None,
@@ -1801,71 +1802,7 @@ def _process_starlark(
         ),
     )
 
-    return resources_ctx
-
-def _process(
-        ctx,
-        manifest = None,
-        resource_files = None,
-        defined_assets = False,
-        assets = None,
-        defined_assets_dir = False,
-        assets_dir = None,
-        exports_manifest = False,
-        java_package = None,
-        custom_package = None,
-        neverlink = False,
-        enable_data_binding = False,
-        deps = [],
-        resource_apks = [],
-        exports = [],
-        feature_flags = "",
-        android_jar = None,
-        android_kit = None,
-        aapt = None,
-        busybox = None,
-        xsltproc = None,
-        instrument_xslt = None,
-        java_toolchain = None,
-        host_javabase = None,
-        enable_res_v3 = False,
-        res_v3_dummy_manifest = None,
-        res_v3_dummy_r_txt = None,
-        fix_resource_transitivity = False,
-        zip_tool = None):
-    out_ctx = _process_starlark(
-        ctx,
-        java_package = java_package,
-        manifest = manifest,
-        defined_assets = defined_assets,
-        assets = assets,
-        defined_assets_dir = defined_assets_dir,
-        assets_dir = assets_dir,
-        exports_manifest = exports_manifest,
-        stamp_manifest = True if java_package else False,
-        deps = deps,
-        resource_apks = resource_apks,
-        exports = exports,
-        feature_flags = feature_flags,
-        resource_files = resource_files,
-        enable_data_binding = enable_data_binding,
-        fix_resource_transitivity = fix_resource_transitivity,
-        neverlink = neverlink,
-        android_jar = android_jar,
-        aapt = aapt,
-        android_kit = android_kit,
-        busybox = busybox,
-        instrument_xslt = instrument_xslt,
-        xsltproc = xsltproc,
-        java_toolchain = java_toolchain,
-        host_javabase = host_javabase,
-        zip_tool = zip_tool,
-    )
-
-    if _VALIDATION_OUTPUTS not in out_ctx:
-        out_ctx[_VALIDATION_OUTPUTS] = []
-
-    return _ResourcesProcessContextInfo(**out_ctx)
+    return _ResourcesProcessContextInfo(**resources_ctx)
 
 def _shrink(
         ctx,
@@ -2047,7 +1984,6 @@ def _is_resource_name_obfuscation_enabled(ctx, is_resource_shrunk):
 
 resources = struct(
     process = _process,
-    process_starlark = _process_starlark,
     package = _package,
     make_aar = _make_aar,
 
