@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.MoreFiles;
+import com.google.common.io.RecursiveDeleteOption;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.io.FileOutputStream;
@@ -56,7 +57,7 @@ public class ResourceLinkerTest {
 
   @After
   public void cleanup() throws IOException {
-    MoreFiles.deleteRecursively(tempDir);
+    MoreFiles.deleteRecursively(tempDir, RecursiveDeleteOption.ALLOW_INSECURE);
   }
 
   private Path createFakeCompiledResourcesZip(boolean includeNonFlat) throws IOException {
