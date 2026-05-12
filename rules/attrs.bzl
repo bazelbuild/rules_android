@@ -484,6 +484,9 @@ ANDROID_SDK_ATTRS = dict(
         executable = True,
         mandatory = True,
     ),
+    core_for_system_modules_jar = attr.label(
+        allow_single_file = [".jar"],
+    ),
     _proguard = attr.label(
         cfg = "exec",
         default = configuration_field(
