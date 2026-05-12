@@ -209,10 +209,7 @@ def create_android_sdk_rules(
                 ":windows": "build-tools/%s/aapt.exe" % build_tools_directory,
                 "//conditions:default": ":aapt_binary",
             }),
-            aapt2 = select({
-                ":windows": "build-tools/%s/aapt2.exe" % build_tools_directory,
-                "//conditions:default": ":aapt2_binary",
-            }),
+            aapt2 = ":aapt2",
             adb = select({
                 ":windows": "platform-tools/adb.exe",
                 "//conditions:default": "platform-tools/adb",
@@ -239,10 +236,7 @@ def create_android_sdk_rules(
             }),
             # See https://github.com/bazelbuild/bazel/issues/8757
             tags = ["__ANDROID_RULES_MIGRATION__"],
-            zipalign = select({
-                ":windows": "build-tools/%s/zipalign.exe" % build_tools_directory,
-                "//conditions:default": ":zipalign_binary",
-            }),
+            zipalign = ":zipalign",
         )
 
         native.toolchain(
@@ -353,6 +347,14 @@ def create_android_sdk_rules(
         actual = select({
             ":windows": "build-tools/%s/aapt2.exe" % build_tools_directory,
             "//conditions:default": ":aapt2_binary",
+        }),
+    )
+
+    native.alias(
+        name = "zipalign",
+        actual = select({
+            ":windows": "build-tools/%s/zipalign.exe" % build_tools_directory,
+            "//conditions:default": ":zipalign_binary",
         }),
     )
 
