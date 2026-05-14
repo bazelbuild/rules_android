@@ -35,11 +35,4 @@ chmod -R o=rx "$ANDROID_HOME"
 # User account needs to be able to read $ANDROID_HOME (+r) and traverse directories (+x)
 chmod -R o=rx "$ANDROID_HOME"
 
-# Make the non-root account
-export KOKORO_USER="bazel-builder"
-useradd -m -s /bin/bash "$KOKORO_USER"
-
-# Run presubmit as bazel-builder, and pass ANDROID_HOME and KOKORO_ARTIFACTS_DIR
-# from root user's environment to bazel-builder's environment
-runuser -w ANDROID_HOME,KOKORO_ARTIFACTS_DIR -l "$KOKORO_USER" \
-  -c "bash ${KOKORO_ARTIFACTS_DIR}/git/rules_android/kokoro/presubmit/presubmit_main.sh"
+bash "${KOKORO_ARTIFACTS_DIR}/git/rules_android/kokoro/presubmit/presubmit_main.sh"
