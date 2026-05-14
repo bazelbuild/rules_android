@@ -124,7 +124,7 @@ def _aspect_impl(target, ctx):
         for jar in runtime_jars:
             if ctx.fragments.android.desugar_java8:
                 jar_to_desugar = jar
-                unique_desugar_filename = (jar.path if basename_clash else jar.basename) + "_desugared.jar"
+                unique_desugar_filename = (jar.short_path if basename_clash else jar.basename) + "_desugared.jar"
                 desugared_jar = _dex.get_dx_artifact(ctx, unique_desugar_filename, min_sdk_version)
 
                 # Optionally transform the jar before desugaring
