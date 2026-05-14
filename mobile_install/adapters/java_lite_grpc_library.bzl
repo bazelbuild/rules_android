@@ -49,7 +49,7 @@ def _adapt(target, ctx):
             dex_shards = dex(
                 ctx,
                 target[JavaInfo].runtime_output_jars,
-                get_desugar_classpath(target[JavaInfo]),
+                get_desugar_classpath(ctx, target),
             ),
             deps = providers.collect(
                 MIAndroidDexInfo,

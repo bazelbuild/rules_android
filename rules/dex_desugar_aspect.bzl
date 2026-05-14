@@ -24,6 +24,7 @@ load(":dex.bzl", _dex = "dex")
 load(":dex_toolchains.bzl", "dex_toolchains")
 load(":min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", _get_android_sdk = "get_android_sdk", _utils = "utils")
+load("//rules/flags:flags.bzl", _flags = "flags")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -82,7 +83,28 @@ def get_aspect_deps(ctx):
 
     return deps_list
 
-def _get_desugar_classpath(java_info):
+_PRUNE_DESUGAR_DEPS_INCOMPATIBLE_TAG = "android_experimental_prune_desugar_deps_incompatible"
+
+def _prune_desugar_classpath(ctx):
+    """Builds a reduced desugar classpath from direct deps' compile_jars.
+
+    Each direct dep's `compile_jars` already includes its own header jar plus
+    its exports' header jars, so the union approximates "the compile interface
+    the target was built against" without dragging in the full transitive
+    closure of every indirect dep.
+    """
+    transitive = []
+    for attr_name in ("deps", "exports"):
+        for dep in getattr(ctx.rule.attr, attr_name, []) or []:
+            if JavaInfo in dep:
+                transitive.append(dep[JavaInfo].compile_jars)
+    return depset(transitive = transitive)
+
+def _get_desugar_classpath(ctx, target):
+    if (_flags.get(ctx).experimental_prune_desugar_classpath and
+        _PRUNE_DESUGAR_DEPS_INCOMPATIBLE_TAG not in getattr(ctx.rule.attr, "tags", [])):
+        return _prune_desugar_classpath(ctx)
+    java_info = target[JavaInfo]
     if acls.in_desugaring_runtime_jar_classpath_rollout():
         return java_info._transitive_full_compile_time_jars
     return java_info.transitive_compile_time_jars
@@ -113,7 +135,7 @@ def _aspect_impl(target, ctx):
     dex_archives_dict = {}
     runtime_jars = _get_produced_runtime_jars(target, ctx, extra_toolchain_jars)
     bootclasspath = _get_boot_classpath(target, ctx)
-    desugar_classpath = _get_desugar_classpath(target[JavaInfo]) if JavaInfo in target else depset([])
+    desugar_classpath = _get_desugar_classpath(ctx, target) if JavaInfo in target else depset([])
 
     bt = ctx.attr._bytecode_transformer
     bytecode_transformer = bt[AndroidBytecodeTransformerInfo] if AndroidBytecodeTransformerInfo in bt else None
@@ -292,6 +314,9 @@ dex_desugar_aspect = aspect(
                 allow_files = True,
                 cfg = "exec",
                 executable = True,
+            ),
+            "_flags": attr.label(
+                default = Label("//rules/flags"),
             ),
         },
         _attrs.ANDROID_SDK,

@@ -113,3 +113,16 @@ def define_flags():
         default = False,
         description = "Enables namespaced R class generation",
     )
+
+    flags.DEFINE_bool(
+        name = "experimental_prune_desugar_classpath",
+        default = False,
+        description = "When enabled, the desugar classpath of an android_library / aar_import / " +
+                      "java_library / java_import / proto_library / android_binary is reduced from " +
+                      "the target's full transitive_compile_time_jars to the union of its direct " +
+                      "dependencies' compile_jars (which already include each dep's exports). This " +
+                      "decouples desugar action invalidation from changes to unrelated transitive " +
+                      "deps. Targets that need the full transitive classpath (e.g. those that " +
+                      "violate strict deps) can opt out with the " +
+                      "`android_experimental_prune_desugar_deps_incompatible` tag.",
+    )

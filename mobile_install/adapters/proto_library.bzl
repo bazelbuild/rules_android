@@ -43,7 +43,7 @@ def _adapt(target, ctx):
             dex_shards = dex(
                 ctx,
                 [j.class_jar for j in target[JavaInfo].outputs.jars],
-                get_desugar_classpath(target[JavaInfo]),
+                get_desugar_classpath(ctx, target),
             ),
             deps = providers.collect(MIAndroidDexInfo, ctx.rule.attr.deps),
         ),
