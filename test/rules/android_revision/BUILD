@@ -4,6 +4,8 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(":test.bzl", "android_revision_comparision_test", "android_revision_test")
 
+package(default_applicable_licenses = ["//:license"])
+
 licenses(["notice"])
 
 # Test revision string parsing.
