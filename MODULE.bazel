@@ -15,7 +15,7 @@ bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
 
-bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
+bazel_dep(name = "protobuf", version = "34.1", repo_name = "com_google_protobuf")
 bazel_dep(name = "rules_jvm_external", version = "6.9")
 bazel_dep(name = "bazel_skylib", version = "1.8.1")
 bazel_dep(name = "rules_robolectric", version = "4.14.1.2", repo_name = "robolectric")
