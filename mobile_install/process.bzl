@@ -38,6 +38,7 @@ def process(
         debug_signing_keys = [],
         debug_signing_lineage_file = None,
         key_rotation_min_sdk = None,
+        zipalign_alignment = 4,
         apk = None,
         sibling = None):
     """Processes the data in the mi and return data to pass up the graph.
@@ -109,6 +110,7 @@ def process(
         debug_signing_keys,
         debug_signing_lineage_file,
         key_rotation_min_sdk,
+        zipalign_alignment,
         sibling,
     )
 
