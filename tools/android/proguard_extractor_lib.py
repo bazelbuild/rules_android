@@ -32,6 +32,9 @@ def _ExtractTargetedR8Rules(jar, output, r8_version):
 
   Returns True if any matching rules were found and written.
   """
+  if not r8_version:
+    return
+
   r8_prefix = "META-INF/com.android.tools/"
 
   targeted_entries = []

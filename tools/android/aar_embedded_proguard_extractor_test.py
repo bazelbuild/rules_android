@@ -105,6 +105,18 @@ class AarEmbeddedProguardExtractorTest(unittest.TestCase):
     proguard_file.seek(0)
     self.assertEqual(b"-keep class legacy", proguard_file.read())
 
+  def testNoneR8VersionFallsBackToProguardTxt(self):
+    classes_jar = self.make_classes_jar({
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro": "-keep class targeted",
+    })
+    aar = zipfile.ZipFile(io.BytesIO(), "w")
+    aar.writestr("proguard.txt", "-keep class legacy")
+    aar.writestr("classes.jar", classes_jar)
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, proguard_file, None)
+    proguard_file.seek(0)
+    self.assertEqual(b"-keep class legacy", proguard_file.read())
+
   def testNoClassesJarNoProguardTxt(self):
     aar = zipfile.ZipFile(io.BytesIO(), "w")
     aar.writestr("some_other_file.txt", "data")

@@ -145,5 +145,18 @@ class JarEmbeddedProguardExtractorTest(unittest.TestCase):
     self.assertEqual(b"", proguard_file.read())
 
 
+  def testNoneR8VersionFallsBackToLegacy(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class targeted",
+    )
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, None)
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class legacy", proguard_file.read())
+
+
 if __name__ == "__main__":
   unittest.main()
