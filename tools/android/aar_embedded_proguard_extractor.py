@@ -43,19 +43,10 @@ flags.DEFINE_boolean(
 )
 
 
-# Attempt to extract proguard spec from AAR. If the file doesn't exist, an empty
-# proguard spec file will be created
-def ExtractEmbeddedProguard(aar, output, extract_r8_rules=False):
-  if extract_r8_rules:
-    proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, output)
-  else:
-    proguard_extractor_lib.ExtractEmbeddedProguardFromAarLegacy(aar, output)
-
-
-def _Main(input_aar, output_proguard_file, extract_r8_rules):
+def _Main(input_aar, output_proguard_file, r8_version = None):
   with zipfile.ZipFile(input_aar, "r") as aar:
     with open(output_proguard_file, "wb") as output:
-      ExtractEmbeddedProguard(aar, output, extract_r8_rules)
+      proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, output, r8_version)
 
 
 def main(unused_argv):
@@ -79,10 +70,10 @@ def main(unused_argv):
         _Main(
             os.path.join(aar_junc, os.path.basename(aar_long)),
             os.path.join(proguard_junc, os.path.basename(proguard_long)),
-            FLAGS.extract_r8_rules,
+            r8_version
         )
   else:
-    _Main(FLAGS.input_aar, FLAGS.output_proguard_file, FLAGS.extract_r8_rules)
+    _Main(FLAGS.input_aar, FLAGS.output_proguard_file, r8_version)
 
 
 if __name__ == "__main__":

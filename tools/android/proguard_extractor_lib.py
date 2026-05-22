@@ -22,7 +22,7 @@ import io
 import zipfile
 
 
-def ExtractR8Rules(jar, output):
+def ExtractR8Rules(jar, output, r8_version):
   """Extract R8 rules from META-INF/com.android.tools/ inside a JAR.
 
   Handles subdirectories like r8-from-X-upto-Y/. All matching files are
@@ -39,7 +39,7 @@ def ExtractR8Rules(jar, output):
       output.write(jar.read(entry))
 
 
-def ExtractEmbeddedProguardFromJar(jar, output):
+def ExtractEmbeddedProguardFromJar(jar, output, r8_version):
   """Extract proguard specs from a JAR file.
 
   Reads both legacy META-INF/proguard/ and R8-targeted
@@ -60,7 +60,7 @@ def ExtractEmbeddedProguardFromJar(jar, output):
       output.write(jar.read(entry))
 
 
-def ExtractEmbeddedProguardFromAar(aar, output):
+def ExtractEmbeddedProguardFromAar(aar, output, r8_version):
   """Extract proguard specs from an AAR file.
 
   Reads proguard.txt from the AAR root, and also extracts R8 rules
@@ -79,10 +79,10 @@ def ExtractEmbeddedProguardFromAar(aar, output):
   # For AARs, META-INF/com.android.tools/ lives inside classes.jar
   if classes_jar in aar.namelist():
     with zipfile.ZipFile(io.BytesIO(aar.read(classes_jar)), "r") as jar:
-      ExtractR8Rules(jar, output)
+      ExtractR8Rules(jar, output, r8_version)
 
 
-def ExtractEmbeddedProguardFromAarLegacy(aar, output):
+def ExtractEmbeddedProguardFromAarLegacy(aar, output, r8_version):
   """Extract proguard specs from an AAR file (legacy behavior).
 
   Only reads proguard.txt from the AAR root. Does not extract R8 rules

@@ -41,15 +41,15 @@ flags.DEFINE_string(
 flags.mark_flag_as_required("output_proguard_file")
 
 
-def ExtractEmbeddedProguard(jar, output):
+def ExtractEmbeddedProguard(jar, output, r8_version):
   """Extract proguard specs from a JAR file."""
-  proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, output)
+  proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, output, r8_version)
 
 
-def _Main(input_jar, output_proguard_file):
+def _Main(input_jar, output_proguard_file, r8_version = None):
   with zipfile.ZipFile(input_jar, "r") as jar:
     with open(output_proguard_file, "wb") as output:
-      ExtractEmbeddedProguard(jar, output)
+      ExtractEmbeddedProguard(jar, output, r8_version)
 
 
 def main(unused_argv):
@@ -71,9 +71,10 @@ def main(unused_argv):
         _Main(
             os.path.join(jar_junc, os.path.basename(jar_long)),
             os.path.join(proguard_junc, os.path.basename(proguard_long)),
+            r8_version
         )
   else:
-    _Main(FLAGS.input_jar, FLAGS.output_proguard_file)
+    _Main(FLAGS.input_jar, FLAGS.output_proguard_file, r8_version)
 
 
 if __name__ == "__main__":
