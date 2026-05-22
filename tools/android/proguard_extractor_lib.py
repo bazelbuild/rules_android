@@ -28,10 +28,7 @@ def _parse_version(ver:str):
 
 
 def _ExtractTargetedR8Rules(jar, output, r8_version):
-  """Extract version-targeted R8 rules from META-INF/com.android.tools/.
-
-  Returns True if any matching rules were found and written.
-  """
+  """Extract version-targeted R8 rules from META-INF/com.android.tools/."""
   if not r8_version:
     return
 
