@@ -19,7 +19,12 @@ from __future__ import division
 from __future__ import print_function
 
 import io
+import re
 import zipfile
+
+
+def _parse_version(ver:str):
+  return tuple(int(x) for x in ver.split("."))
 
 
 def ExtractR8Rules(jar, output, r8_version):
@@ -52,12 +57,21 @@ def ExtractEmbeddedProguardFromJar(jar, output, r8_version):
   legacy_prefix = "META-INF/proguard/"
   r8_prefix = "META-INF/com.android.tools/"
 
+  dirs_with_targeted_r8_rules = []
+  legacy_rules = []
   for entry in sorted(jar.namelist()):
-    if not entry.endswith("/") and (
-        entry.startswith(legacy_prefix) or entry.startswith(r8_prefix)
-    ):
-      output.write(b"\n")
-      output.write(jar.read(entry))
+    if entry.startswith(r8_prefix) and re.match("r8-from-[^/]+-upto-[^/]+", entry[len(r8_prefix):]):
+      ver_bounds = re.search("r8-from-([^/]+)-upto-([^/]+)", entry)
+      if ver_bounds and (_parse_version(ver_bounds.group(1)) <= _parse_version(r8_version) < _parse_version(ver_bounds.group(2))):
+        dirs_with_targeted_r8_rules.append(entry)
+
+    if entry.startswith(legacy_prefix) and not entry.endswith("/"):
+      legacy_rules.append(entry)
+
+
+  for out_entry in (dirs_with_targeted_r8_rules or legacy_rules):
+    output.write(b"\n")
+    output.write(jar.read(out_entry))
 
 
 def ExtractEmbeddedProguardFromAar(aar, output, r8_version):
