@@ -18,6 +18,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from bazel_tools.tools.python.runfiles import runfiles
+
 import os
 import zipfile
 
@@ -51,6 +53,13 @@ def _Main(input_jar, output_proguard_file):
 
 
 def main(unused_argv):
+  r = runfiles.Create()
+  r8_version = None
+  with open(r.Rlocation("rules_android/tools/android/r8.version"), "r") as file:
+      runfile_lines = file.readlines()
+      if runfile_lines:
+          r8_version = runfile_lines[0].strip()
+
   if os.name == "nt":
     jar_long = os.path.abspath(FLAGS.input_jar)
     proguard_long = os.path.abspath(FLAGS.output_proguard_file)

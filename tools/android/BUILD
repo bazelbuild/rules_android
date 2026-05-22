@@ -435,11 +435,13 @@ py_library(
 py_binary(
     name = "aar_embedded_proguard_extractor",
     srcs = ["aar_embedded_proguard_extractor.py"],
+    data = [":r8_version"],
     visibility = ["//visibility:public"],
     deps = [
         ":json_worker_wrapper",
         ":junction_lib",
         ":proguard_extractor_lib",
+        "@bazel_tools//tools/python/runfiles",
         "@py_absl//absl:app",
     ],
 )
@@ -447,11 +449,13 @@ py_binary(
 py_binary(
     name = "jar_embedded_proguard_extractor",
     srcs = ["jar_embedded_proguard_extractor.py"],
+    data = [":r8_version"],
     visibility = ["//visibility:public"],
     deps = [
         ":json_worker_wrapper",
         ":junction_lib",
         ":proguard_extractor_lib",
+        "@bazel_tools//tools/python/runfiles",
         "@py_absl//absl:app",
     ],
 )
@@ -659,4 +663,13 @@ genrule(
     zip -r $${out} .
 """,
     visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "r8_version",
+    outs = [
+        "r8.version",
+    ],
+    cmd = "$(location :r8) --version | awk -F' ' '{ print $$2 }' >$(OUTS)",
+    tools = [":r8"],
 )
