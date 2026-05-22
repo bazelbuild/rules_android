@@ -27,51 +27,45 @@ def _parse_version(ver:str):
   return tuple(int(x) for x in ver.split("."))
 
 
-def ExtractR8Rules(jar, output, r8_version):
-  """Extract R8 rules from META-INF/com.android.tools/ inside a JAR.
+def _ExtractTargetedR8Rules(jar, output, r8_version):
+  """Extract version-targeted R8 rules from META-INF/com.android.tools/.
 
-  Handles subdirectories like r8-from-X-upto-Y/. All matching files are
-  concatenated into the output, sorted by path for determinism.
-
-  Args:
-    jar: The JAR file to extract from.
-    output: The output file to write to.
+  Returns True if any matching rules were found and written.
   """
-  meta_inf_prefix = "META-INF/com.android.tools/"
+  r8_prefix = "META-INF/com.android.tools/"
+
+  targeted_entries = []
   for entry in sorted(jar.namelist()):
-    if entry.startswith(meta_inf_prefix) and not entry.endswith("/"):
-      output.write(b"\n")
-      output.write(jar.read(entry))
+    if entry.startswith(r8_prefix) and re.match("r8-from-[^/]+-upto-[^/]+", entry[len(r8_prefix):]):
+      ver_bounds = re.search("r8-from-([^/]+)-upto-([^/]+)", entry)
+      if ver_bounds and (_parse_version(ver_bounds.group(1)) <= _parse_version(r8_version) < _parse_version(ver_bounds.group(2))):
+        targeted_entries.append(entry)
+
+  for out_entry in targeted_entries:
+    output.write(b"\n")
+    output.write(jar.read(out_entry))
 
 
 def ExtractEmbeddedProguardFromJar(jar, output, r8_version):
   """Extract proguard specs from a JAR file.
 
-  Reads both legacy META-INF/proguard/ and R8-targeted
-  META-INF/com.android.tools/ entries.
+  Extracts version-targeted R8 rules from META-INF/com.android.tools/.
+  Falls back to legacy META-INF/proguard/ if no targeted rules match.
 
   Args:
     jar: The JAR file to extract from.
     output: The output file to write to.
   """
+  pos = output.tell()
+  _ExtractTargetedR8Rules(jar, output, r8_version)
+  if output.tell() > pos:
+    return
+
   legacy_prefix = "META-INF/proguard/"
-  r8_prefix = "META-INF/com.android.tools/"
-
-  dirs_with_targeted_r8_rules = []
-  legacy_rules = []
   for entry in sorted(jar.namelist()):
-    if entry.startswith(r8_prefix) and re.match("r8-from-[^/]+-upto-[^/]+", entry[len(r8_prefix):]):
-      ver_bounds = re.search("r8-from-([^/]+)-upto-([^/]+)", entry)
-      if ver_bounds and (_parse_version(ver_bounds.group(1)) <= _parse_version(r8_version) < _parse_version(ver_bounds.group(2))):
-        dirs_with_targeted_r8_rules.append(entry)
-
     if entry.startswith(legacy_prefix) and not entry.endswith("/"):
-      legacy_rules.append(entry)
-
-
-  for out_entry in (dirs_with_targeted_r8_rules or legacy_rules):
-    output.write(b"\n")
-    output.write(jar.read(out_entry))
+      output.write(b"\n")
+      output.write(jar.read(entry))
 
 
 def ExtractEmbeddedProguardFromAar(aar, output, r8_version):
@@ -87,26 +81,14 @@ def ExtractEmbeddedProguardFromAar(aar, output, r8_version):
   proguard_spec = "proguard.txt"
   classes_jar = "classes.jar"
 
-  if proguard_spec in aar.namelist():
-    output.write(aar.read(proguard_spec))
-
-  # For AARs, META-INF/com.android.tools/ lives inside classes.jar
+  # Try targeted R8 rules from classes.jar first
   if classes_jar in aar.namelist():
     with zipfile.ZipFile(io.BytesIO(aar.read(classes_jar)), "r") as jar:
-      ExtractR8Rules(jar, output, r8_version)
+      pos = output.tell()
+      _ExtractTargetedR8Rules(jar, output, r8_version)
+      if output.tell() > pos:
+        return
 
-
-def ExtractEmbeddedProguardFromAarLegacy(aar, output, r8_version):
-  """Extract proguard specs from an AAR file (legacy behavior).
-
-  Only reads proguard.txt from the AAR root. Does not extract R8 rules
-  from classes.jar.
-
-  Args:
-    aar: The AAR file to extract from.
-    output: The output file to write to.
-  """
-  proguard_spec = "proguard.txt"
-
+  # Fall back to legacy proguard.txt
   if proguard_spec in aar.namelist():
     output.write(aar.read(proguard_spec))
