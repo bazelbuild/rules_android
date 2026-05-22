@@ -40,9 +40,11 @@ def _ExtractTargetedR8Rules(jar, output, r8_version):
   targeted_entries = []
   for entry in sorted(jar.namelist()):
     if entry.startswith(r8_prefix) and re.match("r8-from-[^/]+-upto-[^/]+", entry[len(r8_prefix):]):
-      ver_bounds = re.search("r8-from-([^/]+)-upto-([^/]+)", entry)
-      if ver_bounds and (_parse_version(ver_bounds.group(1)) <= _parse_version(r8_version) < _parse_version(ver_bounds.group(2))):
-        targeted_entries.append(entry)
+      match = re.search("r8-from-([^/]+)-upto-([^/]+)", entry)
+      if match:
+        lower_bound, upper_bound = match.groups()
+        if _parse_version(lower_bound) <= _parse_version(r8_version) < _parse_version(upper_bound):
+          targeted_entries.append(entry)
 
   for out_entry in targeted_entries:
     output.write(b"\n")
