@@ -157,6 +157,41 @@ class JarEmbeddedProguardExtractorTest(unittest.TestCase):
     proguard_file.seek(0)
     self.assertEqual(b"\n-keep class legacy", proguard_file.read())
 
+  def testMultipleJarsExtractedIndependently(self):
+    jar1 = zipfile.ZipFile(io.BytesIO(), "w")
+    jar1.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class A",
+    )
+
+    jar2 = zipfile.ZipFile(io.BytesIO(), "w")
+    jar2.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class B",
+    )
+
+    proguard_file = io.BytesIO()
+    for jar in [jar1, jar2]:
+      proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class A\n-keep class B", proguard_file.read())
+
+  def testMultipleJarsIndependentFallback(self):
+    jar1 = zipfile.ZipFile(io.BytesIO(), "w")
+    jar1.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class targeted",
+    )
+
+    jar2 = zipfile.ZipFile(io.BytesIO(), "w")
+    jar2.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
+
+    proguard_file = io.BytesIO()
+    for jar in [jar1, jar2]:
+      proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class targeted\n-keep class legacy", proguard_file.read())
+
 
 if __name__ == "__main__":
   unittest.main()
