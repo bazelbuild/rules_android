@@ -267,6 +267,13 @@ java_binary(
 )
 
 java_binary(
+    name = "r8_version_bin",
+    srcs = ["R8Version.java"],
+    main_class = "tools.android.R8Version",
+    deps = ["@rules_android_maven//:com_android_tools_r8"],
+)
+
+java_binary(
     name = "tracereferences",
     jvm_flags = _JVM_FLAGS,
     main_class = "com.android.tools.r8.tracereferences.TraceReferences",
@@ -670,6 +677,6 @@ genrule(
     outs = [
         "r8.version",
     ],
-    cmd = "$(location :r8) --version | awk -F' ' '{ print $$2 }' >$(OUTS)",
-    tools = [":r8"],
+    cmd = "$(location :r8_version_bin) >$(OUTS)",
+    tools = [":r8_version_bin"],
 )
