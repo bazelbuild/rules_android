@@ -35,3 +35,16 @@ build:windows --define=protobuf_allow_msvc=true
 
 common --enable_platform_specific_config
 
+common \
+  --incremental_dexing=true \
+  --define=android_dexmerger_tool=d8_dexmerger \
+  --define=android_incremental_dexing_tool=d8_dexbuilder \
+  --define=android_standalone_dexing_tool=d8_compat_dx \
+  --experimental_use_dex_splitter_for_incremental_dexing=true \
+  --experimental_incremental_dexing_after_proguard_by_default=true \
+  --experimental_incremental_dexing_after_proguard=50 \
+  --java_language_version=11 --tool_java_language_version=11 \
+  --java_runtime_version=21 --tool_java_runtime_version=21 \
+  --desugar_java8_libs --experimental_check_desugar_deps=false \
+  --@rules_android//rules/flags:manifest_merge_order=legacy 
+
