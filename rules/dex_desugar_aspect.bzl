@@ -135,6 +135,7 @@ def _aspect_impl(target, ctx):
                         ctx,
                         jar,
                         jar_to_desugar,
+                        desugar_classpath,
                     )
 
                 _desugar.desugar(
