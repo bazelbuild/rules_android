@@ -15,7 +15,7 @@
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@com_google_protobuf//:protobuf_deps.bzl", "PROTOBUF_MAVEN_ARTIFACTS", "protobuf_deps")
 load(
     "@io_bazel_rules_go//go:deps.bzl",
     "go_download_sdk",
@@ -34,6 +34,18 @@ def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
 
     protobuf_deps()
+
+    # Note: We have to manually set up @maven deps here. rules_android has a
+    # separate Maven namespace (@rules_android_maven) and by default doesn't
+    # put anything into @maven for WORKSPACE mode.
+    maven_install(
+        name = "maven",
+        artifacts = PROTOBUF_MAVEN_ARTIFACTS,
+        repositories = [
+            "https://repo1.maven.org/maven2",
+            "https://maven.google.com",
+        ],
+    )
 
     bazel_skylib_workspace()
 
