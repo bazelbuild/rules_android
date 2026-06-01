@@ -90,12 +90,14 @@ java_library(
     ],
     # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
+        # Do not sort: Somehow putting the protobuf deps after android_ide_common
+        # can cause class not found errors at runtime related to protobuf.
+        "@com_google_protobuf//:protobuf_java",
+        "@com_google_protobuf//:protobuf_java_util",
         "@android_ide_common_30_1_3//:com_android_tools_common",
         "@android_ide_common_30_1_3//:com_android_tools_sdk_common",
         "@bazel_worker_java//:worker_protocol_java_proto",
         "@bazel_worker_java//src/main/java/com/google/devtools/build/lib/worker:work_request_handlers",
-        "@com_google_protobuf//:protobuf_java",
-        "@com_google_protobuf//:protobuf_java_util",
         "@rules_android_maven//:com_beust_jcommander",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
