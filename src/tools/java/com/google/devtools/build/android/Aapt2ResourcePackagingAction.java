@@ -318,32 +318,34 @@ public class Aapt2ResourcePackagingAction {
                           .process(manifest));
 
       profiler.recordEndOf("compile").startTask("merge");
-
-      // Checks for merge conflicts, and write the merged data out.
-      final Path symbolsBin =
-          AndroidResourceMerger.mergeDataToSymbols(
-              ParsedAndroidData.loadedFrom(
-                  DependencyInfo.DependencyType.PRIMARY,
-                  ImmutableList.of(SerializedAndroidData.from(compiled)),
-                  executorService,
-                  dataDeserializer),
-              new DensitySpecificManifestProcessor(options.densities, densityManifest)
-                  .process(options.primaryData.getManifest()),
-              ImmutableList.<SerializedAndroidData>builder()
-                  .addAll(options.directData)
-                  .addAll(options.directAssets)
-                  .build(),
-              ImmutableList.<SerializedAndroidData>builder()
-                  .addAll(options.transitiveData)
-                  .addAll(options.transitiveAssets)
-                  .build(),
-              options.packageType,
-              symbols,
-              dataDeserializer,
-              options.throwOnResourceConflict,
-              executorService);
-      if (options.symbolsOut != null) {
-        Files.copy(symbolsBin, options.symbolsOut);
+      if (options.throwOnResourceConflict || options.symbolsOut != null) {
+        // Checks for merge conflicts, and write the merged data out. This only happens when
+        // --throwOnResourceConflict or --symbolsOut is specified.
+        final Path symbolsBin =
+            AndroidResourceMerger.mergeDataToSymbols(
+                ParsedAndroidData.loadedFrom(
+                    DependencyInfo.DependencyType.PRIMARY,
+                    ImmutableList.of(SerializedAndroidData.from(compiled)),
+                    executorService,
+                    dataDeserializer),
+                new DensitySpecificManifestProcessor(options.densities, densityManifest)
+                    .process(options.primaryData.getManifest()),
+                ImmutableList.<SerializedAndroidData>builder()
+                    .addAll(options.directData)
+                    .addAll(options.directAssets)
+                    .build(),
+                ImmutableList.<SerializedAndroidData>builder()
+                    .addAll(options.transitiveData)
+                    .addAll(options.transitiveAssets)
+                    .build(),
+                options.packageType,
+                symbols,
+                dataDeserializer,
+                options.throwOnResourceConflict,
+                executorService);
+        if (options.symbolsOut != null) {
+          Files.copy(symbolsBin, options.symbolsOut);
+        }
       }
 
       profiler.recordEndOf("merge").startTask("link");
