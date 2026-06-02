@@ -569,6 +569,7 @@ def _package(
         generally only desirable for test targets that aren't potentially
         running compile-time optimizations.
       generate_out_symbols: boolean. Whether to generate the merged symbols binary file.
+      feature_flags: string. The string value for --feature-flags to pass to aapt2.
       crunch_png: boolean. Determines whether `aapt2 compile` should crunch PNG files.
       aapt: FilesToRunProvider. The aapt executable or FilesToRunProvider.
       has_local_proguard_specs: If the target has proguard specs.
