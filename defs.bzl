@@ -15,7 +15,7 @@
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+load("@com_google_protobuf//:protobuf_deps.bzl", "PROTOBUF_MAVEN_ARTIFACTS", "protobuf_deps")
 load(
     "@io_bazel_rules_go//go:deps.bzl",
     "go_download_sdk",
@@ -34,6 +34,18 @@ def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
 
     protobuf_deps()
+
+    # Note: We have to manually set up @maven deps here. rules_android has a
+    # separate Maven namespace (@rules_android_maven) and by default doesn't
+    # put anything into @maven for WORKSPACE mode.
+    maven_install(
+        name = "maven",
+        artifacts = PROTOBUF_MAVEN_ARTIFACTS, # protobuf maven deps
+        repositories = [ # protobuf maven deps
+            "https://repo1.maven.org/maven2", # protobuf maven deps
+            "https://maven.google.com", # protobuf maven deps
+        ], # protobuf maven deps
+    )
 
     bazel_skylib_workspace()
 
@@ -54,11 +66,6 @@ def rules_android_workspace():
             "com.android.tools:sdk-common:30.1.3",
             "com.android.tools.build:builder:7.1.3",
             "com.android.tools.build:builder-model:7.1.3",
-            # These technically aren't needed, but the protobuf version pulled
-            # in by these older deps has compatibility issues with the newer
-            # protobuf runtimes.
-            "com.google.protobuf:protobuf-java:4.33.4",
-            "com.google.protobuf:protobuf-java-util:4.33.4",
         ],
         repositories = [
             "https://maven.google.com",
@@ -94,8 +101,6 @@ def rules_android_workspace():
             "jakarta.inject:jakarta.inject-api:2.0.1",
             "junit:junit:4.13.2",
             "com.beust:jcommander:1.82",
-            "com.google.protobuf:protobuf-java:4.33.4",
-            "com.google.protobuf:protobuf-java-util:4.33.4",
             "com.google.code.findbugs:jsr305:3.0.2",
             "androidx.databinding:databinding-compiler:8.7.0",
             "org.ow2.asm:asm:9.6",
@@ -150,11 +155,6 @@ def rules_android_workspace():
             "com.google.code.gson:gson:2.10.1",  # bazel worker api
             "com.google.errorprone:error_prone_annotations:2.23.0",  # bazel worker api
             "com.google.guava:guava:33.0.0-jre",  # bazel worker api
-            "com.google.protobuf:protobuf-java:4.33.4",  # bazel worker api
-            "com.google.protobuf:protobuf-java-util:4.33.4",  # bazel worker api
-            "junit:junit:4.13.2",  # bazel worker api
-            "org.mockito:mockito-core:5.4.0",  # bazel worker api
-            "com.google.truth:truth:1.4.0",  # bazel worker api
         ],  # bazel worker api
         aar_import_bzl_label = "@rules_android//rules:rules.bzl",
         repositories = [
