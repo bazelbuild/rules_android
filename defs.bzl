@@ -155,8 +155,6 @@ def rules_android_workspace():
             "com.google.code.gson:gson:2.10.1",
             "com.google.errorprone:error_prone_annotations:2.23.0",
             "com.google.guava:guava:33.0.0-jre",
-            "com.google.protobuf:protobuf-java:4.33.1",
-            "com.google.protobuf:protobuf-java-util:4.33.1",
         ],
         aar_import_bzl_label = "@rules_android//rules:rules.bzl",
         repositories = [
