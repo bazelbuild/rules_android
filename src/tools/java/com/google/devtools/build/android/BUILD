@@ -11,8 +11,9 @@ java_binary(
     main_class = "com.google.devtools.build.android.ResourceProcessorBusyBox",
     # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     runtime_deps = [
-        "@rules_android_maven//:com_android_tools_build_aapt2_proto",
+        "@com_google_protobuf//:protobuf_java",
         "@rules_android_maven//:com_google_guava_guava",
+        "@rules_android_maven//:com_android_tools_build_aapt2_proto",
         ":android_builder_lib",
     ],
 )
