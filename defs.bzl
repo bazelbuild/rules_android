@@ -47,22 +47,6 @@ def rules_android_workspace():
         ],
     )
 
-    # Manually setup @bazel_worker_maven deps here.
-    maven_install(
-        name = "bazel_worker_maven",
-        artifacts = [
-            "com.google.code.gson:gson:2.10.1",
-            "com.google.errorprone:error_prone_annotations:2.23.0",
-            "com.google.guava:guava:33.0.0-jre",
-            "com.google.protobuf:protobuf-java:4.33.1",
-            "com.google.protobuf:protobuf-java-util:4.33.1",
-        ],
-        repositories = [
-            "https://repo1.maven.org/maven2",
-            "https://maven.google.com",
-        ],
-    )
-
     bazel_skylib_workspace()
 
     # Maven for android_ide_common need to be separated into their own separate maven_install for now
