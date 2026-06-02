@@ -154,8 +154,8 @@ def rules_android_prereqs(dev_mode = False):
         url = "https://github.com/bazelbuild/rules_python/releases/download/1.6.0/rules_python-1.6.0.tar.gz",
     )
 
-    BAZEL_WORKER_API_VERSION = "0.0.10"
-    BAZEL_WORKER_API_HASH = "0476fe27251cd3234b69737f8bc231cfe9912becdd620e07e2d73c87bcc7e40a"
+    BAZEL_WORKER_API_VERSION = "0.0.11"
+    BAZEL_WORKER_API_HASH = "be4fab72014dc0bd92ead5146fe9ae9939bdcd262453699bb52b61e42f864e85"
     maybe(
         http_archive,
         name = "bazel_worker_api",

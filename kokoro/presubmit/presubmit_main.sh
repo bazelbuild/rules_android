@@ -113,7 +113,9 @@ function main() {
   # Maven artifact consistency test
   # The sed commands in the `<()` blocks extract the artifacts list from maven_install.
   # `diff -w` compares the two files without whitespaces.
-  diff -w <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' defs.bzl | grep -v "bazel worker api") <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' MODULE.bazel)
+  diff -w <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' defs.bzl \
+    | grep -v "\(bazel worker api\)\|\(protobuf maven deps\)") \
+    <(sed -n '/artifacts =/{:start /]/!{N;b start};/.*/p}' MODULE.bazel)
 
   TEST_TARGETS=(
     "//src/common/golang/..."

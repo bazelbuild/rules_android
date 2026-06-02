@@ -11,8 +11,9 @@ java_binary(
     main_class = "com.google.devtools.build.android.ResourceProcessorBusyBox",
     # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     runtime_deps = [
-        "@rules_android_maven//:com_android_tools_build_aapt2_proto",
+        "@com_google_protobuf//:protobuf_java",
         "@rules_android_maven//:com_google_guava_guava",
+        "@rules_android_maven//:com_android_tools_build_aapt2_proto",
         ":android_builder_lib",
     ],
 )
@@ -90,6 +91,9 @@ java_library(
     ],
     # Do not sort: Deps order matters until android_tools.jar deps are deleted (b/393172052).
     deps = [
+        # Do not sort: Somehow putting the protobuf deps after android_ide_common
+        # can cause class not found errors at runtime related to protobuf.
+        "@com_google_protobuf//:protobuf_java",
         "@android_ide_common_30_1_3//:com_android_tools_common",
         "@android_ide_common_30_1_3//:com_android_tools_sdk_common",
         "@bazel_worker_java//:worker_protocol_java_proto",
@@ -98,7 +102,6 @@ java_library(
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
         "@rules_android_maven//:com_google_guava_guava",
-        "@rules_android_maven//:com_google_protobuf_protobuf_java",
         ":android_common_30_1_3",
         ":android_databinding_wrapper_lib",
         ":android_options_utils",
@@ -163,6 +166,8 @@ java_library(
         "@android_ide_common_30_1_3//:com_android_tools_annotations",
         "@android_ide_common_30_1_3//:com_android_tools_layoutlib_layoutlib_api",
         "@android_ide_common_30_1_3//:com_android_tools_repository",
+        "@com_google_protobuf//:protobuf_java",
+        "@com_google_protobuf//:protobuf_java_util",
         "@rules_android_maven//:com_android_tools_build_aapt2_proto",
         "@rules_android_maven//:com_android_tools_build_apksig",
         "@rules_android_maven//:com_android_tools_build_apkzlib",
