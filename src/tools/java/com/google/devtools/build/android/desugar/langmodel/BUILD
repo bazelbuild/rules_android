@@ -17,7 +17,6 @@ java_library(
         ":desugar_class_attr_java_proto",
         "//tools/android:autovalue",
         "@com_google_protobuf//:protobuf_java",
-        "@com_google_protobuf//:protobuf_java_util",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
         "@rules_android_maven//:com_google_guava_guava",

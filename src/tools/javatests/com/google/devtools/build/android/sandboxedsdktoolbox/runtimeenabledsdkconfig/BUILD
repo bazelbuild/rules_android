@@ -16,7 +16,6 @@ java_test(
     deps = [
         "//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/utils",
         "@com_google_protobuf//:protobuf_java",
-        "@com_google_protobuf//:protobuf_java_util",
         "@rules_android_maven//:com_android_tools_build_bundletool",
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_truth_truth",
@@ -32,7 +31,6 @@ java_test(
         "//src/tools/javatests/com/google/devtools/build/android/sandboxedsdktoolbox/utils",
         "@rules_android_maven//:com_android_tools_build_bundletool",
         "@rules_android_maven//:com_google_guava_guava",
-        "@com_google_protobuf//:protobuf_java",
         "@com_google_protobuf//:protobuf_java_util",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",

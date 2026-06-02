@@ -93,7 +93,6 @@ java_library(
         # Do not sort: Somehow putting the protobuf deps after android_ide_common
         # can cause class not found errors at runtime related to protobuf.
         "@com_google_protobuf//:protobuf_java",
-        "@com_google_protobuf//:protobuf_java_util",
         "@android_ide_common_30_1_3//:com_android_tools_common",
         "@android_ide_common_30_1_3//:com_android_tools_sdk_common",
         "@bazel_worker_java//:worker_protocol_java_proto",
