@@ -126,4 +126,5 @@ ANDROID_FEATURE_MODULE_ATTRS = dict(
         default = False,
         doc = "Marks the feature module as an asset module. This enables the module to be distributed as archive files rather than just as APKs. Cannot contain any dex or native code.",
     ),
+    fused = attr.bool(default = True),
 )
