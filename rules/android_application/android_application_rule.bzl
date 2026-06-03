@@ -19,6 +19,7 @@ load(
     "AndroidBundleInfo",
     "AndroidFeatureModuleInfo",
     "AndroidIdeInfo",
+    "AndroidOptimizationInfo",
     "AndroidPreDexJarInfo",
     "AndroidSandboxedSdkBundleInfo",
     "ApkInfo",
@@ -373,6 +374,11 @@ def _impl(ctx):
         base_art_profile_info = ctx.attr.base_module[ArtProfileInfo]
         metadata["com.android.tools.build.profiles/baseline.prof"] = base_art_profile_info.baseline_profile
         metadata["com.android.tools.build.profiles/baseline.profm"] = base_art_profile_info.baseline_profile_metadata
+
+    if AndroidOptimizationInfo in ctx.attr.base_module:
+        opt_info = ctx.attr.base_module[AndroidOptimizationInfo]
+        if opt_info.d8_optimization_info:
+            metadata["com.android.tools/d8.json"] = opt_info.d8_optimization_info
 
     # Create .aab
     _bundletool.build(
