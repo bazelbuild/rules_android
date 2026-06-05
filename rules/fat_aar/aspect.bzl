@@ -15,7 +15,7 @@
 """Aspect for collecting transitive Android providers."""
 
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
-load("//rules:providers.bzl", "AndroidAssetsInfo", "AndroidNativeLibsInfo", "AndroidResourcesInfo", "StarlarkAndroidResourcesInfo")
+load("//providers:providers.bzl", "AndroidAssetsInfo", "AndroidNativeLibsInfo", "AndroidResourcesInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
