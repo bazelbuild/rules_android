@@ -100,6 +100,8 @@ function main() {
     "--sandbox_tmpfs_path=$hsperfdata_dir"
     "--disk_cache=$disk_cache"
     "--verbose_failures"
+    "--incompatible_enable_proto_toolchain_resolution"
+    "--@com_google_protobuf//bazel/toolchains:prefer_prebuilt_protoc=true"
   )
 
   TEST_ARGS=(
@@ -145,10 +147,6 @@ function main() {
 
   # Go to basic app workspace in the source tree
   cd "${KOKORO_ARTIFACTS_DIR}/git/rules_android/examples/basicapp"
-
-  # Query test
-  # See https://github.com/bazelbuild/rules_android/issues/241
-  "$bazel" query 'deps(...)' > /dev/null
 
   "$bazel" build \
     "${COMMON_ARGS[@]}" \

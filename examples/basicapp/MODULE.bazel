@@ -30,3 +30,9 @@ use_repo(android_sdk_repository_extension, "androidsdk")
 
 register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
 
+# NOTE: It's not actually necessary to add protobuf as a dep to the example app.
+# This is only here to enable setting --@protobuf//bazel/flags:prefer_prebuilt_protoc
+# in order to make internal presubmit faster. This quirk is really only relevant
+# to protobuf ~33.4 or so, as that flag will become true by default in 34+.
+# See https://protobuf.dev/news/2026-01-16/
+bazel_dep(name = "protobuf", version = "33.4", repo_name = "com_google_protobuf")
