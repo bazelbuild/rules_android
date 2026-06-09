@@ -27,9 +27,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -46,13 +45,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -83,7 +81,19 @@ class DexFileSplitter implements Closeable {
         description = "Directory to write dex archives to merge.")
     public Path outputDirectory = new CompatPathConverter().convert(".");
 
+    @Parameter(
+        names = "--main-dex-list",
+        converter = CompatExistingPathConverter.class,
+        description = "List of classes to be placed into \"main\" classes.dex file.")
+    public Path mainDexListFile;
 
+    @Parameter(
+        names = "--minimal-main-dex",
+        arity = 1,
+        description =
+            "If true, *only* classes listed in --main_dex_list file are placed into \"main\" "
+                + "classes.dex file.")
+    public boolean minimalMainDex;
 
     // Undocumented dx option for testing multidex logic
     @Parameter(
@@ -111,17 +121,29 @@ class DexFileSplitter implements Closeable {
   @VisibleForTesting
   static void splitIntoShards(Options options)
       throws ExecutionException, InterruptedException, IOException {
+    checkArgument(
+        !options.minimalMainDex || options.mainDexListFile != null,
+        "--minimal-main-dex not allowed without --main-dex-list");
+
     if (!Files.exists(options.outputDirectory)) {
       Files.createDirectories(options.outputDirectory);
     }
+
+    ImmutableSet<String> classesInMainDex =
+        options.mainDexListFile != null
+            ? ImmutableSet.copyOf(Files.readAllLines(options.mainDexListFile, UTF_8))
+            : null;
     ImmutableSet<String> expected =
         options.inclusionFilterJar != null ? expectedEntries(options.inclusionFilterJar) : null;
     try (Closer closer = Closer.create();
         DexFileSplitter out =
             new DexFileSplitter(options.outputDirectory, options.maxNumberOfIdxPerDex)) {
 
-      // 1. Scan inputs in order and keep first occurrence of each class (preserving input order),
-      // keeping all zips open.
+      // 1. Scan inputs in order and keep first occurrence of each class, keeping all zips open.
+      // We don't process anything yet so we can shard in sorted order, which is what dx would do
+      // if presented with a single jar containing all the given inputs.
+      // TODO(kmb): Abandon alphabetic sorting to process each input fully before moving on (still
+      // requires scanning inputs twice for main dex list).
 
       Predicate<ZipEntry> inclusionFilter = ZipEntryPredicates.suffixes(".dex", ".class");
       if (expected != null) {
@@ -129,10 +151,10 @@ class DexFileSplitter implements Closeable {
       }
 
       // Maps a dex file name to the zip file containing that dex file.
-      LinkedHashMap<String, ZipFile> dexFilesAndContainingZip = new LinkedHashMap<>();
+      TreeMap<String, ZipFile> dexFilesAndContainingZip =
+          new TreeMap<>(ZipEntryComparator::compareClassNames);
       // Maps a class to its synthetic classes, if any.
-      LinkedHashMultimap<String, String> contextClassesToSyntheticClasses =
-          LinkedHashMultimap.create();
+      TreeMultimap<String, String> contextClassesToSyntheticClasses = TreeMultimap.create();
 
       for (Path inputArchive : options.inputArchives) {
         ZipFile zip = closer.register(new ZipFile(inputArchive.toFile()));
@@ -151,8 +173,28 @@ class DexFileSplitter implements Closeable {
       }
 
       // 2. Process each class in desired order, rolling from shard to shard as needed.
-      out.processDexes(
-          dexFilesAndContainingZip, contextClassesToSyntheticClasses, Predicates.alwaysTrue());
+      if (classesInMainDex == null || classesInMainDex.isEmpty()) {
+        out.processDexes(
+            dexFilesAndContainingZip, contextClassesToSyntheticClasses, Predicates.alwaysTrue());
+      } else {
+        checkArgument(classesInMainDex.stream().noneMatch(s -> s.startsWith("j$/")),
+            "%s lists classes in package 'j$', which can't be included in classes.dex and can "
+                + "cause runtime errors. Please avoid needing these classes in the main dex file.",
+            options.mainDexListFile);
+        // To honor --main_dex_list make two passes:
+        // 1. process only the classes listed in the given file
+        // 2. process the remaining files
+        Predicate<String> mainDexFilter = ZipEntryPredicates.classFileNameFilter(classesInMainDex);
+        out.processDexes(dexFilesAndContainingZip, contextClassesToSyntheticClasses, mainDexFilter);
+        // Fail if main_dex_list is too big, following dx's example
+        checkState(out.shardsWritten() == 0, "Too many classes listed in main dex list file "
+            + "%s, main dex capacity exceeded", options.mainDexListFile);
+        if (options.minimalMainDex) {
+          out.nextShard(); // Start new .dex file if requested
+        }
+        out.processDexes(
+            dexFilesAndContainingZip, contextClassesToSyntheticClasses, mainDexFilter.negate());
+      }
     }
   }
 
@@ -166,7 +208,7 @@ class DexFileSplitter implements Closeable {
   }
 
   private static void parseSyntheticContextsMap(
-      InputStream inputStream, Multimap<String, String> syntheticClassContexts) {
+      InputStream inputStream, TreeMultimap<String, String> syntheticClassContexts) {
     Scanner scanner = new Scanner(inputStream, UTF_8);
     scanner.useDelimiter("[;\n]");
     while (scanner.hasNext()) {
@@ -244,7 +286,7 @@ class DexFileSplitter implements Closeable {
 
   private void processDexes(
       Map<String, ZipFile> dexFilesAndContainingZip,
-      Multimap<String, String> contextClassesToSyntheticClasses,
+      TreeMultimap<String, String> contextClassesToSyntheticClasses,
       Predicate<String> filter)
       throws ExecutionException, InterruptedException, IOException {
 
@@ -266,7 +308,7 @@ class DexFileSplitter implements Closeable {
             // file all together as a unit, so skip them here.
             if (!syntheticClasses.contains(filename)) {
               ZipFile zipFile = entry.getValue();
-            Collection<String> synths = contextClassesToSyntheticClasses.get(filename);
+              Set<String> synths = contextClassesToSyntheticClasses.get(filename);
 
             ListenableFuture<ZipEntryAndContent> contextFuture =
                 listeningExecutor.submit(() -> readAndParseDex(zipFile, filename));
@@ -360,10 +402,11 @@ class DexFileSplitter implements Closeable {
         filename);
     checkState(entry.getMethod() == ZipEntry.STORED, "Expect to process STORED: %s", filename);
 
-    // We don't want to use the Dex(InputStream) constructor because it closes the stream,
-    // which will break the for loop, and it has its own bespoke way of reading the file into
-    // a byte buffer before effectively calling Dex(byte[]) anyway.
     try (InputStream entryStream = zip.getInputStream(entry)) {
+      // We don't want to use the Dex(InputStream) constructor because it closes the stream,
+      // which will break the for loop, and it has its own bespoke way of reading the file into
+      // a byte buffer before effectively calling Dex(byte[]) anyway.
+      // TODO(kmb) since entry is stored, mmap content and give to Dex(ByteBuffer) and output zip
       byte[] content = new byte[(int) entry.getSize()];
       ByteStreams.readFully(entryStream, content); // throws if file is smaller than expected
       checkState(
