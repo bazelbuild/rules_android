@@ -456,4 +456,53 @@ public class DexFileSplitterTest {
         });
     return outputZipPath;
   }
+
+  @org.junit.After
+  public void tearDown() throws Exception {
+    DexFileSplitter.queueCapacity = 256;
+  }
+
+  @Test
+  public void testConsumerFailureUnblocksProducer() throws Exception {
+    DexFileSplitter.queueCapacity = 1;
+
+    Path corruptZip = tmp.newFile("corrupt.zip").toPath();
+    try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(corruptZip))) {
+      ZipEntry entry = new ZipEntry("com/example/Corrupt.class.dex");
+      entry.setMethod(ZipEntry.STORED);
+      byte[] junk = "not a valid dex file".getBytes(UTF_8);
+      entry.setSize(junk.length);
+      CRC32 crc = new CRC32();
+      crc.update(junk);
+      entry.setCrc(crc.getValue());
+      zos.putNextEntry(entry);
+      zos.write(junk);
+      zos.closeEntry();
+    }
+
+    // Verifies that the actual consumer exception cause (ExecutionException) is propagated,
+    // not lost or hidden by a generic InterruptedException.
+    assertThrows(
+        ExecutionException.class,
+        () ->
+            runDexSplitter(
+                REAL_WORLD_IDX_PER_DEX,
+                "backpressure_run",
+                simpleDexArchive,
+                corruptZip,
+                simpleDexArchive,
+                simpleDexArchive));
+  }
+
+  @Test
+  public void testProducerFailure() throws Exception {
+    Thread.currentThread().interrupt();
+    try {
+      assertThrows(
+          InterruptedException.class,
+          () -> runDexSplitter(REAL_WORLD_IDX_PER_DEX, "producer_interrupt_run", simpleDexArchive));
+    } finally {
+      Thread.interrupted(); // clear interrupted status
+    }
+  }
 }
