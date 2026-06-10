@@ -45,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -225,10 +228,10 @@ class DexFileSplitter implements Closeable {
   private static final String CLASS_DEX_EXTENSION = ".class.dex";
 
   /**
-   * Number of DEX files to process in a single batch to avoid overwhelming native thread pools and
-   * resources during concurrent reading and parsing.
+   * Capacity of the bounded queue used to throttle concurrent reading and parsing of DEX files
+   * before sharding and writing.
    */
-  private static final int BATCH_SIZE = 256;
+  @VisibleForTesting static int queueCapacity = 256;
 
   private final int maxNumberOfIdxPerDex;
   private final Path outputDirectory;
@@ -294,59 +297,73 @@ class DexFileSplitter implements Closeable {
     int nThreads = Runtime.getRuntime().availableProcessors();
     ExecutorService executor = Executors.newFixedThreadPool(nThreads);
     ListeningExecutorService listeningExecutor = MoreExecutors.listeningDecorator(executor);
+    // A single-threaded consumer preserves deterministic sharding and writing order, while the
+    // heavier reading and parsing work is parallelized across the main executor pool.
+    ExecutorService consumerExecutor = Executors.newSingleThreadExecutor();
 
-      List<Map.Entry<String, ZipFile>> entries =
-          new ArrayList<>(dexFilesAndContainingZip.entrySet());
+    Semaphore backpressure = new Semaphore(queueCapacity);
+    List<Future<?>> groupFutures = new ArrayList<>();
 
-      for (List<Map.Entry<String, ZipFile>> batch : Lists.partition(entries, BATCH_SIZE)) {
-        List<GroupTask> tasks = new ArrayList<>(batch.size());
-
-        for (Map.Entry<String, ZipFile> entry : batch) {
-          String filename = entry.getKey();
-          if (filter.test(filename)) {
-            // Synthetic classes will be gathered with their context classes and added to the dex
-            // file all together as a unit, so skip them here.
-            if (!syntheticClasses.contains(filename)) {
-              ZipFile zipFile = entry.getValue();
-              Set<String> synths = contextClassesToSyntheticClasses.get(filename);
+    try {
+      for (Map.Entry<String, ZipFile> entry : dexFilesAndContainingZip.entrySet()) {
+        String filename = entry.getKey();
+        if (filter.test(filename)) {
+          if (!syntheticClasses.contains(filename)) {
+            ZipFile zipFile = entry.getValue();
+            Collection<String> synths = contextClassesToSyntheticClasses.get(filename);
 
             ListenableFuture<ZipEntryAndContent> contextFuture =
                 listeningExecutor.submit(() -> readAndParseDex(zipFile, filename));
             List<ListenableFuture<ZipEntryAndContent>> syntheticFutures =
                 new ArrayList<>(synths.size());
-              for (String syntheticClass : synths) {
+            for (String syntheticClass : synths) {
               syntheticFutures.add(
                   listeningExecutor.submit(() -> readAndParseDex(zipFile, syntheticClass)));
-              }
-              tasks.add(
-                  new GroupTask(filename, zipFile.getName(), contextFuture, syntheticFutures));
             }
+
+            backpressure.acquire();
+            groupFutures.add(
+                consumerExecutor.submit(
+                    () -> {
+                      try {
+                        List<ZipEntryAndContent> entries = new ArrayList<>();
+                        ZipEntryAndContent contextZdc = contextFuture.get();
+                        checkNotNull(
+                            contextZdc,
+                            "Context class %s expected to be in %s",
+                            filename,
+                            zipFile.getName());
+                        entries.add(contextZdc);
+
+                        for (ListenableFuture<ZipEntryAndContent> synthFuture : syntheticFutures) {
+                          ZipEntryAndContent syntheticClassZdc = synthFuture.get();
+                          // Some synthetic classes are contained within the same dex as their
+                          // enclosing class, so they won't be standalone dexes in the zip file, and
+                          // some synthetic classes are present in synthetic-contexts.map but aren't
+                          // standalone dexes in the zip nor are they in the dex with their
+                          // enclosing class, so just skip these.
+                          if (syntheticClassZdc != null) {
+                            entries.add(syntheticClassZdc);
+                          }
+                        }
+
+                        processGroup(filename, entries);
+                        return null;
+                      } finally {
+                        backpressure.release();
+                      }
+                    }));
           }
         }
-
-        for (GroupTask task : tasks) {
-          List<ZipEntryAndContent> zipEntryAndContentses = new ArrayList<>();
-        ZipEntryAndContent contextZdc = task.contextFuture().get();
-          checkNotNull(
-              contextZdc, "Context class %s expected to be in %s", task.filename(), task.zipName());
-          zipEntryAndContentses.add(contextZdc);
-
-        for (ListenableFuture<ZipEntryAndContent> synthFuture : task.syntheticFutures()) {
-          ZipEntryAndContent syntheticClassZdc = synthFuture.get();
-          // Some synthetic classes are contained within the same dex as their enclosing class,
-          // so they won't be standalone dexes in the zip file, and some synthetic classes are
-          // present in synthetic-contexts.map but aren't standalone dexes in the zip nor are
-          // they
-          // in the dex with their enclosing class, so just skip these.
-          if (syntheticClassZdc != null) {
-              zipEntryAndContentses.add(syntheticClassZdc);
-            }
-          }
-
-          processGroup(task.filename(), zipEntryAndContentses);
-        }
+      }
+    } finally {
+      executor.shutdown();
+      consumerExecutor.shutdown();
     }
-    executor.shutdown();
+
+    for (Future<?> future : groupFutures) {
+      future.get();
+    }
   }
 
   private void processGroup(String filename, List<ZipEntryAndContent> zipEntryDexAndContents)
@@ -423,15 +440,7 @@ class DexFileSplitter implements Closeable {
     }
   }
 
-  /**
-   * Represents a unit of work for processing a context DEX file and its associated synthetic DEX
-   * files in parallel.
-   */
-  private record GroupTask(
-      String filename,
-      String zipName,
-      ListenableFuture<ZipEntryAndContent> contextFuture,
-      List<ListenableFuture<ZipEntryAndContent>> syntheticFutures) {}
+
 
   private static final class ZipEntryAndContent {
     final ZipEntry zipEntry;
