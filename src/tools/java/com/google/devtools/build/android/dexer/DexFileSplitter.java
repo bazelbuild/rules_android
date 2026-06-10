@@ -326,12 +326,12 @@ class DexFileSplitter implements Closeable {
 
         for (GroupTask task : tasks) {
           List<ZipEntryAndContent> zipEntryAndContentses = new ArrayList<>();
-        ZipEntryAndContent contextZdc = task.contextFuture().get();
+        ZipEntryAndContent contextZdc = task.contextFuture.get();
           checkNotNull(
-              contextZdc, "Context class %s expected to be in %s", task.filename(), task.zipName());
+              contextZdc, "Context class %s expected to be in %s", task.filename, task.zipName);
           zipEntryAndContentses.add(contextZdc);
 
-        for (ListenableFuture<ZipEntryAndContent> synthFuture : task.syntheticFutures()) {
+        for (ListenableFuture<ZipEntryAndContent> synthFuture : task.syntheticFutures) {
           ZipEntryAndContent syntheticClassZdc = synthFuture.get();
           // Some synthetic classes are contained within the same dex as their enclosing class,
           // so they won't be standalone dexes in the zip file, and some synthetic classes are
@@ -343,7 +343,7 @@ class DexFileSplitter implements Closeable {
             }
           }
 
-          processGroup(task.filename(), zipEntryAndContentses);
+          processGroup(task.filename, zipEntryAndContentses);
         }
     }
     executor.shutdown();
@@ -427,11 +427,23 @@ class DexFileSplitter implements Closeable {
    * Represents a unit of work for processing a context DEX file and its associated synthetic DEX
    * files in parallel.
    */
-  private record GroupTask(
-      String filename,
-      String zipName,
-      ListenableFuture<ZipEntryAndContent> contextFuture,
-      List<ListenableFuture<ZipEntryAndContent>> syntheticFutures) {}
+  private static final class GroupTask {
+    final String filename;
+    final String zipName;
+    final ListenableFuture<ZipEntryAndContent> contextFuture;
+    final List<ListenableFuture<ZipEntryAndContent>> syntheticFutures;
+
+    GroupTask(
+        String filename,
+        String zipName,
+        ListenableFuture<ZipEntryAndContent> contextFuture,
+        List<ListenableFuture<ZipEntryAndContent>> syntheticFutures) {
+      this.filename = filename;
+      this.zipName = zipName;
+      this.contextFuture = contextFuture;
+      this.syntheticFutures = syntheticFutures;
+    }
+  }
 
   private static final class ZipEntryAndContent {
     final ZipEntry zipEntry;
