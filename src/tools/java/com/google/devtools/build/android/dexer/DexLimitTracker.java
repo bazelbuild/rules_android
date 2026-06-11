@@ -29,7 +29,8 @@ import java.util.HashSet;
  */
 class DexLimitTracker {
 
-  private static final Interner<String> interner = Interners.newWeakInterner();
+  private static final ThreadLocal<Interner<String>> threadLocalInterner =
+      ThreadLocal.withInitial(Interners::newWeakInterner);
 
   private final HashSet<String> fieldsSeen = new HashSet<>();
   private final HashSet<String> methodsSeen = new HashSet<>();
@@ -100,7 +101,7 @@ class DexLimitTracker {
   }
 
   private static String typeName(Dex dex, int typeIndex) {
-    return interner.intern(dex.typeNames().get(typeIndex));
+    return threadLocalInterner.get().intern(dex.typeNames().get(typeIndex));
   }
 
   private static String fieldSignature(Dex dex, int fieldIndex) {
@@ -108,7 +109,7 @@ class DexLimitTracker {
     String name = dex.strings().get(field.getNameIndex());
     String declaringClass = typeName(dex, field.getDeclaringClassIndex());
     String type = typeName(dex, field.getTypeIndex());
-    return interner.intern(declaringClass + "." + name + ":" + type);
+    return threadLocalInterner.get().intern(declaringClass + "." + name + ":" + type);
   }
 
   private static String methodSignature(Dex dex, int methodIndex) {
@@ -122,7 +123,8 @@ class DexLimitTracker {
     for (short parameterTypeIndex : parameterTypeIndices.getTypes()) {
       parameterTypes.append(typeName(dex, parameterTypeIndex & 0xFFFF));
     }
-    return interner.intern(
-        declaringClass + "." + name + ":" + returnType + "(" + parameterTypes + ")");
+    return threadLocalInterner
+        .get()
+        .intern(declaringClass + "." + name + ":" + returnType + "(" + parameterTypes + ")");
   }
 }
