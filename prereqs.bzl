@@ -24,9 +24,9 @@ def rules_android_prereqs(dev_mode = False):
     maybe(
         http_archive,
         name = "bazel_features",
-        sha256 = "a660027f5a87f13224ab54b8dc6e191693c554f2692fcca46e8e29ee7dabc43b",
-        strip_prefix = "bazel_features-1.30.0",
-        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.30.0/bazel_features-v1.30.0.tar.gz",
+        sha256 = "89eca73d4c334cf664f84920365d2ce04e2c98099b89f7c5b676b5f377c8e754",
+        strip_prefix = "bazel_features-1.48.1",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v1.48.1/bazel_features-v1.48.1.tar.gz",
     )
 
     maybe(
