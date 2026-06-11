@@ -76,7 +76,10 @@ def _desugar(
         arguments = [args],
         mnemonic = "Desugar",
         progress_message = "Desugaring " + input.short_path + " for Android",
-        execution_requirements = {"supports-workers": "1"},
+        # supports-path-mapping: the "Desugar" mnemonic and the "--input" flag are special-cased by
+        # Bazel's StrippingPathMapper, so the "--input <input.path>" string is stripped at execution.
+        # All other arguments are File objects (structurally mapped).
+        execution_requirements = {"supports-workers": "1", "supports-path-mapping": "1"},
         use_default_shell_env = True,
         toolchain = toolchain_type,
     )

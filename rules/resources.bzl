@@ -1087,12 +1087,12 @@ def _bump_min_sdk(
     log = ctx.actions.declare_file(
         out_dir + "log.txt",
     )
-    args.add("-log", log.path)
+    args.add("-log", log)
 
     out_manifest = ctx.actions.declare_file(
         out_dir + manifest.path.split("/")[-1],
     )
-    args.add("-output", out_manifest.path)
+    args.add("-output", out_manifest)
     ctx.actions.run(
         executable = get_android_toolchain(ctx).android_kit.files_to_run,
         inputs = [manifest],
@@ -1100,6 +1100,11 @@ def _bump_min_sdk(
         arguments = ["minsdkfloor", args],
         mnemonic = "BumpMinSdkFloor",
         progress_message = "Bumping up AndroidManifest min SDK %s" % str(ctx.label),
+        # supports-path-mapping: the output is the input AndroidManifest.xml with its min SDK bumped;
+        # the bytes embed no exec paths, so the output is invariant under config-prefix stripping and
+        # can be shared across the ABI-split configs. -manifest/-log/-output are all File arguments
+        # (passed as Files, not .path strings) so Bazel's path mapper rewrites them at execution.
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
     manifest_ctx[_PROCESSED_MANIFEST] = out_manifest

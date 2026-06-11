@@ -58,6 +58,9 @@ _VALIDATION_RESULTS = "validation_results"
 def _create_aar_tree_artifact(ctx, name):
     return ctx.actions.declare_directory("%s/unzipped/%s/%s" % (RULE_PREFIX, name, ctx.label.name))
 
+def _path(f):
+    return f.path
+
 def create_aar_artifact(ctx, name):
     return ctx.actions.declare_file("%s/%s/%s" % (RULE_PREFIX, ctx.label.name, name))
 
@@ -90,6 +93,10 @@ def extract_single_file(
             ),
         mnemonic = "AarFileExtractor",
         progress_message = "Extracting %s from %s" % (filename, aar.basename),
+        # NOT path-mapping compatible as written: the input/output paths (aar.path, out_file.dirname,
+        # unzip_tool.executable.path) are baked into the run_shell `command` string at analysis time,
+        # which Bazel's path mapper does not rewrite. Mapping this would require routing the paths
+        # through `arguments` (which are mapped) and referencing them positionally in the command.
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -101,8 +108,11 @@ def _extract_resources(
         aar_resources_extractor_tool):
     args = ctx.actions.args()
     args.add("--input_aar", aar)
-    args.add("--output_res_dir", out_resources_dir.path)
-    args.add("--output_assets_dir", out_assets_dir.path)
+    # Output dirs are tree artifacts: pass them through add_all + map_each (not .path strings) so
+    # File.path resolves to the path-mapped (config-stripped) directory at execution under
+    # --experimental_output_paths=strip. expand_directories = False emits the directory as one value.
+    args.add_all("--output_res_dir", [out_resources_dir], map_each = _path, expand_directories = False)
+    args.add_all("--output_assets_dir", [out_assets_dir], map_each = _path, expand_directories = False)
     ctx.actions.run(
         executable = aar_resources_extractor_tool,
         arguments = [args],
@@ -110,6 +120,10 @@ def _extract_resources(
         outputs = [out_resources_dir, out_assets_dir],
         mnemonic = "AarResourcesExtractor",
         progress_message = "Extracting resources and assets from %s" % aar.basename,
+        # supports-path-mapping: extracts the AAR's res/ and assets/ verbatim; the extracted bytes
+        # are the AAR's own content (no exec paths), so the outputs are invariant under config-prefix
+        # stripping and shareable across the ABI-split configs.
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = None,
     )
 
@@ -130,6 +144,9 @@ def _extract_native_libs(
         outputs = [output_zip],
         mnemonic = "AarNativeLibsFilter",
         progress_message = "Filtering AAR native libs by architecture",
+        # NOT path-mapping compatible: this filters the AAR's native libs to a specific --cpu, so the
+        # output_zip content differs per ABI-split config. Stripping the config prefix would collapse
+        # these distinct per-architecture outputs onto a single cache key and serve the wrong libs.
         toolchain = None,
     )
 
@@ -193,7 +210,11 @@ def _extract_jars(
         aar_embedded_jars_extractor_tool):
     args = ctx.actions.args()
     args.add("--input_aar", aar)
-    args.add("--output_dir", out_jars_tree_artifact.path)
+    # Tree-artifact output: pass via add_all + map_each so File.path resolves to the path-mapped
+    # (config-stripped) dir at execution. The tool writes the SingleJar param file listing the
+    # extracted jars under this dir, so those entries are stripped too -- which is why the
+    # AarJarsMerger that consumes the param file must be path-mapped in lockstep (see _merge_jars).
+    args.add_all("--output_dir", [out_jars_tree_artifact], map_each = _path, expand_directories = False)
     args.add("--build_target", ctx.label)
     args.add("--output_singlejar_param_file", out_jars_params_file)
     ctx.actions.run(
@@ -203,6 +224,10 @@ def _extract_jars(
         outputs = [out_jars_tree_artifact, out_jars_params_file],
         mnemonic = "AarEmbeddedJarsExtractor",
         progress_message = "Extracting classes.jar and libs/*.jar from %s" % aar.basename,
+        # supports-path-mapping: --input_aar/--output_singlejar_param_file are File args (mapped),
+        # --output_dir is mapped via map_each above, and the extracted jars are the AAR's own content
+        # (no exec paths), so the outputs are invariant across the ABI-split configs.
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = None,
     )
 
@@ -216,7 +241,11 @@ def _merge_jars(
     args.add("--output", out_jar)
     args.add("--dont_change_compression")
     args.add("--normalize")
-    args.add("@" + jars_param_file.path)
+    # Reference the param file via map_each so the "@<file>" flagfile path is the path-mapped
+    # (config-stripped) path, matching where Bazel stages the input. The param file's entries are
+    # written (stripped) by the path-mapped AarEmbeddedJarsExtractor above, and SingleJar --normalize
+    # emits package-relative entries, so out_jar is invariant across the ABI-split configs.
+    args.add_all([jars_param_file], format_each = "@%s", map_each = _path)
     ctx.actions.run(
         executable = single_jar_tool,
         arguments = [args],
@@ -224,6 +253,9 @@ def _merge_jars(
         outputs = [out_jar],
         mnemonic = "AarJarsMerger",
         progress_message = "Merging AAR embedded jars",
+        # supports-path-mapping: kept in lockstep with AarEmbeddedJarsExtractor (the param file's jar
+        # entries are config-stripped); --output is a File arg and the merged jar is normalized.
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = None,
     )
 
@@ -292,6 +324,11 @@ def _create_import_deps_check(
         outputs = [jdeps_output],
         mnemonic = "ImportDepsChecker",
         progress_message = "Checking the completeness of the deps for %s" % jars_to_check,
+        # supports-path-mapping: every path argument (--input/--directdep/--classpath_entry/
+        # --bootclasspath_entry/--jdeps_output) is a File, so Bazel's path mapper rewrites them. The
+        # jdeps output records those (now config-stripped) classpath paths, so it is invariant across
+        # the ABI-split configs.
+        supports_path_mapping = True,
     )
 
 def _process_jars(
@@ -396,6 +433,9 @@ def _validate_rule(
         outputs = [validation_output],
         mnemonic = "ValidateAAR",
         progress_message = "Validating aar_import %s" % str(ctx.label),
+        # supports-path-mapping: -aar/-manifest/-output are File arguments (mapped) and the
+        # validation output carries no exec paths, so it is invariant across the ABI-split configs.
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = None,
     )
     return validation_output
@@ -448,6 +488,10 @@ def _collect_proguard(
         outputs = [out_proguard],
         mnemonic = "AarEmbeddedProguardExtractor",
         progress_message = "Extracting proguard spec from %s" % aar.basename,
+        # supports-path-mapping: --input_aar/--output_proguard_file are File arguments (mapped) and
+        # the extracted proguard spec is the AAR's own text (no exec paths), so the output is
+        # invariant across the ABI-split configs.
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = None,
     )
     transitive_proguard_specs = []
