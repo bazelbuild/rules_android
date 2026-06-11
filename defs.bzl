@@ -13,6 +13,7 @@
 # limitations under the License.
 """Workspace setup macro for rules_android."""
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@com_google_protobuf//:protobuf_deps.bzl", "PROTOBUF_MAVEN_ARTIFACTS", "protobuf_deps")
@@ -33,6 +34,7 @@ load("@rules_shell//shell:repositories.bzl", "rules_shell_dependencies", "rules_
 def rules_android_workspace():
     """ Sets up workspace dependencies for rules_android."""
 
+    bazel_features_deps()
     protobuf_deps()
 
     # Note: We have to manually set up @maven deps here. rules_android has a
