@@ -27,7 +27,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.TreeMultimap;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
@@ -64,8 +63,7 @@ import javax.annotation.Nullable;
 
 /**
  * Shuffles .class.dex files from input archives into 1 or more archives each to be merged into a
- * single final .dex file by {@link DexFileMerger}, respecting main dex list and other constraints
- * similar to how dx would process these files if they were in a single input archive.
+ * single final .dex file by {@link DexFileMerger}.
  */
 class DexFileSplitter implements Closeable {
 
@@ -84,19 +82,7 @@ class DexFileSplitter implements Closeable {
         description = "Directory to write dex archives to merge.")
     public Path outputDirectory = new CompatPathConverter().convert(".");
 
-    @Parameter(
-        names = "--main-dex-list",
-        converter = CompatExistingPathConverter.class,
-        description = "List of classes to be placed into \"main\" classes.dex file.")
-    public Path mainDexListFile;
 
-    @Parameter(
-        names = "--minimal-main-dex",
-        arity = 1,
-        description =
-            "If true, *only* classes listed in --main_dex_list file are placed into \"main\" "
-                + "classes.dex file.")
-    public boolean minimalMainDex;
 
     // Undocumented dx option for testing multidex logic
     @Parameter(
@@ -124,18 +110,11 @@ class DexFileSplitter implements Closeable {
   @VisibleForTesting
   static void splitIntoShards(Options options)
       throws ExecutionException, InterruptedException, IOException {
-    checkArgument(
-        !options.minimalMainDex || options.mainDexListFile != null,
-        "--minimal-main-dex not allowed without --main-dex-list");
 
     if (!Files.exists(options.outputDirectory)) {
       Files.createDirectories(options.outputDirectory);
     }
 
-    ImmutableSet<String> classesInMainDex =
-        options.mainDexListFile != null
-            ? ImmutableSet.copyOf(Files.readAllLines(options.mainDexListFile, UTF_8))
-            : null;
     ImmutableSet<String> expected =
         options.inclusionFilterJar != null ? expectedEntries(options.inclusionFilterJar) : null;
     try (Closer closer = Closer.create();
@@ -145,8 +124,7 @@ class DexFileSplitter implements Closeable {
       // 1. Scan inputs in order and keep first occurrence of each class, keeping all zips open.
       // We don't process anything yet so we can shard in sorted order, which is what dx would do
       // if presented with a single jar containing all the given inputs.
-      // TODO(kmb): Abandon alphabetic sorting to process each input fully before moving on (still
-      // requires scanning inputs twice for main dex list).
+      // TODO(kmb): Abandon alphabetic sorting to process each input fully before moving on.
 
       Predicate<ZipEntry> inclusionFilter = ZipEntryPredicates.suffixes(".dex", ".class");
       if (expected != null) {
@@ -176,28 +154,8 @@ class DexFileSplitter implements Closeable {
       }
 
       // 2. Process each class in desired order, rolling from shard to shard as needed.
-      if (classesInMainDex == null || classesInMainDex.isEmpty()) {
-        out.processDexes(
-            dexFilesAndContainingZip, contextClassesToSyntheticClasses, Predicates.alwaysTrue());
-      } else {
-        checkArgument(classesInMainDex.stream().noneMatch(s -> s.startsWith("j$/")),
-            "%s lists classes in package 'j$', which can't be included in classes.dex and can "
-                + "cause runtime errors. Please avoid needing these classes in the main dex file.",
-            options.mainDexListFile);
-        // To honor --main_dex_list make two passes:
-        // 1. process only the classes listed in the given file
-        // 2. process the remaining files
-        Predicate<String> mainDexFilter = ZipEntryPredicates.classFileNameFilter(classesInMainDex);
-        out.processDexes(dexFilesAndContainingZip, contextClassesToSyntheticClasses, mainDexFilter);
-        // Fail if main_dex_list is too big, following dx's example
-        checkState(out.shardsWritten() == 0, "Too many classes listed in main dex list file "
-            + "%s, main dex capacity exceeded", options.mainDexListFile);
-        if (options.minimalMainDex) {
-          out.nextShard(); // Start new .dex file if requested
-        }
-        out.processDexes(
-            dexFilesAndContainingZip, contextClassesToSyntheticClasses, mainDexFilter.negate());
-      }
+      out.processDexes(
+          dexFilesAndContainingZip, contextClassesToSyntheticClasses, Predicates.alwaysTrue());
     }
   }
 
