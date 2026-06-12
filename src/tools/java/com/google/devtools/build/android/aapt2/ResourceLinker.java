@@ -736,6 +736,7 @@ public class ResourceLinker {
   /** Convert a proto apk to binary. */
   public Path convertProtoApkToBinary(ProtoApk protoApk) {
     try {
+      profiler.startTask("convert");
       final Path protoApkPath = protoApk.asApkPath();
       final Path working =
           workingDirectory
@@ -753,6 +754,7 @@ public class ResourceLinker {
               .add("-o", apk.toString())
               .add(protoApk.asApkPath().toString())
               .execute(String.format("Converting %s", protoApkPath)));
+      profiler.recordEndOf("convert");
       return copyAndFixCompression(apk, working);
     } catch (IOException e) {
       throw new LinkError(e);
