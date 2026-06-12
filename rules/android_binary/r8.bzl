@@ -34,7 +34,7 @@ load(
     "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("//rules/flags:flags.bzl", _flags = "flags")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag", _flags = "flags")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -129,7 +129,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     args.add("--pg-map-output", proguard_mappings_output_file)
 
     r8_inputs = [android_jar, deploy_jar] + proguard_specs
-    if ctx.fragments.android.desugar_java8_libs and desugared_lib_config:
+    if read_possibly_native_flag(ctx, "desugar_java8_libs") and desugared_lib_config:
         args.add("--desugared-lib", desugared_lib_config)
         r8_inputs.append(desugared_lib_config)
 
@@ -149,7 +149,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     # backport references, but does NOT include the j$.* implementation classes
     # in its output. Append the prebuilt desugared library DEX so the j$.*
     # classes are available at runtime.
-    if ctx.fragments.android.desugar_java8_libs and desugared_lib_config:
+    if read_possibly_native_flag(ctx, "desugar_java8_libs") and desugared_lib_config:
         final_classes_dex_zip = ctx.actions.declare_file(ctx.label.name + "_final_dexes.zip")
         java8_legacy_dex = utils.only(
             get_android_toolchain(ctx).java8_legacy_dex.files.to_list(),
