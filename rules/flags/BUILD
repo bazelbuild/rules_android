@@ -25,6 +25,7 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//rules:visibility_bzl",
+        "@bazel_features//:features",
         "@bazel_skylib//rules:common_settings",
     ],
 )

@@ -46,7 +46,7 @@ load(
     "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("//rules/flags:flags.bzl", _flags = "flags")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag", _flags = "flags")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
@@ -292,14 +292,14 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
     if proguard_output_map:
         # Proguard map from preprocessing will be merged with Proguard map for desugared
         # library.
-        if should_optimize_dex and ctx.fragments.android.desugar_java8_libs:
+        if should_optimize_dex and read_possibly_native_flag(ctx, "desugar_java8_libs"):
             postprocessing_output_map = _dex.get_dx_artifact(ctx, "_proguard_output_for_desugared_library.map")
             final_proguard_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
         elif should_optimize_dex:
             # No desugared library, Proguard map from postprocessing is the final Proguard map.
             postprocessing_output_map = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
             final_proguard_output_map = postprocessing_output_map
-        elif ctx.fragments.android.desugar_java8_libs:
+        elif read_possibly_native_flag(ctx, "desugar_java8_libs"):
             # No postprocessing, Proguard map from merging with the desugared library map is the
             # final Proguard map.
             postprocessing_output_map = proguard_output_map
@@ -357,7 +357,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
             toolchain_type = ANDROID_TOOLCHAIN_TYPE,
         )
 
-    if ctx.fragments.android.desugar_java8_libs and classes_dex_zip.extension == "zip":
+    if read_possibly_native_flag(ctx, "desugar_java8_libs") and classes_dex_zip.extension == "zip":
         final_classes_dex_zip = _dex.get_dx_artifact(ctx, "final_classes_dex.zip")
 
         java8_legacy_dex, java8_legacy_dex_map = _dex.get_java8_legacy_dex_and_map(

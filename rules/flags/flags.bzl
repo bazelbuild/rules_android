@@ -13,8 +13,10 @@
 # limitations under the License.
 """Bazel Flags."""
 
+load("@bazel_features//private:util.bzl", "lt")  # buildifier: disable=bzl-visibility
 load("//rules:utils.bzl", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -186,6 +188,49 @@ def _get_flags(ctx):
     if type(flags) != "list":
         return flags[FlagsInfo]
     return flags[0][FlagsInfo]
+
+_POSSIBLY_NATIVE_FLAGS = {
+    "desugar_java8_libs": (lambda ctx: ctx.fragments.android.desugar_java8_libs, "native"),
+}
+
+def read_possibly_native_flag(ctx, flag_name):
+    """
+    Canonical API for reading a Android build flag.
+
+    Flags might be defined in Starlark or native-Bazel. This function reads flags
+    from the correct source based on supporting Bazel version and --incompatible*
+    flags that disable native references.
+
+    Args:
+        ctx: Rule's configuration context.
+        flag_name: Name of the flag to read, without preceding "--".
+
+    Returns:
+        The flag's value.
+    """
+
+    # Bazel 9.1+ can disable these fragments with --incompatible_remove_ctx_android_fragment.
+    # Disabling them means bazel expects Android to read Starlark flags.
+    use_native_def = hasattr(ctx.fragments, "android")
+
+    # Developer override to force the Starlark definition for testing.
+    # This would allow us to migrate flags gradually from native to Starlark with flag aliases.
+    if _POSSIBLY_NATIVE_FLAGS[flag_name][1] == "starlark":
+        use_native_def = False
+
+    if lt("9.1.0"):
+        use_native_def = True
+
+    if use_native_def:
+        return _POSSIBLY_NATIVE_FLAGS[flag_name][0](ctx)
+    else:
+        # Starlark definition of "--foo" is assumed to be a label dependency named "_foo".
+        if hasattr(ctx.attr, "_" + flag_name):
+            return getattr(ctx.attr, "_" + flag_name)[BuildSettingInfo].value
+        elif hasattr(ctx.fragments, "android"):
+            return _POSSIBLY_NATIVE_FLAGS[flag_name][0](ctx)
+
+    fail("Unable to read flag value for " + flag_name)
 
 flags = struct(
     DEFINE_bool = bool_flag,
