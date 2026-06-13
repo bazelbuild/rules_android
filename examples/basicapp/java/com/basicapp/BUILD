@@ -4,11 +4,13 @@ load(
      "android_library",
      "android_application",
 )
+load("@rules_java//java:java_library.bzl", "java_library")
 
 android_binary(
     name = "basic_app",
     manifest = "AndroidManifest.xml",
     deps = [":basic_lib"],
+    proguard_specs = ["proguard.cfg"],
 )
 
 android_library(
@@ -16,6 +18,12 @@ android_library(
     srcs = ["BasicActivity.java"],
     manifest = "AndroidManifest.xml",
     resource_files = glob(["res/**"]),
+    deps = [":basic_dep"],
+)
+
+java_library(
+    name = "basic_dep",
+    srcs = ["BasicDep.java"],
 )
 
 android_application(
