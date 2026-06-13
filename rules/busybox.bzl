@@ -1008,6 +1008,7 @@ def _process_databinding(
     args.add_all(res_dirs, before_each = "--resource_root")
     args.add("--dataBindingInfoOut", out_databinding_info)
     args.add("--appId", java_package)
+    args.add("--useDataBindingAndroidX", "true")
 
     _set_warning_level(ctx, args)
 

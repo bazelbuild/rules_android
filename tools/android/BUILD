@@ -61,7 +61,9 @@ java_plugin(
     processor_class = "android.databinding.annotationprocessor.ProcessDataBinding",
     visibility = ["//visibility:public"],
     deps = [
+        "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android:databinding_exec_jar",
+        "@rules_android_maven//:com_beust_jcommander",
     ],
 )
 
@@ -304,7 +306,9 @@ java_binary(
     main_class = "android.databinding.AndroidDataBinding",
     visibility = ["//visibility:public"],
     runtime_deps = [
+        "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android:databinding_exec_jar",
+        "@rules_android_maven//:com_beust_jcommander",
     ],
 )
 
