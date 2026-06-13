@@ -8,6 +8,7 @@ licenses(["notice"])
 exports_files([
     "bundle_deploy.sh_template",
     "feature_module_validation.sh",
+    "filter_feature_classes.sh",
     "gen_android_feature_manifest.sh",
     "gen_priority_android_feature_manifest.sh",
     "rule.bzl",
@@ -39,11 +40,4 @@ py_binary(
         "@py_absl//absl:app",
         "@py_absl//absl/flags",
     ],
-)
-
-filegroup(
-    name = "merge_feature_manifests.par",
-    srcs = [":merge_feature_manifests"],
-    output_group = "python_zip_file",
-    visibility = ["//visibility:public"],
 )

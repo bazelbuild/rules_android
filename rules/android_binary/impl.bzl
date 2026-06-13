@@ -13,7 +13,7 @@
 # limitations under the License.
 """Implementation."""
 
-load("//providers:providers.bzl", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
+load("//providers:providers.bzl", "AndroidApplicationResourceInfo", "AndroidDexInfo", "AndroidFeatureFlagSet", "AndroidIdlInfo", "AndroidInstrumentationInfo", "AndroidLibraryResourceClassJarProvider", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "ApkInfo", "BaselineProfileProvider", "DataBindingV2Info", "ProguardMappingInfo", "StarlarkAndroidDexInfo", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:apk_packaging.bzl", _apk_packaging = "apk_packaging")
@@ -64,7 +64,7 @@ def _base_validations_processor(ctx, **_unused_ctxs):
         if StarlarkAndroidResourcesInfo in src:
             fail("srcs should not contain label with resources %s" % str(src.label))
 
-    use_r8 = acls.use_r8(str(ctx.label)) and bool(ctx.files.proguard_specs)
+    use_r8 = acls.use_r8(str(ctx.label)) and (bool(ctx.files.proguard_specs) or "has_proguard_specs" in ctx.attr.tags)
     return ProviderInfo(
         name = "validation_ctx",
         value = struct(
@@ -929,7 +929,7 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
     elif ctx.file.debug_key:
         signing_keys.append(ctx.file.debug_key)
 
-    use_r8 = acls.use_r8(str(ctx.label)) and ctx.files.proguard_specs
+    use_r8 = ctx.files.proguard_specs or "has_proguard_specs" in ctx.attr.tags
     if getattr(r8_ctx, "dex_info", None) and getattr(dex_ctx, "dex_info", None):
         fail("Either R8 or Dex should be used, but not both!")
     dex_info = r8_ctx.dex_info if use_r8 else dex_ctx.dex_info
@@ -1055,6 +1055,18 @@ def _process_coverage(ctx, **_unused_ctxs):
         ),
     )
 
+def _process_application_resource_info(ctx, packaged_resources_ctx, optimize_ctx, resource_shrinking_r8_ctx = None, **_unused_ctxs):
+    resources_apk = get_final_resources(packaged_resources_ctx, optimize_ctx, resource_shrinking_r8_ctx)
+    return ProviderInfo(
+        name = "application_resource_info_ctx",
+        value = struct(
+            providers = [AndroidApplicationResourceInfo(
+                resource_apk = resources_apk,
+                resource_proguard_config = packaged_resources_ctx.resource_proguard_config,
+            )],
+        ),
+    )
+
 # Order dependent, as providers will not be available to downstream processors
 # that may depend on the provider. Iteration order for a dictionary is based on
 # insertion.
@@ -1081,6 +1093,7 @@ PROCESSORS = dict(
     ApkPackagingProcessor = _process_apk_packaging,
     IntellijProcessor = _process_intellij,
     CoverageProcessor = _process_coverage,
+    ApplicationResourceInfoProcessor = _process_application_resource_info,
 )
 
 _PROCESSING_PIPELINE = processing_pipeline.make_processing_pipeline(
