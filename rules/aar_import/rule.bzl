@@ -13,7 +13,7 @@
 # limitations under the License.
 """aar_import rule."""
 
-load("//providers:providers.bzl", "AndroidIdeInfo", "AndroidLibraryResourceClassJarProvider", "AndroidNativeLibsInfo")
+load("//providers:providers.bzl", "AndroidIdeInfo", "AndroidLibraryResourceClassJarProvider", "AndroidNativeLibsInfo", "BaselineProfileProvider")
 load(
     "//rules:utils.bzl",
     "ANDROID_SDK_TOOLCHAIN_TYPE",
@@ -60,6 +60,7 @@ aar_import = rule(
         AndroidIdeInfo,
         AndroidLibraryResourceClassJarProvider,
         AndroidNativeLibsInfo,
+        BaselineProfileProvider,
         JavaInfo,
     ],
     toolchains = [
