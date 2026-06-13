@@ -102,18 +102,24 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         )
         proguard_specs = proguard_specs + [jar_embedded_proguard]
 
-    # Get min SDK version from attribute, manifest_values, or depot floor
-    effective_min_sdk = min_sdk_version.DEPOT_FLOOR
-    min_sdk_attr = getattr(ctx.attr, "min_sdk_version", 0)
-    if min_sdk_attr:
-        effective_min_sdk = max(effective_min_sdk, min_sdk_attr)
-    manifest_values = getattr(ctx.attr, "manifest_values", {})
-    if "minSdkVersion" in manifest_values:
-        manifest_min_sdk_str = manifest_values["minSdkVersion"]
-        if manifest_min_sdk_str.isdigit():
-            effective_min_sdk = max(effective_min_sdk, int(manifest_min_sdk_str))
-        else:
-            fail("minSdkVersion must be an integer")
+    # When --desugar_java8_libs is enabled and there are desugared
+    # configs, R8 is expected to pin the min-sdk so that it matches the underlying configs.
+    # Because the mind sdk for the configs are hardcoded, we need to also hard-code the min SDK here
+    if ctx.fragments.android.desugar_java8_libs and desugared_lib_config:
+        effective_min_sdk = min_sdk_version.DEPOT_FLOOR
+    else:
+        # Get min SDK version from attribute, manifest_values, or depot floor
+        effective_min_sdk = min_sdk_version.DEPOT_FLOOR
+        min_sdk_attr = getattr(ctx.attr, "min_sdk_version", 0)
+        if min_sdk_attr:
+            effective_min_sdk = max(effective_min_sdk, min_sdk_attr)
+        manifest_values = getattr(ctx.attr, "manifest_values", {})
+        if "minSdkVersion" in manifest_values:
+            manifest_min_sdk_str = manifest_values["minSdkVersion"]
+            if manifest_min_sdk_str.isdigit():
+                effective_min_sdk = max(effective_min_sdk, int(manifest_min_sdk_str))
+            else:
+                fail("minSdkVersion must be an integer")
 
     neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
     neverlink_jars = depset(transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])
