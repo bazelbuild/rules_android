@@ -69,6 +69,14 @@ load(
     "//rules/android_sdk_repository:rule.bzl",
     _android_sdk_repository = "android_sdk_repository",
 )
+load(
+    "//rules/fat_aar:rule.bzl",
+    _fat_aar = "fat_aar",
+)
+load(
+    "//rules/fat_aar:pom_from_fat_aar.bzl",
+    _fat_aar_pom = "fat_aar_pom",
+)
 
 # Current version. Tools may check this to determine compatibility.
 RULES_ANDROID_VERSION = "0.1.0"
@@ -84,6 +92,8 @@ android_sdk = _android_sdk
 android_sdk_repository = _android_sdk_repository
 android_tools_defaults_jar = _android_tools_defaults_jar
 asar_import = _asar_import
+fat_aar = _fat_aar
+fat_aar_pom = _fat_aar_pom
 instrumented_app_info_aspect = _instrumented_app_info_aspect
 StarlarkApkInfo = _StarlarkApkInfo
 ApkInfo = _ApkInfo
