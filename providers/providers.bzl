@@ -380,6 +380,7 @@ AndroidIdeInfo = provider(
         aar = "",
         apks_under_test = "",
         native_libs = "",
+        has_proguard_specs = "",
     ),
 )
 
