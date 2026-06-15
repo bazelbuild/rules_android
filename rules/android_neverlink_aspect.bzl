@@ -49,7 +49,7 @@ def _android_neverlink_aspect_impl(target, ctx):
             deps.extend(getattr(ctx.rule.attr, attr))
 
     direct_runtime_jars = depset(
-        target[JavaInfo].runtime_output_jars,
+        target[JavaInfo].runtime_output_jars if JavaInfo in target else [],
         transitive = [target[AndroidLibraryResourceClassJarProvider].jars] if AndroidLibraryResourceClassJarProvider in target else [],
     )
 
