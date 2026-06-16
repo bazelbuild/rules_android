@@ -199,6 +199,27 @@ public final class ValidateAndLinkResourcesAction {
    */
   static void checkVisibilityOfResourceReferences(
       XmlNode androidManifest, CompiledResources compiled, List<CompiledResources> deps) {
+
+    ImmutableList<Reference> manifestReferences =
+        ProtoXmlUtils.getAllResourceReferences(androidManifest);
+    // We only validate visibility against resources from Bazel library dependencies (deps), so we
+    // ignore Android system resource references ("android:").
+    boolean hasRelevantManifestReferences =
+        manifestReferences.stream().anyMatch(ref -> !ref.getName().startsWith("android:"));
+
+    Map<DataKey, DataResource> compiledResources =
+        AndroidCompiledDataDeserializer.create(/* includeFileContentsForValidation= */ true)
+            .read(DependencyInfo.UNKNOWN, compiled.getZip());
+    boolean hasCompiledResources =
+        compiledResources.values().stream()
+            .anyMatch(res -> !res.getReferencedResources().isEmpty());
+
+    // Skip validation if there are no relevant manifest or compiled resource references to
+    // validate against.
+    if (!hasRelevantManifestReferences && !hasCompiledResources) {
+      return;
+    }
+
     ImmutableSet<String> privateResourceNames =
         deps.stream()
             .flatMap(
@@ -215,7 +236,7 @@ public final class ValidateAndLinkResourcesAction {
     StringBuilder errorMessage = new StringBuilder();
     {
       ImmutableList<String> referencedPrivateResources =
-          ProtoXmlUtils.getAllResourceReferences(androidManifest).stream()
+          manifestReferences.stream()
               .map(Reference::getName)
               .filter(privateResourceNames::contains)
               .collect(toImmutableList());
@@ -227,10 +248,7 @@ public final class ValidateAndLinkResourcesAction {
       }
     }
 
-    for (Map.Entry<DataKey, DataResource> resource :
-        AndroidCompiledDataDeserializer.create(/*includeFileContentsForValidation=*/ true)
-            .read(DependencyInfo.UNKNOWN, compiled.getZip())
-            .entrySet()) {
+    for (Map.Entry<DataKey, DataResource> resource : compiledResources.entrySet()) {
       ImmutableList<String> referencedPrivateResources =
           resource.getValue().getReferencedResources().stream()
               .map(Reference::getName)
