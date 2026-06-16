@@ -71,7 +71,6 @@ def _impl(ctx):
             title_id = ctx.attr.title_id,
             title_lib = ctx.attr.title_lib,
             feature_name = ctx.attr.feature_name,
-            fused = ctx.attr.fused,
             manifest = ctx.file.manifest,
             is_asset_pack = ctx.attr.is_asset_pack,
         ),
@@ -122,9 +121,6 @@ def android_feature_module_macro(_android_binary, _android_library, **attrs):
     for attr in required_attrs:
         if not getattr(attrs, attr, None):
             fail("%s missing required attr <%s>" % (fqn, attr))
-
-    if hasattr(attrs, "fused") and hasattr(attrs, "manifest"):
-        fail("%s cannot specify <fused> and <manifest>. Prefer <manifest>")
 
     targets = get_feature_module_paths(fqn)
 
@@ -200,7 +196,6 @@ EOF
         title_id = title_id,
         title_lib = str(targets.title_lib),
         feature_name = getattr(attrs, "feature_name", attrs.name),
-        fused = getattr(attrs, "fused", True),
         manifest = getattr(attrs, "manifest", None),
         tags = tags,
         transitive_configs = transitive_configs,
