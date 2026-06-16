@@ -212,6 +212,18 @@ def rules_android_prereqs(dev_mode = False):
         ],
     )
 
+    maybe(
+        http_archive,
+        name = "libxml2",
+        sha256 = "0da50c1415f4ec0364569d2119b1436ba837b31df44af28569d234272c23cf1f",
+        strip_prefix = "libxml2-v2.15.3",
+        build_file = Label("//third_party/libxml2:BUILD.bazel"),
+        patches = [Label("//third_party/libxml2:00_config_h.patch")],
+        urls = [
+            "https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.15.3/libxml2-v2.15.3.tar.gz",
+        ],
+    )
+
     _apksig_archive()
     _com_android_dex_archive()
 

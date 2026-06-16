@@ -9,6 +9,7 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_java", version = "9.3.0")
 bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "libxml2", version = "2.15.3")
 
 bazel_dep(name = "stardoc", version = "0.8.0", dev_dependency = True)
 
@@ -59,6 +60,7 @@ python.toolchain(
 bazel_dep(name = "rules_proto", version = "7.1.0", repo_name = "rules_proto")
 
 maven = use_extension("@rules_jvm_external//:extensions.bzl", "maven")
+
 # Maven for android_ide_common need to be separated into their own separate maven_install for now
 # due to compatibility issues with newer versions.
 maven.install(
