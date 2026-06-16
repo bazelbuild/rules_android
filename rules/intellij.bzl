@@ -50,6 +50,7 @@ def _extract_idl_jars(
         outputs = [out_srcjar, out_jar],
         mnemonic = "AndroidIdlJars",
         progress_message = "Building idl jars %s" % out_jar.path,
+        execution_requirements = {"supports-path-mapping": ""},
     )
 
 def _make_android_ide_info(
