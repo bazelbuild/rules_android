@@ -96,13 +96,6 @@ bool_flag(
 )
 
 bool_flag(
-    name = "experimental_persistent_aar_extractor",
-    build_setting_default = False,
-    scope = "universal",
-    visibility = ["//visibility:public"],
-)
-
-bool_flag(
     name = "internal_persistent_busybox_tools",
     build_setting_default = False,
     scope = "universal",
