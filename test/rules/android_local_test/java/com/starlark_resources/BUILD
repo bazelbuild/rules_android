@@ -1,5 +1,7 @@
 # Tests that run on head android_local_test rule to verify Starlark resource processing pipeline.
 
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("//mobile/build:build_defs.bzl", "android_jni_library")
 load(
     "//rules:rules.bzl",
     "android_library",
@@ -188,5 +190,39 @@ android_local_test(
         "@rules_android_maven//:androidx_test_ext_junit",
         "@rules_android_maven//:junit_junit",
         "@rules_android_maven//:org_robolectric_robolectric",
+    ],
+)
+
+cc_library(
+    name = "jni_test_cc_lib",
+    testonly = True,
+    srcs = ["jni_test.cc"],
+    deps = [
+        "@local_jdk//:bin/java:jni",
+    ],
+)
+
+android_jni_library(
+    name = "jni_test_lib",
+    testonly = True,
+    binary_name = "libjni_test.so",
+    deps = [
+        ":jni_test_cc_lib",
+    ],
+)
+
+android_local_test(
+    name = "jni_aspect_regression_test",
+    srcs = [
+        "JniAspectRegressionTest.java",
+        "JniTestLib.java",
+    ],
+    manifest = "AndroidManifest.xml",
+    test_class = "com.starlark_resources.JniAspectRegressionTest",
+    deps = [
+        ":jni_test_lib",
+        "//java/com/google/thirdparty/robolectric",
+        "//third_party/java/robolectric",
+        "@rules_android_maven//:junit_junit",
     ],
 )

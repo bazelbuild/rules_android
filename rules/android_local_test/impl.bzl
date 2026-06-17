@@ -20,6 +20,10 @@ load("//rules:common.bzl", "common")
 load("//rules:java.bzl", "java")
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(
+    "//rules:native_deps.bzl",
+    "merge_transitive_native_libs",
+)
+load(
     "//rules:processing_pipeline.bzl",
     "ProviderInfo",
     "processing_pipeline",
@@ -469,7 +473,23 @@ def _create_stub(
     )
     return stub_file
 
+def _get_jni_library_paths(ctx):
+    cc_info = merge_transitive_native_libs(ctx, ctx.attr.deps + ctx.attr.runtime_deps).link_params
+    jni_paths = []
+    for linker_input in cc_info.linking_context.linker_inputs.to_list():
+        for library in linker_input.libraries:
+            if library.dynamic_library:
+                path = library.dynamic_library.short_path
+                dir_path = path.rpartition("/")[0]
+                if dir_path:
+                    jni_paths.append(dir_path)
+    return depset(jni_paths).to_list()
+
 def _get_jvm_flags(ctx, main_class, robolectric_properties_path, additional_jvm_flags):
+    jni_paths = _get_jni_library_paths(ctx)
+    library_path_flag = "-Djava.library.path=java/jni/lib"
+    if jni_paths:
+        library_path_flag += ":" + ":".join(jni_paths)
     return [
         "-ea",
         "-Dbazel.test_suite=" + main_class,
@@ -479,6 +499,7 @@ def _get_jvm_flags(ctx, main_class, robolectric_properties_path, additional_jvm_
         "-Drobolectric.logging=stdout",
         "-Drobolectric.logging.enabled=true",
         "-Dorg.robolectric.packagesToNotAcquire=com.google.testing.junit.runner.util",
+        library_path_flag,
     ] + DEFAULT_JIT_FLAGS + DEFAULT_GC_FLAGS + DEFAULT_VERIFY_FLAGS + additional_jvm_flags + [
         ctx.expand_make_variables(
             "jvm_flags",
