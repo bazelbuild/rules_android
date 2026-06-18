@@ -13,6 +13,7 @@
 # limitations under the License.
 """Creates the app launcher scripts."""
 
+load("//rules:utils.bzl", "get_android_toolchain")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
 load(":deploy_info.bzl", "make_deploy_info_pb")
@@ -75,6 +76,7 @@ def _make_app_runner(
     path_type = "path" if ctx.attr._mi_is_cmd else "short_path"
 
     deploy = utils.first(ctx.attr._deploy[DefaultInfo].files.to_list())
+    adb = get_android_toolchain(ctx).adb.files_to_run.executable
 
     args = {
         "is_cmd": str(ctx.attr._mi_is_cmd).lower(),
@@ -84,6 +86,9 @@ def _make_app_runner(
         args["splits"] = [getattr(s, path_type) for s in splits]
 
     args["java_home"] = utils.host_jvm_path(ctx)
+
+    if adb:
+        args["toolchain_adb"] = getattr(adb, path_type)
 
     args["studio_deployer"] = getattr(ctx.file._studio_deployer, path_type)
     args["use_adb_root"] = str(use_adb_root).lower()
@@ -108,6 +113,8 @@ def _make_app_runner(
     )
 
     runner = [deploy]
+    if adb:
+        runner.append(adb)
     return runner
 
 def make_direct_launcher(
