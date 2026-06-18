@@ -22,13 +22,14 @@ import (
 )
 
 func TestSetupEnv(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
 	tcs := []struct {
-		name         string
-		env          []string
-		adbPath      string
-		adbTurboPath string
-		wantPath     string
-		wantEnv      []string
+		name             string
+		env              []string
+		adbPath          string
+		toolchainADBPath string
+		wantPath         string
+		wantEnv          []string
 	}{
 		/*
 			Following test cases fail due to the os.stat check need refactor
@@ -54,11 +55,26 @@ func TestSetupEnv(t *testing.T) {
 			env:      []string{androidADBVar + "/my/adb"},
 			wantPath: "/my/adb",
 			wantEnv:  []string{}, // Expect the env entry to be removed, which produces an empty list.
+		}, {
+			name:             "SpecifyADBPathOverridesEnvAndToolchain",
+			env:              []string{androidADBVar + "/env/adb"},
+			adbPath:          "/flag/adb",
+			toolchainADBPath: "/toolchain/adb",
+			wantPath:         "/flag/adb",
+		}, {
+			name:             "SpecifyADBPathViaEnvOverridesToolchain",
+			env:              []string{androidADBVar + "/env/adb"},
+			toolchainADBPath: "/toolchain/adb",
+			wantPath:         "/env/adb",
+		}, {
+			name:             "SpecifyADBPathViaToolchain",
+			toolchainADBPath: "/toolchain/adb",
+			wantPath:         "/toolchain/adb",
 		},
 	}
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			ae, err := setupEnv(context.Background(), tc.env, tc.adbPath)
+			ae, err := setupEnv(context.Background(), tc.env, tc.adbPath, tc.toolchainADBPath)
 			if err != nil {
 				t.Fatalf("error occurred, got: %v", err)
 			}
