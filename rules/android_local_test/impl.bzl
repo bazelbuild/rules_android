@@ -487,9 +487,9 @@ def _get_jni_library_paths(ctx):
 
 def _get_jvm_flags(ctx, main_class, robolectric_properties_path, additional_jvm_flags):
     jni_paths = _get_jni_library_paths(ctx)
-    library_path_flag = "-Djava.library.path=java/jni/lib"
+    library_path_flags = []
     if jni_paths:
-        library_path_flag += ":" + ":".join(jni_paths)
+        library_path_flags.append("-Djava.library.path=java/jni/lib:" + ":".join(jni_paths))
     return [
         "-ea",
         "-Dbazel.test_suite=" + main_class,
@@ -499,8 +499,7 @@ def _get_jvm_flags(ctx, main_class, robolectric_properties_path, additional_jvm_
         "-Drobolectric.logging=stdout",
         "-Drobolectric.logging.enabled=true",
         "-Dorg.robolectric.packagesToNotAcquire=com.google.testing.junit.runner.util",
-        library_path_flag,
-    ] + DEFAULT_JIT_FLAGS + DEFAULT_GC_FLAGS + DEFAULT_VERIFY_FLAGS + additional_jvm_flags + [
+    ] + library_path_flags + DEFAULT_JIT_FLAGS + DEFAULT_GC_FLAGS + DEFAULT_VERIFY_FLAGS + additional_jvm_flags + [
         ctx.expand_make_variables(
             "jvm_flags",
             ctx.expand_location(flag, ctx.attr.data),
