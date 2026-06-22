@@ -44,12 +44,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -229,10 +229,6 @@ class DexFileSplitter implements Closeable {
                 StandardOpenOption.WRITE));
   }
 
-  private int shardsWritten() {
-    return curShard;
-  }
-
   @Override
   public void close() throws IOException {
     if (curOut != null) {
@@ -249,7 +245,7 @@ class DexFileSplitter implements Closeable {
       Map<String, ZipFile> dexFilesAndContainingZip,
       TreeMultimap<String, String> contextClassesToSyntheticClasses,
       Predicate<String> filter)
-      throws ExecutionException, InterruptedException, IOException {
+      throws ExecutionException, InterruptedException {
 
     Set<String> syntheticClasses = new HashSet<>(contextClassesToSyntheticClasses.values());
     int nThreads = Runtime.getRuntime().availableProcessors();
@@ -268,7 +264,7 @@ class DexFileSplitter implements Closeable {
         if (filter.test(filename)) {
           if (!syntheticClasses.contains(filename)) {
             ZipFile zipFile = entry.getValue();
-            Collection<String> synths = contextClassesToSyntheticClasses.get(filename);
+            SortedSet<String> synths = contextClassesToSyntheticClasses.get(filename);
 
             ListenableFuture<ZipEntryAndContent> contextFuture =
                 listeningExecutor.submit(() -> readAndParseDex(zipFile, filename));
@@ -391,14 +387,12 @@ class DexFileSplitter implements Closeable {
           entry.getSize());
 
       Dex dexFile = new Dex(content);
-      DexLimitTracker.DexTrackerInfo trackerInfo = new DexLimitTracker.DexTrackerInfo(dexFile);
+      DexLimitTracker.DexTrackerInfo trackerInfo = DexLimitTracker.DexTrackerInfo.create(dexFile);
       return new ZipEntryAndContent(entry, content, trackerInfo);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
   }
-
-
 
   private static final class ZipEntryAndContent {
     final ZipEntry zipEntry;
