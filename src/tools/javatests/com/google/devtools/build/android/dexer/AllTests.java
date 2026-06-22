@@ -20,5 +20,6 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
   DexFileSplitterTest.class,
+  DexLimitTrackerTest.class,
 })
 public class AllTests {}
