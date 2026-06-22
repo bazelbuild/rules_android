@@ -81,8 +81,8 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
             default = Label("//tools/jdk:toolchain_android_only"),
         ),
         _merge_manifests = attr.label(
-            default = ":merge_feature_manifests.par",
-            allow_single_file = True,
+            default = ":merge_feature_manifests",
+            allow_single_file = None, # True for google3
             cfg = "exec",
             executable = True,
         ),
