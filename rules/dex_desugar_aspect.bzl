@@ -296,7 +296,6 @@ dex_desugar_aspect = aspect(
         },
         _attrs.ANDROID_SDK,
         _min_sdk_version.attrs,
-        _attrs.FLAGS_ATTRS,
     ),
     fragments = ["android"],
     toolchains = [
