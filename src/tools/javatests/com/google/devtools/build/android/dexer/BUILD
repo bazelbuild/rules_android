@@ -29,7 +29,7 @@ java_library(
         "@androidsdk//:has_androidsdk": [
             "DexFileSplitterTest.java",
             "DexLimitTrackerTest.java",
-          ],
+        ],
         "//conditions:default": ["NoAndroidSdkStubTest.java"],
     }),
     javacopts = ["-source 8 -target 8"],
@@ -38,6 +38,7 @@ java_library(
         ":dexbuilder_import",
         "//src/tools/java/com/google/devtools/build/android/dexer:DexFileSplitter_lib",
         "//src/tools/java/com/google/devtools/build/android/r8:dexbuilder_deploy.jar",
+        "@com_android_dex//:dex",
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",
@@ -97,7 +98,7 @@ genrule(
     outs = ["simple.srcjar"],
     cmd = """set -eu
         readonly tmpdir="$$(mktemp -d)"
-        echo "package base; public class SimpleClass { public int field; public void method() {} }" > "$${tmpdir}/SimpleClass.java"
+        echo "package base; public class SimpleClass { public int field; public void method() {} public void methodWithParams(int a, String b) {} }" > "$${tmpdir}/SimpleClass.java"
         $(location //tools/jdk:singlejar) --output $@ --resources "$${tmpdir}/SimpleClass.java:base/SimpleClass.java"
         rm -rf "$${tmpdir}" """,
     tools = ["//tools/jdk:singlejar"],

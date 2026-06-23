@@ -48,7 +48,7 @@ public class DexLimitTrackerTest {
 
   static {
     try {
-      Runfiles runfiles = Runfiles.preload().unmapped();
+      Runfiles runfiles = Runfiles.create();
       SIMPLE_JAR = getRunfile(runfiles, "simplejar");
       FIELDS_TYPES_JAR = getRunfile(runfiles, "fields_types_jar");
     } catch (Exception e) {
