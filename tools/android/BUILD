@@ -28,6 +28,15 @@ android_jar(
     visibility = ["//visibility:public"],
 )
 
+genrule(
+    name = "android_jar_for_test",
+    testonly = 1,
+    srcs = [":android_jar"],
+    outs = ["android_jar_for_test.jar"],
+    cmd = "cp $(SRCS) $@",
+    visibility = ["//src/tools/javatests:__subpackages__"],
+)
+
 # TODO(b/175833857): This is a stub, should remove.
 alias(
     name = "merge_manifests",

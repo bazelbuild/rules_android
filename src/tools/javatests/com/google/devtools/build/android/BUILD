@@ -258,6 +258,23 @@ java_test(
 )
 
 java_test(
+    name = "DesugarDexShardingActionTest",
+    size = "small",
+    srcs = ["DesugarDexShardingActionTest.java"],
+    data = [
+        "//src/tools/java/com/google/devtools/build/android:DesugarDexShardingAction",
+        "//tools/android:android_jar_for_test",
+    ],
+    deps = [
+        ":guava",
+        "//src/tools/java/com/google/devtools/build/android:desugar_dex_sharding_lib",
+        "@rules_android_maven//:com_google_jimfs_jimfs",
+        "@rules_android_maven//:com_google_truth_truth",
+        "@rules_android_maven//:junit_junit",
+    ],
+)
+
+java_test(
     name = "ManifestMergerActionTest",
     size = "small",
     srcs = ["ManifestMergerActionTest.java"],

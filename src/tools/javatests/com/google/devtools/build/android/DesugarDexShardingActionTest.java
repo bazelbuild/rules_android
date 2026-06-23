@@ -40,15 +40,15 @@ public final class DesugarDexShardingActionTest {
     androidJar =
         Path.of(
             runfilesBase.toString(),
-            "third_party/java/android/android_sdk_linux/platforms/stable/android.jar");
+            "tools/android/android_jar_for_test.jar");
     classpath =
         Path.of(
             runfilesBase.toString(),
-            "third_party/bazel_rules/rules_android/src/tools/java/com/google/devtools/build/android/libandroid_builder_lib.jar");
+            "src/tools/java/com/google/devtools/build/android/libandroid_builder_lib.jar");
     in =
         Path.of(
             runfilesBase.toString(),
-            "third_party/bazel_rules/rules_android/src/tools/java/com/google/devtools/build/android/DesugarDexShardingAction.jar");
+            "src/tools/java/com/google/devtools/build/android/DesugarDexShardingAction.jar");
   }
 
   private List<Path> createOutputFiles(int shardCount) throws IOException {
