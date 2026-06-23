@@ -14,7 +14,6 @@
 """Bazel Desugar Commands."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -57,7 +56,7 @@ def _desugar(
     input_file_deps = [input]
     if library_desugaring:
         args.add("--emit_dependency_metadata_as_needed")
-        if read_possibly_native_flag(ctx, "desugar_java8_libs"):
+        if ctx.fragments.android.desugar_java8_libs:
             args.add("--desugar_supported_core_libs")
 
     # Unconditionally add --desugared_lib_config. This matches the behavior of tools/android/d8_desugar.sh.

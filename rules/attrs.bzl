@@ -312,9 +312,6 @@ ANDROID_BINARY_ATTRS = _add(
         _desugared_java8_legacy_apis = attr.label(
             default = Label("//tools/android:desugared_java8_legacy_apis"),
         ),
-        _desugar_java8_libs = attr.label(
-            default = Label("//rules/flags:desugar_java8_libs"),
-        ),
         _dexbuilder = attr.label(
             cfg = "exec",
             default = Label("//tools/android:dexbuilder"),
@@ -511,12 +508,6 @@ _AUTOMATIC_EXEC_GROUPS_ENABLED = dict(
     _use_auto_exec_groups = attr.bool(default = True),
 )
 
-_FLAGS_ATTRS = dict(
-    _desugar_java8_libs = attr.label(
-        default = Label("//rules/flags:desugar_java8_libs"),
-    ),
-)
-
 attrs = struct(
     ANDROID_SDK = _ANDROID_SDK,
     compilation_attributes = _compilation_attributes,
@@ -527,5 +518,4 @@ attrs = struct(
     add = _add,
     replace = _replace,
     AUTOMATIC_EXEC_GROUPS_ENABLED = _AUTOMATIC_EXEC_GROUPS_ENABLED,
-    FLAGS_ATTRS = _FLAGS_ATTRS,
 )
