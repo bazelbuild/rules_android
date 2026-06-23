@@ -26,7 +26,10 @@ java_library(
     srcs = [
         "AllTests.java",
     ] + select({
-        "@androidsdk//:has_androidsdk": ["DexFileSplitterTest.java"],
+        "@androidsdk//:has_androidsdk": [
+            "DexFileSplitterTest.java",
+            "DexLimitTrackerTest.java",
+          ],
         "//conditions:default": ["NoAndroidSdkStubTest.java"],
     }),
     javacopts = ["-source 8 -target 8"],
