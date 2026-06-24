@@ -642,16 +642,20 @@ def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
 
         # Include startup profiles if the optimizer is disabled since profiles won't be merged
         # in the optimizer.
-        transitive_profiles = depset(
-            ctx.files.startup_profiles if enable_optimizer_integration and not has_proguard_specs else [],
-            transitive = [
-                profile_provider.files
-                for profile_provider in utils.collect_providers(
-                    BaselineProfileProvider,
-                    ctx.attr.deps,
-                )
-            ],
-        )
+        startup_profiles = ctx.files.startup_profiles if enable_optimizer_integration and not has_proguard_specs else []
+        if ctx.attr.baseline_profiles_override:
+            transitive_profiles = depset(ctx.files.baseline_profiles_override + startup_profiles)
+        else:
+            transitive_profiles = depset(
+                startup_profiles,
+                transitive = [
+                    profile_provider.files
+                    for profile_provider in utils.collect_providers(
+                        BaselineProfileProvider,
+                        ctx.attr.deps,
+                    )
+                ],
+            )
         baseline_profile_output = _baseline_profiles.process(
             ctx,
             transitive_profiles = transitive_profiles,

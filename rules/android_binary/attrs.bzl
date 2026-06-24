@@ -102,6 +102,18 @@ ATTRS = _attrs.replace(
                 """,
                 cfg = android_platforms_transition,
             ),
+            baseline_profiles_override = attr.label_list(
+                allow_empty = True,
+                allow_files = [".txt"],
+                doc = """
+                The list of baseline profiles that override any baseline profiles from
+                dependencies. If specified, all baseline profiles coming in from
+                android_library.baseline_profiles are ignored. Only use this if your baseline
+                profiles cover a very representative set of app functions. These will also be used
+                as startup profiles if startup profiles are not specified.
+                """,
+                cfg = android_platforms_transition,
+            ),
             proguard_specs = attr.label_list(allow_empty = True, allow_files = True, cfg = android_platforms_transition),
             resource_apks = attr.label_list(
                 allow_rules = ["apk_import"],
