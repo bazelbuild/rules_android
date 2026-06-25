@@ -20,6 +20,8 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import com.basicapp.basicdep.BasicDep;
+import java.time.Duration;
 
 /**
  * The main activity of the Basic Sample App.
@@ -41,7 +43,8 @@ public class BasicActivity extends Activity {
             public void onClick(View v) {
               TextView tv = findViewById(R.id.text_hello);
               if (v.getId() == R.id.button_id_fizz) {
-                tv.setText("fizz");
+                BasicDep bd = new BasicDep(Duration.ofMillis(System.currentTimeMillis()));
+                tv.setText("fizz" + bd.toString());
               } else if (v.getId() == R.id.button_id_buzz) {
                 tv.setText("buzz");
               }

@@ -3,7 +3,7 @@
     package="com.basicapp" >
 
     <uses-sdk
-        android:minSdkVersion="21"
+        android:minSdkVersion="28"
         android:targetSdkVersion="30" />
 
     <application
