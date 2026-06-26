@@ -13,6 +13,8 @@
 # limitations under the License.
 """Attributes."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "StarlarkApkInfo")
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
 load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
@@ -27,8 +29,6 @@ load(
     "split_config_aspect",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 visibility(PROJECT_VISIBILITY)
 

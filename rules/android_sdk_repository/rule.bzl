@@ -41,7 +41,6 @@ _DIRS_TO_LINK = [
 
 _MIN_BUILD_TOOLS_VERSION = parse_android_revision("35.0.0")
 
-
 def _readdir_only_dirs(dir_path):
     """Calls starlark path#readdir(), but skips non-directory paths.
 
@@ -132,7 +131,7 @@ def _android_sdk_repository_impl(repo_ctx):
     # Determine default SDK level.
     parsed_default_api_levels = [parse_android_revision(api_level) for api_level in api_levels]
 
-    default_api_level = max(parsed_default_api_levels, key=lambda level: (
+    default_api_level = max(parsed_default_api_levels, key = lambda level: (
         level.major,
         level.minor,
         level.micro,

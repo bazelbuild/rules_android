@@ -13,11 +13,11 @@
 # limitations under the License.
 """Aspect for mobile-install."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "ANDROID_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":adapters.bzl", "adapters")
 load(":debug.bzl", "debug")
 load(":tools.bzl", "TOOLCHAIN_TYPES", "TOOL_ATTRS")

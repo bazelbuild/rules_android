@@ -17,19 +17,12 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 
-
-
 AndroidAppsInfo = provider(
     doc = "Provides information about app to install.",
     fields = dict(
         apps = "List of app provider artifacts.",
     ),
 )
-
-
-
-
-
 
 AndroidFilteredJdepsInfo = provider(
     doc = "Provides a filtered jdeps proto.",
@@ -113,7 +106,6 @@ AndroidFeatureModuleInfo = provider(
         is_asset_pack = "Boolean, whether this feature module is an asset pack. AI packs are a type of asset pack.",
     ),
 )
-
 
 Dex2OatApkInfo = provider(
     doc = "Contains data about artifacts generated through host dex2oat.",

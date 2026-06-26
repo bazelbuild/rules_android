@@ -15,8 +15,8 @@
 This transition ensures that the platforms are set to valid Android Platforms.
 """
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@bazel_skylib//lib:sets.bzl", "sets")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":min_sdk_version.bzl", "min_sdk_version")
 load(":utils.bzl", "utils")
 

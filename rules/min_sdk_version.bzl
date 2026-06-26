@@ -18,8 +18,8 @@ it holds utilities for handling minSdkVersion propagation.
 
 """
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 

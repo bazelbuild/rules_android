@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel rule for Android local test."""
 
+load("@rules_android//android:rules.bzl", "android_local_test")
 load(":migration_tag_DONOTUSE.bzl", _add_migration_tag = "add_migration_tag")
 
 def android_local_test(**attrs):
@@ -23,4 +24,4 @@ def android_local_test(**attrs):
     Args:
       **attrs: Rule attributes
     """
-    native.android_local_test(**_add_migration_tag(attrs))
+    android_local_test(**_add_migration_tag(attrs))

@@ -1,8 +1,8 @@
 load(
     "@rules_android//android:rules.bzl",
-     "android_binary",
-     "android_library",
-     "android_application",
+    "android_application",
+    "android_binary",
+    "android_library",
 )
 
 android_binary(
