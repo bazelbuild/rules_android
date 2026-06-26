@@ -543,7 +543,6 @@ resources_package_test = rule(
 
 def _package_resources_final_id_test(ctx):
     env = analysistest.begin(ctx)
-    target_under_test = analysistest.target_under_test(env)
     actions = analysistest.target_actions(env)
     found_final_r = False
     found_nonfinal_r = False

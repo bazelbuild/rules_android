@@ -259,7 +259,7 @@ def _process_build_info(_unused_ctx, **unused_ctxs):
         ),
     )
 
-def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, deploy_ctx, bp_ctx, optimize_ctx, **_unused_ctxs):
+def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, deploy_ctx, optimize_ctx, **_unused_ctxs):
     if validation_ctx.use_r8:
         return ProviderInfo(
             name = "dex_ctx",
@@ -421,7 +421,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
         ),
     )
 
-def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, packaged_resources_ctx, jvm_ctx, build_info_ctx, proto_ctx, **_unused_ctxs):
+def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, jvm_ctx, build_info_ctx, **_unused_ctxs):
     if validation_ctx.use_r8:
         return ProviderInfo(
             name = "deploy_ctx",
@@ -607,17 +607,6 @@ def _get_library_r_jars(deps):
     for dep in utils.collect_providers(AndroidLibraryResourceClassJarProvider, deps):
         transitive_resource_jars += dep.jars.to_list()
     return transitive_resource_jars
-
-def _is_test_binary(ctx):
-    """Whether this android_binary target is a test binary.
-
-    Args:
-      ctx: The context.
-
-    Returns:
-      Boolean indicating whether the target is a test target.
-    """
-    return ctx.attr.testonly or is_instrumentation(ctx) or str(ctx.label).find("/javatests/") >= 0
 
 def is_instrumentation(ctx):
     """Whether this android_binary target is an instrumentation binary.

@@ -318,7 +318,7 @@ def _process_lint_rules(ctx, **unused_sub_ctxs):
         ),
     )
 
-def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
+def _process_aar(ctx, resources_ctx, proguard_ctx, **unused_ctx):
     aar_ctx = {
         _PROVIDERS: [],
         _VALIDATION_OUTPUTS: [],
@@ -460,7 +460,6 @@ PROCESSORS = dict(
 def finalize(
         ctx,
         resources_ctx,
-        intellij_ctx,
         jvm_ctx,
         proguard_ctx,
         providers,
