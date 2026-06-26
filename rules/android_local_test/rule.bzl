@@ -13,9 +13,9 @@
 # limitations under the License.
 """Bazel rule for Android local test."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
 

@@ -13,6 +13,7 @@
 # limitations under the License.
 """Rule adapter for android_binary."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//mobile_install:launcher_direct.bzl", "make_direct_launcher")
 load("//mobile_install:process.bzl", "process")
 load(
@@ -27,7 +28,6 @@ load("//mobile_install:utils.bzl", "utils")
 load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidBuildStampInfo", "AndroidIdeInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
 load(":desugar.bzl", "get_desugar_classpath")
 

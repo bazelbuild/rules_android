@@ -17,13 +17,13 @@ Used for determining the -libraryjars argument for Proguard. The compile-time cl
 unsufficient here as those are ijars.
 """
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider")
 load(
     "//rules:utils.bzl",
     "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 visibility(PROJECT_VISIBILITY)
 

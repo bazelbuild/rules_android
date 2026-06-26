@@ -13,11 +13,11 @@
 # limitations under the License.
 """A rule that returns android.jar from the current android sdk."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "get_android_sdk")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
 
 visibility(PROJECT_VISIBILITY)
 

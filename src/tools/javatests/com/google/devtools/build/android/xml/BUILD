@@ -25,14 +25,14 @@ java_test(
     name = "ProtoXmlUtilsTest",
     size = "small",
     srcs = ["ProtoXmlUtilsTest.java"],
+    runtime_deps = [
+        "@rules_android_maven//:com_google_guava_guava",
+    ],
     deps = [
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android/proto:resources_java_proto",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",
-    ],
-    runtime_deps = [
-        "@rules_android_maven//:com_google_guava_guava",
     ],
 )
 

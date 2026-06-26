@@ -113,7 +113,6 @@ TOOL_ATTRS = dict(
         executable = True,
     ),
 
-
     # Versioned Host Attrs
     _android_kit = attr.label(
         default = versioned_deps.android_kit.head,
@@ -163,5 +162,4 @@ TOOL_ATTRS = dict(
         allow_single_file = True,
         default = versioned_deps.res_v3_dummy_r_txt.head,
     ),
-
 )

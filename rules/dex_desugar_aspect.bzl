@@ -13,10 +13,10 @@
 # limitations under the License.
 """Aspect that transitively build .dex archives and desugar jars."""
 
+load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "AndroidBytecodeTransformerInfo", "AndroidIdeInfo", "StarlarkAndroidDexInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@bazel_skylib//lib:partial.bzl", "partial")
 load(":acls.bzl", "acls")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")

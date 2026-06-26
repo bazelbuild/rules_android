@@ -16,7 +16,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 
 def additional_flags():
-
     # Determines the order of manifest merging. 'dependency' means the order
     # of 'deps', and 'legacy' means the legacy alphabetizing and inverted
     # direct/transitive order.

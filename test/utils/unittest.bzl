@@ -13,13 +13,13 @@
 # limitations under the License.
 """Bazel lib that provides test helpers for testing."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java:java_library.bzl", "java_library")
 load(
     "@bazel_skylib//lib:unittest.bzl",
     _analysistest = "analysistest",
     _unittest = "unittest",
 )
+load("@rules_java//java:java_library.bzl", "java_library")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":file.bzl", _file = "file")
 
 visibility(PROJECT_VISIBILITY)

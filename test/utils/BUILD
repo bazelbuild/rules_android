@@ -30,7 +30,7 @@ bzl_library(
     deps = [
         "//providers:providers_bzl",
         "//rules:visibility_bzl",
-        "@rules_java//java:core_rules",
         "@bazel_skylib//lib:unittest",
+        "@rules_java//java:core_rules",
     ],
 )

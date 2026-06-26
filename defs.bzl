@@ -42,11 +42,12 @@ def rules_android_workspace():
     # put anything into @maven for WORKSPACE mode.
     maven_install(
         name = "maven",
-        artifacts = PROTOBUF_MAVEN_ARTIFACTS, # protobuf maven deps
-        repositories = [ # protobuf maven deps
-            "https://repo1.maven.org/maven2", # protobuf maven deps
-            "https://maven.google.com", # protobuf maven deps
-        ], # protobuf maven deps
+        artifacts = PROTOBUF_MAVEN_ARTIFACTS,  # protobuf maven deps
+        repositories = [
+            # protobuf maven deps
+            "https://repo1.maven.org/maven2",  # protobuf maven deps
+            "https://maven.google.com",  # protobuf maven deps
+        ],  # protobuf maven deps
     )
 
     bazel_skylib_workspace()
@@ -153,7 +154,8 @@ def rules_android_workspace():
         # All lines in the artifacts list must be tagged "bazel worker api" for
         # the presubmit maven artifact consistency checker to pass.
         name = "bazel_worker_maven",
-        artifacts = [ # bazel worker api
+        artifacts = [
+            # bazel worker api
             "com.google.code.gson:gson:2.10.1",  # bazel worker api
             "com.google.errorprone:error_prone_annotations:2.23.0",  # bazel worker api
             "com.google.guava:guava:33.0.0-jre",  # bazel worker api

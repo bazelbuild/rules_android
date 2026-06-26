@@ -23,4 +23,3 @@ BASE_JVMOPTS = [
     "-Xms8g",
     "-Xmx8g",
 ]
-

@@ -13,12 +13,12 @@
 # limitations under the License.
 """Attributes."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 visibility(PROJECT_VISIBILITY)
 
