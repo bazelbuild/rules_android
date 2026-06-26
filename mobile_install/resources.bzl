@@ -51,7 +51,15 @@ res_types = [
 ]
 
 def get_assets_dir(asset, base_dir):
-    """Build the full assets directory sanitizing the input first."""
+    """Build the full assets directory sanitizing the input first.
+
+    Args:
+      asset: The asset file or directory.
+      base_dir: The base assets directory.
+
+    Returns:
+      The sanitized assets directory path.
+    """
     if base_dir == "":
         # some targets specify assets files and set assets_dirs = ""
         return asset.dirname

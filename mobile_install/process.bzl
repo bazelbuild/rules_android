@@ -58,6 +58,7 @@ def process(
       debug_signing_keys: Debug keystores to be used to sign the apk.
       debug_signing_lineage_file: File containing the signing lineage.
       key_rotation_min_sdk: String of the minimum API level to rotate signing keys for.
+      zipalign_alignment: Zip alignment used before signing.
       apk: The generated apk for the app.
       sibling: The path to the launcher file.
 

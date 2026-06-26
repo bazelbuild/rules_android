@@ -295,6 +295,7 @@ def _package(
         code and resources by instructing AAPT2 to emit conditional Proguard keep rules.
       version_name: A string. The version name to stamp the generated manifest with. Optional.
       version_code: A string. The version code to stamp the generated manifest with. Optional.
+      feature_flags: Feature flag values to pass to aapt2.
       crunch_png: A boolean. Determines whether `aapt2 compile` should crunch PNG files.
       android_jar: A File. The Android Jar.
       aapt: A FilesToRunProvider. The AAPT executable.
@@ -607,6 +608,7 @@ def _validate_and_link(
         compiled resources from the transitive dependencies of this target.
       java_package: A string. The Java package for the generated R.java.
       manifest: A File. The AndroidManifest.xml.
+      feature_flags: Feature flag values to pass to aapt2.
       resource_apks: List of direct resource only apk files.
       android_jar: A File. The Android Jar.
       busybox: A FilesToRunProvider. The ResourceProcessorBusyBox executable.
@@ -1057,6 +1059,9 @@ def _generate_binary_r(
       final_fields: Bool. Whether fields get declared as final.
       use_r_package: Bool. Whether fields should be generated with an RPackage
         class. Used for privacy sandbox.
+      resources_nodes: Depset of resources node providers.
+      transitive_r_txts: Transitive R.txt files to include.
+      transitive_manifests: Transitive manifests to include.
       busybox: FilesToRunProvider. The ResourceBusyBox executable or
         FilesToRunprovider
       host_javabase: A Target. The host javabase.

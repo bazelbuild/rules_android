@@ -65,7 +65,7 @@ def get_aspect_deps(ctx):
         if attr == "deps" and hasattr(ctx, "split_attr"):
             deps = _utils.dedupe_split_attr(ctx.split_attr.deps)
         elif attr == "_toolchain" and getattr(ctx, "kind", "") == "kt_jvm_toolchain":
-            pass  # TODO(b/370300302): Prevent double-deps on Kotlin toolchain. Delete when fixed.
+            deps = []  # TODO(b/370300302): Prevent double-deps on Kotlin toolchain. Delete when fixed.
         else:
             deps = getattr(ctx.attr, attr, [])
 

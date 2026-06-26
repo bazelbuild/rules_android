@@ -253,7 +253,7 @@ def _build_sdk_module(
         out = None,
         internal_apk = None,
         bundletool_module_builder = None,
-        host_javabase = None):
+        host_javabase = None):  # @unused
     args = ctx.actions.args()
     args.add("--internal_apk_path", internal_apk)
     args.add("--output_module_path", out)

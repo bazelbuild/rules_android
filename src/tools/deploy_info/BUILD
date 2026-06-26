@@ -9,7 +9,7 @@ DEPLOY_INFO_VISIBILITY_GOOGLE3 = [
     "//test/mobile_install:__subpackages__",
     "//toolchains/android:__subpackages__",
     "//tools/android/mi/testing:__pkg__",
-]
+]  # @unused
 
 # buildifier: disable=unused-variable
 DEPLOY_INFO_VISIBILITY_OSS = [

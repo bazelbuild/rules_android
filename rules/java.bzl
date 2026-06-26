@@ -284,7 +284,7 @@ def _compile(
         annotation_processor_additional_outputs = [],
         annotation_processor_additional_inputs = [],
         neverlink = False,
-        constraints = [],
+        constraints = [],  # @unused
         strict_deps = "Error",
         java_toolchain = None):
     """Compiles the Java and IDL sources for Android.

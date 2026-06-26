@@ -30,6 +30,7 @@ def make_rule(
     Args:
       attrs: A dict. The attributes for the rule.
       implementation: A function. The rule's implementation method.
+      additional_toolchains: A list. Additional toolchains passed to rule(toolchains).
 
     Returns:
       A rule.
