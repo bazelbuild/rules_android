@@ -52,8 +52,8 @@ ANDROID_MANIFEST = "AndroidManifest.xml"
 LINT_JAR = "lint.jar"
 
 # Resources context dict fields.
-_PROVIDERS = "providers"
-_VALIDATION_RESULTS = "validation_results"
+_PROVIDERS = "providers"  # @unused
+_VALIDATION_RESULTS = "validation_results"  # @unused
 
 def _create_aar_tree_artifact(ctx, name):
     return ctx.actions.declare_directory("%s/unzipped/%s/%s" % (RULE_PREFIX, name, ctx.label.name))
@@ -138,9 +138,9 @@ def _process_resources(
         aar,
         package,
         manifest,
-        deps,
+        deps,  # @unused
         aar_resources_extractor_tool,
-        unzip_tool):
+        unzip_tool):  # @unused
     # Extract resources and assets, if they exist.
     resources = _create_aar_tree_artifact(ctx, "resources")
     assets = _create_aar_tree_artifact(ctx, "assets")

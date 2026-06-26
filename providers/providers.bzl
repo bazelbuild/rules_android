@@ -125,6 +125,7 @@ InstrumentedAppInfo = provider(
 )
 
 FailureInfo = provider(
+    doc = "Provides failure information.",
     fields = dict(
         error = "Error message",
     ),

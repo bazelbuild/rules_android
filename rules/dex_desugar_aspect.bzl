@@ -65,7 +65,7 @@ def get_aspect_deps(ctx):
         if attr == "deps" and hasattr(ctx, "split_attr"):
             deps = _utils.dedupe_split_attr(ctx.split_attr.deps)
         elif attr == "_toolchain" and getattr(ctx, "kind", "") == "kt_jvm_toolchain":
-            pass  # TODO(b/370300302): Prevent double-deps on Kotlin toolchain. Delete when fixed.
+            deps = []  # TODO(b/370300302): Prevent double-deps on Kotlin toolchain. Delete when fixed.
         else:
             deps = getattr(ctx.attr, attr, [])
 
@@ -214,7 +214,7 @@ def _get_platform_based_toolchain_jars(ctx):
         return ctx.rule.attr._aidl_lib[JavaInfo].runtime_output_jars
     return []
 
-def _get_aspect_dexopts(ctx):
+def _get_aspect_dexopts(ctx):  # @unused
     return _power_set(_dex.normalize_dexopts(_dex.DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING))
 
 def _get_boot_classpath(target, ctx):

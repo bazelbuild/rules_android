@@ -18,7 +18,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 
-def _impl(unused_target, ctx):
+def _impl(_target, ctx):
     if hasattr(ctx.rule.attr, "instruments") and ctx.rule.attr.instruments and AndroidIdeInfo in ctx.rule.attr.instruments:
         return [InstrumentedAppInfo(android_ide_info = ctx.rule.attr.instruments[AndroidIdeInfo])]
     return []

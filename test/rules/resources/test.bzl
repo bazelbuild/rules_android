@@ -42,7 +42,12 @@ load(
 
 visibility(PROJECT_VISIBILITY)
 
-_StarlarkResourcesTestingInfo = provider()
+_StarlarkResourcesTestingInfo = provider(
+    doc = "Provides resource processing test data.",
+    fields = dict(
+        r_java = "The generated R JavaInfo.",
+    ),
+)
 
 def _process_impl(ctx):
     java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package)
@@ -543,7 +548,7 @@ resources_package_test = rule(
 
 def _package_resources_final_id_test(ctx):
     env = analysistest.begin(ctx)
-    target_under_test = analysistest.target_under_test(env)
+    target_under_test = analysistest.target_under_test(env)  # @unused
     actions = analysistest.target_actions(env)
     found_final_r = False
     found_nonfinal_r = False

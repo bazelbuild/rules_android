@@ -129,6 +129,21 @@ def ExpectedStarlarkAndroidResourcesInfo(
         transitive_compiled_resources = [],
         packages_to_r_txts = {},
         name = "unused"):  # appease linter
+    """Creates expected StarlarkAndroidResourcesInfo test data.
+
+    Args:
+      direct_resources_nodes: Direct resources node labels.
+      transitive_resources_nodes: Transitive resources node labels.
+      transitive_assets: Transitive asset paths.
+      transitive_assets_symbols: Transitive asset symbol paths.
+      transitive_compiled_resources: Transitive compiled resource paths.
+      packages_to_r_txts: Mapping from Java packages to R.txt paths.
+      name: Unused compatibility parameter.
+
+    Returns:
+      The label of the generated expected info target.
+    """
+
     name = (str(direct_resources_nodes) + str(transitive_resources_nodes) + str(transitive_assets) +
             str(transitive_assets_symbols) + str(transitive_compiled_resources))
     name = ":_data_" + str(hash(name))
@@ -146,6 +161,7 @@ def ExpectedStarlarkAndroidResourcesInfo(
         )
     return name
 
+# @unused
 def _build_expected_resources_node_info(string):
     parts = string.split(":")
     if len(parts) != 5:
