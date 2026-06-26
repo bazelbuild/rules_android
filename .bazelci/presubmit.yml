@@ -221,3 +221,4 @@ tasks:
     build_targets:
       - "//java/com/basicapp:basic_app"
 
+buildifier: latest
