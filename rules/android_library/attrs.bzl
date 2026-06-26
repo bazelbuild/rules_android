@@ -13,15 +13,15 @@
 # limitations under the License.
 """Attributes."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("//providers:providers.bzl", "StarlarkApkInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 
 visibility(PROJECT_VISIBILITY)
 

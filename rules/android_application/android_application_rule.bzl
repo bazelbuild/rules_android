@@ -13,6 +13,7 @@
 # limitations under the License.
 """android_application rule."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load(
     "//providers:providers.bzl",
     "AndroidArchivedSandboxedSdkInfo",
@@ -61,7 +62,6 @@ load(
     _log = "log",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
 load(":android_feature_module_rule.bzl", "get_feature_module_paths")
 load(":attrs.bzl", "ANDROID_APPLICATION_ATTRS")
 
@@ -187,8 +187,8 @@ def _create_feature_manifest(
         aapt2,
         feature_manifest_script,
         priority_feature_manifest_script,
-        android_resources_busybox,
-        host_javabase):
+        android_resources_busybox,  # @unused
+        host_javabase):  # @unused
     info = feature_target[AndroidFeatureModuleInfo]
     manifest = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/AndroidManifest.xml")
 

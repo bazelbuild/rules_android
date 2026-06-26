@@ -13,6 +13,9 @@
 # limitations under the License.
 """Implementation."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load("//providers:providers.bzl", "AndroidIdlInfo", "AndroidLibraryAarInfo", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "BaselineProfileProvider", "DataBindingV2Info", "StarlarkAndroidResourcesInfo", "StarlarkApkInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:attrs.bzl", _attrs = "attrs")
@@ -31,9 +34,6 @@ load("//rules:proguard.bzl", _proguard = "proguard")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
-load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -119,13 +119,13 @@ def _validate_rule_context(ctx):
         enable_deps_without_srcs = _check_deps_without_java_srcs(ctx),
     )
 
-def _exceptions_processor(ctx, **unused_ctxs):
+def _exceptions_processor(ctx, **_unused_ctxs):
     return ProviderInfo(
         name = "exceptions_ctx",
         value = _validate_rule_context(ctx),
     )
 
-def _process_manifest(ctx, **unused_ctxs):
+def _process_manifest(ctx, **_unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
         manifest = ctx.file.manifest,
@@ -136,7 +136,7 @@ def _process_manifest(ctx, **unused_ctxs):
         value = manifest_ctx,
     )
 
-def _process_localized_resources(ctx, **unused_ctxs):
+def _process_localized_resources(ctx, **_unused_ctxs):
     return ProviderInfo(
         name = "localized_ctx",
         value = struct(
@@ -145,7 +145,7 @@ def _process_localized_resources(ctx, **unused_ctxs):
         ),
     )
 
-def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_ctxs):
+def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **_unused_ctxs):
     # exports_manifest can be overridden by a bazel flag.
     if ctx.attr.exports_manifest == _attrs.tristate.auto:
         exports_manifest = ctx.fragments.android.get_exports_manifest_default
@@ -203,7 +203,7 @@ def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_
         value = resources_ctx,
     )
 
-def _process_idl(ctx, **unused_sub_ctxs):
+def _process_idl(ctx, **_unused_sub_ctxs):
     return ProviderInfo(
         name = "idl_ctx",
         value = _idl.process(
@@ -223,7 +223,7 @@ def _process_idl(ctx, **unused_sub_ctxs):
         ),
     )
 
-def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
+def _process_data_binding(ctx, java_package, resources_ctx, **_unused_sub_ctxs):
     if ctx.attr.enable_data_binding and not acls.in_databinding_allowed(str(ctx.label)):
         fail("This target is not allowed to use databinding and enable_data_binding is True.")
     return ProviderInfo(
@@ -244,7 +244,7 @@ def _process_data_binding(ctx, java_package, resources_ctx, **unused_sub_ctxs):
         ),
     )
 
-def _process_proguard(ctx, idl_ctx, **unused_sub_ctxs):
+def _process_proguard(ctx, idl_ctx, **_unused_sub_ctxs):
     return ProviderInfo(
         name = "proguard_ctx",
         value = _proguard.process_specs(
@@ -261,7 +261,7 @@ def _process_proguard(ctx, idl_ctx, **unused_sub_ctxs):
         ),
     )
 
-def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_sub_ctxs):
+def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **_unused_sub_ctxs):
     java_info = _java.compile_android(
         ctx,
         ctx.outputs.lib_jar,
@@ -297,7 +297,7 @@ def _process_jvm(ctx, exceptions_ctx, resources_ctx, idl_ctx, db_ctx, **unused_s
         ),
     )
 
-def _process_lint_rules(ctx, **unused_sub_ctxs):
+def _process_lint_rules(ctx, **_unused_sub_ctxs):
     providers = []
     if acls.in_enable_exported_lint_checks(str(ctx.label)):
         # Propagate Lint rule Jars from any exported AARs (b/229993446)
@@ -318,7 +318,12 @@ def _process_lint_rules(ctx, **unused_sub_ctxs):
         ),
     )
 
-def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
+def _process_aar(
+        ctx,
+        java_package,  # @unused
+        resources_ctx,
+        proguard_ctx,
+        **_unused_ctx):
     aar_ctx = {
         _PROVIDERS: [],
         _VALIDATION_OUTPUTS: [],
@@ -358,7 +363,7 @@ def _process_aar(ctx, java_package, resources_ctx, proguard_ctx, **unused_ctx):
         value = _AARContextInfo(**aar_ctx),
     )
 
-def _process_native(ctx, idl_ctx, **unused_ctx):
+def _process_native(ctx, idl_ctx, **_unused_ctx):
     return ProviderInfo(
         name = "native_ctx",
         value = struct(
@@ -381,7 +386,7 @@ def _process_native(ctx, idl_ctx, **unused_ctx):
         ),
     )
 
-def _process_intellij(ctx, java_package, manifest_ctx, resources_ctx, idl_ctx, jvm_ctx, **unused_sub_ctxs):
+def _process_intellij(ctx, java_package, manifest_ctx, resources_ctx, idl_ctx, jvm_ctx, **_unused_sub_ctxs):
     android_ide_info = _intellij.make_android_ide_info(
         ctx,
         java_package = java_package,
@@ -409,7 +414,7 @@ def _process_intellij(ctx, java_package, manifest_ctx, resources_ctx, idl_ctx, j
         ),
     )
 
-def _process_coverage(ctx, **unused_ctx):
+def _process_coverage(ctx, **_unused_ctx):
     return ProviderInfo(
         name = "coverage_ctx",
         value = struct(
@@ -424,7 +429,7 @@ def _process_coverage(ctx, **unused_ctx):
         ),
     )
 
-def _process_baseline_profiles(ctx, **unused_ctx):
+def _process_baseline_profiles(ctx, **_unused_ctx):
     return ProviderInfo(
         name = "bp_ctx",
         value = struct(
@@ -460,12 +465,12 @@ PROCESSORS = dict(
 def finalize(
         ctx,
         resources_ctx,
-        intellij_ctx,
+        intellij_ctx,  # @unused
         jvm_ctx,
         proguard_ctx,
         providers,
         validation_outputs,
-        **unused_ctxs):
+        **_unused_ctxs):
     """Creates the DefaultInfo and OutputGroupInfo providers.
 
     Args:
@@ -476,7 +481,7 @@ def finalize(
       proguard_ctx: ProviderInfo. The proguard ctx.
       providers: sequence of providers. The providers to propagate.
       validation_outputs: sequence of Files. The validation outputs.
-      **unused_ctxs: Unused ProviderInfo.
+      **_unused_ctxs: Unused ProviderInfo.
 
     Returns:
       A struct with Android and Java legacy providers and a list of providers.

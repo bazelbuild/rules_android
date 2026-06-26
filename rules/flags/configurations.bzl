@@ -13,8 +13,8 @@
 # limitations under the License.
 """Configuration definitions."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 

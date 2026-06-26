@@ -13,8 +13,8 @@
 # limitations under the License.
 """Methods to create and process R.java."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)

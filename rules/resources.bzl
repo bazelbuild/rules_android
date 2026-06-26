@@ -13,13 +13,13 @@
 # limitations under the License.
 """Bazel Android Resources."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
 load(":path.bzl", _path = "path")
@@ -496,7 +496,7 @@ def _package(
         should_throw_on_conflict = True,
         enable_data_binding = False,
         enable_manifest_merging = True,
-        should_compile_java_srcs = True,
+        should_compile_java_srcs = True,  # @unused
         generate_minsdk_proguard_config = False,
         build_java_with_final_resources = False,
         generate_out_symbols = True,
@@ -886,6 +886,7 @@ def _liteparse(ctx, out_r_pb, resource_files, android_kit):
         toolchain = None,
     )
 
+# @unused
 def _fastr(ctx, r_pbs, package, manifest, android_kit):
     """Create R.srcjar from the given R.pb files in the transitive closure.
 
@@ -1007,6 +1008,7 @@ def _make_aar(
     )
     return aar
 
+# @unused
 def _validate(ctx, manifest, defined_assets, defined_assets_dir):
     if ((defined_assets and not defined_assets_dir) or
         (not defined_assets and defined_assets_dir)):
@@ -1214,9 +1216,9 @@ def _process(
         crunch_png = True,
         aapt = None,
         android_jar = None,
-        android_kit = None,
+        android_kit = None,  # @unused
         busybox = None,
-        java_toolchain = None,
+        java_toolchain = None,  # @unused
         host_javabase = None,
         instrument_xslt = None,
         xsltproc = None,

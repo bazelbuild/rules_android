@@ -16,6 +16,12 @@
 # Don't use relative paths since this file is coppied to //android/rules.bzl.
 
 load(
+    "//providers:providers.bzl",
+    _AndroidAppsInfo = "AndroidAppsInfo",
+    _ApkInfo = "ApkInfo",
+    _StarlarkApkInfo = "StarlarkApkInfo",
+)
+load(
     "//rules:android_sdk.bzl",
     _android_sdk = "android_sdk",
 )
@@ -26,12 +32,6 @@ load(
 load(
     "//rules:instrumented_app_info_aspect.bzl",
     _instrumented_app_info_aspect = "instrumented_app_info_aspect",
-)
-load(
-    "//providers:providers.bzl",
-    _AndroidAppsInfo = "AndroidAppsInfo",
-    _ApkInfo = "ApkInfo",
-    _StarlarkApkInfo = "StarlarkApkInfo",
 )
 load(
     "//rules/aar_import:rule.bzl",

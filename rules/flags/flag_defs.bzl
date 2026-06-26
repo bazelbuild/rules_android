@@ -19,6 +19,8 @@ load("//rules/flags:flags.bzl", "flags")
 visibility(PROJECT_VISIBILITY)
 
 def define_flags():
+    """Defines rules_android feature flags."""
+
     flags.DEFINE_bool(
         name = "android_enable_res_v3",
         default = False,
@@ -81,7 +83,6 @@ def define_flags():
         default = False,
         description = "",
     )
-
 
     flags.DEFINE_bool(
         name = "use_studio_deployer",

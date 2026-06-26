@@ -82,7 +82,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         _merge_manifests = attr.label(
             default = ":merge_feature_manifests",
-            allow_single_file = None, # True for google3
+            allow_single_file = None,  # True for google3
             cfg = "exec",
             executable = True,
         ),

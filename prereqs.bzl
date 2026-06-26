@@ -19,7 +19,11 @@ load("//bzlmod_extensions:apksig.bzl", _apksig_archive = "apksig")
 load("//bzlmod_extensions:com_android_dex.bzl", _com_android_dex_archive = "com_android_dex")
 
 def rules_android_prereqs(dev_mode = False):
-    """Downloads prerequisite repositories for rules_android."""
+    """Downloads prerequisite repositories for rules_android.
+
+    Args:
+      dev_mode: Whether to include development dependencies.
+    """
 
     maybe(
         http_archive,

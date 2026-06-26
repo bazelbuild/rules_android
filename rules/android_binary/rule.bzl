@@ -13,6 +13,7 @@
 # limitations under the License.
 """Starlark Android Binary for Android Rules."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "ApkInfo")
 load("//rules:acls.bzl", "acls")
 load(
@@ -21,13 +22,12 @@ load(
 )
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
 
 visibility(PROJECT_VISIBILITY)
 
-_DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging", "features", "exec_properties"]
+_DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging", "features", "exec_properties"]  # @unused
 
 _DEFAULT_PROVIDES = [ApkInfo, JavaInfo]
 
@@ -126,7 +126,7 @@ def android_binary_macro(**attrs):
 
     # Required for ACLs check in _outputs(), since the callback can't access the native module.
     attrs["$package_name"] = native.package_name()
-    target_fqn = "//%s:%s" % (native.package_name(), attrs["name"])
+    target_fqn = "//%s:%s" % (native.package_name(), attrs["name"])  # @unused
 
     if type(attrs.get("proguard_specs", None)) == "select" or attrs.get("proguard_specs", None):
         attrs["$generate_proguard_outputs"] = True

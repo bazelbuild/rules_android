@@ -13,6 +13,9 @@
 # limitations under the License.
 """Implementation."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo")
 load(
     "//rules:acls.bzl",
@@ -41,9 +44,6 @@ load(
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", _flags = "flags")
-load("@rules_java//java/common:java_common.bzl", "java_common")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -52,8 +52,8 @@ ANDROID_MANIFEST = "AndroidManifest.xml"
 LINT_JAR = "lint.jar"
 
 # Resources context dict fields.
-_PROVIDERS = "providers"
-_VALIDATION_RESULTS = "validation_results"
+_PROVIDERS = "providers"  # @unused
+_VALIDATION_RESULTS = "validation_results"  # @unused
 
 def _create_aar_tree_artifact(ctx, name):
     return ctx.actions.declare_directory("%s/unzipped/%s/%s" % (RULE_PREFIX, name, ctx.label.name))
@@ -138,9 +138,9 @@ def _process_resources(
         aar,
         package,
         manifest,
-        deps,
+        deps,  # @unused
         aar_resources_extractor_tool,
-        unzip_tool):
+        unzip_tool):  # @unused
     # Extract resources and assets, if they exist.
     resources = _create_aar_tree_artifact(ctx, "resources")
     assets = _create_aar_tree_artifact(ctx, "assets")

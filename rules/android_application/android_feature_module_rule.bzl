@@ -91,6 +91,7 @@ android_feature_module = rule(
     _skylark_testable = True,
 )
 
+# buildifier: disable=unnamed-macro
 def get_feature_module_paths(fqn):
     # Given a fqn to an android_feature_module, returns the absolute paths to
     # all implicitly generated targets

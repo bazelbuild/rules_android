@@ -13,10 +13,11 @@
 # limitations under the License.
 """Utilities for by the Mobile-Install aspect."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
-load("@rules_java//java/common:java_common.bzl", "java_common")
+
 # Copybara: placeholder for GeneratedExtensionRegistryInfo load
 load("//tools/jdk:jvmopts.bzl", "BASE_JVMOPTS")
 load(":constants.bzl", "constants")
@@ -273,7 +274,6 @@ def merge_dex_shards(
     """
     args = ctx.actions.args()
 
-
     args.add("--multidex", "best_effort")
     args.add("--output", out_dex_zip.path)
     args.add_all(dex_archives, before_each = "--input")
@@ -340,7 +340,7 @@ def _extract_package_name(ctx, apk, package_name_output_file):
         progress_message = "MI Extracts the package name from %s" % apk.path,
     )
 
-def _get_extension_registry_class_jar(target):
+def _get_extension_registry_class_jar(target):  # @unused
     class_jar = None
 
     return class_jar

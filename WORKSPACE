@@ -1,18 +1,20 @@
 workspace(name = "rules_android")
 
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-
 load("prereqs.bzl", "rules_android_prereqs")
 
 rules_android_prereqs(dev_mode = True)
 
 load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
 bazel_features_deps()
 
 load("@rules_cc//cc:extensions.bzl", "compatibility_proxy_repo")
+
 compatibility_proxy_repo()
 
 load("@rules_java//java:rules_java_deps.bzl", "rules_java_dependencies")
+
 rules_java_dependencies()
 
 # note that the following line is what is minimally required from protobuf for the java rules

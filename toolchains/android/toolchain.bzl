@@ -322,10 +322,10 @@ _ATTRS = dict(
         executable = True,
     ),
     deploy_info_writer = attr.label(
-      allow_single_file = True,
-      cfg = "exec",
-      default = Label("//src/tools/deploy_info"),
-      executable = True,
+        allow_single_file = True,
+        cfg = "exec",
+        default = Label("//src/tools/deploy_info"),
+        executable = True,
     ),
     translation_merger = attr.label(
         cfg = "exec",

@@ -16,13 +16,13 @@ Defines the native libs processing and an aspect to collect build configuration
 of split deps
 """
 
-load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidCcLinkParamsInfo", "AndroidNativeLibsInfo")
-load("//rules:utils.bzl", "utils")
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@bazel_skylib//lib:paths.bzl", "paths")
+load("//providers:providers.bzl", "AndroidBinaryNativeLibsInfo", "AndroidCcLinkParamsInfo", "AndroidNativeLibsInfo")
+load("//rules:utils.bzl", "utils")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -35,7 +35,7 @@ SplitConfigInfo = provider(
 )
 
 def _split_config_aspect_impl(__, ctx):
-    android_cfg = ctx.fragments.android
+    android_cfg = ctx.fragments.android  # @unused
     return SplitConfigInfo(
         build_config = ctx.configuration,
         target_platform = ctx.fragments.platform.platform,

@@ -13,9 +13,9 @@
 # limitations under the License.
 """Bazel rule for Android local test."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", "ATTRS")
 load(":impl.bzl", "impl")
 
@@ -30,6 +30,7 @@ def make_rule(
     Args:
       attrs: A dict. The attributes for the rule.
       implementation: A function. The rule's implementation method.
+      additional_toolchains: A list. Additional toolchains passed to rule(toolchains).
 
     Returns:
       A rule.

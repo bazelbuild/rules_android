@@ -13,9 +13,9 @@
 # limitations under the License.
 """Bazel Java APIs for the Android rules."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/private:android_support.bzl", "android_support")  # buildifier: disable=bzl-visibility
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":path.bzl", _path = "path")
 load(":utils.bzl", "log")
 
@@ -284,7 +284,7 @@ def _compile(
         annotation_processor_additional_outputs = [],
         annotation_processor_additional_inputs = [],
         neverlink = False,
-        constraints = [],
+        constraints = [],  # @unused
         strict_deps = "Error",
         java_toolchain = None):
     """Compiles the Java and IDL sources for Android.

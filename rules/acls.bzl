@@ -310,11 +310,21 @@ BYTECODE_TRANSFORMERS_DICT = make_dict(BYTECODE_TRANSFORMERS)
 AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK_DICT = make_dict(AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK)
 
 def matches(fqn, dct):
+    """Returns whether a fully qualified label matches an ACL dictionary.
+
+    Args:
+      fqn: The fully qualified label to match.
+      dct: The ACL dictionary.
+
+    Returns:
+      True if the label matches the ACL dictionary.
+    """
+
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
     # For now, default external dependency ACLs to True to enable rollout features for all
     # external users. See https://github.com/bazelbuild/rules_android/issues/68
     # Note that this only affects Bazel builds with OSS rules_android.
-    if fqn.startswith("@") and not fqn.startswith("@//") and not fqn.startswith("@@//"):
+    if fqn.startswith("@") and not fqn.startswith("@//") and not fqn.startswith("@@//"):  # buildifier: disable=canonical-repository
         return True
 
     # "@//" is the same as the main workspace. It's not completely accurate to treat these as
@@ -325,7 +335,7 @@ def matches(fqn, dct):
         fqn = fqn[1:]
 
     # "@@//" refers to the canonical name of the main repository.
-    if fqn.startswith("@@//"):
+    if fqn.startswith("@@//"):  # buildifier: disable=canonical-repository
         fqn = fqn[2:]
 
     if not fqn.startswith("//"):

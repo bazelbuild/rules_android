@@ -106,7 +106,26 @@ def make_split_apks(
         key_rotation_min_sdk,
         zipalign_alignment,
         sibling):
-    """Create a split for each dex and for resources"""
+    """Create a split for each dex and for resources.
+
+    Args:
+      ctx: The context.
+      manifest: The merged AndroidManifest.xml.
+      r_dex: The generated R dex artifact.
+      dexes: A list of dex artifacts to package as splits.
+      resource_apk: The resource APK.
+      jar_resources: Java resource jars to package.
+      native_zips: Native library zips to package.
+      swigdeps_file: A generated SWIG deps file.
+      debug_signing_keys: Debug keystores used to sign APKs.
+      debug_signing_lineage_file: File containing the signing lineage.
+      key_rotation_min_sdk: Minimum API level to rotate signing keys for.
+      zipalign_alignment: Zip alignment used before signing.
+      sibling: The file used to root generated outputs.
+
+    Returns:
+      A tuple of the manifest package-name file and the generated split APKs.
+    """
     manifest_package_name = utils.isolated_declare_file(ctx, "manifest_package_name.txt", sibling = sibling)
     manifests = {}
     artifacts = {}
@@ -115,7 +134,7 @@ def make_split_apks(
     to_pack = dexes + [r_dex]
     if native_zips:
         to_pack.extend(native_zips)
-    for i, artifact in enumerate(to_pack):
+    for artifact in to_pack:
         # the split attr in the manifest will be used to name the file on the device like
         # split_${SPLIT_ID}.apk. We need to follow the same pattern so that we can compare
         # files during sync time and only do the incremental install.
