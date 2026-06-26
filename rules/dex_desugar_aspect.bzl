@@ -120,7 +120,7 @@ def _aspect_impl(target, ctx):
 
     if runtime_jars:
         basename_clash = _check_basename_clash(runtime_jars)
-        aspect_dexopts = _get_aspect_dexopts(ctx)
+        aspect_dexopts = _get_aspect_dexopts()
         for jar in runtime_jars:
             if ctx.fragments.android.desugar_java8:
                 jar_to_desugar = jar
@@ -214,7 +214,7 @@ def _get_platform_based_toolchain_jars(ctx):
         return ctx.rule.attr._aidl_lib[JavaInfo].runtime_output_jars
     return []
 
-def _get_aspect_dexopts(ctx):
+def _get_aspect_dexopts():
     return _power_set(_dex.normalize_dexopts(_dex.DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING))
 
 def _get_boot_classpath(target, ctx):
