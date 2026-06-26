@@ -95,8 +95,6 @@ def _process_feature_module(
         get_android_sdk(ctx).aapt2,
         ctx.executable._feature_manifest_script,
         ctx.executable._priority_feature_manifest_script,
-        get_android_toolchain(ctx).android_resources_busybox,
-        _common.get_host_javabase(ctx),
     )
 
     # Remove all dexes from the feature module apk. jvm / resources are not
@@ -186,9 +184,7 @@ def _create_feature_manifest(
         feature_target,
         aapt2,
         feature_manifest_script,
-        priority_feature_manifest_script,
-        android_resources_busybox,
-        host_javabase):
+        priority_feature_manifest_script):
     info = feature_target[AndroidFeatureModuleInfo]
     manifest = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/AndroidManifest.xml")
 

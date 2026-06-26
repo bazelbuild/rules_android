@@ -115,7 +115,7 @@ def make_split_apks(
     to_pack = dexes + [r_dex]
     if native_zips:
         to_pack.extend(native_zips)
-    for i, artifact in enumerate(to_pack):
+    for artifact in to_pack:
         # the split attr in the manifest will be used to name the file on the device like
         # split_${SPLIT_ID}.apk. We need to follow the same pattern so that we can compare
         # files during sync time and only do the incremental install.

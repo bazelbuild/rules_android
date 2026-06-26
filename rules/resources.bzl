@@ -52,11 +52,6 @@ _MANIFEST_MISSING_ERROR = (
     "assets, or exports_manifest are specified."
 )
 
-_ASSET_DEFINITION_ERROR = (
-    "In target %s, the assets and assets_dir attributes should be either " +
-    "both empty or non-empty."
-)
-
 _INCORRECT_RESOURCE_LAYOUT_ERROR = (
     "'%s' is not in the expected resource directory structure of " +
     "<resource directory>/{%s}/<file>" % (",").join(_RESOURCE_FOLDER_TYPES)
@@ -886,43 +881,6 @@ def _liteparse(ctx, out_r_pb, resource_files, android_kit):
         toolchain = None,
     )
 
-def _fastr(ctx, r_pbs, package, manifest, android_kit):
-    """Create R.srcjar from the given R.pb files in the transitive closure.
-
-    Args:
-      ctx: The context.
-      r_pbs: Transitive  set of resource pbs.
-      package: The package name of the compile-time R.java.
-      manifest: File. The AndroidManifest.xml file.
-      android_kit: FilesToRunProvider. The Android Kit executable or
-        FilesToRunProvider.
-
-    Returns:
-      The output R source jar artifact.
-    """
-    inputs = r_pbs
-    r_srcjar = ctx.actions.declare_file(ctx.label.name + "/resources/R-fastr.srcjar")
-    args = ctx.actions.args()
-    args.use_param_file(param_file_arg = "--flagfile=%s", use_always = True)
-    args.set_param_file_format("multiline")
-    args.add("-rJavaOutput", r_srcjar)
-    if package:
-        args.add("-packageForR", package)
-    else:
-        args.add("-manifest", manifest)
-        inputs = depset([manifest], transitive = [inputs])
-    args.add_joined("-resourcePbs", r_pbs, join_with = ",")
-
-    ctx.actions.run(
-        executable = android_kit,
-        arguments = ["rstub", args],
-        inputs = inputs,
-        outputs = [r_srcjar],
-        mnemonic = "CompileTimeR",
-        progress_message = "Generating compile-time R %s" % r_srcjar.short_path,
-    )
-    return r_srcjar
-
 def _compile(
         ctx,
         out_compiled_resources = None,
@@ -1006,14 +964,6 @@ def _make_aar(
         host_javabase = host_javabase,
     )
     return aar
-
-def _validate(ctx, manifest, defined_assets, defined_assets_dir):
-    if ((defined_assets and not defined_assets_dir) or
-        (not defined_assets and defined_assets_dir)):
-        _log.error(_ASSET_DEFINITION_ERROR % ctx.label)
-
-    if not manifest:
-        _log.error(_MANIFEST_MISSING_ERROR % ctx.label)
 
 def _validate_resources(resource_files = None):
     for resource_file in resource_files:

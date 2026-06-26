@@ -25,7 +25,6 @@ visibility(PROJECT_VISIBILITY)
 
 _SETTING = "//rules/flags:min_sdk_version"
 _DEPOT_FLOOR = 23
-_MIN_SDK_LEVELS = sorted([_DEPOT_FLOOR, 24])
 
 _ATTRS = dict(
     _min_sdk_version = attr.label(

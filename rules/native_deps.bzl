@@ -35,7 +35,6 @@ SplitConfigInfo = provider(
 )
 
 def _split_config_aspect_impl(__, ctx):
-    android_cfg = ctx.fragments.android
     return SplitConfigInfo(
         build_config = ctx.configuration,
         target_platform = ctx.fragments.platform.platform,
