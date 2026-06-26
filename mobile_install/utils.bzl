@@ -340,7 +340,7 @@ def _extract_package_name(ctx, apk, package_name_output_file):
         progress_message = "MI Extracts the package name from %s" % apk.path,
     )
 
-def _get_extension_registry_class_jar(target):
+def _get_extension_registry_class_jar(target):  # @unused
     class_jar = None
 
     return class_jar
