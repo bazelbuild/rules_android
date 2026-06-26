@@ -23,4 +23,6 @@ def android_local_test(**attrs):
     Args:
       **attrs: Rule attributes
     """
+
+    # buildifier: disable=native-android
     native.android_local_test(**_add_migration_tag(attrs))
