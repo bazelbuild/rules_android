@@ -148,6 +148,6 @@ public class Constants {
   private Constants() {}
 }
 EOF
-""" % str(min_sdk_version.DEPOT_FLOOR),
+""" % str(min_sdk_version.DEX_DESUGAR),
     visibility = [":__pkg__"],
 )

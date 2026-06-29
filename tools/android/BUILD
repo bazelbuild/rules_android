@@ -131,7 +131,7 @@ genrule(
     cmd = "$(location //src/tools/extract_desugar_pgcfg_flags) --input_json $(location :desugar_jdk_libs_json) --output_file $@",
 )
 
-_MIN_SDK_VERSION = str(min_sdk_version.DEPOT_FLOOR)
+_MIN_SDK_VERSION = str(min_sdk_version.DEX_DESUGAR)
 
 genrule(
     name = "build_java8_legacy_dex_params",
@@ -181,7 +181,7 @@ genrule(
           "--desugar_supported_core_libs " +
           "--desugared_lib_config=$(location :full_desugar_jdk_libs_config_json) " +
           "--bootclasspath_entry=$(location :bootclasspath) " +
-          "--min_sdk_version=%d " % min_sdk_version.DEPOT_FLOOR +
+          "--min_sdk_version=%d " % min_sdk_version.DEX_DESUGAR +
           "--input=$(location :desugar_jdk_libs_all) --output=$@",
     tools = ["//src/tools/java/com/google/devtools/build/android/r8:core_library_desugar"],
 )
@@ -623,7 +623,7 @@ java_library(
 genrule(
     name = "desugar_globals",
     outs = ["desugar.globals"],
-    cmd = "$(JAVA) -Dcom.android.tools.r8.disableLambdaMethodAnnotations -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --output $@".format(min_sdk_version.DEPOT_FLOOR),
+    cmd = "$(JAVA) -Dcom.android.tools.r8.disableLambdaMethodAnnotations -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --output $@".format(min_sdk_version.DEX_DESUGAR),
     toolchains = ["//tools/jdk:current_host_java_runtime"],
     tools = [":global_synthetics_generator_deploy.jar"],
     visibility = ["//visibility:public"],
@@ -644,7 +644,7 @@ genrule(
 genrule(
     name = "desugar_globals_classes",
     outs = ["desugar_globals_classes.zip"],
-    cmd = "$(JAVA) -Dcom.android.tools.r8.disableLambdaMethodAnnotations -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --classfile --output $@".format(min_sdk_version.DEPOT_FLOOR),
+    cmd = "$(JAVA) -Dcom.android.tools.r8.disableLambdaMethodAnnotations -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --classfile --output $@".format(min_sdk_version.DEX_DESUGAR),
     toolchains = ["//tools/jdk:current_host_java_runtime"],
     tools = [":global_synthetics_generator_deploy.jar"],
     visibility = ["//visibility:public"],
