@@ -100,7 +100,7 @@ def _aspect_impl(target, ctx):
 
     incremental_dexing = getattr(ctx.rule.attr, "incremental_dexing", _tristate.auto)
 
-    min_sdk_version = _min_sdk_version.get(ctx)
+    min_sdk_version = _min_sdk_version.DEX_DESUGAR
 
     if incremental_dexing == _tristate.no:
         return []

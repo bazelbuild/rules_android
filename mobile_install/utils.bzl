@@ -158,7 +158,7 @@ def dex(ctx, jar, out_dex_shards, deps = None):
         deterministic manner.
       deps: The list of dependencies for the Jar being desugared.
     """
-    min_sdk = _min_sdk_version.get(ctx)
+    min_sdk = _min_sdk_version.DEX_DESUGAR
     args = ctx.actions.args()
     args.use_param_file(param_file_arg = "-flagfile=%s", use_always = True)
 

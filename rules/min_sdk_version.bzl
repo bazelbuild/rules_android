@@ -25,6 +25,7 @@ visibility(PROJECT_VISIBILITY)
 
 _SETTING = "//rules/flags:min_sdk_version"
 _DEPOT_FLOOR = 23
+_DEX_DESUGAR = 23
 _MIN_SDK_LEVELS = sorted([_DEPOT_FLOOR, 24])
 
 _ATTRS = dict(
@@ -62,4 +63,5 @@ min_sdk_version = struct(
     clamp = _clamp,
     get = _get,
     DEPOT_FLOOR = _DEPOT_FLOOR,
+    DEX_DESUGAR = _DEX_DESUGAR,
 )
