@@ -13,6 +13,8 @@
 # limitations under the License.
 """Attributes."""
 
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "StarlarkApkInfo")
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
 load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
@@ -27,37 +29,8 @@ load(
     "split_config_aspect",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 visibility(PROJECT_VISIBILITY)
-
-def make_deps(allow_rules, providers, aspects):
-    return attr.label_list(
-        allow_rules = allow_rules,
-        providers = providers,
-        aspects = aspects,
-        cfg = android_split_transition,
-    )
-
-DEPS_ALLOW_RULES = [
-    "aar_import",
-    "android_library",
-    "cc_library",
-    "java_import",
-    "java_library",
-    "java_lite_proto_library",
-]
-
-DEPS_PROVIDERS = [
-    [CcInfo],
-    [JavaInfo],
-]
-
-DEPS_ASPECTS = [
-    dex_desugar_aspect,
-    android_neverlink_aspect,
-]
 
 ATTRS = _attrs.replace(
     _attrs.add(
@@ -66,7 +39,17 @@ ATTRS = _attrs.replace(
                 # TODO(timpeut): Set PropertyFlag direct_compile_time_input
                 allow_files = [".java", ".srcjar"],
             ),
-            deps = make_deps(DEPS_ALLOW_RULES, DEPS_PROVIDERS, DEPS_ASPECTS),
+            deps = attr.label_list(
+                providers = [
+                    [CcInfo],
+                    [JavaInfo],
+                ],
+                aspects = [
+                    dex_desugar_aspect,
+                    android_neverlink_aspect,
+                ],
+                cfg = android_split_transition,
+            ),
             enable_data_binding = attr.bool(),
             instruments = attr.label(),
             manifest_values = attr.string_dict(),
