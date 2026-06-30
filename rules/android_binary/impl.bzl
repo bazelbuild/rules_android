@@ -352,7 +352,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
             output = classes_dex_zip,
             input = binary_jar,
             dexopts = ctx.attr.dexopts,
-            min_sdk_version = manifest_ctx.processed_min_sdk_version,
+            min_sdk_version = _min_sdk_version.clamp(manifest_ctx.processed_min_sdk_version),
             dexbuilder = get_android_sdk(ctx).dx,
             toolchain_type = ANDROID_TOOLCHAIN_TYPE,
         )
