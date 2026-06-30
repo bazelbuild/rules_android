@@ -13,7 +13,7 @@
 # limitations under the License.
 """R8 processor steps for android_binary."""
 
-load("//providers:providers.bzl", "AndroidDexInfo", "AndroidPreDexJarInfo")
+load("//providers:providers.bzl", "AndroidDexInfo", "AndroidOptimizationInfo", "AndroidPreDexJarInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load("//rules:common.bzl", "common")
@@ -79,6 +79,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
 
     dexes_zip = ctx.actions.declare_file(ctx.label.name + "_dexes.zip")
     proguard_mappings_output_file = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
+    build_metadata_output = ctx.actions.declare_file(ctx.label.name + "_r8_optimization_info.json")
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
@@ -127,6 +128,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     args.add_all(neverlink_jars, before_each = "--lib")
     args.add(deploy_jar)  # jar to optimize + desugar + dex
     args.add("--pg-map-output", proguard_mappings_output_file)
+    args.add("--build-metadata-output", build_metadata_output)
 
     r8_inputs = [android_jar, deploy_jar] + proguard_specs
     if ctx.fragments.android.desugar_java8_libs and desugared_lib_config:
@@ -139,7 +141,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         executable = get_android_toolchain(ctx).r8.files_to_run,
         arguments = [args],
         inputs = depset(r8_inputs, transitive = [neverlink_jars]),
-        outputs = [dexes_zip, proguard_mappings_output_file],
+        outputs = [dexes_zip, proguard_mappings_output_file, build_metadata_output],
         mnemonic = "AndroidR8",
         jvm_flags = ["-Xmx8G"],
         progress_message = "R8 Optimizing, Desugaring, and Dexing %{label}",
@@ -189,6 +191,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
             providers = [
                 android_dex_info,
                 AndroidPreDexJarInfo(pre_dex_jar = deploy_jar),
+                AndroidOptimizationInfo(r8_optimization_info = build_metadata_output),
             ],
         ),
     )
