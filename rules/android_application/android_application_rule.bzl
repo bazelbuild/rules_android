@@ -377,7 +377,9 @@ def _impl(ctx):
 
     if AndroidOptimizationInfo in ctx.attr.base_module:
         opt_info = ctx.attr.base_module[AndroidOptimizationInfo]
-        if opt_info.d8_optimization_info:
+        if getattr(opt_info, "r8_optimization_info", None):
+            metadata["com.android.tools/r8.json"] = opt_info.r8_optimization_info
+        if getattr(opt_info, "d8_optimization_info", None):
             metadata["com.android.tools/d8.json"] = opt_info.d8_optimization_info
 
     # Create .aab
