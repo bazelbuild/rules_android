@@ -64,14 +64,16 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     # The deploy jar from the deploy_jar processor is not used because as of now, whether it
     # actually produces a deploy jar is determinted by a separate set of ACLs, and also does
     # desugaring differently than with R8.
+    runtime_jars = depset(
+        direct = jvm_ctx.java_info.runtime_output_jars + [packaged_resources_ctx.class_jar],
+        transitive = [jvm_ctx.java_info.transitive_runtime_jars],
+    )
+
     deploy_jar = ctx.actions.declare_file(ctx.label.name + "_deploy.jar")
     java.create_deploy_jar(
         ctx,
         output = deploy_jar,
-        runtime_jars = depset(
-            direct = jvm_ctx.java_info.runtime_output_jars + [packaged_resources_ctx.class_jar],
-            transitive = [jvm_ctx.java_info.transitive_runtime_jars],
-        ),
+        runtime_jars = runtime_jars,
         java_toolchain = common.get_java_toolchain(ctx),
         build_target = ctx.label.name,
         deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
@@ -85,20 +87,21 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
     desugared_lib_config = ctx.file._desugared_lib_config
 
-    # Optionally extract proguard specs embedded in the deploy JAR (META-INF/proguard/
-    # and META-INF/com.android.tools/) so they are passed to R8.
+    # Optionally extract proguard specs embedded in runtime JARs (META-INF/proguard/
+    # and META-INF/com.android.tools/) so they are passed to R8. Each JAR is processed
+    # independently to avoid META-INF clobbering from the deploy JAR merge.
     if _flags.get(ctx).r8_extract_embedded_proguard_specs:
         jar_embedded_proguard = ctx.actions.declare_file(ctx.label.name + "_jar_embedded_proguard.pro")
         jar_extractor_args = ctx.actions.args()
-        jar_extractor_args.add("--input_jar", deploy_jar)
+        jar_extractor_args.add_all("--input_jars", runtime_jars)
         jar_extractor_args.add("--output_proguard_file", jar_embedded_proguard)
         ctx.actions.run(
             executable = get_android_toolchain(ctx).jar_embedded_proguard_extractor.files_to_run,
             arguments = [jar_extractor_args],
-            inputs = [deploy_jar],
+            inputs = runtime_jars,
             outputs = [jar_embedded_proguard],
             mnemonic = "JarEmbeddedProguardExtractor",
-            progress_message = "Extracting proguard specs from deploy jar for %{label}",
+            progress_message = "Extracting proguard specs from runtime jars for %{label}",
             toolchain = None,
         )
         proguard_specs = proguard_specs + [jar_embedded_proguard]

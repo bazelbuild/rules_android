@@ -18,6 +18,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from bazel_tools.tools.python.runfiles import runfiles
+
 import os
 import zipfile
 
@@ -31,40 +33,40 @@ from tools.android import proguard_extractor_lib
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_string("input_jar", None, "Input JAR")
-flags.mark_flag_as_required("input_jar")
+flags.DEFINE_multi_string("input_jars", None, "Input JAR(s)")
+flags.mark_flag_as_required("input_jars")
 flags.DEFINE_string(
     "output_proguard_file", None, "Output parameter file for proguard"
 )
 flags.mark_flag_as_required("output_proguard_file")
 
 
-def ExtractEmbeddedProguard(jar, output):
-  """Extract proguard specs from a JAR file."""
-  proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, output)
-
-
-def _Main(input_jar, output_proguard_file):
-  with zipfile.ZipFile(input_jar, "r") as jar:
-    with open(output_proguard_file, "wb") as output:
-      ExtractEmbeddedProguard(jar, output)
+def _Main(input_jars, output_proguard_file, r8_version = None):
+  with open(output_proguard_file, "wb") as output:
+    for input_jar in input_jars:
+      with zipfile.ZipFile(input_jar, "r") as jar:
+        proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, output, r8_version)
 
 
 def main(unused_argv):
+  r = runfiles.Create()
+  r8_version = None
+  with open(r.Rlocation("rules_android/tools/android/r8.version"), "r") as file:
+      runfile_lines = file.readlines()
+      if runfile_lines:
+          r8_version = runfile_lines[0].strip()
+
   if os.name == "nt":
-    jar_long = os.path.abspath(FLAGS.input_jar)
     proguard_long = os.path.abspath(FLAGS.output_proguard_file)
 
-    with junction.TempJunction(os.path.dirname(jar_long)) as jar_junc:
-      with junction.TempJunction(
-          os.path.dirname(proguard_long)
-      ) as proguard_junc:
-        _Main(
-            os.path.join(jar_junc, os.path.basename(jar_long)),
-            os.path.join(proguard_junc, os.path.basename(proguard_long)),
-        )
+    with junction.TempJunction(os.path.dirname(proguard_long)) as proguard_junc:
+      _Main(
+          [os.path.abspath(j) for j in FLAGS.input_jars],
+          os.path.join(proguard_junc, os.path.basename(proguard_long)),
+          r8_version,
+      )
   else:
-    _Main(FLAGS.input_jar, FLAGS.output_proguard_file)
+    _Main(FLAGS.input_jars, FLAGS.output_proguard_file, r8_version)
 
 
 if __name__ == "__main__":
