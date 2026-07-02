@@ -243,6 +243,7 @@ def _process_monolithic_dexing(
         mnemonic = "AndroidDexer",
         use_default_shell_env = True,
         resource_set = _resource_set_for_monolithic_dexing,
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = toolchain_type,
     )
 
@@ -297,6 +298,7 @@ def _shard_proguarded_jar_and_dex(
         mnemonic = "ShardClassesToDex",
         progress_message = "Sharding classes for dexing for " + str(ctx.label),
         use_default_shell_env = True,
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = toolchain_type,
     )
 
@@ -332,6 +334,9 @@ def _make_shard_artifacts(ctx, n, suffix):
 def _make_globals_shard(ctx, shard):
     return ctx.actions.declare_file(shard.basename + "_globals.zip", sibling = shard)
 
+def _path(f):
+    return f.path
+
 def _shard_dexes(
         ctx,
         output,
@@ -342,7 +347,19 @@ def _shard_dexes(
         toolchain_type = None):
     args = ctx.actions.args().use_param_file(param_file_arg = "@%s")
     args.add_all(inputs, before_each = "--input")
-    args.add("--output", output.path)
+
+    # `output` is a tree artifact (ctx.actions.declare_directory). args.add() rejects directories,
+    # and a plain output.path string is computed at analysis time so it would not be remapped.
+    # Route it through add_all + map_each: map_each runs at execution time, where File.path returns
+    # the path-mapped (config-stripped) directory under --experimental_output_paths=strip, keeping
+    # the command line consistent with where path mapping stages the output. expand_directories is
+    # False so the directory is emitted as a single value rather than (attempting to) expand it.
+    args.add_all(
+        "--output",
+        [output],
+        map_each = _path,
+        expand_directories = False,
+    )
     if inclusion_filter_jar:
         inputs.append(inclusion_filter_jar)
         args.add("--inclusion_filter_jar", inclusion_filter_jar)
@@ -356,7 +373,7 @@ def _shard_dexes(
         arguments = [args],
         mnemonic = "ShardForMultidex",
         # TODO(b/519583193): update CPU reservation when b/519583193 is implemented
-        execution_requirements = {"cpu:4": ""},  # see b/501344408
+        execution_requirements = {"cpu:4": "", "supports-path-mapping": "1"},  # see b/501344408
         progress_message = "Assembling dex files for " + ctx.label.name,
         use_default_shell_env = True,
         toolchain = toolchain_type,
@@ -380,6 +397,7 @@ def _append_desugar_dexes(ctx, output = None, input = None, dexes = None, dex_zi
         use_default_shell_env = True,
         mnemonic = "AppendDesugarDexes",
         progress_message = "Adding Desugar dex file(s) for %s" % ctx.label,
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -426,11 +444,18 @@ def _dex(
     if min_sdk_version > 0:
         args.add("--min_sdk_version", min_sdk_version)
 
-    execution_requirements = {}
+    # DexBuilder runs as a path-mapping worker. Path mapping forces the spawn to be sandboxed
+    # (Bazel's WorkerParser sets mustSandbox = usesPathMapping), and Bazel can only sandbox a
+    # MULTIPLEX worker when the action also declares supports-multiplex-sandboxing AND the worker
+    # resolves WorkRequest.sandbox_dir for its I/O. CompatDexBuilder does neither, so we run it as a
+    # SINGLEPLEX worker: singleplex sandboxed workers execute with cwd = sandbox, so the stripped
+    # (config-less) paths on the command line resolve directly and the .dex output stays invariant
+    # across the ABI-split configs, enabling cross-config cache reuse. We deliberately omit
+    # supports-multiplex-workers: under path mapping Bazel would downgrade it to singleplex anyway,
+    # so declaring it only makes the execution requirements misleading.
+    execution_requirements = {"supports-path-mapping": "1"}
     if ctx.fragments.android.persistent_android_dex_desugar:
         execution_requirements["supports-workers"] = "1"
-        if ctx.fragments.android.persistent_multiplex_android_dex_desugar:
-            execution_requirements["supports-multiplex-workers"] = "1"
 
     ctx.actions.run(
         executable = dex_exec,
@@ -496,6 +521,7 @@ def _optimizing_dex(
         outputs = [output, globals_output],
         mnemonic = "ShardedOptimizingDex",
         progress_message = "Optimized dexing " + input.path + " with applicable dexopts " + str(incremental_dexopts),
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = toolchain_type,
     )
 
@@ -552,6 +578,7 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
             arguments = [args],
             mnemonic = "BuildLegacyDex",
             progress_message = "Building Java8 legacy library for %s" % ctx.label,
+            execution_requirements = {"supports-path-mapping": "1"},
             toolchain = ANDROID_TOOLCHAIN_TYPE,
         )
 
@@ -582,6 +609,7 @@ def _dex_merge(
         outputs = [output],
         mnemonic = "DexMerger",
         progress_message = "Assembling dex files into " + output.short_path,
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = toolchain_type,
     )
 
@@ -661,6 +689,10 @@ def _optimized_dex_merge(
     inputs.append(param_file)
     args.add("@" + param_file.path)
 
+    # NOTE: This action is intentionally NOT marked "supports-path-mapping". The param file is
+    # produced by ctx.actions.write(), whose contents are not path-mapped, so its embedded input
+    # paths would not match the mapped paths the inputs are staged at. Enabling path mapping here
+    # would require switching to args.use_param_file() so Bazel maps the param file contents.
     ctx.actions.run(
         executable = optimizing_dexer,
         arguments = [args],

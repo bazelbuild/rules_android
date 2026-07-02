@@ -438,6 +438,7 @@ def _run(
         mnemonic = None,
         supports_workers = False,
         supports_multiplex_workers = False,
+        supports_path_mapping = False,
         execution_requirements = {},
         **args):
     """Run a java binary
@@ -449,6 +450,9 @@ def _run(
       mnemonic: A description of the action being executed.
       supports_workers: This action is worker-compatible (enabled with --strategy=MyAction=worker).
       supports_multiplex_workers: This action is multiplex worker-compatible.
+      supports_path_mapping: This action is compatible with Bazel path mapping
+        (--experimental_output_paths=strip). Only set this when the action's command line
+        embeds no unmapped config-specific output paths.
       execution_requirements: Information to schedule the action, in key-value pairs.
       **args: Additional arguments to pass to ctx.actions.run(). Some will get modified.
     """
@@ -494,6 +498,9 @@ def _run(
         execution_requirements["supports-workers"] = "1"
         if supports_multiplex_workers:
             execution_requirements["supports-multiplex-workers"] = "1"
+
+    if supports_path_mapping:
+        execution_requirements["supports-path-mapping"] = "1"
 
     ctx.actions.run(execution_requirements = execution_requirements, mnemonic = mnemonic, **args)
 

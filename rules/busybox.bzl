@@ -131,6 +131,52 @@ def _make_resources_flag(
         ],
     )
 
+# The composite resource flags above ("res#res:assets:manifest:r.txt:symbols") embed File paths.
+# To be compatible with Bazel path mapping (--experimental_output_paths=strip) the tuple MUST be
+# assembled inside a map_each callback: only there does File.path/.dirname/.root return the mapped
+# (bazel-out/cfg/bin) path, so the tuple is reassembled from already-stripped components at
+# execution time instead of from unmapped, analysis-time path strings.
+#
+# Transitive data already flows through map_each (see _make_package_resources_flags etc.). The
+# helpers below do the same for a target's own ("primary") data: callers pass a single
+# _make_primary_data() struct through args.add_all(..., map_each = ...).
+def _make_primary_data(
+        resource_files = [],
+        assets = [],
+        assets_dir = None,
+        manifest = None,
+        r_txt = None,
+        symbols = None,
+        label = ""):
+    return struct(
+        resource_files = resource_files,
+        assets = assets,
+        assets_dir = assets_dir,
+        manifest = manifest,
+        r_txt = r_txt,
+        symbols = symbols,
+        label = label,
+    )
+
+def _primary_data_resources_flag(primary):
+    return _make_resources_flag(
+        resource_files = primary.resource_files,
+        assets = primary.assets,
+        assets_dir = primary.assets_dir,
+        manifest = primary.manifest,
+        r_txt = primary.r_txt,
+        symbols = primary.symbols,
+    )
+
+def _primary_data_serialized_resources_flag(primary):
+    return _make_serialized_resources_flag(
+        resource_files = primary.resource_files,
+        assets = primary.assets,
+        assets_dir = primary.assets_dir,
+        label = primary.label,
+        symbols = primary.symbols,
+    )
+
 def _set_worker_mode_param_file(ctx, args):
     if (ctx.fragments.android.persistent_busybox_tools or
         ctx.fragments.android.persistent_multiplex_busybox_tools):
@@ -349,14 +395,15 @@ def _package(
     transitive_input_files.extend(transitive_compiled_resources)
     transitive_input_files.extend(transitive_manifests)
     transitive_input_files.extend(transitive_r_txts)
-    args.add(
+    args.add_all(
         "--primaryData",
-        _make_resources_flag(
+        [_make_primary_data(
             manifest = manifest,
             assets = assets,
             assets_dir = assets_dir,
             resource_files = resource_files,
-        ),
+        )],
+        map_each = _primary_data_resources_flag,
     )
     input_files.append(manifest)
     input_files.extend(resource_files)
@@ -468,12 +515,13 @@ def _parse(
     _set_worker_mode_param_file(ctx, args)
     args.add("--tool", "PARSE")
     args.add("--")
-    args.add(
+    args.add_all(
         "--primaryData",
-        _make_resources_flag(
+        [_make_primary_data(
             assets = assets,
             assets_dir = assets_dir,
-        ),
+        )],
+        map_each = _primary_data_resources_flag,
     )
     args.add("--output", out_symbols)
 
@@ -539,14 +587,15 @@ def _merge_assets(
     args.add("--tool", "MERGE_ASSETS")
     args.add("--")
     args.add("--assetsOutput", out_assets_zip)
-    args.add(
+    args.add_all(
         "--primaryData",
-        _make_serialized_resources_flag(
+        [_make_primary_data(
             assets = assets,
             assets_dir = assets_dir,
             label = str(ctx.label),
             symbols = symbols,
-        ),
+        )],
+        map_each = _primary_data_serialized_resources_flag,
     )
     args.add_joined(
         "--directData",
@@ -705,13 +754,14 @@ def _compile(
     args.add("--tool", "COMPILE_LIBRARY_RESOURCES")
     args.add("--")
     args.add("--aapt2", aapt.executable)
-    args.add(
+    args.add_all(
         "--resources",
-        _make_resources_flag(
+        [_make_primary_data(
             resource_files = resource_files,
             assets = assets,
             assets_dir = assets_dir,
-        ),
+        )],
+        map_each = _primary_data_resources_flag,
     )
     if not crunch_png:
         args.add("--useAapt2Cruncher=no")
@@ -798,12 +848,13 @@ def _merge_compiled(
     input_files.append(manifest)
     if java_package:
         args.add("--packageForR", java_package)
-    args.add(
+    args.add_all(
         "--primaryData",
-        _make_serialized_resources_flag(
+        [_make_primary_data(
             label = str(ctx.label),
             symbols = compiled_resources,
-        ),
+        )],
+        map_each = _primary_data_serialized_resources_flag,
     )
     input_files.append(compiled_resources)
     args.add_joined(
@@ -844,7 +895,22 @@ def _java_run(ctx, mnemonic = None, *args, **kwargs):
     enable_workers = ctx.fragments.android.persistent_busybox_tools
     multiplex_workers = ctx.fragments.android.persistent_multiplex_busybox_tools
 
-    _java.run(ctx, mnemonic = mnemonic, supports_workers = enable_workers, supports_multiplex_workers = multiplex_workers, *args, **kwargs)
+    # Resource busybox actions are path-mapping compatible by default: their command lines use
+    # either File arguments (structurally mapped), map_each callbacks (mapped via the stored
+    # PathMapper), or the composite resource flags (--primaryData/--data/--directData/--resources/
+    # --mergeManifests/--library) that Bazel's StrippingPathMapper strips for "Android"-mnemonic
+    # actions. Callers with unmappable command lines (e.g. data binding) override this to False.
+    supports_path_mapping = kwargs.pop("supports_path_mapping", True)
+
+    _java.run(
+        ctx,
+        mnemonic = mnemonic,
+        supports_workers = enable_workers,
+        supports_multiplex_workers = multiplex_workers,
+        supports_path_mapping = supports_path_mapping,
+        *args,
+        **kwargs
+    )
 
 def _escape_mv(s):
     """Escapes `:` and `,` in manifest values so they can be used as a busybox flag."""
@@ -1021,6 +1087,10 @@ def _process_databinding(
         mnemonic = "StarlarkProcessDatabinding",
         progress_message = "Processing data binding",
         jvm_flags = _C1_ONLY_FLAGS,
+        # Not path-mapping compatible: --output_resource_directory and --resource_root pass
+        # analysis-time directory path strings that Bazel's StrippingPathMapper does not remap
+        # (the "StarlarkProcessDatabinding" mnemonic and these flags are not in its strip list).
+        supports_path_mapping = False,
     )
 
 def _make_generate_binay_r_flags(resources_node):
@@ -1137,14 +1207,15 @@ def _make_aar(
     _set_worker_mode_param_file(ctx, args)
     args.add("--tool", "GENERATE_AAR")
     args.add("--")
-    args.add(
+    args.add_all(
         "--mainData",
-        _make_resources_flag(
+        [_make_primary_data(
             manifest = manifest,
             assets = assets,
             assets_dir = assets_dir,
             resource_files = resource_files,
-        ),
+        )],
+        map_each = _primary_data_resources_flag,
     )
     args.add("--manifest", manifest)
     args.add("--rtxt", r_txt)
