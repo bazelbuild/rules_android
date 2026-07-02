@@ -179,6 +179,12 @@ ATTRS = _attrs.add(
                 "Add these flags to the AIDL compiler command."
             ),
         ),
+        _mnemonic_jvm_flags = attr.label(
+            default = "//rules/flags:mnemonic_jvm_flags",
+            doc = "Additional JVM flags to set depending on the mnemonic " +
+                  "E.g --//rules/flags:mnemonic_jvm_flags=CompileAndroidResources=Xms1G " +
+                  " will add -Xms1G to all invocations of the CompileAndroidResources mnemonic",
+        ),
         neverlink = attr.bool(
             default = False,
             doc = (
