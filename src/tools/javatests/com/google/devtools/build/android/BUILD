@@ -369,7 +369,6 @@ java_test(
         "//tools/jdk:singlejar",
     ],
     jvm_flags = [
-        "-Drunfiles.path=$$TEST_SRCDIR",
         "-Dsinglejar.path=$(rlocationpath //tools/jdk:singlejar)",
     ],
     deps = [
