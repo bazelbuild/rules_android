@@ -253,6 +253,7 @@ def _create_feature_manifest(
     if is_asset_pack:
         args.add("--is_asset_pack")
     ctx.actions.run(
+        mnemonic = "CreateFeatureManifest",
         executable = ctx.attr._merge_manifests.files_to_run,
         inputs = [priority_manifest, info.manifest],
         outputs = [manifest],
