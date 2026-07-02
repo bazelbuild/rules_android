@@ -54,7 +54,7 @@ def _copy_annotation_file(ctx, output_dir, annotation_template):
     annotation_out = ctx.actions.declare_file(
         output_dir + "/android/databinding/layouts/DataBindingInfo.java",
     )
-    _utils.copy_file(ctx, annotation_template, annotation_out)
+    ctx.actions.symlink(output = annotation_out, target_file = annotation_template)
     return annotation_out
 
 def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_exec):
@@ -67,7 +67,7 @@ def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_
     args.add("-classInfoOut", class_info)
     args.add("-sourceOut", srcjar)
     args.add("-zipSourceOutput", "true")
-    args.add("-useAndroidX", "false")
+    args.add("-useAndroidX", "true")
 
     if deps:
         if type(deps[0].class_infos) == "depset":
@@ -117,9 +117,15 @@ def _setup_dependent_lib_artifacts(ctx, output_dir, deps):
             path = artifact.short_path
             if path.startswith("../"):
                 path = path[3:]
-            dep_lib_artifact = ctx.actions.declare_file(
-                output_dir + "dependent-lib-artifacts/" + path,
-            )
+            dep_lib_artifact_path = output_dir + "dependent-lib-artifacts/" + path
+            if artifact.is_directory:
+                dep_lib_artifact = ctx.actions.declare_directory(
+                    output_dir + "dependent-lib-artifacts/" + path,
+                )
+            else:
+                dep_lib_artifact = ctx.actions.declare_file(
+                    output_dir + "dependent-lib-artifacts/" + path,
+                )
 
             # Copy file to a location required by the DataBinding annotation
             # processor.
@@ -254,11 +260,11 @@ def _process(
     if defines_resources:
         # Outputs of the Data Binding annotation processor.
         br_out = ctx.actions.declare_file(
-            output_dir + "bin-files/%s-br.bin" % java_package,
+            output_dir + "bin-files/%s--br.bin" % java_package,
         )
         db_info[_JAVA_ANNOTATION_PROCESSOR_ADDITIONAL_OUTPUTS].append(br_out)
         setter_store_out = ctx.actions.declare_file(
-            output_dir + "bin-files/%s-setter_store.json" % java_package,
+            output_dir + "bin-files/%s--setter_store.json" % java_package,
         )
         db_info[_JAVA_ANNOTATION_PROCESSOR_ADDITIONAL_OUTPUTS].append(
             setter_store_out,
@@ -321,6 +327,19 @@ def _process(
 
     return DataBindingContextInfo(**db_info)
 
+def _process_aar(
+    ctx,
+    data_binding_setter_store):
+    """Builds a data binding provider for an AAR's extracted setter store
+    """
+    return DataBindingV2Info(
+        setter_stores = depset(direct = [data_binding_setter_store]),
+        class_infos = depset(),
+        transitive_br_files = depset(),
+        java_packages = [],
+    )
+
 data_binding = struct(
     process = _process,
+    process_aar = _process_aar,
 )
