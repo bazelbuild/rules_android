@@ -310,9 +310,9 @@ public class ZipFilterAction {
     ImmutableList.Builder<String> singleJarArgsBuilder = ImmutableList.builder();
     singleJarArgsBuilder
         .add("--sources")
-        .add(options.inputZip.toString())
+        .add(singleJarParamPath(options.inputZip))
         .add("--output")
-        .add(options.outputZip.toString())
+        .add(singleJarParamPath(options.outputZip))
         .add(compressionStrategy)
         .add("--exclude_build_data")
         .add("--normalize");
@@ -384,5 +384,10 @@ public class ZipFilterAction {
     }
 
     throw new IOException("Could not resolve singlejar runfile: " + singleJarPath);
+  }
+
+  @VisibleForTesting
+  static String singleJarParamPath(Path path) {
+    return path.toString().replace('\\', '/');
   }
 }
