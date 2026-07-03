@@ -108,3 +108,21 @@ android_library(
    ...
 )
 ```
+
+## Available Rules
+
+- **`android_binary`** - Builds an Android APK
+- **`android_library`** - Builds an Android library
+- **`android_application`** - Builds an Android application bundle (AAB)
+- **`fat_aar`** - Bundles multiple Android libraries into a single AAR file (see [rules/fat_aar](rules/fat_aar/))
+- **`fat_aar_pom`** - Generates a Maven POM from a fat_aar's excluded dependencies
+
+For a complete list of rules, see the [rules.bzl](rules/rules.bzl) file.
+
+## Examples
+
+See the [examples](examples/) directory for sample projects:
+
+- **[basicapp](examples/basicapp/)** - Basic Android application
+- **[bundle](examples/bundle/)** - Android application bundle (AAB)
+- **[fat_aar](examples/fat_aar/)** - Fat AAR with resources, assets, and native libraries
