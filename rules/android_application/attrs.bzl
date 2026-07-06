@@ -13,11 +13,6 @@
 # limitations under the License.
 """Attributes for android_application."""
 
-load(
-    "//providers:providers.bzl",
-    "AndroidArchivedSandboxedSdkInfo",
-    "AndroidSandboxedSdkBundleInfo",
-)
 load("//rules:android_split_transition.bzl", "android_split_transition")
 load(
     "//rules:attrs.bzl",
@@ -57,16 +52,6 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
         custom_package = attr.string(),
         feature_modules = attr.label_list(allow_files = False),
-        sdk_archives = attr.label_list(
-            providers = [
-                [AndroidArchivedSandboxedSdkInfo],
-            ],
-        ),
-        sdk_bundles = attr.label_list(
-            providers = [
-                [AndroidSandboxedSdkBundleInfo],
-            ],
-        ),
         _bundle_deploy = attr.label(
             allow_single_file = True,
             default = ":bundle_deploy.sh_template",
@@ -95,10 +80,6 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         _host_javabase = attr.label(
             cfg = "exec",
             default = Label("//tools/jdk:current_java_runtime"),
-        ),
-        _sandboxed_sdks_debug_key = attr.label(
-            allow_single_file = True,
-            default = Label("//tools/android:debug_keystore"),
         ),
     ),
     _attrs.ANDROID_SDK,
