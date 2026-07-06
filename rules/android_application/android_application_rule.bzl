@@ -15,13 +15,11 @@
 
 load(
     "//providers:providers.bzl",
-    "AndroidArchivedSandboxedSdkInfo",
     "AndroidBundleInfo",
     "AndroidFeatureModuleInfo",
     "AndroidIdeInfo",
     "AndroidOptimizationInfo",
     "AndroidPreDexJarInfo",
-    "AndroidSandboxedSdkBundleInfo",
     "ApkInfo",
     "ArtProfileInfo",
     "ProguardMappingInfo",
@@ -31,7 +29,6 @@ load(
     "//rules:aapt.bzl",
     _aapt = "aapt",
 )
-load("//rules:acls.bzl", _acls = "acls")
 load("//rules:android_platforms_transition.bzl", "android_platforms_transition")
 load(
     "//rules:bundletool.bzl",
@@ -48,10 +45,6 @@ load(
 load(
     "//rules:java.bzl",
     _java = "java",
-)
-load(
-    "//rules:sandboxed_sdk_toolbox.bzl",
-    _sandboxed_sdk_toolbox = "sandboxed_sdk_toolbox",
 )
 load(
     "//rules:utils.bzl",
@@ -263,40 +256,6 @@ def _create_feature_manifest(
 
     return manifest
 
-def _generate_runtime_enabled_sdk_config(ctx, base_proto_apk):
-    module_configs = [
-        bundle[AndroidSandboxedSdkBundleInfo].sdk_info.sdk_module_config
-        for bundle in ctx.attr.sdk_bundles
-    ]
-    sdk_archives = [
-        archive[AndroidArchivedSandboxedSdkInfo].asar
-        for archive in ctx.attr.sdk_archives
-    ]
-    if not (sdk_archives or module_configs):
-        return None
-
-    debug_key = ctx.file._sandboxed_sdks_debug_key
-    manifest_xml_tree = ctx.actions.declare_file(ctx.label.name + "/manifest_tree_dump.txt")
-    _aapt.dump_manifest_xml_tree(
-        ctx,
-        out = manifest_xml_tree,
-        apk = base_proto_apk,
-        aapt = get_android_toolchain(ctx).aapt2.files_to_run,
-    )
-
-    config = ctx.actions.declare_file("%s/runtime-enabled-sdk-config.pb" % ctx.label.name)
-    _sandboxed_sdk_toolbox.generate_runtime_enabled_sdk_config(
-        ctx,
-        output = config,
-        manifest_xml_tree = manifest_xml_tree,
-        sdk_module_configs = module_configs,
-        sdk_archives = sdk_archives,
-        debug_key = debug_key,
-        sandboxed_sdk_toolbox = get_android_toolchain(ctx).sandboxed_sdk_toolbox.files_to_run,
-        host_javabase = _common.get_host_javabase(ctx),
-    )
-    return config
-
 def _validate_manifest_values(manifest_values):
     if "applicationId" not in manifest_values:
         _log.error("missing required applicationId in manifest_values")
@@ -325,8 +284,6 @@ def _impl(ctx):
         ctx,
         out = base_module,
         proto_apk = base_proto_apk,
-        # RuntimeEnabledSdkConfig should only be added to the base module.
-        runtime_enabled_sdk_config = _generate_runtime_enabled_sdk_config(ctx, base_proto_apk),
         bundletool_module_builder =
             get_android_toolchain(ctx).bundletool_module_builder.files_to_run,
     )
@@ -477,18 +434,10 @@ def android_application_macro(_android_binary, **attrs):
     feature_modules = attrs.pop("feature_modules", []) or []
     bundle_config = attrs.pop("bundle_config", None)
     bundle_config_file = attrs.pop("bundle_config_file", None)
-    sdk_archives = attrs.pop("sdk_archives", []) or []
-    sdk_bundles = attrs.pop("sdk_bundles", []) or []
-    uses_sandboxed_sdks = sdk_archives or sdk_bundles
-    if (uses_sandboxed_sdks and
-        not _acls.in_android_application_with_sandboxed_sdks_allowlist_dict(fqn)):
-        fail("%s is not allowed to use sdk_archives or sdk_bundles." % fqn)
-
     uses_bundle_features = (
         feature_modules or
         bool(bundle_config) or
-        bool(bundle_config_file) or
-        uses_sandboxed_sdks
+        bool(bundle_config_file)
     )
 
     # Simply fall back to android_binary if no bundle features are used.
@@ -532,8 +481,6 @@ def android_application_macro(_android_binary, **attrs):
         testonly = attrs.get("testonly"),
         transitive_configs = attrs.get("transitive_configs", []),
         feature_modules = feature_modules,
-        sdk_archives = sdk_archives,
-        sdk_bundles = sdk_bundles,
         manifest_values = attrs.get("manifest_values"),
         visibility = attrs.get("visibility", None),
         tags = attrs.get("tags", []),
