@@ -250,7 +250,6 @@ _ATTRS = dict(
         allow_files = True,
         default = "//rules:robolectric_properties_template.txt",
     ),
-
     shuffle_jars = attr.label(
         cfg = "exec",
         default = Label("//tools/android:shuffle_jars"),

@@ -318,7 +318,7 @@ def _process_lint_rules(ctx, **_unused_sub_ctxs):
         ),
     )
 
-def _process_aar(ctx, resources_ctx, proguard_ctx, **unused_ctx):
+def _process_aar(ctx, resources_ctx, proguard_ctx, **_unused_ctx):
     aar_ctx = {
         _PROVIDERS: [],
         _VALIDATION_OUTPUTS: [],
@@ -470,7 +470,6 @@ def finalize(
     Args:
       ctx: The context.
       resources_ctx: ProviderInfo. The resources ctx.
-      intellij_ctx: ProviderInfo. The intellij ctx.
       jvm_ctx: ProviderInfo. The jvm ctx.
       proguard_ctx: ProviderInfo. The proguard ctx.
       providers: sequence of providers. The providers to propagate.
