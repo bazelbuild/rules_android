@@ -18,8 +18,10 @@ it holds utilities for handling minSdkVersion propagation.
 
 """
 
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+# buildifier: disable=out-of-order-load
+
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 visibility(PROJECT_VISIBILITY)
 
