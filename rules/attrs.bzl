@@ -13,7 +13,6 @@
 # limitations under the License.
 """Common attributes for Android rules."""
 
-load("//providers:providers.bzl", "ApkInfo")
 load("//rules:android_split_transition.bzl", "android_transition")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
@@ -96,7 +95,6 @@ _ANDROID_SDK = dict(
         default = "//toolchains/android_sdk:dummy_sdk_tools",
     ),
 )
-
 
 # Compilation attributes for Android rules.
 def _compilation_attributes(apply_android_transition = False):
@@ -211,7 +209,6 @@ _DATA_CONTEXT = _add(
     ),
     _ANDROID_SDK,
 )
-
 
 # Attributes for rules that produce an Android binary.
 # NOTE: this is unused by the actual android_binary impl, and at this stage is only
@@ -382,9 +379,6 @@ ANDROID_BINARY_ATTRS = _add(
     _compilation_attributes(apply_android_transition = True),
     _DATA_CONTEXT,
 )
-
-
-
 
 ANDROID_SDK_ATTRS = dict(
     aapt = attr.label(

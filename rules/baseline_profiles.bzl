@@ -118,6 +118,7 @@ def _process_art_profile(
       ctx: The context.
       final_classes_dex: File. Final classes zip artifact.
       merged_profile: File. The merged profile from transitive baseline profile files.
+      output_primary_profile: File. The primary profile output.
       proguard_output_map: File. Optional. The proguard output mapping file.
       profgen: FilesToRunProvider. The profgen executable for profile compilation.
       toolchain_type: Label or String. Toolchain type of the executable used in actions.

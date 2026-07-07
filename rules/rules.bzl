@@ -53,7 +53,6 @@ load(
     "//rules/android_local_test:rule.bzl",
     _android_local_test = "android_local_test",
 )
-
 load(
     "//rules/android_sdk_repository:rule.bzl",
     _android_sdk_repository = "android_sdk_repository",

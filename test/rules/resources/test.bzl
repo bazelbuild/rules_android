@@ -42,7 +42,12 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 visibility(PROJECT_VISIBILITY)
 
-_StarlarkResourcesTestingInfo = provider()
+_StarlarkResourcesTestingInfo = provider(
+    doc = "Provides resource processing test data.",
+    fields = dict(
+        r_java = "The generated R JavaInfo.",
+    ),
+)
 
 def _process_impl(ctx):
     java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package)

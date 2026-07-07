@@ -12,8 +12,8 @@ java_library(
     name = "info",
     srcs = glob(["*.java"]),
     deps = [
-        "@rules_android_maven//:com_android_tools_build_bundletool",
         "@com_google_protobuf//:protobuf_java",
         "@com_google_protobuf//:protobuf_java_util",
+        "@rules_android_maven//:com_android_tools_build_bundletool",
     ],
 )

@@ -8,9 +8,8 @@ go_binary(
 
 go_library(
     name = "jar_to_module_info_lib",
-    importpath = "src/tools/jar_to_module_info/jar_to_module_info_lib",
-
     srcs = ["jar_to_module_info.go"],
+    importpath = "src/tools/jar_to_module_info/jar_to_module_info_lib",
     visibility = ["//visibility:private"],
     deps = ["@org_bitbucket_creachadair_stringset//:stringset"],
 )

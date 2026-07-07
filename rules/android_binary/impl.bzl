@@ -73,7 +73,7 @@ def _base_validations_processor(ctx, **_unused_ctxs):
         ),
     )
 
-def _process_manifest(ctx, **unused_ctxs):
+def _process_manifest(ctx, **_unused_ctxs):
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
         manifest = ctx.file.manifest,
@@ -86,7 +86,7 @@ def _process_manifest(ctx, **unused_ctxs):
         value = manifest_ctx,
     )
 
-def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
+def _process_resources(ctx, manifest_ctx, java_package, **_unused_ctxs):
     resource_apks = []
     for apk in utils.collect_providers(StarlarkApkInfo, ctx.attr.resource_apks):
         resource_apks.append(apk.signed_apk)
@@ -130,7 +130,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         value = packaged_resources_ctx,
     )
 
-def _validate_manifest(ctx, packaged_resources_ctx, manifest_ctx, **unused_ctxs):
+def _validate_manifest(ctx, packaged_resources_ctx, manifest_ctx, **_unused_ctxs):
     validation_outputs = []
 
     manifest_validation_output = _resources.validate_manifest(
@@ -250,7 +250,7 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
         ),
     )
 
-def _process_build_info(_unused_ctx, **unused_ctxs):
+def _process_build_info(_unused_ctx, **_unused_ctxs):
     return ProviderInfo(
         name = "build_info_ctx",
         value = struct(

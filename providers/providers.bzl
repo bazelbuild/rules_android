@@ -17,19 +17,12 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 
-
-
 AndroidAppsInfo = provider(
     doc = "Provides information about app to install.",
     fields = dict(
         apps = "List of app provider artifacts.",
     ),
 )
-
-
-
-
-
 
 AndroidFilteredJdepsInfo = provider(
     doc = "Provides a filtered jdeps proto.",
@@ -114,7 +107,6 @@ AndroidFeatureModuleInfo = provider(
     ),
 )
 
-
 Dex2OatApkInfo = provider(
     doc = "Contains data about artifacts generated through host dex2oat.",
     fields = dict(
@@ -133,6 +125,7 @@ InstrumentedAppInfo = provider(
 )
 
 FailureInfo = provider(
+    doc = "Provides failure information.",
     fields = dict(
         error = "Error message",
     ),

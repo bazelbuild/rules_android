@@ -1,0 +1,5 @@
+{
+  "buildifier_disable": [
+    "sortLoadStatements"
+  ]
+}

@@ -41,6 +41,8 @@ _IntFlagInfo = provider(
         value = "flag value",
     ),
 )
+
+# buildifier: disable=provider-params
 FlagsInfo = provider(
     doc = "Provides all flags",
 )

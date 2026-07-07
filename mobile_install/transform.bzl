@@ -131,7 +131,7 @@ def merge_dex_shards(ctx, data, sibling):
     action per shard that runs dex_shard_merger on all dex files within that
     shard.
 
-    Arguments:
+    Args:
       ctx: The context.
       data: A list of lists, where the inner list contains dex shards.
       sibling: A file used to root the merged_dex shards.

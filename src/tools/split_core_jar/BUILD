@@ -8,9 +8,8 @@ go_binary(
 
 go_library(
     name = "split_core_jar_lib",
-    importpath = "src/tools/split_core_jar/split_core_jar_lib",
-
     srcs = ["split_core_jar.go"],
+    importpath = "src/tools/split_core_jar/split_core_jar_lib",
     visibility = ["//visibility:private"],
     deps = ["@org_bitbucket_creachadair_stringset//:stringset"],
 )

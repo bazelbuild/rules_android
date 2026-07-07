@@ -57,7 +57,9 @@ def make_aspect(
       dex_shards: Number of dex shards to split the project across.
       is_cmd: A Boolean, when True the aspect is running in the context of the
         mobile-install command. If False it is as a rule (e.g. mi_test).
+      is_test: Whether the aspect is running for a test rule.
       res_shards: Number of Android resource shards during processing.
+      tools: Tool attributes to attach to the aspect.
     Returns:
       A configured aspect.
     """

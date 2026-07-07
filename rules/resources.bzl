@@ -491,7 +491,7 @@ def _package(
         should_throw_on_conflict = True,
         enable_data_binding = False,
         enable_manifest_merging = True,
-        should_compile_java_srcs = True,
+        should_compile_java_srcs = True,  # @unused
         generate_minsdk_proguard_config = False,
         build_java_with_final_resources = False,
         generate_out_symbols = True,
@@ -1164,9 +1164,9 @@ def _process(
         crunch_png = True,
         aapt = None,
         android_jar = None,
-        android_kit = None,
+        android_kit = None,  # @unused
         busybox = None,
-        java_toolchain = None,
+        java_toolchain = None,  # @unused
         host_javabase = None,
         instrument_xslt = None,
         xsltproc = None,
