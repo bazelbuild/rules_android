@@ -16,9 +16,9 @@
 launcher_test: Asserts that the executable is contained in the target's runfiles.
 """
 
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 

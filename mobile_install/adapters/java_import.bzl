@@ -13,7 +13,6 @@
 # limitations under the License.
 """Rule adapter for java_import."""
 
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(
     "//mobile_install:providers.bzl",
     "MIAndroidDexInfo",
@@ -23,6 +22,7 @@ load(
 load("//mobile_install:transform.bzl", "dex", "extract_jar_resources")
 load("//mobile_install:utils.bzl", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
 load(":desugar.bzl", "get_desugar_classpath")
 

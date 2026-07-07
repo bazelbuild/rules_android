@@ -13,7 +13,6 @@
 # limitations under the License.
 """android_library rule."""
 
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "AndroidCcLinkParamsInfo", "AndroidIdeInfo", "AndroidIdlInfo", "AndroidLibraryResourceClassJarProvider", "AndroidNativeLibsInfo")
 load(
     "//rules:attrs.bzl",
@@ -21,6 +20,7 @@ load(
 )
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _ATTRS = "ATTRS")
 load(":impl.bzl", _impl = "impl")
 

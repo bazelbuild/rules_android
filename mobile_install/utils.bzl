@@ -13,10 +13,10 @@
 # limitations under the License.
 """Utilities for by the Mobile-Install aspect."""
 
-load("@rules_java//java/common:java_common.bzl", "java_common")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "flags")
+load("@rules_java//java/common:java_common.bzl", "java_common")
 
 # Copybara: placeholder for GeneratedExtensionRegistryInfo load
 load("//tools/jdk:jvmopts.bzl", "BASE_JVMOPTS")

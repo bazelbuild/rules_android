@@ -1,7 +1,7 @@
 # Sample app to demonstrate proper rule structuring and mobile-install usage.
 
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//rules:rules.bzl", "android_binary", "android_library")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(default_visibility = ["//src:__subpackages__"])
 
