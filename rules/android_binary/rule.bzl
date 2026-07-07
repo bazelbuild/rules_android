@@ -27,8 +27,6 @@ load(":impl.bzl", "impl")
 
 visibility(PROJECT_VISIBILITY)
 
-_DEFAULT_ALLOWED_ATTRS = ["name", "visibility", "tags", "testonly", "transitive_configs", "$enable_manifest_merging", "features", "exec_properties"]
-
 _DEFAULT_PROVIDES = [ApkInfo, JavaInfo]
 
 def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs, _generate_art_profile_outputs):
@@ -126,7 +124,6 @@ def android_binary_macro(**attrs):
 
     # Required for ACLs check in _outputs(), since the callback can't access the native module.
     attrs["$package_name"] = native.package_name()
-    target_fqn = "//%s:%s" % (native.package_name(), attrs["name"])
 
     if type(attrs.get("proguard_specs", None)) == "select" or attrs.get("proguard_specs", None):
         attrs["$generate_proguard_outputs"] = True

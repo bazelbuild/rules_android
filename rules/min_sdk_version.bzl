@@ -26,7 +26,7 @@ visibility(PROJECT_VISIBILITY)
 _SETTING = "//rules/flags:min_sdk_version"
 _DEPOT_FLOOR = 23
 _DEX_DESUGAR = 23  # Kept at 23 due to b/331852939. See some related discussion at b/319114605
-_MIN_SDK_LEVELS = sorted([_DEPOT_FLOOR, 24])
+# _MIN_SDK_LEVELS = sorted([_DEPOT_FLOOR, 24])
 
 _ATTRS = dict(
     _min_sdk_version = attr.label(
@@ -35,7 +35,7 @@ _ATTRS = dict(
     ),
 )
 
-def _clamp(min_sdk_version):
+def _clamp(min_sdk_version):  # @unused
     # TODO(asinclair): Uncomment this once android_binary is Starlarkified and the order of the
     # Android Platforms Transition and Feature Flags transition is swapped.
     # clamped = _MIN_SDK_LEVELS[0]
@@ -46,7 +46,7 @@ def _clamp(min_sdk_version):
     # return clamped
     return 0
 
-def _get(ctx):
+def _get(ctx):  # @unused
     # This is the case when an android_binary target does not set a value explicitly.
     # The configuration value defaults to 0
     # So in this case we use the depot floor.
