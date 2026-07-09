@@ -17,6 +17,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Streams.concat;
 import static java.util.stream.Collectors.toList;
 
+import com.android.aapt.Resources.Reference;
 import com.android.builder.core.VariantTypeImpl;
 import com.android.utils.StdLogger;
 import com.beust.jcommander.JCommander;
@@ -38,6 +39,7 @@ import com.google.devtools.build.android.aapt2.ProtoApk;
 import com.google.devtools.build.android.aapt2.ResourceCompiler;
 import com.google.devtools.build.android.aapt2.ResourceLinker;
 import com.google.devtools.build.android.aapt2.StaticLibrary;
+import com.google.devtools.build.android.xml.XmlUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -413,10 +415,17 @@ public class Aapt2ResourcePackagingAction {
               .link(compiled);
       profiler.recordEndOf("link").startTask("validate");
 
+      ImmutableList<Reference> manifestReferences;
+      if (packagedResources.proto() != null) {
+        manifestReferences =
+            XmlUtils.getAllResourceReferences(
+                ProtoApk.readFrom(packagedResources.proto()).getManifest());
+      } else {
+        manifestReferences = XmlUtils.getAllResourceReferences(compiled.getManifest());
+      }
+
       ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
-          ProtoApk.readFrom(packagedResources.proto()).getManifest(),
-          compiled,
-          compiledResourceDeps);
+          manifestReferences, compiled, compiledResourceDeps);
 
       profiler.recordEndOf("validate");
 

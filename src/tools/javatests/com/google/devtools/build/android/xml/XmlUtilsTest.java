@@ -19,59 +19,55 @@ import com.android.aapt.Resources.Reference;
 import com.android.aapt.Resources.XmlAttribute;
 import com.android.aapt.Resources.XmlElement;
 import com.android.aapt.Resources.XmlNode;
-import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Unit tests for {@link ProtoXmlUtils}. */
+/** Unit tests for {@link XmlUtils}. */
 @RunWith(JUnit4.class)
-public final class ProtoXmlUtilsTest {
+public final class XmlUtilsTest {
+
+  @Rule public final TemporaryFolder tempFolder = new TemporaryFolder();
 
   @Test
   public void parseAttributeNameReference() {
     assertThat(
-            ProtoXmlUtils.parseAttributeNameReference(
-                "http://schemas.android.com/apk/res-auto", "foo"))
-        .isEqualTo(Optional.of(Reference.newBuilder().setName("attr/foo").build()));
+            XmlUtils.parseAttributeNameReference("http://schemas.android.com/apk/res-auto", "foo"))
+        .hasValue(Reference.newBuilder().setName("attr/foo").build());
     assertThat(
-            ProtoXmlUtils.parseAttributeNameReference(
+            XmlUtils.parseAttributeNameReference(
                 "http://schemas.android.com/apk/res/android", "foo"))
-        .isEqualTo(Optional.of(Reference.newBuilder().setName("android:attr/foo").build()));
+        .hasValue(Reference.newBuilder().setName("android:attr/foo").build());
     assertThat(
-            ProtoXmlUtils.parseAttributeNameReference(
+            XmlUtils.parseAttributeNameReference(
                 "http://schemas.android.com/apk/prv/res/android", "foo"))
-        .isEqualTo(
-            Optional.of(
-                Reference.newBuilder().setPrivate(true).setName("android:attr/foo").build()));
+        .hasValue(Reference.newBuilder().setPrivate(true).setName("android:attr/foo").build());
 
-    assertThat(ProtoXmlUtils.parseAttributeNameReference("", "foo")).isEqualTo(Optional.empty());
-    assertThat(ProtoXmlUtils.parseAttributeNameReference("http://asdf", "foo"))
-        .isEqualTo(Optional.empty());
+    assertThat(XmlUtils.parseAttributeNameReference("", "foo")).isEmpty();
+    assertThat(XmlUtils.parseAttributeNameReference("http://asdf", "foo")).isEmpty();
   }
 
   @Test
   public void parseResourceReference() {
-    assertThat(ProtoXmlUtils.parseResourceReference("@string/foo"))
-        .isEqualTo(
-            Optional.of(
-                Reference.newBuilder()
-                    .setType(Reference.Type.REFERENCE)
-                    .setName("string/foo")
-                    .build()));
-    assertThat(ProtoXmlUtils.parseResourceReference("?*android:attr/foo"))
-        .isEqualTo(
-            Optional.of(
-                Reference.newBuilder()
-                    .setType(Reference.Type.ATTRIBUTE)
-                    .setPrivate(true)
-                    .setName("android:attr/foo")
-                    .build()));
+    assertThat(XmlUtils.parseResourceReference("@string/foo"))
+        .hasValue(
+            Reference.newBuilder().setType(Reference.Type.REFERENCE).setName("string/foo").build());
+    assertThat(XmlUtils.parseResourceReference("?*android:attr/foo"))
+        .hasValue(
+            Reference.newBuilder()
+                .setType(Reference.Type.ATTRIBUTE)
+                .setPrivate(true)
+                .setName("android:attr/foo")
+                .build());
 
-    assertThat(ProtoXmlUtils.parseResourceReference("x")).isEqualTo(Optional.empty());
-    assertThat(ProtoXmlUtils.parseResourceReference("@")).isEqualTo(Optional.empty());
-    assertThat(ProtoXmlUtils.parseResourceReference("@x")).isEqualTo(Optional.empty());
-    assertThat(ProtoXmlUtils.parseResourceReference("@x/foo")).isEqualTo(Optional.empty());
+    assertThat(XmlUtils.parseResourceReference("x")).isEmpty();
+    assertThat(XmlUtils.parseResourceReference("@")).isEmpty();
+    assertThat(XmlUtils.parseResourceReference("@x")).isEmpty();
+    assertThat(XmlUtils.parseResourceReference("@x/foo")).isEmpty();
   }
 
   @Test
@@ -95,7 +91,23 @@ public final class ProtoXmlUtilsTest {
                                             .setValue("@string/foo")))))
             .build();
 
-    assertThat(ProtoXmlUtils.getAllResourceReferences(root))
+    assertThat(XmlUtils.getAllResourceReferences(root))
+        .containsExactly(
+            Reference.newBuilder().setName("android:attr/text").build(),
+            Reference.newBuilder().setName("string/foo").build());
+  }
+
+  @Test
+  public void getAllResourceReferences_manifestPath() throws Exception {
+    Path manifestPath = tempFolder.newFile("AndroidManifest.xml").toPath();
+    Files.writeString(
+        manifestPath,
+        "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\""
+            + " android:text=\"asdf\">\n"
+            + "  <application id=\"@string/foo\"/>\n"
+            + "</manifest>");
+
+    assertThat(XmlUtils.getAllResourceReferences(manifestPath))
         .containsExactly(
             Reference.newBuilder().setName("android:attr/text").build(),
             Reference.newBuilder().setName("string/foo").build());

@@ -30,7 +30,7 @@ import com.google.devtools.build.android.aapt2.CompiledResources;
 import com.google.devtools.build.android.aapt2.ResourceLinker;
 import com.google.devtools.build.android.aapt2.StaticLibrary;
 import com.google.devtools.build.android.resources.Visibility;
-import com.google.devtools.build.android.xml.ProtoXmlUtils;
+import com.google.devtools.build.android.xml.XmlUtils;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -158,7 +158,9 @@ public final class ValidateAndLinkResourcesAction {
       // TODO(b/146663858): distinguish direct/transitive deps for "strict deps".
       // TODO(b/128711690): validate AndroidManifest.xml
       checkVisibilityOfResourceReferences(
-          /* androidManifest= */ XmlNode.getDefaultInstance(), resources, includes);
+          /* manifestReferences= */ XmlUtils.getAllResourceReferences(XmlNode.getDefaultInstance()),
+          resources,
+          includes);
 
       ImmutableList<StaticLibrary> resourceApks = ImmutableList.of();
       if (options.resourceApks != null) {
@@ -198,10 +200,10 @@ public final class ValidateAndLinkResourcesAction {
    * @param deps resources from the transitive closure of the rule's "deps" attribute
    */
   static void checkVisibilityOfResourceReferences(
-      XmlNode androidManifest, CompiledResources compiled, List<CompiledResources> deps) {
+      ImmutableList<Reference> manifestReferences,
+      CompiledResources compiled,
+      List<CompiledResources> deps) {
 
-    ImmutableList<Reference> manifestReferences =
-        ProtoXmlUtils.getAllResourceReferences(androidManifest);
     // We only validate visibility against resources from Bazel library dependencies (deps), so we
     // ignore Android system resource references ("android:").
     boolean hasRelevantManifestReferences =
