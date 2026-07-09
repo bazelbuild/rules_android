@@ -21,7 +21,7 @@ import com.google.common.hash.HashCode;
 import com.google.devtools.build.android.AndroidResourceMerger.MergingException;
 import com.google.devtools.build.android.proto.SerializeFormat;
 import com.google.devtools.build.android.resources.Visibility;
-import com.google.devtools.build.android.xml.ProtoXmlUtils;
+import com.google.devtools.build.android.xml.XmlUtils;
 import com.google.protobuf.CodedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -198,7 +198,7 @@ public class DataValueFile implements DataResource, DataAsset {
     if (rootXmlNode == null) {
       return ImmutableList.of();
     } else {
-      return ProtoXmlUtils.getAllResourceReferences(rootXmlNode);
+      return XmlUtils.getAllResourceReferences(rootXmlNode);
     }
   }
 }

@@ -22,6 +22,7 @@ import com.android.aapt.Resources.XmlElement;
 import com.android.aapt.Resources.XmlNode;
 import com.google.common.collect.ImmutableList;
 import com.google.devtools.build.android.aapt2.CompiledResources;
+import com.google.devtools.build.android.xml.XmlUtils;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -114,7 +115,9 @@ public class ValidateAndLinkResourcesActionTest {
   @Test
   public void visibilityCheck_successNoReferences() throws Exception {
     ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
-        XmlNode.getDefaultInstance(), dummyCompiledResources, ImmutableList.of());
+        XmlUtils.getAllResourceReferences(XmlNode.getDefaultInstance()),
+        dummyCompiledResources,
+        ImmutableList.of());
   }
 
   @Test
@@ -151,7 +154,7 @@ public class ValidateAndLinkResourcesActionTest {
         createCompiledResources("lib", libFiles, "<manifest package=\"com.lib\"/>");
 
     ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
-        manifestWithRef, lib, ImmutableList.of(dep));
+        XmlUtils.getAllResourceReferences(manifestWithRef), lib, ImmutableList.of(dep));
   }
 
   @Test
@@ -184,7 +187,9 @@ public class ValidateAndLinkResourcesActionTest {
             UserException.class,
             () ->
                 ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
-                    manifestWithRef, dummyCompiledResources, ImmutableList.of(dep)));
+                    XmlUtils.getAllResourceReferences(manifestWithRef),
+                    dummyCompiledResources,
+                    ImmutableList.of(dep)));
 
     assertThat(expected)
         .hasMessageThat()
@@ -218,7 +223,9 @@ public class ValidateAndLinkResourcesActionTest {
             UserException.class,
             () ->
                 ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
-                    XmlNode.getDefaultInstance(), lib, ImmutableList.of(dep)));
+                    XmlUtils.getAllResourceReferences(XmlNode.getDefaultInstance()),
+                    lib,
+                    ImmutableList.of(dep)));
 
     assertThat(expected)
         .hasMessageThat()
