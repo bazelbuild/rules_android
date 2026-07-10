@@ -107,6 +107,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         shrink_resources = ctx.attr.shrink_resources,
         use_android_resource_shrinking = ctx.fragments.android.use_android_resource_shrinking,
         use_android_resource_cycle_shrinking = ctx.fragments.android.use_android_resource_cycle_shrinking,
+        use_minimal_keep_rules = _flags.get(ctx).use_minimal_keep_rules,
         use_legacy_manifest_merger = use_legacy_manifest_merger(ctx),
         should_throw_on_conflict = not acls.in_allow_resource_conflicts(str(ctx.label)),
         enable_data_binding = ctx.attr.enable_data_binding,

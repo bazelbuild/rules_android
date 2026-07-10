@@ -69,6 +69,14 @@ public class Aapt2ConfigOptions {
   public TriState conditionalKeepRules = TriState.AUTO;
 
   @Parameter(
+      names = "--minimalKeepRules",
+      description =
+          "Have AAPT2 produce minimal proguard keep rules, emitting precise member "
+              + "signatures (e.g. constructor argument types) instead of broad <init>(...) "
+              + "rules. Matches Android Gradle Plugin behavior.")
+  public TriState minimalKeepRules = TriState.AUTO;
+
+  @Parameter(
       names = "--uncompressedExtensions",
       description = "A list of file extensions not to compress.")
   public List<String> uncompressedExtensions = ImmutableList.of();
