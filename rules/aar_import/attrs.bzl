@@ -73,6 +73,12 @@ ATTRS = _attrs.add(
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
         ),
+        _mnemonic_jvm_flags = attr.label(
+            default = "//rules/flags:mnemonic_jvm_flags",
+            doc = "Additional JVM flags to set depending on the mnemonic " +
+                  "E.g --//rules/flags:mnemonic_jvm_flags=CompileAndroidResources=Xms1G " +
+                  " will add -Xms1G to all invocations of the CompileAndroidResources mnemonic",
+        ),
         _cpu_constraints = attr.label_keyed_string_dict(
             default = {
                 # The keys are labels to constraint_value targets representing the CPU for Android
