@@ -18,7 +18,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.android.aapt.Resources.Reference;
-import com.android.aapt.Resources.XmlNode;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -30,7 +29,6 @@ import com.google.devtools.build.android.aapt2.CompiledResources;
 import com.google.devtools.build.android.aapt2.ResourceLinker;
 import com.google.devtools.build.android.aapt2.StaticLibrary;
 import com.google.devtools.build.android.resources.Visibility;
-import com.google.devtools.build.android.xml.XmlUtils;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -158,9 +156,7 @@ public final class ValidateAndLinkResourcesAction {
       // TODO(b/146663858): distinguish direct/transitive deps for "strict deps".
       // TODO(b/128711690): validate AndroidManifest.xml
       checkVisibilityOfResourceReferences(
-          /* manifestReferences= */ XmlUtils.getAllResourceReferences(XmlNode.getDefaultInstance()),
-          resources,
-          includes);
+          /* manifestReferences= */ ImmutableList.of(), resources, includes);
 
       ImmutableList<StaticLibrary> resourceApks = ImmutableList.of();
       if (options.resourceApks != null) {
