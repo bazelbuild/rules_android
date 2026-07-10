@@ -13,6 +13,8 @@
 # limitations under the License.
 """Bazel Flags."""
 
+load("@bazel_features//private:util.bzl", "lt")  # buildifier: disable=bzl-visibility
+load("//flags:flags_wrapper.bzl", "WrappedFlagsInfo")
 load("//rules:utils.bzl", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
@@ -186,6 +188,51 @@ def _get_flags(ctx):
     if type(flags) != "list":
         return flags[FlagsInfo]
     return flags[0][FlagsInfo]
+
+_POSSIBLY_NATIVE_FLAGS = {
+    "desugar_java8_libs": (lambda ctx: ctx.fragments.android.desugar_java8_libs, "starlark"),
+}
+
+def read_possibly_native_flag(ctx, flag_name):
+    """
+    Canonical API for reading a Android build flag.
+
+    Flags might be defined in Starlark or native-Bazel. This function reads flags
+    from the correct source based on supporting Bazel version and --incompatible*
+    flags that disable native references.
+
+    Args:
+        ctx: Rule's configuration context.
+        flag_name: Name of the flag to read, without preceding "--".
+
+    Returns:
+        The flag's value.
+    """
+
+    # Bazel 9.1+ can disable these fragments with --incompatible_remove_ctx_android_fragment.
+    # Disabling them means bazel expects Android to read Starlark flags.
+    use_native_def = hasattr(ctx.fragments, "android")
+
+    # Developer override to force the Starlark definition for testing.
+    # This would allow us to migrate flags gradually from native to Starlark with flag aliases.
+    if _POSSIBLY_NATIVE_FLAGS[flag_name][1] == "starlark":
+        use_native_def = False
+
+    if lt("9.1.0"):
+        use_native_def = True
+
+    if use_native_def:
+        return _POSSIBLY_NATIVE_FLAGS[flag_name][0](ctx)
+    else:
+        # First check the new wrapped_flags attribute
+        if hasattr(ctx.attr, "_wrapped_flags") and ctx.attr._wrapped_flags:
+            wrapped_flags = ctx.attr._wrapped_flags[WrappedFlagsInfo].flags
+            if flag_name in wrapped_flags:
+                return wrapped_flags[flag_name].value
+        elif hasattr(ctx.fragments, "android"):
+            return _POSSIBLY_NATIVE_FLAGS[flag_name][0](ctx)
+
+    fail("Unable to read flag value for " + flag_name)
 
 flags = struct(
     DEFINE_bool = bool_flag,

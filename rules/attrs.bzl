@@ -13,6 +13,7 @@
 # limitations under the License.
 """Common attributes for Android rules."""
 
+load("//flags:flags_wrapper.bzl", "WrappedFlagsInfo")
 load("//providers:providers.bzl", "ApkInfo")
 load("//rules:android_split_transition.bzl", "android_transition")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -312,6 +313,10 @@ ANDROID_BINARY_ATTRS = _add(
         _desugared_java8_legacy_apis = attr.label(
             default = Label("//tools/android:desugared_java8_legacy_apis"),
         ),
+        _wrapped_flags = attr.label(
+            default = Label("//flags:flags_wrapper"),
+            providers = [WrappedFlagsInfo],
+        ),
         _dexbuilder = attr.label(
             cfg = "exec",
             default = Label("//tools/android:dexbuilder"),
@@ -508,6 +513,13 @@ _AUTOMATIC_EXEC_GROUPS_ENABLED = dict(
     _use_auto_exec_groups = attr.bool(default = True),
 )
 
+_FLAGS_ATTRS = dict(
+    _wrapped_flags = attr.label(
+        default = Label("//flags:flags_wrapper"),
+        providers = [WrappedFlagsInfo],
+    ),
+)
+
 attrs = struct(
     ANDROID_SDK = _ANDROID_SDK,
     compilation_attributes = _compilation_attributes,
@@ -518,4 +530,5 @@ attrs = struct(
     add = _add,
     replace = _replace,
     AUTOMATIC_EXEC_GROUPS_ENABLED = _AUTOMATIC_EXEC_GROUPS_ENABLED,
+    FLAGS_ATTRS = _FLAGS_ATTRS,
 )
