@@ -28,6 +28,7 @@ load(":impl.bzl", "impl")
 visibility(PROJECT_VISIBILITY)
 
 _DEFAULT_PROVIDES = [ApkInfo, JavaInfo]
+_DEFAULT_CFG = config_common.config_feature_flag_transition("feature_flags")
 
 def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs, _generate_art_profile_outputs):
     label = "//" + _package_name + ":" + name
@@ -59,7 +60,8 @@ def make_rule(
         implementation = impl,
         provides = _DEFAULT_PROVIDES,
         outputs = _outputs,
-        additional_toolchains = []):
+        additional_toolchains = [],
+        cfg = _DEFAULT_CFG):
     """Makes the rule.
 
     Args:
@@ -68,6 +70,7 @@ def make_rule(
       provides: A list. The providers that the rule must provide.
       outputs: A function. The rule's outputs method for declaring predeclared outputs.
       additional_toolchains: A list. Additional toolchains passed to pass to rule(toolchains).
+      cfg: Incoming edge transition(s) to use for the rule.
     Returns:
       A rule.
     """
@@ -88,7 +91,7 @@ def make_rule(
             "cpp",
         ],
         outputs = outputs,
-        cfg = config_common.config_feature_flag_transition("feature_flags"),
+        cfg = cfg,
     )
 
 android_binary = make_rule()
