@@ -191,6 +191,10 @@ def _get_flags(ctx):
 
 _POSSIBLY_NATIVE_FLAGS = {
     "desugar_java8_libs": (lambda ctx: ctx.fragments.android.desugar_java8_libs, "starlark"),
+    "experimental_android_compress_java_resources": (
+        lambda ctx: ctx.fragments.android.compress_java_resources,
+        "starlark",
+    ),
 }
 
 def read_possibly_native_flag(ctx, flag_name):
