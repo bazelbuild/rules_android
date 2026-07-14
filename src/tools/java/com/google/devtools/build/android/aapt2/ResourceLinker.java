@@ -92,8 +92,6 @@ import java.util.zip.InflaterInputStream;
 /** Performs linking of {@link CompiledResources} using aapt2. */
 public class ResourceLinker {
 
-  private static final Predicate<String> IS_JAR = s -> s.endsWith(".jar");
-
   /**
    * A file extension to indicate whether an apk is a proto or binary format.
    *
@@ -283,6 +281,8 @@ public class ResourceLinker {
       final Collection<String> pathsToLinkAgainst = StaticLibrary.toPathStrings(linkAgainst);
       final Collection<String> resourceApkPathsToLinkAgainst =
           StaticLibrary.toPathStrings(resourceApks);
+      Preconditions.checkArgument(
+          linkAgainst.size() == 1, "linkAgainst must have exactly one element");
       logger.finer(
           new AaptCommandBuilder(aapt2)
               .forBuildToolsVersion(buildToolsVersion)
@@ -307,44 +307,10 @@ public class ResourceLinker {
               .when(OVERRIDE_STYLES_INSTEAD_OF_OVERLAYING)
               .thenAdd("--override-styles-instead-of-overlaying")
               .add("-o", outPath)
-              .when(linkAgainst.size() == 1) // If using all compiled resources, generates sources
-              .thenAdd("--java", javaSourceDirectory)
-              .when(linkAgainst.size() == 1) // If using all compiled resources, generates R.txt
-              .thenAdd("--output-text-symbols", rTxt)
+              .add("--java", javaSourceDirectory)
+              .add("--output-text-symbols", rTxt)
               .execute(String.format("Statically linking %s", compiled)));
       profiler.recordEndOf("linkstatic");
-      // working around aapt2 not producing transitive R.txt and R.java
-      if (linkAgainst.size() > 1) {
-        profiler.startTask("rfix");
-        logger.finer(
-            new AaptCommandBuilder(aapt2)
-                .forBuildToolsVersion(buildToolsVersion)
-                .forVariantType(VariantTypeImpl.LIBRARY)
-                .add("link")
-                .add("--manifest", compiled.getManifest())
-                .add("--no-static-lib-packages")
-                .whenVersionIsAtLeast(new Revision(23))
-                .thenAdd("--no-version-vectors")
-                .when(outputAsProto)
-                .thenAdd("--proto-format")
-                .add("--feature-flags", featureFlags)
-                // only link against jars
-                .addRepeated("-I", pathsToLinkAgainst.stream().filter(IS_JAR).collect(toList()))
-                .addRepeated("-I", resourceApkPathsToLinkAgainst)
-                .add("-R", outPath)
-                // only include non-jars
-                .addRepeated(
-                    "-R", pathsToLinkAgainst.stream().filter(IS_JAR.negate()).collect(toList()))
-                .add("--auto-add-overlay")
-                .when(OVERRIDE_STYLES_INSTEAD_OF_OVERLAYING)
-                .thenAdd("--override-styles-instead-of-overlaying")
-                .add("-o", outPath.resolveSibling("transitive.apk"))
-                .add("--java", javaSourceDirectory)
-                .add("--output-text-symbols", rTxt)
-                .execute(String.format("Generating R files %s", compiled)));
-        profiler.recordEndOf("rfix");
-      }
-
       profiler.startTask("sourcejar");
       AndroidResourceOutputs.createSrcJar(javaSourceDirectory, sourceJar, /* staticIds= */ true);
       profiler.recordEndOf("sourcejar");
