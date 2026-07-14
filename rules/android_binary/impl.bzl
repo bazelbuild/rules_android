@@ -947,7 +947,10 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
         merged_manifest = packaged_resources_ctx.processed_manifest,
         art_profile_zip = ap_ctx.art_profile_zip,
         java_resources_zip = dex_info.java_resource_jar,
-        compress_java_resources = ctx.fragments.android.compress_java_resources,
+        compress_java_resources = read_possibly_native_flag(
+            ctx,
+            "experimental_android_compress_java_resources",
+        ),
         nocompress_extensions = ctx.attr.nocompress_extensions,
         output_jar_creator = "bazel",
         signing_keys = signing_keys,
