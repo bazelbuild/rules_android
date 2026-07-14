@@ -16,6 +16,10 @@
 load("//providers:providers.bzl", "ApkInfo")
 load("//rules:acls.bzl", "acls")
 load(
+    "//rules:android_platforms_transition.bzl",
+    "android_platforms_transition",
+)
+load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
@@ -28,7 +32,7 @@ load(":impl.bzl", "impl")
 visibility(PROJECT_VISIBILITY)
 
 _DEFAULT_PROVIDES = [ApkInfo, JavaInfo]
-_DEFAULT_CFG = config_common.config_feature_flag_transition("feature_flags")
+_DEFAULT_CFG = android_platforms_transition
 
 def _outputs(name, proguard_generate_mapping, _package_name, _generate_proguard_outputs, _generate_art_profile_outputs):
     label = "//" + _package_name + ":" + name
