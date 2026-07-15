@@ -73,6 +73,14 @@ public class Aapt2ConfigOptions {
       description = "A list of file extensions not to compress.")
   public List<String> uncompressedExtensions = ImmutableList.of();
 
+  @Parameter(
+      names = "--optimize_throughput",
+      arity = 1,
+      description =
+          "Whether to instruct aapt to lower the compression level in exchange for faster execution"
+              + " time.")
+  public boolean optimizeThroughput;
+
   @Parameter(names = "--debug", description = "Indicates if it is a debug build.", arity = 1)
   public boolean debug;
 

@@ -126,6 +126,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         # TODO(b/140582167): Throwing on resource conflict need to be rolled
         # out to android_local_test.
         should_throw_on_conflict = False,
+        optimize_throughput = True,
     )
 
     return ProviderInfo(

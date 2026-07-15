@@ -167,6 +167,7 @@ public class ResourceLinker {
   private boolean includeProguardLocationReferences = false;
   private List<StaticLibrary> resourceApks = ImmutableList.of();
   private String featureFlags = "";
+  private boolean optimizeThroughput = false;
 
   private ResourceLinker(
       Path aapt2, ListeningExecutorService executorService, Path workingDirectory) {
@@ -267,6 +268,12 @@ public class ResourceLinker {
     return this;
   }
 
+  @CanIgnoreReturnValue
+  public ResourceLinker optimizeThroughput(boolean optimizeThroughput) {
+    this.optimizeThroughput = optimizeThroughput;
+    return this;
+  }
+
   /**
    * Statically links the {@link CompiledResources} with the dependencies to produce a {@link
    * StaticLibrary}.
@@ -288,6 +295,8 @@ public class ResourceLinker {
               .forBuildToolsVersion(buildToolsVersion)
               .forVariantType(VariantTypeImpl.LIBRARY)
               .add("link")
+              .when(optimizeThroughput)
+              .thenAdd("-Othroughput")
               .when(outputAsProto) // Used for testing: aapt2 does not output static libraries in
               // proto format.
               .thenAdd("--proto-format")
@@ -446,6 +455,8 @@ public class ResourceLinker {
             .forBuildToolsVersion(buildToolsVersion)
             .forVariantType(VariantTypeImpl.BASE_APK)
             .add("link")
+            .when(optimizeThroughput)
+            .thenAdd("-Othroughput")
             .whenVersionIsAtLeast(new Revision(23))
             .thenAdd("--no-version-vectors")
             // Turn off namespaced resources
@@ -657,6 +668,8 @@ public class ResourceLinker {
             .forBuildToolsVersion(buildToolsVersion)
             .forVariantType(VariantTypeImpl.BASE_APK)
             .add("optimize")
+            .when(optimizeThroughput)
+            .thenAdd("-Othroughput")
             .when(Objects.equals(logger.getLevel(), Level.FINE))
             .thenAdd("-v")
             // TODO(b/138166830): Simplify behavior specific to number of densities. There's likely
@@ -714,6 +727,8 @@ public class ResourceLinker {
               .forBuildToolsVersion(buildToolsVersion)
               .forVariantType(VariantTypeImpl.BASE_APK)
               .add("convert")
+              .when(optimizeThroughput)
+              .thenAdd("-Othroughput")
               .when(Objects.equals(logger.getLevel(), Level.FINE))
               .thenAdd("-v")
               .add("-o", apk.toString())
