@@ -14,7 +14,7 @@
 """Configuration definitions."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@bazel_skylib//rules:common_settings.bzl", "int_setting")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_setting", "int_setting")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -36,6 +36,17 @@ def configurations(name = "configurations"):
         name = "min_sdk_version",
         build_setting_default = 0,
         visibility = _CONFIG_VISIBILITY,
+    )
+
+    # For Android builds that will run on a non-Android host (primarily Linux).
+    # Initially set for dependencies of Robolectric tests but the scope may expand.
+    # A separate configuration value is needed here as we do not want to transition
+    # the build into Android, as it is not running on Android, but certain selects()
+    # need to be able to resolve to Android.
+    bool_setting(
+        name = "android_host_hybrid_mode",
+        build_setting_default = False,
+        visibility = ["//visibility:public"],
     )
 
     # Dummy empty target
