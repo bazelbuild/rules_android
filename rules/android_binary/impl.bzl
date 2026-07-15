@@ -441,7 +441,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, jvm_ctx, b
 
     if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
         # In offline instrumentation mode, we add the Jacoco runtime to the classpath.
-        binary_runtime_jars.extend(ctx.attr._jacoco_runtime[0][DefaultInfo].files.to_list())
+        binary_runtime_jars.extend(ctx.attr._jacoco_runtime[DefaultInfo].files.to_list())
 
     info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
     incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, _dex.DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING)
