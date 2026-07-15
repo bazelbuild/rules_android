@@ -480,6 +480,7 @@ def _package(
         densities = [],
         resource_files = [],
         nocompress_extensions = [],
+        optimize_throughput = False,
         java_package = None,
         package_id = None,
         use_r_package = False,
@@ -530,6 +531,7 @@ def _package(
         to be processed.
       nocompress_extensions: sequence of Strings. File extension to leave uncompressed
         in the apk.
+      optimize_throughput: A boolean. Whether to instruct aapt to lower the compression level in exchange for faster execution time.
       java_package: String. Java package for which java sources will be
         generated. By default the package is inferred from the directory where
         the BUILD file containing the rule is.
@@ -766,6 +768,7 @@ def _package(
         resource_configs = resource_configs,
         densities = densities,
         nocompress_extensions = nocompress_extensions,
+        optimize_throughput = optimize_throughput,
         java_package = java_package,
         shrink_resource_cycles = shrink_resource_cycles,
         version_name = manifest_values[_VERSION_NAME] if _VERSION_NAME in manifest_values else None,

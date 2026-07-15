@@ -232,6 +232,7 @@ def _package(
         additional_apks_to_link_against = [],
         resource_apks = depset(),
         nocompress_extensions = [],
+        optimize_throughput = False,
         proto_format = False,
         shrink_resource_cycles = False,
         version_name = None,
@@ -290,6 +291,7 @@ def _package(
       resource_apks: Depset of resource only apk files to link against.
       nocompress_extensions: A list of strings. File extension to leave uncompressed
         in the apk.
+      optimize_throughput: A boolean. Whether to instruct aapt to lower the compression level in exchange for faster execution time.
       proto_format: Boolean, whether to generate the resource table in proto format.
       shrink_resource_cycles: Boolean, flag that enables more shrinking of
         code and resources by instructing AAPT2 to emit conditional Proguard keep rules.
@@ -410,6 +412,8 @@ def _package(
         input_files.extend(additional_apks_to_link_against)
     if nocompress_extensions:
         args.add_joined("--uncompressedExtensions", nocompress_extensions, join_with = ",")
+    if optimize_throughput and AAPT2_COMPAT_FLAGS["aapt2_othroughput_supported"]:
+        args.add("--optimize_throughput")
     if proto_format:
         args.add("--resourceTableAsProto")
     if shrink_resource_cycles:
