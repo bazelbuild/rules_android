@@ -306,6 +306,8 @@ public class ResourceLinker {
               .add("--no-static-lib-packages")
               .add("--custom-package", customPackage)
               .add("--feature-flags", featureFlags)
+              .when(getCompatFlag("aapt2_othroughput_supported"))
+              .thenAdd("-Othroughput")
               .whenVersionIsAtLeast(new Revision(23))
               .thenAdd("--no-version-vectors")
               .addParameterableRepeated(
