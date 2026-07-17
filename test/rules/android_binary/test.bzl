@@ -65,6 +65,9 @@ multiple_android_platforms_test = analysistest.make(
             "//test/rules/android_binary:fake_arm64-v8a_toolchain",
             "//test/rules/android_binary:fake_armeabi-v7a_toolchain",
         ],
-        "//command_line_option:android_platforms": "@@//:arm64-v8a,@@//:armeabi-v7a",
+        "//command_line_option:android_platforms": [
+            "@@//:arm64-v8a",
+            "@@//:armeabi-v7a",
+        ],
     },
 )

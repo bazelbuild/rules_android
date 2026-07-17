@@ -32,6 +32,8 @@ load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
 
+_ANDROID_PLATFORMS_SETTING = utils.ANDROID_PLATFORMS_SETTING
+
 def _android_split_transition_impl(settings, attrs):
     settings = dict(settings)
 
@@ -41,7 +43,7 @@ def _android_split_transition_impl(settings, attrs):
         settings["//rules/flags:bytecode_transformer"] = getattr(attrs, "bytecode_transformer", None)
 
     # Always use `--android_platforms` when toolchain resolution is enabled.
-    platforms_to_split = utils.get_cls(settings, "android_platforms")
+    platforms_to_split = utils.get_android_platforms(settings)
     if not platforms_to_split:
         # If `--android_platforms` is unset, instead use only the first
         # value from `--platforms`.
@@ -56,14 +58,14 @@ def _android_transition_impl(settings, attr):
     # we apply this transition to. In that case we end up applying this transition twice.
     # The second transition will fail. Since the transition clears out --android_platforms we can
     # use that as a signal to do nothing.
-    if not utils.get_cls(settings, "android_platforms"):
+    if not utils.get_android_platforms(settings):
         return None
 
     configs = _android_split_transition_impl(settings, attr)
 
     # Always pick the config based on the first value in --android_platforms
     # This ensures the choice is consistent with the android_platforms_transition
-    return configs[utils.get_cls(settings, "android_platforms")[0].name]
+    return configs[utils.get_android_platforms(settings)[0].name]
 
 def _handle_android_platforms(settings, platforms_to_split):
     """
@@ -80,6 +82,7 @@ def _handle_android_platforms(settings, platforms_to_split):
 
         # Disable fat APKs for the child configurations.
         split_options[utils.add_cls_prefix("android_platforms")] = []
+        split_options[_ANDROID_PLATFORMS_SETTING] = []
 
         # The cpu flag will be set by platform mapping if a mapping exists.
         split_options[utils.add_cls_prefix("platforms")] = [platform]
@@ -98,6 +101,7 @@ _INPUTS = [
     "//command_line_option:Android configuration distinguisher",
     "//command_line_option:android_compiler",
     "//command_line_option:android_platforms",
+    _ANDROID_PLATFORMS_SETTING,
     "//command_line_option:compiler",
     "//command_line_option:dynamic_mode",
     "//command_line_option:platforms",
@@ -108,6 +112,7 @@ _OUTPUTS = [
     "//command_line_option:Android configuration distinguisher",
     "//command_line_option:android_compiler",
     "//command_line_option:android_platforms",
+    _ANDROID_PLATFORMS_SETTING,
     "//command_line_option:compiler",
     "//command_line_option:dynamic_mode",
     "//command_line_option:platforms",
