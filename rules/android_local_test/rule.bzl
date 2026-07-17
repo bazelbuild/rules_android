@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel rule for Android local test."""
 
+load("//rules:android_host_hybrid_mode_transition.bzl", "android_host_hybrid_mode_transition")
 load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
@@ -21,15 +22,20 @@ load(":impl.bzl", "impl")
 
 visibility(PROJECT_VISIBILITY)
 
+_DEFAULT_CFG = android_host_hybrid_mode_transition
+
 def make_rule(
         attrs = ATTRS,
         implementation = impl,
-        additional_toolchains = []):
+        additional_toolchains = [],
+        cfg = _DEFAULT_CFG):
     """Makes the rule.
 
     Args:
       attrs: A dict. The attributes for the rule.
       implementation: A function. The rule's implementation method.
+      additional_toolchains: A list of toolchain types to for the rule to use.
+      cfg: The set of transitions to use on the incoming edge of the rule.
 
     Returns:
       A rule.
@@ -37,7 +43,7 @@ def make_rule(
     return rule(
         attrs = attrs,
         implementation = implementation,
-        cfg = config_common.config_feature_flag_transition("feature_flags"),
+        cfg = cfg,
         fragments = [
             "android",
             "bazel_android",  # NOTE: Only exists for Bazel
