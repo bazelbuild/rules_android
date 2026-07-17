@@ -19,6 +19,7 @@ load("//rules:attrs.bzl", _attrs = "attrs")
 load("//rules:common.bzl", _common = "common")
 load("//rules:java.bzl", _java = "java")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load("@bazel_skylib//lib:collections.bzl", "collections")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", "utils")
 
@@ -431,9 +432,9 @@ def _dex(
         args.add("--min_sdk_version", min_sdk_version)
 
     execution_requirements = {}
-    if ctx.fragments.android.persistent_android_dex_desugar:
+    if read_possibly_native_flag(ctx, "internal_persistent_android_dex_desugar"):
         execution_requirements["supports-workers"] = "1"
-        if ctx.fragments.android.persistent_multiplex_android_dex_desugar:
+        if read_possibly_native_flag(ctx, "internal_persistent_multiplex_android_dex_desugar"):
             execution_requirements["supports-multiplex-workers"] = "1"
 
     ctx.actions.run(

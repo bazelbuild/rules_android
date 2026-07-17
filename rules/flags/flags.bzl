@@ -195,6 +195,22 @@ _POSSIBLY_NATIVE_FLAGS = {
         lambda ctx: ctx.fragments.android.compress_java_resources,
         "starlark",
     ),
+    "internal_persistent_android_dex_desugar": (
+        lambda ctx: ctx.fragments.android.persistent_android_dex_desugar,
+        "starlark",
+    ),
+    "internal_persistent_busybox_tools": (
+        lambda ctx: ctx.fragments.android.persistent_busybox_tools,
+        "starlark",
+    ),
+    "internal_persistent_multiplex_android_dex_desugar": (
+        lambda ctx: ctx.fragments.android.persistent_multiplex_android_dex_desugar,
+        "starlark",
+    ),
+    "internal_persistent_multiplex_busybox_tools": (
+        lambda ctx: ctx.fragments.android.persistent_multiplex_busybox_tools,
+        "starlark",
+    ),
 }
 
 def read_possibly_native_flag(ctx, flag_name):
