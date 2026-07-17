@@ -40,6 +40,10 @@ _FORBIDDEN_DEXOPTS = ["--positions=none"]
 # Previously this was exposed via the --dexopts_supported_in_incremental_dexing native flag.
 _DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING = ["--no-optimize", "--no-locals"]
 
+# Dexing flags that are allowed in dex merger.
+# Previously this was exposed via the --dexopts_supported_in_dexmerger native flag.
+_DEXOPTS_SUPPORTED_IN_DEX_MERGER = ["--minimal-main-dex", "--forceJumbo"]
+
 _tristate = _attrs.tristate
 
 def _resource_set_for_monolithic_dexing(_os, _inputs_size):
@@ -80,7 +84,7 @@ def _process_incremental_dexing(
         includes = incremental_dexopt_filter,
         needs_normalization = not should_optimize_dex,
     )
-    merger_dexopt_filter = list(ctx.fragments.android.get_dexopts_supported_in_dex_merger)
+    merger_dexopt_filter = list(_DEXOPTS_SUPPORTED_IN_DEX_MERGER)
     if should_optimize_dex:
         merger_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
     merger_dexopts = _filter_dexopts(
@@ -198,7 +202,7 @@ def _process_incremental_dexing(
             ctx,
             output = dexes,
             input = shards,
-            dexopts = dexopts,
+            dexopts = [],  # The internal impl filters out effectively everything, so just pass an empty list
             dexmerger = dexmerger,
             min_sdk_version = min_sdk_version,
         )
