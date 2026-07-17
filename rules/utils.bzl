@@ -424,6 +424,8 @@ def get_android_toolchain(ctx):
 def get_android_sdk(ctx):
     return ctx.toolchains[ANDROID_SDK_TOOLCHAIN_TYPE].android_sdk_info
 
+_ANDROID_PLATFORMS_SETTING = "//flags:android_platforms"
+
 # Add command line setting prefix
 def _add_cls_prefix(name):
     return "//command_line_option:" + name
@@ -431,6 +433,13 @@ def _add_cls_prefix(name):
 # Get command line setting from flag name
 def _get_cls(settings, name, default = None):
     return settings.get(_add_cls_prefix(name), default)
+
+# Get android_platforms setting either from Starlark flag or native command_line_option
+def _get_android_platforms(settings):
+    starlark_val = settings.get(_ANDROID_PLATFORMS_SETTING)
+    if starlark_val != None and len(starlark_val) > 0:
+        return [Label(p) if type(p) == "string" else p for p in starlark_val]
+    return _get_cls(settings, "android_platforms")
 
 def _get_compilation_mode(ctx):
     """Retrieves the compilation mode from the context.
@@ -465,6 +474,8 @@ utils = struct(
     list_or_depset_to_list = _list_or_depset_to_list,
     add_cls_prefix = _add_cls_prefix,
     get_cls = _get_cls,
+    get_android_platforms = _get_android_platforms,
+    ANDROID_PLATFORMS_SETTING = _ANDROID_PLATFORMS_SETTING,
 )
 
 log = struct(

@@ -22,10 +22,12 @@ load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
 
+_ANDROID_PLATFORMS_SETTING = utils.ANDROID_PLATFORMS_SETTING
+
 def _android_platforms_transition_impl(settings, attrs):
     new_settings = dict(settings)
 
-    android_platforms = utils.get_cls(settings, "android_platforms")
+    android_platforms = utils.get_android_platforms(settings)
     new_platforms = utils.get_cls(settings, "platforms")
 
     # Set the value of --platforms for this target and its dependencies.
@@ -55,11 +57,13 @@ android_platforms_transition = transition(
     implementation = _android_platforms_transition_impl,
     inputs = [
         "//command_line_option:android_platforms",
+        _ANDROID_PLATFORMS_SETTING,
         "//command_line_option:platforms",
         min_sdk_version.SETTING,
     ],
     outputs = [
         "//command_line_option:android_platforms",
+        _ANDROID_PLATFORMS_SETTING,
         "//command_line_option:platforms",
         min_sdk_version.SETTING,
     ],
