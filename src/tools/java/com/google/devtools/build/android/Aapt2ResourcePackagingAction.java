@@ -413,6 +413,7 @@ public class Aapt2ResourcePackagingAction {
               .includeProguardLocationReferences(options.includeProguardLocationReferences)
               .featureFlags(aaptConfigOptions.featureFlags)
               .optimizeThroughput(aaptConfigOptions.optimizeThroughput)
+              .hasResourcesOutput(options.resourcesOutput != null)
               .link(compiled);
       profiler.recordEndOf("link").startTask("validate");
 
