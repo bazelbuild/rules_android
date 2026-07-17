@@ -16,6 +16,7 @@ package com.google.devtools.build.android.aapt2;
 import com.google.auto.value.AutoValue;
 import com.google.devtools.build.android.ResourcesZip;
 import java.nio.file.Path;
+import javax.annotation.Nullable;
 
 /** Represents the packaged, flattened resources. */
 @AutoValue
@@ -23,6 +24,7 @@ public abstract class PackagedResources {
 
   public abstract Path apk();
 
+  @Nullable
   public abstract Path proto();
 
   public abstract Path rTxt();
@@ -33,22 +35,25 @@ public abstract class PackagedResources {
 
   public abstract Path javaSourceDirectory();
 
+  @Nullable
   abstract Path resourceIds();
 
+  @Nullable
   public abstract Path attributes();
 
+  @Nullable
   public abstract Path packages();
 
   public static PackagedResources of(
       Path outPath,
-      Path protoPath,
+      @Nullable Path protoPath,
       Path rTxt,
       Path proguardConfig,
       Path mainDexProguard,
       Path javaSourceDirectory,
-      Path resourceIds,
-      Path attributes,
-      Path packages) {
+      @Nullable Path resourceIds,
+      @Nullable Path attributes,
+      @Nullable Path packages) {
     return new AutoValue_PackagedResources(
         outPath,
         protoPath,

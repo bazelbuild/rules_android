@@ -88,6 +88,7 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
+import javax.annotation.Nullable;
 
 /** Performs linking of {@link CompiledResources} using aapt2. */
 public class ResourceLinker {
@@ -168,6 +169,7 @@ public class ResourceLinker {
   private List<StaticLibrary> resourceApks = ImmutableList.of();
   private String featureFlags = "";
   private boolean optimizeThroughput = false;
+  private boolean hasResourcesOutput = true;
 
   private ResourceLinker(
       Path aapt2, ListeningExecutorService executorService, Path workingDirectory) {
@@ -271,6 +273,12 @@ public class ResourceLinker {
   @CanIgnoreReturnValue
   public ResourceLinker optimizeThroughput(boolean optimizeThroughput) {
     this.optimizeThroughput = optimizeThroughput;
+    return this;
+  }
+
+  @CanIgnoreReturnValue
+  public ResourceLinker hasResourcesOutput(boolean hasResourcesOutput) {
+    this.hasResourcesOutput = hasResourcesOutput;
     return this;
   }
 
@@ -438,20 +446,21 @@ public class ResourceLinker {
     return fileName.substring(0, lastIndex).concat(".").concat(newExtension);
   }
 
-  private ProtoApk linkProtoApk(
+  private Path linkApk(
       CompiledResources compiled,
       Path rTxt,
       Path proguardConfig,
       Path mainDexProguard,
       Path javaSourceDirectory,
-      Path resourceIds)
+      @Nullable Path resourceIds,
+      boolean asProto)
       throws IOException {
     Predicate<DirectoryEntry> flatFileShouldKeep =
         generatePseudoLocale && resourceConfigs.stream().anyMatch(PSEUDO_LOCALE_FILTERS::contains)
             ? USE_GENERATED
             : USE_DEFAULT;
     profiler.startTask("fulllink");
-    final Path linked = workingDirectory.resolve("bin." + PROTO_EXTENSION);
+    final Path linked = workingDirectory.resolve(asProto ? ("bin." + PROTO_EXTENSION) : "bin.apk");
     logger.fine(
         new AaptCommandBuilder(aapt2)
             .forBuildToolsVersion(buildToolsVersion)
@@ -470,8 +479,8 @@ public class ResourceLinker {
             .add("--auto-add-overlay")
             .when(OVERRIDE_STYLES_INSTEAD_OF_OVERLAYING)
             .thenAdd("--override-styles-instead-of-overlaying")
-            // Always link to proto, as resource shrinking needs the extra information.
-            .add("--proto-format")
+            .when(asProto)
+            .thenAdd("--proto-format")
             .when(debug)
             .thenAdd("--debug-mode")
             .add("--custom-package", customPackage)
@@ -501,7 +510,8 @@ public class ResourceLinker {
             .when(!resourceConfigs.isEmpty())
             .thenAdd("-c", Joiner.on(',').join(resourceConfigs))
             .add("--output-text-symbols", rTxt)
-            .add("--emit-ids", resourceIds)
+            .when(resourceIds != null)
+            .thenAdd("--emit-ids", resourceIds)
             .add("--java", javaSourceDirectory)
             .add("--proguard", proguardConfig)
             .add("--proguard-main-dex", mainDexProguard)
@@ -512,7 +522,8 @@ public class ResourceLinker {
             .add("--feature-flags", featureFlags)
             .execute(String.format("Linking %s", compiled.getManifest())));
     profiler.recordEndOf("fulllink");
-    return ProtoApk.readFrom(optimize(compiled, linked));
+    Path optimized = optimize(compiled, linked, asProto);
+    return asProto ? optimized : copyAndFixCompression(optimized, workingDirectory);
   }
 
   /** Modes for overriding compression of a given file. */
@@ -658,13 +669,14 @@ public class ResourceLinker {
     return attributes;
   }
 
-  private Path optimize(CompiledResources compiled, Path protoApk) throws IOException {
+  private Path optimize(CompiledResources compiled, Path apk, boolean isProto) throws IOException {
     if (densities.size() < 2) {
-      return protoApk;
+      return apk;
     }
 
     profiler.startTask("optimize");
-    final Path optimized = workingDirectory.resolve("optimized." + PROTO_EXTENSION);
+    final Path optimized =
+        workingDirectory.resolve(isProto ? ("optimized." + PROTO_EXTENSION) : "optimized.apk");
     logger.fine(
         new AaptCommandBuilder(aapt2)
             .forBuildToolsVersion(buildToolsVersion)
@@ -680,7 +692,7 @@ public class ResourceLinker {
             .when(densities.size() >= 2)
             .thenAdd("--target-densities", densities.stream().collect(Collectors.joining(",")))
             .add("-o", optimized)
-            .add(protoApk.toString())
+            .add(apk.toString())
             .execute(String.format("Optimizing %s", compiled.getManifest())));
     profiler.recordEndOf("optimize");
     return optimized;
@@ -693,23 +705,48 @@ public class ResourceLinker {
       Path proguardConfig = workingDirectory.resolve("proguard.cfg");
       Path mainDexProguard = workingDirectory.resolve("proguard.maindex.cfg");
       Path javaSourceDirectory = Files.createDirectories(workingDirectory.resolve("java"));
-      Path resourceIds = workingDirectory.resolve("ids.txt");
-      try (ProtoApk protoApk =
-          linkProtoApk(
-              compiled, rTxt, proguardConfig, mainDexProguard, javaSourceDirectory, resourceIds)) {
-        return PackagedResources.of(
-            outputAsProto ? protoApk.asApkPath() : convertProtoApkToBinary(protoApk),
-            protoApk.asApkPath(),
-            rTxt,
-            proguardConfig,
-            mainDexProguard,
-            javaSourceDirectory,
-            resourceIds,
-            extractAttributes(compiled),
-            extractPackages(compiled));
+      Path resourceIds = hasResourcesOutput ? workingDirectory.resolve("ids.txt") : null;
+      // conditionalKeepRules=true implies resource shrinking, which can only occur if
+      // resource_files.zip exists.
+      Preconditions.checkState(
+          hasResourcesOutput || (!conditionalKeepRules && !outputAsProto),
+          "Cannot construct proto apk when resource_files.zip is unavailable.");
+      boolean linkAsProto = hasResourcesOutput || outputAsProto || conditionalKeepRules;
+      Path apkPath =
+          linkApk(
+              compiled,
+              rTxt,
+              proguardConfig,
+              mainDexProguard,
+              javaSourceDirectory,
+              resourceIds,
+              linkAsProto);
+      if (linkAsProto) {
+        try (ProtoApk protoApk = ProtoApk.readFrom(apkPath)) {
+          return PackagedResources.of(
+              outputAsProto ? protoApk.asApkPath() : convertProtoApkToBinary(protoApk),
+              protoApk.asApkPath(),
+              rTxt,
+              proguardConfig,
+              mainDexProguard,
+              javaSourceDirectory,
+              resourceIds,
+              extractAttributes(compiled),
+              extractPackages(compiled));
+        }
       }
 
-    } catch (IOException e) {
+      return PackagedResources.of(
+          apkPath,
+          null,
+          rTxt,
+          proguardConfig,
+          mainDexProguard,
+          javaSourceDirectory,
+          resourceIds,
+          null,
+          null);
+    } catch (IOException | IllegalStateException e) {
       throw new LinkError(e);
     }
   }

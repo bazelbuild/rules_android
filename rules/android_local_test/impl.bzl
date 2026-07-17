@@ -118,6 +118,7 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         shrink_resources = attrs.tristate.no,
         build_java_with_final_resources = True,
         generate_out_symbols = False,
+        generate_resource_files_zip = False,
         crunch_png = False,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
         android_jar = get_android_sdk(ctx).android_jar,
@@ -209,18 +210,14 @@ def _process_proto(_ctx, **_unused_sub_ctxs):
     )
 
 def _process_deploy_jar(ctx, java_package, jvm_ctx, proto_ctx, resources_ctx, **_unused_sub_ctxs):
-    res_file_path = resources_ctx.validation_result.short_path
     subs = {
         "%android_merged_manifest%": resources_ctx.processed_manifest.short_path,
-        "%android_merged_resources%": "jar:file:" + res_file_path + "!/res",
-        "%android_merged_assets%": "jar:file:" + res_file_path + "!/assets",
         # The native resources_ctx has the package field, whereas the starlark resources_ctx uses the java_package
         "%android_custom_package%": getattr(resources_ctx, "package", java_package or ""),
         "%android_resource_apk%": resources_ctx.resources_apk.short_path,
     }
     res_runfiles = [
         resources_ctx.resources_apk,
-        resources_ctx.validation_result,
         resources_ctx.processed_manifest,
     ]
 

@@ -241,6 +241,9 @@ public class ResourcesZip {
 
   @VisibleForTesting
   ImmutableListMultimap<String, String> parseToolAttributes() throws IOException {
+    if (attributes == null || !Files.exists(attributes)) {
+      return ImmutableListMultimap.of();
+    }
     return ToolAttributes.parseFrom(
             Files.readAllBytes(attributes), ExtensionRegistry.getEmptyRegistry())
         .getAttributesMap()
