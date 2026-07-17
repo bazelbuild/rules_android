@@ -35,6 +35,7 @@ def configurations(name = "configurations"):
     int_setting(
         name = "min_sdk_version",
         build_setting_default = 0,
+        scope = "target",
         visibility = _CONFIG_VISIBILITY,
     )
 
@@ -46,6 +47,7 @@ def configurations(name = "configurations"):
     bool_setting(
         name = "android_host_hybrid_mode",
         build_setting_default = False,
+        scope = "target",
         visibility = ["//visibility:public"],
     )
 
