@@ -22,6 +22,7 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     deps = [
         "//rules:add_constraints_bzl",
+        "//rules:android_host_hybrid_mode_transition_bzl",
         "//rules:common_bzl",
         "//rules:min_sdk_version_bzl",
         "//rules:visibility_bzl",

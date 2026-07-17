@@ -96,6 +96,16 @@ bzl_library(
 )
 
 bzl_library(
+    name = "android_host_hybrid_mode_transition_bzl",
+    srcs = [
+        "android_host_hybrid_mode_transition.bzl",
+    ],
+    deps = [
+        ":visibility_bzl",
+    ],
+)
+
+bzl_library(
     name = "bzl",
     srcs = [
         "android_sdk.bzl",
