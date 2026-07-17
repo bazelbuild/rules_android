@@ -14,6 +14,7 @@
 """Bazel ResourcesBusyBox Commands."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load(":busybox_compat.bzl", "AAPT2_COMPAT_FLAGS")
 load(":java.bzl", _java = "java")
 
@@ -132,15 +133,15 @@ def _make_resources_flag(
     )
 
 def _set_worker_mode_param_file(ctx, args):
-    if (ctx.fragments.android.persistent_busybox_tools or
-        ctx.fragments.android.persistent_multiplex_busybox_tools):
+    if (read_possibly_native_flag(ctx, "internal_persistent_busybox_tools") or
+        read_possibly_native_flag(ctx, "internal_persistent_multiplex_busybox_tools")):
         # Only sets param file mode when worker mode is enabled.
         args.use_param_file("@%s", use_always = True)
         args.set_param_file_format("multiline")
 
 def _set_warning_level(ctx, args):
-    if (ctx.fragments.android.persistent_busybox_tools or
-        ctx.fragments.android.persistent_multiplex_busybox_tools):
+    if (read_possibly_native_flag(ctx, "internal_persistent_busybox_tools") or
+        read_possibly_native_flag(ctx, "internal_persistent_multiplex_busybox_tools")):
         # Disable warnings - this are output to stdin/stderr which breaks worker mode
         args.add("--logWarnings=false")
 
@@ -845,8 +846,8 @@ def _merge_compiled(
     )
 
 def _java_run(ctx, mnemonic = None, *args, **kwargs):
-    enable_workers = ctx.fragments.android.persistent_busybox_tools
-    multiplex_workers = ctx.fragments.android.persistent_multiplex_busybox_tools
+    enable_workers = read_possibly_native_flag(ctx, "internal_persistent_busybox_tools")
+    multiplex_workers = read_possibly_native_flag(ctx, "internal_persistent_multiplex_busybox_tools")
 
     _java.run(ctx, mnemonic = mnemonic, supports_workers = enable_workers, supports_multiplex_workers = multiplex_workers, *args, **kwargs)
 
