@@ -92,14 +92,12 @@ def _handle_android_platforms(settings, platforms_to_split):
     return result
 
 def _cc_flags_from_android(settings, new_settings):
-    new_settings[utils.add_cls_prefix("compiler")] = utils.get_cls(settings, "android_compiler")
     new_settings[utils.add_cls_prefix("dynamic_mode")] = "off"
 
     new_settings[utils.add_cls_prefix("Android configuration distinguisher")] = "android"
 
 _INPUTS = [
     "//command_line_option:Android configuration distinguisher",
-    "//command_line_option:android_compiler",
     "//command_line_option:android_platforms",
     _ANDROID_PLATFORMS_SETTING,
     "//command_line_option:compiler",
@@ -110,7 +108,6 @@ _INPUTS = [
 
 _OUTPUTS = [
     "//command_line_option:Android configuration distinguisher",
-    "//command_line_option:android_compiler",
     "//command_line_option:android_platforms",
     _ANDROID_PLATFORMS_SETTING,
     "//command_line_option:compiler",
