@@ -30,6 +30,7 @@ import com.google.devtools.build.android.Converters.AmpersandSplitter;
 import com.google.devtools.build.android.Converters.ColonSplitter;
 import com.google.devtools.build.android.Converters.CompatDependencyAndroidDataConverter;
 import com.google.devtools.build.android.Converters.CompatPathConverter;
+import com.google.devtools.build.android.Converters.CompatPathListConverter;
 import com.google.devtools.build.android.Converters.CompatSerializedAndroidDataConverter;
 import com.google.devtools.build.android.Converters.CompatUnvalidatedAndroidDataConverter;
 import com.google.devtools.build.android.aapt2.Aapt2ConfigOptions;
@@ -130,6 +131,12 @@ public class Aapt2ResourcePackagingAction {
         splitter = ColonSplitter.class,
         description = "List of APKs used during linking.")
     public List<Path> additionalApksToLinkAgainst = ImmutableList.of();
+
+    @Parameter(
+        names = "--compiledDepWithPublicXml",
+        listConverter = CompatPathListConverter.class,
+        description = "Compiled resource dependencies containing explicit public.xml declarations.")
+    public List<Path> compiledDepsWithPublicXml = ImmutableList.of();
 
     @Parameter(
         names = "--packageId",
@@ -426,8 +433,14 @@ public class Aapt2ResourcePackagingAction {
         manifestReferences = XmlUtils.getAllResourceReferences(compiled.getManifest());
       }
 
+      ImmutableList<CompiledResources> visibilityDeps =
+          !options.compiledDepsWithPublicXml.isEmpty()
+              ? options.compiledDepsWithPublicXml.stream()
+                  .map(CompiledResources::from)
+                  .collect(toImmutableList())
+              : ImmutableList.copyOf(compiledResourceDeps);
       ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
-          manifestReferences, compiled, compiledResourceDeps);
+          manifestReferences, compiled, visibilityDeps);
 
       profiler.recordEndOf("validate");
 

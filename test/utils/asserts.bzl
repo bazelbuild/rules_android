@@ -101,6 +101,7 @@ def _expected_starlark_android_resources_info_impl(ctx):
             transitive_assets = ctx.attr.transitive_assets,
             transitive_assets_symbols = ctx.attr.transitive_assets_symbols,
             transitive_compiled_resources = ctx.attr.transitive_compiled_resources,
+            transitive_compiled_resources_with_public_xml = ctx.attr.transitive_compiled_resources_with_public_xml,
             packages_to_r_txts = ctx.attr.packages_to_r_txts,
         ),
     ]
@@ -117,6 +118,7 @@ _expected_starlark_android_resources_info = rule(
         transitive_assets = attr.string_list(),
         transitive_assets_symbols = attr.string_list(),
         transitive_compiled_resources = attr.string_list(),
+        transitive_compiled_resources_with_public_xml = attr.string_list(),
         packages_to_r_txts = attr.string_list_dict(),
     ),
 )
@@ -127,10 +129,11 @@ def ExpectedStarlarkAndroidResourcesInfo(
         transitive_assets = [],
         transitive_assets_symbols = [],
         transitive_compiled_resources = [],
+        transitive_compiled_resources_with_public_xml = [],
         packages_to_r_txts = {},
         name = "unused"):  # appease linter
     name = (str(direct_resources_nodes) + str(transitive_resources_nodes) + str(transitive_assets) +
-            str(transitive_assets_symbols) + str(transitive_compiled_resources))
+            str(transitive_assets_symbols) + str(transitive_compiled_resources) + str(transitive_compiled_resources_with_public_xml))
     name = ":_data_" + str(hash(name))
 
     # Allow multiple tests to share the same expected info by checking if rule exists
@@ -142,6 +145,7 @@ def ExpectedStarlarkAndroidResourcesInfo(
             transitive_assets = transitive_assets,
             transitive_assets_symbols = transitive_assets_symbols,
             transitive_compiled_resources = transitive_compiled_resources,
+            transitive_compiled_resources_with_public_xml = transitive_compiled_resources_with_public_xml,
             packages_to_r_txts = packages_to_r_txts,
         )
     return name
@@ -511,6 +515,12 @@ def _assert_starlark_android_resources_info(expected, actual, label_under_test):
         expected.transitive_compiled_resources,
         actual.transitive_compiled_resources,
         "StarlarkAndroidResourcesInfo.transitive_compiled_resources",
+        ignore_label_prefix,
+    )
+    _assert_file_depset(
+        expected.transitive_compiled_resources_with_public_xml,
+        actual.transitive_compiled_resources_with_public_xml,
+        "StarlarkAndroidResourcesInfo.transitive_compiled_resources_with_public_xml",
         ignore_label_prefix,
     )
     for pkg, value in expected.packages_to_r_txts.items():

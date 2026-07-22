@@ -82,6 +82,38 @@ starlark_process_test(
 )
 
 starlark_process(
+    name = "resource_processing_with_public_xml",
+    custom_package = "test.rules.resources",
+    manifest = "AndroidManifest.xml",
+    resource_files = glob(["res_public_test/**"]),
+)
+
+resource_processing_with_public_xml_node = ExpectedResourcesNodeInfo(
+    assets_symbols = "resource_processing_with_public_xml_symbols/assets.bin",
+    compiled_resources = "resource_processing_with_public_xml_symbols/symbols.zip",
+    label = ":resource_processing_with_public_xml",
+    manifest = "resource_processing_with_public_xml_processed_manifest/AndroidManifest.xml",
+    r_txt = "resource_processing_with_public_xml_symbols/R.aapt2.txt",
+)
+
+resource_processing_with_public_xml_info = ExpectedStarlarkAndroidResourcesInfo(
+    direct_resources_nodes = [resource_processing_with_public_xml_node],
+    transitive_assets_symbols = ["resource_processing_with_public_xml_symbols/assets.bin"],
+    transitive_compiled_resources = ["resource_processing_with_public_xml_symbols/symbols.zip"],
+    transitive_compiled_resources_with_public_xml = ["resource_processing_with_public_xml_symbols/symbols.zip"],
+    transitive_resources_nodes = [],
+)
+
+starlark_process_test(
+    name = "test_resource_processing_with_public_xml",
+    expected_r_class_fields = [
+        "string.public_hello",
+    ],
+    expected_starlark_android_resources_info = resource_processing_with_public_xml_info,
+    target_under_test = ":resource_processing_with_public_xml",
+)
+
+starlark_process(
     name = "resource_processing_without_stamping_manifest",
     assets = ["assets/some_asset.txt"],
     assets_dir = "assets",

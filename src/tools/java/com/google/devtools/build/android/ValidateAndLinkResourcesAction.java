@@ -58,6 +58,12 @@ public final class ValidateAndLinkResourcesAction {
         description = "Compiled resource dependencies to link.")
     public List<Path> compiledDeps = ImmutableList.of();
 
+    @Parameter(
+        names = "--compiledDepWithPublicXml",
+        listConverter = Converters.CompatPathListConverter.class,
+        description = "Compiled resource dependencies containing explicit public.xml declarations.")
+    public List<Path> compiledDepsWithPublicXml = ImmutableList.of();
+
     /**
      * TODO(b/64570523): Still used by blaze. Will be removed as part of the command line cleanup.
      *
@@ -151,12 +157,18 @@ public final class ValidateAndLinkResourcesAction {
                               options.packageForR));
       ImmutableList<CompiledResources> includes =
           options.compiledDeps.stream().map(CompiledResources::from).collect(toImmutableList());
+      ImmutableList<CompiledResources> visibilityIncludes =
+          !options.compiledDepsWithPublicXml.isEmpty()
+              ? options.compiledDepsWithPublicXml.stream()
+                  .map(CompiledResources::from)
+                  .collect(toImmutableList())
+              : includes;
       profiler.recordEndOf("manifest").startTask("validate");
 
       // TODO(b/146663858): distinguish direct/transitive deps for "strict deps".
       // TODO(b/128711690): validate AndroidManifest.xml
       checkVisibilityOfResourceReferences(
-          /* manifestReferences= */ ImmutableList.of(), resources, includes);
+          /* manifestReferences= */ ImmutableList.of(), resources, visibilityIncludes);
 
       ImmutableList<StaticLibrary> resourceApks = ImmutableList.of();
       if (options.resourceApks != null) {

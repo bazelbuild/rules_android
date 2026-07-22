@@ -229,6 +229,7 @@ def _package(
         transitive_compiled_assets = [],
         transitive_resource_files = [],
         transitive_compiled_resources = [],
+        transitive_compiled_resources_with_public_xml = [],
         transitive_r_txts = [],
         additional_apks_to_link_against = [],
         resource_apks = depset(),
@@ -286,6 +287,8 @@ def _package(
         resource files.
       transitive_compiled_resources: List of Depsets. Depsets contain all transitive
         compiled_resources.
+      transitive_compiled_resources_with_public_xml: List of Depsets. Depsets contain
+        all transitive compiled_resources from targets containing explicit public.xml declarations.
       transitive_r_txts: List of Depsets. Depsets contain all transitive R txt files.
       additional_apks_to_link_against: A list of Files. Additional APKs to link
         against. Optional.
@@ -350,6 +353,13 @@ def _package(
     transitive_input_files.extend(transitive_assets)
     transitive_input_files.extend(transitive_compiled_assets)
     transitive_input_files.extend(transitive_compiled_resources)
+    if transitive_compiled_resources_with_public_xml:
+        compiled_dep_with_public_xml = depset(transitive = transitive_compiled_resources_with_public_xml)
+        args.add_joined(
+            "--compiledDepWithPublicXml",
+            compiled_dep_with_public_xml,
+            join_with = ":",
+        )
     transitive_input_files.extend(transitive_manifests)
     transitive_input_files.extend(transitive_r_txts)
     args.add(
@@ -591,6 +601,7 @@ def _validate_and_link(
         out_file = None,
         compiled_resources = None,
         transitive_compiled_resources = depset(),
+        transitive_compiled_resources_with_public_xml = depset(),
         java_package = None,
         manifest = None,
         feature_flags = "",
@@ -610,6 +621,8 @@ def _validate_and_link(
         this target.
       transitive_compiled_resources: Depset of Files. The symbols.zip of the
         compiled resources from the transitive dependencies of this target.
+      transitive_compiled_resources_with_public_xml: Depset of Files. The symbols.zip of the
+        compiled resources from transitive dependencies that declare public.xml.
       java_package: A string. The Java package for the generated R.java.
       manifest: A File. The AndroidManifest.xml.
       resource_apks: List of direct resource only apk files.
@@ -639,6 +652,12 @@ def _validate_and_link(
         join_with = ":",
     )
     transitive_input_files.append(transitive_compiled_resources)
+    if transitive_compiled_resources_with_public_xml:
+        args.add_joined(
+            "--compiledDepWithPublicXml",
+            transitive_compiled_resources_with_public_xml,
+            join_with = ":",
+        )
     args.add("--manifest", manifest)
     input_files.append(manifest)
     if java_package:
