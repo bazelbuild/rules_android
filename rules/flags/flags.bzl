@@ -190,27 +190,33 @@ def _get_flags(ctx):
     return flags[0][FlagsInfo]
 
 _POSSIBLY_NATIVE_FLAGS = {
-    "desugar_java8_libs": (lambda ctx: ctx.fragments.android.desugar_java8_libs, "starlark"),
+    "desugar_java8_libs": (lambda ctx: ctx.fragments.android.desugar_java8_libs, "native"),
     "experimental_android_compress_java_resources": (
         lambda ctx: ctx.fragments.android.compress_java_resources,
-        "starlark",
+        "native",
     ),
     "internal_persistent_android_dex_desugar": (
         lambda ctx: ctx.fragments.android.persistent_android_dex_desugar,
-        "starlark",
+        "native",
     ),
     "internal_persistent_busybox_tools": (
         lambda ctx: ctx.fragments.android.persistent_busybox_tools,
-        "starlark",
+        "native",
     ),
     "internal_persistent_multiplex_android_dex_desugar": (
         lambda ctx: ctx.fragments.android.persistent_multiplex_android_dex_desugar,
-        "starlark",
+        "native",
     ),
     "internal_persistent_multiplex_busybox_tools": (
         lambda ctx: ctx.fragments.android.persistent_multiplex_busybox_tools,
-        "starlark",
+        "native",
     ),
+    "experimental_incremental_dexing_after_proguard": (lambda ctx: ctx.fragments.android.incremental_dexing_shards_after_proguard, "native"),
+    "dexopts_supported_in_dexsharder": (lambda ctx: ctx.fragments.android.get_dexopts_supported_in_dex_sharder, "native"),
+    "fixed_resource_neverlinking": (lambda ctx: ctx.fragments.android.fixed_resource_neverlinking, "native"),
+    "android_resource_shrinking": (lambda ctx: ctx.fragments.android.use_android_resource_shrinking, "native"),
+    "experimental_android_resource_path_shortening": (lambda ctx: ctx.fragments.android.use_android_resource_path_shortening, "native"),
+    "experimental_android_resource_name_obfuscation": (lambda ctx: ctx.fragments.android.use_android_resource_name_obfuscation, "native"),
 }
 
 def read_possibly_native_flag(ctx, flag_name):
@@ -247,6 +253,7 @@ def read_possibly_native_flag(ctx, flag_name):
         # First check the new wrapped_flags attribute
         if hasattr(ctx.attr, "_wrapped_flags") and ctx.attr._wrapped_flags:
             wrapped_flags = ctx.attr._wrapped_flags[WrappedFlagsInfo].flags
+
             if flag_name in wrapped_flags:
                 return wrapped_flags[flag_name].value
         elif hasattr(ctx.fragments, "android"):

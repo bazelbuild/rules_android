@@ -18,6 +18,7 @@ load("//rules:acls.bzl", "acls")
 load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
@@ -1254,7 +1255,7 @@ def _process(
     resources_neverlink = (
         neverlink and (
             defines_resources or
-            ctx.fragments.android.fixed_resource_neverlinking
+            read_possibly_native_flag(ctx, "fixed_resource_neverlinking")
         )
     )
 
@@ -1931,12 +1932,12 @@ def _optimize(
     return _ResourcesOptimizeContextInfo(**optimize_ctx)
 
 def _is_resource_path_shortening_enabled(ctx):
-    return ctx.fragments.android.use_android_resource_path_shortening and \
+    return read_possibly_native_flag(ctx, "experimental_android_resource_path_shortening") and \
            _compilation_mode.get(ctx) == _compilation_mode.OPT and \
            not acls.in_android_binary_raw_access_to_resource_paths_allowlist(str(ctx.label))
 
 def _is_resource_name_obfuscation_enabled(ctx, is_resource_shrunk):
-    return (ctx.fragments.android.use_android_resource_name_obfuscation or
+    return (read_possibly_native_flag(ctx, "experimental_android_resource_name_obfuscation") or
             _FEATURE_RESOURCE_NAME_OBFUSCATION in ctx.features) and \
            is_resource_shrunk and \
            not acls.in_android_binary_resource_name_obfuscation_opt_out_allowlist(str(ctx.label))

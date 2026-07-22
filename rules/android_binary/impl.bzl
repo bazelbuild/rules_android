@@ -105,7 +105,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         java_package = java_package,
         compilation_mode = compilation_mode.get(ctx),
         shrink_resources = ctx.attr.shrink_resources,
-        use_android_resource_shrinking = ctx.fragments.android.use_android_resource_shrinking,
+        use_android_resource_shrinking = read_possibly_native_flag(ctx, "android_resource_shrinking"),
         use_android_resource_cycle_shrinking = ctx.fragments.android.use_android_resource_cycle_shrinking,
         use_legacy_manifest_merger = use_legacy_manifest_merger(ctx),
         should_throw_on_conflict = not acls.in_allow_resource_conflicts(str(ctx.label)),
@@ -315,7 +315,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
         force_incremental_dexing = ctx.attr.incremental_dexing,
         has_forbidden_dexopts = len([d for d in ctx.attr.dexopts if d in forbidden_dexopts]) > 0,
         is_binary_optimized = is_binary_optimized,
-        incremental_dexing_shards_after_proguard = ctx.fragments.android.incremental_dexing_shards_after_proguard,
+        incremental_dexing_shards_after_proguard = read_possibly_native_flag(ctx, "experimental_incremental_dexing_after_proguard"),
     )
 
     classes_dex_zip = _dex.get_dx_artifact(ctx, "classes.dex.zip")
@@ -736,7 +736,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     has_proguard_specs = bool(ctx.files.proguard_specs)
     enable_resource_shrinking = _resources.is_resource_shrinking_enabled(
         ctx.attr.shrink_resources,
-        ctx.fragments.android.use_android_resource_shrinking,
+        read_possibly_native_flag(ctx, "android_resource_shrinking"),
         has_proguard_specs,
     )
     resource_shrinking_in_optimizer = acls.in_resource_shrinking_in_optimizer(str(ctx.label)) and _resources.is_resource_name_obfuscation_enabled(ctx, enable_resource_shrinking)

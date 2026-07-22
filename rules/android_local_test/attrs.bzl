@@ -229,6 +229,7 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
         _attrs.compilation_attributes(),
         _attrs.DATA_CONTEXT,
         _attrs.AUTOMATIC_EXEC_GROUPS_ENABLED,
+        _attrs.FLAGS_ATTRS,
     )
 
 ATTRS = make_attrs()

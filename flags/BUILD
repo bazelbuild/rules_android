@@ -73,6 +73,13 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
+bool_flag(
+    name = "experimental_android_resource_name_obfuscation",
+    build_setting_default = False,
+    scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
 string_flag(
     name = "android_manifest_merger_order",
     build_setting_default = "alphabetical",
@@ -93,7 +100,7 @@ bool_flag(
 )
 
 bool_flag(
-    name = "android_fixed_resource_neverlinking",
+    name = "fixed_resource_neverlinking",
     build_setting_default = True,
     visibility = ["//visibility:public"],
 )
@@ -133,16 +140,6 @@ label_flag(
 string_flag(
     name = "android_compiler",
     build_setting_default = "null",
-    visibility = ["//visibility:public"],
-)
-
-string_list_flag(
-    name = "dexopts_supported_in_dexmerger",
-    build_setting_default = [
-        "--minimal-main-dex",
-        "--set-max-idx-number",
-    ],
-    scope = "universal",
     visibility = ["//visibility:public"],
 )
 
@@ -200,7 +197,7 @@ bool_flag(
 )
 
 int_flag(
-    name = "incremental_dexing_after_proguard",
+    name = "experimental_incremental_dexing_after_proguard",
     build_setting_default = 50,
     scope = "universal",
     visibility = ["//visibility:public"],
