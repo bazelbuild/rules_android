@@ -13,6 +13,7 @@
 # limitations under the License.
 """Test rule for resource processing."""
 
+load("//flags:flags_wrapper.bzl", "WrappedFlagsInfo")
 load("//providers:providers.bzl", "StarlarkAndroidResourcesInfo")
 load("//rules:attrs.bzl", "ANDROID_BINARY_ATTRS")
 load("//rules:common.bzl", _common = "common")
@@ -125,6 +126,10 @@ starlark_process = rule(
         ),
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
+        ),
+        _wrapped_flags = attr.label(
+            default = Label("//flags:flags_wrapper"),
+            providers = [WrappedFlagsInfo],
         ),
         use_xsltproc = attr.bool(default = True),
         use_instrument_xslt = attr.bool(default = True),

@@ -126,11 +126,11 @@ def _process_incremental_dexing(
             needs_normalization = not should_optimize_dex,
         )
         java_resource_jar = ctx.actions.declare_file(ctx.label.name + "_files/java_resources.jar")
-        if ctx.fragments.android.incremental_dexing_shards_after_proguard > 1:
+        if read_possibly_native_flag(ctx, "experimental_incremental_dexing_after_proguard") > 1:
             dex_archives, globals_shards = _shard_proguarded_jar_and_dex(
                 ctx,
                 java_resource_jar = java_resource_jar,
-                num_shards = ctx.fragments.android.incremental_dexing_shards_after_proguard,
+                num_shards = read_possibly_native_flag(ctx, "experimental_incremental_dexing_after_proguard"),
                 dexopts = toplevel_dexbuilder_dexopts,
                 proguarded_jar = proguarded_jar,
                 min_sdk_version = min_sdk_version,
@@ -192,7 +192,7 @@ def _process_incremental_dexing(
             ctx,
             output = shards,
             inputs = dex_archives,
-            dexopts = _filter_dexopts(dexopts, ctx.fragments.android.get_dexopts_supported_in_dex_sharder),
+            dexopts = _filter_dexopts(dexopts, read_possibly_native_flag(ctx, "dexopts_supported_in_dexsharder")),
             inclusion_filter_jar = inclusion_filter_jar,
             dexsharder = dexsharder,
             toolchain_type = toolchain_type,
