@@ -73,6 +73,13 @@ ResourcesNodeInfo = provider(
     ),
 )
 
+# Temporary constructor to handle version skew with release rules.
+# Remove when release rules populate 'transitive_compiled_resources_with_public_xml'.
+def _starlark_android_resources_info_init(**kwargs):
+    if "transitive_compiled_resources_with_public_xml" not in kwargs:
+        kwargs["transitive_compiled_resources_with_public_xml"] = depset()
+    return kwargs
+
 StarlarkAndroidResourcesInfo = provider(
     doc = "Provides information about direct and transitive resources",
     fields = dict(
@@ -83,6 +90,7 @@ StarlarkAndroidResourcesInfo = provider(
         transitive_compiled_assets = "Depset of transitive compiled assets",
         direct_compiled_resources = "Depset of direct compiled_resources, can contain multiple files due to exports",
         transitive_compiled_resources = "Depset of transitive compiled resources",
+        transitive_compiled_resources_with_public_xml = "Depset of transitive compiled resources from targets containing explicit public.xml declarations",
         transitive_manifests = "Depset of transitive manifests",
         transitive_r_txts = "Depset of transitive R.txt files",
         transitive_resource_files = "Depset of transitive resource files",
@@ -90,7 +98,8 @@ StarlarkAndroidResourcesInfo = provider(
         transitive_resource_apks = "Depset of transitive resource only apk files",
         package = "String, the package used for the generated Java resources",
     ),
-)
+    init = _starlark_android_resources_info_init,
+)[0]
 
 AndroidLintRulesInfo = provider(
     doc = "Provides extra lint rules to use with AndroidLint.",

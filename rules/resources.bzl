@@ -614,6 +614,7 @@ def _package(
     transitive_compiled_assets = []
     transitive_resource_files = []
     transitive_compiled_resources = []
+    transitive_compiled_resources_with_public_xml = []
     transitive_manifests = []
     transitive_r_txts = []
     packages_to_r_txts_depset = dict()
@@ -627,6 +628,7 @@ def _package(
         transitive_compiled_assets.append(dep.transitive_compiled_assets)
         transitive_resource_files.append(dep.transitive_resource_files)
         transitive_compiled_resources.append(dep.transitive_compiled_resources)
+        transitive_compiled_resources_with_public_xml.append(dep.transitive_compiled_resources_with_public_xml)
         transitive_manifests.append(dep.transitive_manifests)
         transitive_r_txts.append(dep.transitive_r_txts)
         for pkg, r_txts in dep.packages_to_r_txts.items():
@@ -766,6 +768,7 @@ def _package(
         transitive_compiled_assets = transitive_compiled_assets,
         transitive_resource_files = transitive_resource_files,
         transitive_compiled_resources = transitive_compiled_resources,
+        transitive_compiled_resources_with_public_xml = transitive_compiled_resources_with_public_xml,
         transitive_manifests = transitive_manifests,
         transitive_r_txts = transitive_r_txts,
         resource_configs = resource_configs,
@@ -1285,6 +1288,7 @@ def _process(
     transitive_compiled_assets = []
     direct_compiled_resources = []
     transitive_compiled_resources = []
+    transitive_compiled_resources_with_public_xml = []
     transitive_resources_files = []
     transitive_manifests = []
     transitive_r_txts = []
@@ -1299,6 +1303,7 @@ def _process(
         transitive_compiled_assets.append(dep.transitive_compiled_assets)
         direct_compiled_resources.append(dep.direct_compiled_resources)
         transitive_compiled_resources.append(dep.transitive_compiled_resources)
+        transitive_compiled_resources_with_public_xml.append(dep.transitive_compiled_resources_with_public_xml)
         transitive_resources_files.append(dep.transitive_resource_files)
         transitive_manifests.append(dep.transitive_manifests)
         transitive_r_txts.append(dep.transitive_r_txts)
@@ -1312,6 +1317,7 @@ def _process(
     exports_transitive_compiled_assets = []
     exports_direct_compiled_resources = []
     exports_transitive_compiled_resources = []
+    exports_transitive_compiled_resources_with_public_xml = []
     exports_transitive_resources_files = []
     exports_transitive_manifests = []
     exports_transitive_r_txts = []
@@ -1323,6 +1329,7 @@ def _process(
         exports_transitive_compiled_assets.append(dep.transitive_compiled_assets)
         exports_direct_compiled_resources.append(dep.direct_compiled_resources)
         exports_transitive_compiled_resources.append(dep.transitive_compiled_resources)
+        exports_transitive_compiled_resources_with_public_xml.append(dep.transitive_compiled_resources_with_public_xml)
         exports_transitive_resources_files.append(dep.transitive_resource_files)
         exports_transitive_manifests.append(dep.transitive_manifests)
         exports_transitive_r_txts.append(dep.transitive_r_txts)
@@ -1337,6 +1344,7 @@ def _process(
     transitive_compiled_assets.extend(exports_transitive_compiled_assets)
     direct_compiled_resources.extend(exports_direct_compiled_resources)
     transitive_compiled_resources.extend(exports_transitive_compiled_resources)
+    transitive_compiled_resources_with_public_xml.extend(exports_transitive_compiled_resources_with_public_xml)
     transitive_resources_files.extend(exports_transitive_resources_files)
     transitive_manifests.extend(exports_transitive_manifests)
     transitive_r_txts.extend(exports_transitive_r_txts)
@@ -1383,6 +1391,7 @@ def _process(
                 transitive_compiled_assets = transitive_compiled_assets,
                 transitive_resource_files = transitive_resources_files,
                 transitive_compiled_resources = transitive_compiled_resources,
+                transitive_compiled_resources_with_public_xml = transitive_compiled_resources_with_public_xml,
                 transitive_manifests = transitive_manifests,
                 transitive_r_txts = transitive_r_txts,
                 feature_flags = feature_flags,
@@ -1562,6 +1571,10 @@ def _process(
                 transitive = transitive_compiled_resources,
                 order = "preorder",
             ),
+            transitive_compiled_resources_with_public_xml = depset(
+                transitive = transitive_compiled_resources_with_public_xml,
+                order = "preorder",
+            ),
             java_package = java_package,
             manifest = processed_manifest,
             feature_flags = feature_flags,
@@ -1615,6 +1628,8 @@ def _process(
     for pkg, depsets in packages_to_r_txts_depset.items():
         packages_to_r_txts[pkg] = depset(transitive = depsets)
 
+    has_public_xml = any([f.basename == "public.xml" for f in processed_resources]) if processed_resources else False
+
     # TODO(b/159916013): Audit neverlink behavior. Some processing can likely be skipped if the target is neverlink.
     # TODO(b/69668042): Don't propagate exported providers/artifacts. Exports should respect neverlink.
     if resources_neverlink:
@@ -1649,6 +1664,10 @@ def _process(
             ),
             transitive_compiled_resources = depset(
                 transitive = exports_transitive_compiled_resources,
+                order = "preorder",
+            ),
+            transitive_compiled_resources_with_public_xml = depset(
+                transitive = exports_transitive_compiled_resources_with_public_xml,
                 order = "preorder",
             ),
             transitive_manifests = depset(
@@ -1721,6 +1740,11 @@ def _process(
             transitive_compiled_resources = depset(
                 [compiled_resources] if compiled_resources else [],
                 transitive = transitive_compiled_resources + exports_transitive_compiled_resources,
+                order = "preorder",
+            ),
+            transitive_compiled_resources_with_public_xml = depset(
+                [compiled_resources] if (compiled_resources and has_public_xml) else [],
+                transitive = transitive_compiled_resources_with_public_xml + exports_transitive_compiled_resources_with_public_xml,
                 order = "preorder",
             ),
             transitive_manifests = depset(
