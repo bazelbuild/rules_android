@@ -106,7 +106,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         compilation_mode = compilation_mode.get(ctx),
         shrink_resources = ctx.attr.shrink_resources,
         use_android_resource_shrinking = read_possibly_native_flag(ctx, "android_resource_shrinking"),
-        use_android_resource_cycle_shrinking = ctx.fragments.android.use_android_resource_cycle_shrinking,
+        use_android_resource_cycle_shrinking = read_possibly_native_flag(ctx, "experimental_android_resource_cycle_shrinking"),
         use_legacy_manifest_merger = use_legacy_manifest_merger(ctx),
         should_throw_on_conflict = not acls.in_allow_resource_conflicts(str(ctx.label)),
         enable_data_binding = ctx.attr.enable_data_binding,
@@ -397,7 +397,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
         filtered_deploy_jar = deploy_ctx.filtered_deploy_jar,
         final_classes_dex_zip = final_classes_dex_zip,
         final_proguard_output_map = final_proguard_output_map,
-        java_resource_jar = binary_jar if ctx.fragments.android.get_java_resources_from_optimized_jar else deploy_jar,
+        java_resource_jar = binary_jar if read_possibly_native_flag(ctx, "experimental_get_android_java_resources_from_optimized_jar") else deploy_jar,
     )
     providers.append(AndroidPreDexJarInfo(pre_dex_jar = binary_jar))
 
@@ -446,7 +446,7 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, jvm_ctx, b
     info = _dex.merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, _get_dex_desugar_aspect_deps(ctx)))
     incremental_dexopts = _dex.filter_dexopts(ctx.attr.dexopts, _dex.DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING)
     dex_archives = info.dex_archives_dict.get("".join(incremental_dexopts), depset()).to_list()
-    if ctx.fragments.android.desugar_java8:
+    if read_possibly_native_flag(ctx, "desugar_for_android"):
         desugared_jars = []
 
         # Only include the desugar globals in the deploy jar if this target will be optimized.
@@ -751,7 +751,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     generate_proguard_map = (
         ctx.attr.proguard_generate_mapping or enable_resource_shrinking
     )
-    desugar_java8_libs_generates_map = ctx.fragments.android.desugar_java8
+    desugar_java8_libs_generates_map = read_possibly_native_flag(ctx, "desugar_for_android")
     optimizing_dexing = bool(ctx.attr._optimizing_dexer) and not acls.in_disable_optimizing_dexer(str(ctx.label))
 
     if generate_proguard_map:

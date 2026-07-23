@@ -14,6 +14,7 @@
 """Bazel Android Proguard library for the Android rules."""
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load(":acls.bzl", "acls")
@@ -444,7 +445,7 @@ def _apply_proguard(
         )
 
     library_jar_list = [utils.only(common.get_java_toolchain(ctx)[java_common.JavaToolchainInfo].bootclasspath.to_list())]
-    if ctx.fragments.android.desugar_java8:
+    if read_possibly_native_flag(ctx, "desugar_for_android"):
         library_jar_list.append(ctx.file._desugared_java8_legacy_apis)
     neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
     library_jars = depset(library_jar_list, transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])

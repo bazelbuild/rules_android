@@ -15,6 +15,7 @@
 
 load("//providers:providers.bzl", "AndroidBytecodeTransformerInfo", "AndroidIdeInfo", "StarlarkAndroidDexInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 load(":acls.bzl", "acls")
@@ -122,7 +123,7 @@ def _aspect_impl(target, ctx):
         basename_clash = _check_basename_clash(runtime_jars)
         aspect_dexopts = _get_aspect_dexopts()
         for jar in runtime_jars:
-            if ctx.fragments.android.desugar_java8:
+            if read_possibly_native_flag(ctx, "desugar_for_android"):
                 jar_to_desugar = jar
                 unique_desugar_filename = (jar.short_path if basename_clash else jar.basename) + "_desugared.jar"
                 desugared_jar = _dex.get_dx_artifact(ctx, unique_desugar_filename, min_sdk_version)

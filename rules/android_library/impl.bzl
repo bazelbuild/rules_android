@@ -31,6 +31,7 @@ load("//rules:proguard.bzl", _proguard = "proguard")
 load("//rules:resources.bzl", _resources = "resources")
 load("//rules:utils.bzl", "get_android_sdk", "get_android_toolchain", "log", "utils")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
@@ -148,7 +149,10 @@ def _process_localized_resources(ctx, **unused_ctxs):
 def _process_resources(ctx, java_package, manifest_ctx, localized_ctx, **unused_ctxs):
     # exports_manifest can be overridden by a bazel flag.
     if ctx.attr.exports_manifest == _attrs.tristate.auto:
-        exports_manifest = ctx.fragments.android.get_exports_manifest_default
+        exports_manifest = read_possibly_native_flag(
+            ctx,
+            "experimental_android_library_exports_manifest_default",
+        )
     else:
         exports_manifest = ctx.attr.exports_manifest == _attrs.tristate.yes
 
