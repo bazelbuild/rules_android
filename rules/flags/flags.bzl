@@ -190,9 +190,26 @@ def _get_flags(ctx):
     return flags[0][FlagsInfo]
 
 _POSSIBLY_NATIVE_FLAGS = {
+    "android_manifest_merger": (
+        lambda ctx: ctx.fragments.android.manifest_merger,
+        "native",
+    ),
+    "desugar_for_android": (lambda ctx: ctx.fragments.android.desugar_java8, "native"),
     "desugar_java8_libs": (lambda ctx: ctx.fragments.android.desugar_java8_libs, "native"),
     "experimental_android_compress_java_resources": (
         lambda ctx: ctx.fragments.android.compress_java_resources,
+        "native",
+    ),
+    "experimental_android_library_exports_manifest_default": (
+        lambda ctx: ctx.fragments.android.get_exports_manifest_default,
+        "native",
+    ),
+    "experimental_android_resource_cycle_shrinking": (
+        lambda ctx: ctx.fragments.android.use_android_resource_cycle_shrinking,
+        "native",
+    ),
+    "experimental_get_android_java_resources_from_optimized_jar": (
+        lambda ctx: ctx.fragments.android.get_java_resources_from_optimized_jar,
         "native",
     ),
     "internal_persistent_android_dex_desugar": (
@@ -215,6 +232,7 @@ _POSSIBLY_NATIVE_FLAGS = {
     "dexopts_supported_in_dexsharder": (lambda ctx: ctx.fragments.android.get_dexopts_supported_in_dex_sharder, "native"),
     "fixed_resource_neverlinking": (lambda ctx: ctx.fragments.android.fixed_resource_neverlinking, "native"),
     "android_resource_shrinking": (lambda ctx: ctx.fragments.android.use_android_resource_shrinking, "native"),
+    "experimental_android_resource_shrinking": (lambda ctx: ctx.fragments.android.use_android_resource_shrinking, "native"),
     "experimental_android_resource_path_shortening": (lambda ctx: ctx.fragments.android.use_android_resource_path_shortening, "native"),
     "experimental_android_resource_name_obfuscation": (lambda ctx: ctx.fragments.android.use_android_resource_name_obfuscation, "native"),
 }

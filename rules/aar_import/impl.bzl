@@ -40,7 +40,7 @@ load(
     _utils = "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("//rules/flags:flags.bzl", _flags = "flags")
+load("//rules/flags:flags.bzl", "read_possibly_native_flag", _flags = "flags")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
@@ -500,7 +500,7 @@ def impl(ctx):
         deps = _utils.collect_providers(JavaInfo, ctx.attr.deps),
         r_java = resources_ctx.r_java,
         exports = _utils.collect_providers(JavaInfo, ctx.attr.exports),
-        enable_desugar_java8 = ctx.fragments.android.desugar_java8,
+        enable_desugar_java8 = read_possibly_native_flag(ctx, "desugar_for_android"),
         enable_imports_deps_check =
             _acls.in_aar_import_deps_checker(str(ctx.label)),
         aar_embedded_jars_extractor_tool =
