@@ -165,6 +165,7 @@ public class ResourceLinker {
   private List<CompiledResources> include = ImmutableList.of();
   private List<Path> assetDirs = ImmutableList.of();
   private boolean conditionalKeepRules = false;
+  private boolean minimalKeepRules = false;
   private boolean includeProguardLocationReferences = false;
   private List<StaticLibrary> resourceApks = ImmutableList.of();
   private String featureFlags = "";
@@ -231,6 +232,12 @@ public class ResourceLinker {
   @CanIgnoreReturnValue
   public ResourceLinker conditionalKeepRules(boolean conditionalKeepRules) {
     this.conditionalKeepRules = conditionalKeepRules;
+    return this;
+  }
+
+  @CanIgnoreReturnValue
+  public ResourceLinker minimalKeepRules(boolean minimalKeepRules) {
+    this.minimalKeepRules = minimalKeepRules;
     return this;
   }
 
@@ -518,6 +525,8 @@ public class ResourceLinker {
             .add("--no-proguard-location-reference")
             .when(conditionalKeepRules)
             .thenAdd("--proguard-conditional-keep-rules")
+            .when(minimalKeepRules)
+            .thenAdd("--proguard-minimal-keep-rules")
             .add("-o", linked)
             .add("--feature-flags", featureFlags)
             .execute(String.format("Linking %s", compiled.getManifest())));

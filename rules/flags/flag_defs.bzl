@@ -108,3 +108,12 @@ def define_flags():
         description = "When enabled, aar_import extracts R8-targeted proguard rules from " +
                       "META-INF/com.android.tools/ inside classes.jar in addition to proguard.txt.",
     )
+
+    flags.DEFINE_bool(
+        name = "use_minimal_keep_rules",
+        default = False,
+        description = "When enabled, aapt2 generates minimal proguard keep rules " +
+                      "(--proguard-minimal-keep-rules) for resources: precise member " +
+                      "signatures (e.g. constructor argument types) instead of broad " +
+                      "<init>(...) rules, matching Android Gradle Plugin behavior.",
+    )

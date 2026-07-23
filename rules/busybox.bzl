@@ -237,6 +237,7 @@ def _package(
         optimize_throughput = False,
         proto_format = False,
         shrink_resource_cycles = False,
+        use_minimal_keep_rules = False,
         version_name = None,
         version_code = None,
         feature_flags = "",
@@ -299,6 +300,9 @@ def _package(
       proto_format: Boolean, whether to generate the resource table in proto format.
       shrink_resource_cycles: Boolean, flag that enables more shrinking of
         code and resources by instructing AAPT2 to emit conditional Proguard keep rules.
+      use_minimal_keep_rules: Boolean, flag that instructs AAPT2 to emit minimal Proguard
+        keep rules with precise member signatures instead of broad <init>(...) rules,
+        matching Android Gradle Plugin behavior.
       version_name: A string. The version name to stamp the generated manifest with. Optional.
       version_code: A string. The version code to stamp the generated manifest with. Optional.
       crunch_png: A boolean. Determines whether `aapt2 compile` should crunch PNG files.
@@ -429,6 +433,8 @@ def _package(
         args.add("--resourceTableAsProto")
     if shrink_resource_cycles:
         args.add("--conditionalKeepRules=yes")
+    if use_minimal_keep_rules:
+        args.add("--minimalKeepRules=yes")
     if version_name:
         args.add("--versionName", version_name)
     if version_code:

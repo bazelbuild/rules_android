@@ -489,6 +489,7 @@ def _package(
         shrink_resources = None,
         use_android_resource_shrinking = None,
         use_android_resource_cycle_shrinking = None,
+        use_minimal_keep_rules = False,
         use_legacy_manifest_merger = False,
         should_throw_on_conflict = True,
         enable_data_binding = False,
@@ -551,6 +552,9 @@ def _package(
         shrink_resources if the tristate value is auto (-1).
       use_android_resource_cycle_shrinking: Bool. Flag that enables more shrinking of
         code and resources by instructing AAPT2 to emit conditional Proguard keep rules.
+      use_minimal_keep_rules: Bool. Flag that instructs AAPT2 to emit minimal Proguard
+        keep rules with precise member signatures instead of broad <init>(...) rules,
+        matching Android Gradle Plugin behavior.
       use_legacy_manifest_merger: A boolean. Whether to use the legacy manifest merger
       instead of the android manifest merger.
       should_throw_on_conflict: A boolean. Determines whether an error should be thrown
@@ -777,6 +781,7 @@ def _package(
         optimize_throughput = optimize_throughput,
         java_package = java_package,
         shrink_resource_cycles = shrink_resource_cycles,
+        use_minimal_keep_rules = use_minimal_keep_rules,
         version_name = manifest_values[_VERSION_NAME] if _VERSION_NAME in manifest_values else None,
         version_code = manifest_values[_VERSION_CODE] if _VERSION_CODE in manifest_values else None,
         feature_flags = feature_flags,
