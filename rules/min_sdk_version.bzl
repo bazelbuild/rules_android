@@ -24,7 +24,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 visibility(PROJECT_VISIBILITY)
 
 _SETTING = "//rules/flags:min_sdk_version"
-_DEPOT_FLOOR = 23
+_DEPOT_FLOOR = 24
 _DEX_DESUGAR = 23  # Kept at 23 due to b/331852939. See some related discussion at b/319114605
 # _MIN_SDK_LEVELS = sorted([_DEPOT_FLOOR, 24])
 
