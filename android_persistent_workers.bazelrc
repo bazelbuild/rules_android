@@ -1,0 +1,49 @@
+# Enable persistent Android resource processor by using workers.
+build:persistent_android_resource_processor --internal_persistent_busybox_tools
+build:persistent_android_resource_processor --strategy=AaptPackage=worker
+build:persistent_android_resource_processor --strategy=AndroidResourceParser=worker
+build:persistent_android_resource_processor --strategy=AndroidResourceValidator=worker
+build:persistent_android_resource_processor --strategy=AndroidResourceCompiler=worker
+build:persistent_android_resource_processor --strategy=RClassGenerator=worker
+build:persistent_android_resource_processor --strategy=AndroidResourceLink=worker
+build:persistent_android_resource_processor --strategy=AndroidAapt2=worker
+build:persistent_android_resource_processor --strategy=AndroidAssetMerger=worker
+build:persistent_android_resource_processor --strategy=AndroidResourceMerger=worker
+build:persistent_android_resource_processor --strategy=AndroidCompiledResourceMerger=worker
+build:persistent_android_resource_processor --strategy=ManifestMerger=worker
+build:persistent_android_resource_processor --strategy=AndroidManifestMerger=worker
+build:persistent_android_resource_processor --strategy=Aapt2Optimize=worker
+build:persistent_android_resource_processor --strategy=AARGenerator=worker
+build:persistent_android_resource_processor --strategy=ProcessDatabinding=worker
+build:persistent_android_resource_processor --strategy=GenerateDataBindingBaseClasses=worker
+
+# Enable persistent multiplexed Android resource processor by using workers.
+build:persistent_multiplex_android_resource_processor --config=persistent_android_resource_processor
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AaptPackage=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidResourceParser=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidResourceValidator=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidResourceCompiler=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=RClassGenerator=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidResourceLink=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidAapt2=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidAssetMerger=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidResourceMerger=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidCompiledResourceMerger=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=ManifestMerger=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AndroidManifestMerger=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=Aapt2Optimize=+supports-multiplex-workers
+build:persistent_multiplex_android_resource_processor --modify_execution_info=AARGenerator=+supports-multiplex-workers
+
+# Enable persistent Android dex and desugar actions by using workers.
+build:persistent_android_dex_desugar --internal_persistent_android_dex_desugar
+build:persistent_android_dex_desugar --strategy=Desugar=worker
+build:persistent_android_dex_desugar --strategy=DexBuilder=worker
+
+# Enable persistent multiplexed Android dex and desugar actions by using workers.
+build:persistent_multiplex_android_dex_desugar --config=persistent_android_dex_desugar
+build:persistent_multiplex_android_dex_desugar --internal_persistent_multiplex_android_dex_desugar
+
+# Enable persistent and multiplexed Android tools (dexing, desugaring, resource processing).
+build:persistent_multiplex_android_tools --internal_persistent_multiplex_busybox_tools
+build:persistent_multiplex_android_tools --config=persistent_multiplex_android_resource_processor
+build:persistent_multiplex_android_tools --config=persistent_multiplex_android_dex_desugar
