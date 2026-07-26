@@ -203,6 +203,19 @@ int_flag(
     visibility = ["//visibility:public"],
 )
 
+string_flag(
+    name = "apk_signing_method",
+    build_setting_default = "v1_v2",
+    scope = "universal",
+    values = [
+        "v1",
+        "v1_v2",
+        "v2",
+        "v4",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 flags_wrapper_macro(
     name = "flags_wrapper",
 )
