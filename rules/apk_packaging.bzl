@@ -13,6 +13,7 @@
 # limitations under the License.
 """Defines Bazel Apk processing methods for Android rules."""
 
+load("//flags:flags_wrapper.bzl", "WrappedFlagsInfo")
 load("//providers:providers.bzl", "ApkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", "java")
@@ -33,6 +34,18 @@ _ApkContextInfo = provider(
         _SIGNED_APK: "The signed APK.",
     },
 )
+
+def _signing_scheme_enabled(ctx, schema_version):
+    """Determines whether v1, v2, or v4 APK signing is enabled."""
+    method = ctx.attr._wrapped_flags[WrappedFlagsInfo].flags["apk_signing_method"].value
+    if schema_version == "v1":
+        return "v1" in method
+    elif schema_version == "v2":
+        return "v2" in method
+    elif schema_version == "v4":
+        return True if method == "v4" else None
+
+    fail("Unknown schema in apk signer.")
 
 def _process(
         ctx,
@@ -130,7 +143,7 @@ def _process(
     )
 
     v4_signature_file = None
-    if ctx.fragments.android.apk_signing_method_v4:
+    if _signing_scheme_enabled(ctx, "v4"):
         v4_signature_file = ctx.actions.declare_file(signed_apk.basename + ".idsig")
         apk_packaging_ctx[_IMPLICIT_OUTPUTS].append(v4_signature_file)
 
@@ -361,14 +374,15 @@ def _sign_apk(
         args.add("--ks", signing_keys[i])
         args.add("--ks-pass", "pass:android")
 
-    args.add("--v1-signing-enabled", ctx.fragments.android.apk_signing_method_v1)
+    args.add("--v1-signing-enabled", _signing_scheme_enabled(ctx, "v1"))
     args.add("--v1-signer-name", "CERT")
-    args.add("--v2-signing-enabled", ctx.fragments.android.apk_signing_method_v2)
+    args.add("--v2-signing-enabled", _signing_scheme_enabled(ctx, "v2"))
 
     # If the v4 flag is unset, it should not be passed to apk signer. This extra level of control is
     # needed to support environments where older build tools may be used.
-    if ctx.fragments.android.apk_signing_method_v4 != None:
-        args.add("--v4-signing-enabled", ctx.fragments.android.apk_signing_method_v4)
+    v4_enabled = _signing_scheme_enabled(ctx, "v4")
+    if v4_enabled != None:
+        args.add("--v4-signing-enabled", v4_enabled)
     if v4_signature_file:
         outputs.append(v4_signature_file)
 
