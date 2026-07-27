@@ -235,7 +235,12 @@ _POSSIBLY_NATIVE_FLAGS = {
     "experimental_android_resource_shrinking": (lambda ctx: ctx.fragments.android.use_android_resource_shrinking, "native"),
     "experimental_android_resource_path_shortening": (lambda ctx: ctx.fragments.android.use_android_resource_path_shortening, "native"),
     "experimental_android_resource_name_obfuscation": (lambda ctx: ctx.fragments.android.use_android_resource_name_obfuscation, "native"),
+    "optimizing_dexer": (lambda ctx: ctx.attr._optimizing_dexer, "starlark"),
 }
+
+_LABEL_FLAGS = [
+    "optimizing_dexer",
+]
 
 def read_possibly_native_flag(ctx, flag_name):
     """
@@ -268,6 +273,12 @@ def read_possibly_native_flag(ctx, flag_name):
     if use_native_def:
         return _POSSIBLY_NATIVE_FLAGS[flag_name][0](ctx)
     else:
+        if flag_name in _LABEL_FLAGS:
+            val = getattr(ctx.attr, "_starlark_" + flag_name, None)
+            if val and not str(val.label).endswith(":empty"):
+                return val
+            return getattr(ctx.attr, "_" + flag_name, None)
+
         # First check the new wrapped_flags attribute
         if hasattr(ctx.attr, "_wrapped_flags") and ctx.attr._wrapped_flags:
             wrapped_flags = ctx.attr._wrapped_flags[WrappedFlagsInfo].flags
