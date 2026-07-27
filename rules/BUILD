@@ -51,6 +51,7 @@ bzl_library(
     deps = [
         ":add_constraints_bzl",
         ":visibility_bzl",
+        "//flags:bzl",
         "//providers:providers_bzl",
         "//rules/acls:bzl",
         "//rules/android_common:bzl",
@@ -100,6 +101,7 @@ bzl_library(
     srcs = [
         "android_host_hybrid_mode_transition.bzl",
     ],
+    visibility = ["//:__subpackages__"],
     deps = [
         ":visibility_bzl",
     ],

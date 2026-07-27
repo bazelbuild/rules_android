@@ -63,6 +63,8 @@ android_sdk = _android_sdk
 EOF
 
 touch "${dest_dir}/providers/BUILD"
+mkdir -p "${dest_dir}/flags"
+touch "${dest_dir}/flags/BUILD"
 
   cat > "${dest_dir}/MODULE.bazel" <<EOF
 module(name = "rules_android")
@@ -72,6 +74,7 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_java", version = "9.3.0")
 bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "bazel_skylib", version = "1.8.1")
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
