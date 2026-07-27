@@ -243,14 +243,6 @@ ATTRS = _attrs.replace(
                 cfg = "exec",
                 executable = True,
             ),
-            _legacy_main_dex_list_generator = attr.label(
-                default = configuration_field(
-                    fragment = "android",
-                    name = "legacy_main_dex_list_generator",
-                ),
-                cfg = "exec",
-                executable = True,
-            ),
             _manifest_merge_order = attr.label(
                 default = "//rules/flags:manifest_merge_order",
             ),
