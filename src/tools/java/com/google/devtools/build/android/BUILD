@@ -64,6 +64,12 @@ java_library(
     ],
 )
 
+genrule(
+    name = "rpbb_properties",
+    outs = ["rpbb.properties"],
+    cmd = "echo use_visibility_from_aapt2=true > $@",
+)
+
 java_library(
     name = "android_builder_lib",
     srcs = glob(
@@ -82,6 +88,7 @@ java_library(
             "Fnv1a32bHash.java",
         ],
     ),
+    resources = [":rpbb_properties"],
     javacopts = [
         "--add-exports=java.xml/com.sun.org.apache.xerces.internal.dom=ALL-UNNAMED",
     ],
