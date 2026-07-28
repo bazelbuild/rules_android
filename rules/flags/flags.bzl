@@ -235,7 +235,7 @@ _POSSIBLY_NATIVE_FLAGS = {
     "experimental_android_resource_shrinking": (lambda ctx: ctx.fragments.android.use_android_resource_shrinking, "native"),
     "experimental_android_resource_path_shortening": (lambda ctx: ctx.fragments.android.use_android_resource_path_shortening, "native"),
     "experimental_android_resource_name_obfuscation": (lambda ctx: ctx.fragments.android.use_android_resource_name_obfuscation, "native"),
-    "optimizing_dexer": (lambda ctx: ctx.attr._optimizing_dexer, "starlark"),
+    "optimizing_dexer": (lambda ctx: ctx.attr._optimizing_dexer, "native"),
 }
 
 _LABEL_FLAGS = [
