@@ -13,10 +13,11 @@
 # limitations under the License.
 """Bazel common library for the Android rules."""
 
-load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("//rules/android_common:reexport_android_common.bzl", _native_android_common = "native_android_common")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("//rules/android_common:reexport_android_common.bzl", _native_android_common = "native_android_common")
+load("//toolchains/android:zipper.bzl", "run_filter_zip_include")
 load(":utils.bzl", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", _log = "log")
 
 visibility(PROJECT_VISIBILITY)
@@ -46,21 +47,12 @@ def _get_host_javabase(ctx):
 
 def _filter_zip_include(ctx, in_zip, out_zip, filters = []):
     """Creates a copy of a zip file with files that match filters."""
-    args = ctx.actions.args()
-    args.add("-q")
-    args.add(in_zip.path)
-    args.add_all(filters)
-    args.add("--copy")
-    args.add("--out")
-    args.add(out_zip.path)
-    ctx.actions.run(
-        executable = get_android_toolchain(ctx).zip_tool.files_to_run,
-        arguments = [args],
-        inputs = [in_zip],
-        outputs = [out_zip],
-        mnemonic = "FilterZipInclude",
-        progress_message = "Filtering %s" % in_zip.short_path,
-        toolchain = ANDROID_TOOLCHAIN_TYPE,
+    run_filter_zip_include(
+        ctx,
+        input_zip = in_zip,
+        output_zip = out_zip,
+        filters = filters,
+        zipper_target = get_android_toolchain(ctx).zip_tool,
     )
 
 def _filter_zip_exclude(

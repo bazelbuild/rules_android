@@ -250,7 +250,6 @@ _ATTRS = dict(
         allow_files = True,
         default = "//rules:robolectric_properties_template.txt",
     ),
-
     shuffle_jars = attr.label(
         cfg = "exec",
         default = Label("//tools/android:shuffle_jars"),
@@ -261,7 +260,7 @@ _ATTRS = dict(
     ),
     unzip_tool = attr.label(
         cfg = "exec",
-        default = "//toolchains/android:unzip",
+        default = "@bazel_tools//third_party/ijar:zipper",
         executable = True,
     ),
     xmllint_tool = attr.label(
@@ -278,7 +277,7 @@ _ATTRS = dict(
     ),
     zip_tool = attr.label(
         cfg = "exec",
-        default = "//toolchains/android:zip",
+        default = "@bazel_tools//third_party/ijar:zipper",
         executable = True,
     ),
     zip_filter = attr.label(
@@ -317,10 +316,10 @@ _ATTRS = dict(
         executable = True,
     ),
     deploy_info_writer = attr.label(
-      allow_single_file = True,
-      cfg = "exec",
-      default = Label("//src/tools/deploy_info"),
-      executable = True,
+        allow_single_file = True,
+        cfg = "exec",
+        default = Label("//src/tools/deploy_info"),
+        executable = True,
     ),
     translation_merger = attr.label(
         cfg = "exec",

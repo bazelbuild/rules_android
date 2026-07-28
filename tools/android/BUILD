@@ -3,6 +3,7 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load("//rules:min_sdk_version.bzl", "min_sdk_version")
 load(":defs.bzl", "android_jar", "run_ijar", "run_singlejar")
+load(":desugar.bzl", "desugar_globals_jar", "extract_desugar_config_json")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -86,27 +87,17 @@ alias(
     visibility = ["//visibility:public"],
 )
 
-genrule(
+extract_desugar_config_json(
     name = "full_desugar_jdk_libs_config_json",
-    srcs = [
-        "@rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio",
-    ],
-    outs = ["full_desugar_jdk_libs_config.json"],
-    cmd = "unzip -q -c " +
-          "$(location @rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio) " +
-          "META-INF/desugar/d8/desugar.json > $@",
+    jar = "@rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_nio",
+    out = "full_desugar_jdk_libs_config.json",
     visibility = ["//visibility:public"],
 )
 
-genrule(
+extract_desugar_config_json(
     name = "minimal_desugar_jdk_libs_config_json",
-    srcs = [
-        "@rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_minimal",
-    ],
-    outs = ["minimal_desugar_jdk_libs_config.json"],
-    cmd = "unzip -q -c " +
-          "$(location @rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_minimal) " +
-          "META-INF/desugar/d8/desugar.json > $@",
+    jar = "@rules_android_maven//:com_android_tools_desugar_jdk_libs_configuration_minimal",
+    out = "minimal_desugar_jdk_libs_config.json",
 )
 
 genrule(
@@ -650,22 +641,9 @@ genrule(
     visibility = ["//visibility:public"],
 )
 
-genrule(
+desugar_globals_jar(
     name = "desugar_globals_jar",
-    srcs = [":desugar_globals_classes.zip"],
-    outs = ["desugar_globals.jar"],
-    cmd = """
-    tmp=$$(mktemp -d)
-    unzip $(location :desugar_globals_classes.zip) -d $${tmp}
-    rm $${tmp}/kind
-    rm $${tmp}/compilerinfo
-    mv $${tmp}/com/android/tools/r8/RecordTag.global $${tmp}/com/android/tools/r8/RecordTag.class
-    mv $${tmp}/com/android/tools/r8/DesugarMethodHandlesLookup.global $${tmp}/com/android/tools/r8/DesugarMethodHandlesLookup.class
-    mv $${tmp}/com/android/tools/r8/DesugarVarHandle.global $${tmp}/com/android/tools/r8/DesugarVarHandle.class
-    mv $${tmp}'/com/android/tools/r8/DesugarVarHandle$$$$ExternalSyntheticBackportWithForwarding0.global' $${tmp}'/com/android/tools/r8/DesugarVarHandle$$$$ExternalSyntheticBackportWithForwarding0.class'
-    out=$$(pwd)/$(@)
-    cd $${tmp}
-    zip -r $${out} .
-""",
+    classes = ":desugar_globals_classes.zip",
+    out = "desugar_globals.jar",
     visibility = ["//visibility:public"],
 )
