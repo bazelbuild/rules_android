@@ -97,7 +97,6 @@ def _cc_flags_from_android(settings, new_settings):
 _INPUTS = [
     "//command_line_option:android_platforms",
     _ANDROID_PLATFORMS_SETTING,
-    "//command_line_option:compiler",
     "//command_line_option:dynamic_mode",
     "//command_line_option:platforms",
     "//rules/flags:bytecode_transformer",
@@ -106,7 +105,6 @@ _INPUTS = [
 _OUTPUTS = [
     "//command_line_option:android_platforms",
     _ANDROID_PLATFORMS_SETTING,
-    "//command_line_option:compiler",
     "//command_line_option:dynamic_mode",
     "//command_line_option:platforms",
     "//rules/flags:bytecode_transformer",
