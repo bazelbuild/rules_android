@@ -952,7 +952,6 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
             "experimental_android_compress_java_resources",
         ),
         nocompress_extensions = ctx.attr.nocompress_extensions,
-        output_jar_creator = "bazel",
         signing_keys = signing_keys,
         signing_lineage = ctx.file.debug_signing_lineage_file,
         signing_key_rotation_min_sdk = ctx.attr.key_rotation_min_sdk,
