@@ -216,14 +216,6 @@ ATTRS = _attrs.replace(
                 default = "@rules_cc//cc:current_cc_toolchain",
                 aspects = [split_config_aspect],
             ),
-            _optimizing_dexer = attr.label(
-                cfg = "exec",
-                allow_single_file = True,
-                default = configuration_field(
-                    fragment = "android",
-                    name = "optimizing_dexer",
-                ),
-            ),
             _desugared_lib_config = attr.label(
                 allow_single_file = True,
                 default = Label("//tools/android:full_desugar_jdk_libs_config_json"),

@@ -59,7 +59,6 @@ load("//rules/acls:d8_optimization_metadata.bzl", "D8_OPTIMIZATION_METADATA")
 load("//rules/acls:databinding.bzl", "DATABINDING_ALLOWED", "DATABINDING_DISALLOWED")
 load("//rules/acls:desugaring_runtime_jar_classpath.bzl", "DESUGAR_USE_RUNTIME_JARS")
 load("//rules/acls:dex2oat_opts.bzl", "CAN_USE_DEX2OAT_OPTIONS")
-load("//rules/acls:disable_optimizing_dexer.bzl", "DISABLE_OPTIMIZING_DEXER")
 load("//rules/acls:enable_exported_lint_checks.bzl", "ENABLE_EXPORTED_LINT_CHECKS")
 load("//rules/acls:force_final_resources.bzl", "FORCE_FINAL_ANDROID_BINARY_RESOURCES")
 load("//rules/acls:gpu_override.bzl", "CAN_USE_GPU_OVERRIDE")
@@ -188,9 +187,6 @@ def _in_allow_proguard_apply_mapping(fqn):
 def _use_r8(fqn):
     return matches(fqn, USE_R8_DICT)
 
-def _in_disable_optimizing_dexer(fqn):
-    return matches(fqn, DISABLE_OPTIMIZING_DEXER_DICT)
-
 def _in_force_final_android_binary_resources(fqn):
     return matches(fqn, FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT)
 
@@ -289,7 +285,6 @@ USE_R8_DICT = make_dict(USE_R8)
 D8_OPTIMIZATION_METADATA_DICT = make_dict(D8_OPTIMIZATION_METADATA)
 RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT_DICT = make_dict(RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT)
 RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK_DICT = make_dict(RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK)
-DISABLE_OPTIMIZING_DEXER_DICT = make_dict(DISABLE_OPTIMIZING_DEXER)
 FORCE_FINAL_ANDROID_BINARY_RESOURCES_DICT = make_dict(FORCE_FINAL_ANDROID_BINARY_RESOURCES)
 STAMP_SIGNING_ROLLOUT_DICT = make_dict(STAMP_SIGNING_ROLLOUT)
 STAMP_SIGNING_FALLBACK_DICT = make_dict(STAMP_SIGNING_FALLBACK)
@@ -388,7 +383,6 @@ acls = struct(
     in_allow_proguard_apply_mapping = _in_allow_proguard_apply_mapping,
     use_r8 = _use_r8,
     in_d8_optimization_metadata = _in_d8_optimization_metadata,
-    in_disable_optimizing_dexer = _in_disable_optimizing_dexer,
     in_force_final_android_binary_resources = _in_force_final_android_binary_resources,
     in_resource_shrinking_in_optimizer = _in_resource_shrinking_in_optimizer,
     in_stamp_signing_rollout = _in_stamp_signing_rollout,

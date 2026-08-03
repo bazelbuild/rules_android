@@ -76,7 +76,7 @@ def _process_incremental_dexing(
         min_sdk_config = None,
         toolchain_type = None):
     info = _merge_infos(utils.collect_providers(StarlarkAndroidDexInfo, deps))
-    should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
+    should_optimize_dex = optimizing_dexer and proguarded_jar
     incremental_dexopt_filter = list(_DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING)
     if should_optimize_dex:
         incremental_dexopt_filter += _EXTRA_DEXOPTS_SUPPORTED_IN_OPTIMIZED_DEX
@@ -279,7 +279,7 @@ def _shard_proguarded_jar_and_dex(
     if num_shards <= 1:
         fail("num_shards expects to be larger than 1.")
 
-    should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
+    should_optimize_dex = optimizing_dexer and proguarded_jar
     shard_suffix = ".zip" if should_optimize_dex else ".jar.dex.zip"
     shards = _make_shard_artifacts(ctx, num_shards, shard_suffix)
     globals_shards = [_make_globals_shard(ctx, shard) for shard in shards] if should_optimize_dex else []
