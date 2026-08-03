@@ -271,7 +271,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
     postprocessing_output_map = None
     deploy_jar = deploy_ctx.deploy_jar
     is_binary_optimized = len(ctx.attr.proguard_specs) > 0
-    optimizing_dexer = read_possibly_native_flag(ctx, "optimizing_dexer")
+    optimizing_dexer = getattr(get_android_toolchain(ctx), "optimizing_dexer", None)
     java8_legacy_dex_map = None
     proguarded_jar = optimize_ctx.proguard_output.output_jar if is_binary_optimized else None
     proguard_output_map = optimize_ctx.proguard_output.mapping if is_binary_optimized else None
@@ -279,7 +279,7 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
     binary_runtime_jars = deploy_ctx.binary_runtime_jars
     forbidden_dexopts = _dex.FORBIDDEN_DEXOPTS
 
-    should_optimize_dex = optimizing_dexer and proguarded_jar and not acls.in_disable_optimizing_dexer(str(ctx.label))
+    should_optimize_dex = optimizing_dexer and proguarded_jar
 
     build_metadata_output = None
     if should_optimize_dex and acls.in_d8_optimization_metadata(str(ctx.label)):
@@ -752,7 +752,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         ctx.attr.proguard_generate_mapping or enable_resource_shrinking
     )
     desugar_java8_libs_generates_map = read_possibly_native_flag(ctx, "desugar_for_android")
-    optimizing_dexing = bool(read_possibly_native_flag(ctx, "optimizing_dexer")) and not acls.in_disable_optimizing_dexer(str(ctx.label))
+    optimizing_dexing = getattr(get_android_toolchain(ctx), "optimizing_dexer", None)
 
     if generate_proguard_map:
         # Determine the output of the Proguard map from shrinking the app. This depends on the

@@ -518,11 +518,6 @@ _FLAGS_ATTRS = dict(
         default = Label("//flags:flags_wrapper"),
         providers = [WrappedFlagsInfo],
     ),
-    _starlark_optimizing_dexer = attr.label(
-        allow_files = True,
-        cfg = "exec",
-        default = Label("//flags:optimizing_dexer"),
-    ),
 )
 
 attrs = struct(
