@@ -376,7 +376,7 @@ def _singlejar(
         resources = [],
         resource_paths = [],
         nocompress_suffixes = [],
-        output_jar_creator = None,
+        output_jar_creator = "bazel",
         java_toolchain = None,
         resource_set = None):
     if type(inputs) == "list":
