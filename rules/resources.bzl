@@ -533,7 +533,7 @@ def _package(
         to be processed.
       nocompress_extensions: sequence of Strings. File extension to leave uncompressed
         in the apk.
-      optimize_throughput: A boolean. Whether to instruct aapt to lower the compression level in exchange for faster execution time.
+      optimize_throughput: A boolean. Whether to disable APK size optimizations in favor of a faster execution time.
       java_package: String. Java package for which java sources will be
         generated. By default the package is inferred from the directory where
         the BUILD file containing the rule is.

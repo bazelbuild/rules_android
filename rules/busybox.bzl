@@ -295,7 +295,7 @@ def _package(
       resource_apks: Depset of resource only apk files to link against.
       nocompress_extensions: A list of strings. File extension to leave uncompressed
         in the apk.
-      optimize_throughput: A boolean. Whether to instruct aapt to lower the compression level in exchange for faster execution time.
+      optimize_throughput: A boolean. Whether to disable APK size optimizations in favor of a faster execution time.
       proto_format: Boolean, whether to generate the resource table in proto format.
       shrink_resource_cycles: Boolean, flag that enables more shrinking of
         code and resources by instructing AAPT2 to emit conditional Proguard keep rules.

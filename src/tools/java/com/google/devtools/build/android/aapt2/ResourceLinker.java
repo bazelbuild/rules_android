@@ -522,8 +522,11 @@ public class ResourceLinker {
             .add("--feature-flags", featureFlags)
             .execute(String.format("Linking %s", compiled.getManifest())));
     profiler.recordEndOf("fulllink");
-    Path optimized = optimize(compiled, linked, asProto);
-    return asProto ? optimized : copyAndFixCompression(optimized, workingDirectory);
+    if (!optimizeThroughput) {
+      Path optimized = optimize(compiled, linked, asProto);
+      return asProto ? optimized : copyAndFixCompression(optimized, workingDirectory);
+    }
+    return linked;
   }
 
   /** Modes for overriding compression of a given file. */
@@ -674,6 +677,9 @@ public class ResourceLinker {
       return apk;
     }
 
+    Preconditions.checkState(
+        !optimizeThroughput, "Invalid state: calling optimize() when optimizeThroughput is enabled");
+
     profiler.startTask("optimize");
     final Path optimized =
         workingDirectory.resolve(isProto ? ("optimized." + PROTO_EXTENSION) : "optimized.apk");
@@ -682,8 +688,6 @@ public class ResourceLinker {
             .forBuildToolsVersion(buildToolsVersion)
             .forVariantType(VariantTypeImpl.BASE_APK)
             .add("optimize")
-            .when(optimizeThroughput)
-            .thenAdd("-Othroughput")
             .when(Objects.equals(logger.getLevel(), Level.FINE))
             .thenAdd("-v")
             // TODO(b/138166830): Simplify behavior specific to number of densities. There's likely
