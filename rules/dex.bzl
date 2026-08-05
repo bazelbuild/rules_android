@@ -39,7 +39,7 @@ _FORBIDDEN_DEXOPTS = ["--positions=none"]
 
 # Dexing flags that are allowed in incremental dexing.
 # Previously this was exposed via the --dexopts_supported_in_incremental_dexing native flag.
-_DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING = ["--no-optimize", "--no-locals"]
+_DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING = ["--no-locals"]
 
 # Dexing flags that are allowed in dex merger.
 # Previously this was exposed via the --dexopts_supported_in_dexmerger native flag.
