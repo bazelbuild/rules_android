@@ -34,7 +34,7 @@ def _flags_wrapper_impl(ctx):
 flags_wrapper = rule(
     implementation = _flags_wrapper_impl,
     attrs = dict(
-        targets = attr.label_list(allow_files = True),
+        targets = attr.label_list(),
     ),
 )
 
