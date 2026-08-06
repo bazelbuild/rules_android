@@ -167,6 +167,7 @@ bool_flag(
 string_flag(
     name = "android_manifest_merger",
     build_setting_default = "android",
+    scope = "universal",
     values = [
         "legacy",
         "android",
