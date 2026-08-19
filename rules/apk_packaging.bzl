@@ -63,7 +63,7 @@ def _process(
         java_resources_zip = None,
         compress_java_resources = True,
         nocompress_extensions = [],
-        output_jar_creator = "",
+        output_jar_creator = "bazel",
         signing_keys = [],
         signing_lineage = None,
         signing_key_rotation_min_sdk = None,
@@ -207,7 +207,7 @@ def _build_apk(
         java_resources_zip = None,
         compress_java_resources = False,
         nocompress_extensions = [],
-        output_jar_creator = None,
+        output_jar_creator = "bazel",
         resource_extractor = None,
         toolchain_type = None,
         java_toolchain = None):
