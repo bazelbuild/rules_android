@@ -18,6 +18,25 @@ tools_flags: &tools_flags
 rules_flags: &rules_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
+bzlmod_flags: &bzlmod_flags
+  <<: *rules_flags
+  ? "--enable_bzlmod"
+  ? "--enable_workspace=false"
+
+# These flags are used to build the app using the mobile-install aspect
+# Note that this does not actually run an install, just validates
+# that at least the build part of MI works.
+# Note to users: Do NOT run bazel build with these aspect and output_group
+# flags. These are for testing purposes only!
+mi_aspect_flags: &mi_aspect_flags
+  <<: *bzlmod_flags
+  # Do NOT put these in your bazelrc. Do NOT use these for mobile-install or build/run/test commands.
+  ? "--aspects=@rules_android//mobile_install:mi.bzl%MIASPECT"
+  ? "--output_groups=mobile_install_INTERNAL_,mobile_install_launcher_INTERNAL_,-_,-defaults"
+  # Latest bazel's JavaBuilder is build at java 21. For some reason the MI aspect + bazel build throws
+  # a classcode version conflict, and not the other tests in this presubmit, so the below flag
+  # is a crude workaround for that problem.
+  ? "--tool_java_runtime_version=21"
 
 tools: &tools
   name: "Tools"
@@ -110,6 +129,31 @@ resource_rules_bzlmod: &resource_rules_bzlmod
     ? "--enable_workspace=false"
     ? "--//rules/flags:manifest_merge_order=legacy"
 
+basicapp: &basicapp
+  platform: ${{ platform }}
+  bazel: ${{ bazel }}
+  working_directory: examples/basicapp
+  build_flags:
+    <<: *rules_flags
+  build_targets:
+    - "//java/com/basicapp:basic_app"
+    - "//java/com/basicapp:basic_app_bundle"
+basicapp_bzlmod: &basicapp_bzlmod
+  <<: *basicapp
+  build_flags:
+    <<: *bzlmod_flags
+
+r8_app: &r8_app
+  <<: *basicapp
+  working_directory: examples/r8-optimized
+  build_targets:
+    - "//:r8_app"
+    - "//:r8_app_bundle"
+r8_app_bzlmod: &r8_app_bzlmod
+  <<: *r8_app
+  build_flags:
+    <<: *bzlmod_flags
+
 tasks:
   tools:
     platform: ${{ platform }}
@@ -155,69 +199,46 @@ tasks:
 #    <<: *rules_coverage
   basicapp:
     name: "Basic app"
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-    build_targets:
-      - "//java/com/basicapp:basic_app"
-      - "//java/com/basicapp:basic_app_bundle"
+    <<: *basicapp
   basicapp_bzlmod:
     name: "Basic app bzlmod"
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-      ? "--enable_bzlmod"
-      ? "--enable_workspace=false"
-    build_targets:
-      - "//java/com/basicapp:basic_app"
-      - "//java/com/basicapp:basic_app_bundle"
+    <<: *basicapp_bzlmod
   windows_basicapp:
     name: "Basic app windows"
     platform: "windows"
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-    build_targets:
-      - "//java/com/basicapp:basic_app"
-      - "//java/com/basicapp:basic_app_bundle"
+    <<: *basicapp
   windows_basicapp_bzlmod:
     name: "Basic app windows bzlmod"
     platform: "windows"
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
-    build_flags:
-      <<: *rules_flags
-      ? "--enable_bzlmod"
-      ? "--enable_workspace=false"
-    build_targets:
-      - "//java/com/basicapp:basic_app"
-      - "//java/com/basicapp:basic_app_bundle"
+    <<: *basicapp_bzlmod
   basicapp_mi_aspect:
     # Build the app using the mobile-install aspect
-    # Note that this does not actually run an install, just validates
-    # that at least the build part of MI works.
-    # Note to users: Do NOT run bazel build with these aspect and output_group
-    # flags. These are for testing purposes only!
     name: "Basic app mobile-install aspect"
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    working_directory: examples/basicapp
+    <<: *basicapp
     build_flags:
-      <<: *rules_flags
-      ? "--enable_bzlmod"
-      ? "--enable_workspace=false"
-      # Do NOT put these in your bazelrc. Do NOT use these for mobile-install or build/run/test commands.
-      ? "--aspects=@rules_android//mobile_install:mi.bzl%MIASPECT"
-      ? "--output_groups=mobile_install_INTERNAL_,mobile_install_launcher_INTERNAL_,-_,-defaults"
-      # Latest bazel's JavaBuilder is build at java 21. For some reason the MI aspect + bazel build throws
-      # a classcode version conflict, and not the other tests in this presubmit, so the below flag
-      # is a crude workaround for that problem.
-      ? "--tool_java_runtime_version=21"
+      <<: *mi_aspect_flags
     build_targets:
       - "//java/com/basicapp:basic_app"
+  r8_app:
+    name: "R8 app"
+    <<: *r8_app
+  r8_app_bzlmod:
+    name: "R8 app bzlmod"
+    <<: *r8_app_bzlmod
+  windows_r8_app:
+    name: "R8 app windows"
+    platform: "windows"
+    <<: *r8_app
+  windows_r8_app_bzlmod:
+    name: "R8 app windows bzlmod"
+    platform: "windows"
+    <<: *r8_app_bzlmod
+  r8_app_mi_aspect:
+    # Build the app using the mobile-install aspect
+    name: "R8 app mobile-install aspect"
+    <<: *r8_app
+    build_flags:
+      <<: *mi_aspect_flags
+    build_targets:
+      - "//:r8_app"
 
