@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
@@ -121,6 +122,19 @@ public class DexFileSplitterTest {
 
     ImmutableSet<String> expectedFiles = dexEntries(simpleDexArchive);
     assertThat(dexEntries(outputArchives.get(0))).containsExactlyElementsIn(expectedFiles);
+  }
+
+  @Test
+  public void testClassNameComparatorPreservesNormalizationCollisions() {
+    TreeMap<String, Boolean> classNames =
+        new TreeMap<>(ZipEntryComparator::compareClassNames);
+
+    classNames.put("Foo$2$1$1.class.dex", true);
+    classNames.put("Foo$2$101.class.dex", true);
+
+    assertThat(classNames.keySet())
+        .containsExactly("Foo$2$1$1.class.dex", "Foo$2$101.class.dex")
+        .inOrder();
   }
 
   @Test

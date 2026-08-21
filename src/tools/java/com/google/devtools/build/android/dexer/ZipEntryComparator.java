@@ -44,6 +44,9 @@ enum ZipEntryComparator implements Comparator<ZipEntry> {
   // Copied from com.android.dx.cf.direct.ClassPathOpener
   @VisibleForTesting
   static int compareClassNames(String a, String b) {
+    String originalA = a;
+    String originalB = b;
+
     // Ensure inner classes sort second
     a = a.replace('$', '0');
     b = b.replace('$', '0');
@@ -55,6 +58,13 @@ enum ZipEntryComparator implements Comparator<ZipEntry> {
     a = a.replace("package-info", "");
     b = b.replace("package-info", "");
 
-    return a.compareTo(b);
+    int normalizedResult = a.compareTo(b);
+    if (normalizedResult != 0) {
+      return normalizedResult;
+    }
+
+    // Normalization is lossy. Keep distinct raw names distinct when this comparator is used as a
+    // TreeMap key comparator, otherwise entries such as Foo$2$1$1 and Foo$2$101 collapse.
+    return originalA.compareTo(originalB);
   }
 }
