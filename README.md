@@ -108,3 +108,9 @@ android_library(
    ...
 )
 ```
+
+## Documentation
+
+* [Stardoc API Reference](https://bazelbuild.github.io/rules_android/)
+* [Shrinking and Optimization with R8](docs/r8-optimization.md)
+
