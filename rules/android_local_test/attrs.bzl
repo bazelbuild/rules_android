@@ -198,6 +198,15 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
                 The test class needs to be annotated with `org.junit.runner.RunWith`.
                 """,
             ),
+            main_class = attr.string(
+                doc = """
+                The main class to execute in the generated test stub.
+                """,
+                default = "com.google.testing.junit.runner.BazelTestRunner",
+                values = [
+                    "com.google.testing.junit.runner.BazelTestRunner",
+                ],
+            ),
             _runfiles_root_prefix = attr.label(
                 doc = """
                 A directory prefix that ends with a slash.

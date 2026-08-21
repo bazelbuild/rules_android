@@ -47,7 +47,6 @@ load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 visibility(PROJECT_VISIBILITY)
 
 JACOCOCO_CLASS = "com.google.testing.coverage.JacocoCoverageRunner"
-TEST_RUNNER_CLASS = "com.google.testing.junit.runner.BazelTestRunner"
 
 # JVM processes for android_local_test targets are typically short lived. By
 # using TieredStopAtLevel=1, aggressive JIT compilations are avoided, which is
@@ -142,12 +141,14 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
         [get_android_toolchain(ctx).testsupport]
     )
 
+    target_runner_class = ctx.attr.main_class
+
     if ctx.configuration.coverage_enabled:
         deps.append(get_android_toolchain(ctx).jacocorunner)
         java_start_class = JACOCOCO_CLASS
-        coverage_start_class = TEST_RUNNER_CLASS
+        coverage_start_class = target_runner_class
     else:
-        java_start_class = TEST_RUNNER_CLASS
+        java_start_class = target_runner_class
         coverage_start_class = None
 
     java_info = java.compile_android(
