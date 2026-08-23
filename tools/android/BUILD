@@ -389,6 +389,7 @@ run_singlejar(
     include_prefixes = [
         "java/lang/invoke/",
         "java/lang/annotation/",
+        "java/lang/constant/",
     ],
     visibility = ["//visibility:private"],
 )
