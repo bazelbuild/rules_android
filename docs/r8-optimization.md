@@ -50,7 +50,7 @@ optimization attributes.
     files containing keep rules and optimization directives. Specifying this
     attribute enables R8 code shrinking and optimization. Typically, this
     includes:
-*   [`proguard-android-optimize.txt`](https://github.com/bazelbuild/examples/tree/main/android/r8-optimized/proguard-android-optimize.txt):
+*   [`proguard-android-optimize.txt`](https://github.com/bazelbuild/rules_android/blob/main/examples/r8-optimized/proguard-android-optimize.txt):
     Contains standard recommended Android app optimizations and default keep
     rules (equivalent to the default configuration provided by the Android
     Gradle Plugin). You can download it from the example repository and place it
