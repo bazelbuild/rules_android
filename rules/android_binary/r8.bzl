@@ -188,6 +188,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         value = struct(
             final_classes_dex_zip = final_classes_dex_zip,
             dex_info = android_dex_info,
+            implicit_outputs = [proguard_mappings_output_file],
             providers = [
                 android_dex_info,
                 AndroidPreDexJarInfo(pre_dex_jar = deploy_jar),
