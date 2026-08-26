@@ -55,3 +55,29 @@ def r8_neverlink_deps_test_impl(ctx):
 r8_neverlink_deps_test = analysistest.make(
     impl = r8_neverlink_deps_test_impl,
 )
+
+def r8_implicit_outputs_test_impl(ctx):
+    """Tests that R8 declares proguard_mappings_output_file as implicit_outputs.
+
+    Args:
+        ctx: The ctx.
+
+    Returns:
+        The providers.
+    """
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+
+    default_files = [f.basename for f in target[DefaultInfo].files.to_list()]
+    expected_map = target.label.name + "_proguard.map"
+    asserts.true(
+        env,
+        expected_map in default_files,
+        "Expected %s to be in default outputs %s" % (expected_map, default_files),
+    )
+
+    return analysistest.end(env)
+
+r8_implicit_outputs_test = analysistest.make(
+    impl = r8_implicit_outputs_test_impl,
+)
