@@ -42,9 +42,13 @@ enum ZipEntryComparator implements Comparator<ZipEntry> {
    * @return {@code compareTo()}-style result
    */
   // Copied from com.android.dx.cf.direct.ClassPathOpener
+  // See
+  // https://cs.android.com/android/platform/superproject/+/android-latest-release:dalvik/dx/src/com/android/dx/cf/direct/ClassPathOpener.java;l=187-200;drc=9dbd802c8c96c3a66873bc600bc7d1374a1d08e5
   @VisibleForTesting
   static int compareClassNames(String a, String b) {
     // Ensure inner classes sort second
+    // The strings being sorted are filenames (e.g. MyThing$1.class, MyThing.class), so this
+    // normalization is necessary.
     a = a.replace('$', '0');
     b = b.replace('$', '0');
 
