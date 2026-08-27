@@ -18,8 +18,7 @@ base_apk="${2}"
 package="${3}"
 split="${4}"
 title_id="${5}"
-fused="${6}"
-aapt="${7}"
+aapt="${6}"
 
 aapt_cmd="$aapt dump xmltree $base_apk --file AndroidManifest.xml"
 version_code=$(${aapt_cmd} | grep "http://schemas.android.com/apk/res/android:versionCode" | cut -d "=" -f2 | head -n 1 )
@@ -41,7 +40,7 @@ cat >$out_manifest <<EOF
   <dist:module
       dist:instant="false"
       dist:title="@string/$title_id"> <!-- title must be an ID! Needs to work with proguard/resource shrinking -->
-    <dist:fusing dist:include="$fused" />
+    <dist:fusing dist:include="true" />
     <dist:delivery>
       <dist:on-demand /></dist:delivery>
   </dist:module>

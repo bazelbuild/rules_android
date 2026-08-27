@@ -189,7 +189,6 @@ def _create_feature_manifest(
         args.add(java_package)
         args.add(info.feature_name)
         args.add(info.title_id)
-        args.add(info.fused)
         args.add(aapt2.executable)
 
         ctx.actions.run(
