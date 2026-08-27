@@ -18,7 +18,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 
-def com_android_dex(_ctx = None):
+def com_android_dex(mctx = None):
     # NOTE(b/317109605): Cannot depend on a stable sha256 hash for googlesource repositories.
     http_archive(
         name = "com_android_dex",
@@ -30,6 +30,12 @@ def com_android_dex(_ctx = None):
         build_file = Label("//bzlmod_extensions:com_android_dex.BUILD"),
         sha256 = "86b4848c038bf687fadc812239cb01fb8d1d15cef3125b480a0448360992b95d",
     )
+
+    # NOTE: 'watch' is the best approximation for the extension_metadata
+    # function accepting the reproducible paramater
+    if mctx and hasattr(mctx, "watch"):
+        return mctx.extension_metadata(reproducible = True)
+    return None
 
 com_android_dex_extension = module_extension(
     implementation = com_android_dex,
