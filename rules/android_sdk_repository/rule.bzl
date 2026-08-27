@@ -107,6 +107,9 @@ def _find_system_images(repo_ctx, android_sdk_path):
     return system_images
 
 def _android_sdk_repository_impl(repo_ctx):
+    repo_metadata = None
+    if hasattr(repo_ctx, "repo_metadata"):
+        repo_metadata = repo_ctx.repo_metadata(reproducible = True)
     # Determine the SDK path to use, either from the attribute or the environment.
     android_sdk_path = repo_ctx.attr.path
     if not android_sdk_path:
@@ -114,7 +117,7 @@ def _android_sdk_repository_impl(repo_ctx):
     if not android_sdk_path:
         # Create an empty repository that allows non-Android code to build.
         repo_ctx.template("BUILD.bazel", _EMPTY_SDK_REPO_TEMPLATE)
-        return None
+        return repo_metadata
     if android_sdk_path.startswith("$WORKSPACE_ROOT"):
         android_sdk_path = str(repo_ctx.workspace_root) + android_sdk_path.removeprefix("$WORKSPACE_ROOT")
 
@@ -184,7 +187,7 @@ def _android_sdk_repository_impl(repo_ctx):
     )
 
     # repo is reproducible
-    return None
+    return repo_metadata
 
 _android_sdk_repository = repository_rule(
     implementation = _android_sdk_repository_impl,
@@ -244,6 +247,12 @@ def _android_sdk_repository_extension_impl(module_ctx):
         name = "androidsdk",
         **kwargs
     )
+
+    # NOTE: 'watch' is the best approximation for the extension_metadata
+    # function accepting the reproducible paramater
+    if hasattr(module_ctx, "watch"):
+        return module_ctx.extension_metadata(reproducible = True)
+    return None
 
 android_sdk_repository_extension = module_extension(
     implementation = _android_sdk_repository_extension_impl,

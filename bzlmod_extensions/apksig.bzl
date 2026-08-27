@@ -20,7 +20,7 @@ visibility(PROJECT_VISIBILITY)
 
 APKSIG_COMMIT = "24e3075e68ebe17c0b529bb24bfda819db5e2f3b"
 
-def apksig(_ctx = None):
+def apksig(mctx = None):
     # NOTE(b/317109605): Cannot depend on a stable sha256 hash for googlesource repositories.
     http_archive(
         name = "apksig",
@@ -32,6 +32,12 @@ def apksig(_ctx = None):
         sha256 = "12e44fdbd219c5e1cc62099c2a01d775957603d2d4f693f8285f9d95d9a04e77",
         build_file = Label("//bzlmod_extensions:apksig.BUILD"),
     )
+
+    # NOTE: 'watch' is the best approximation for the extension_metadata
+    # function accepting the reproducible paramater
+    if mctx and hasattr(mctx, "watch"):
+        return mctx.extension_metadata(reproducible = True)
+    return None
 
 apksig_extension = module_extension(
     implementation = apksig,
