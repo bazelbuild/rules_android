@@ -164,18 +164,6 @@ bool_flag(
     visibility = ["//visibility:public"],
 )
 
-string_flag(
-    name = "android_manifest_merger",
-    build_setting_default = "android",
-    scope = "universal",
-    values = [
-        "legacy",
-        "android",
-        "force_android",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 bool_flag(
     name = "experimental_android_library_exports_manifest_default",
     build_setting_default = False,
