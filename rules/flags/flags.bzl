@@ -190,10 +190,6 @@ def _get_flags(ctx):
     return flags[0][FlagsInfo]
 
 _POSSIBLY_NATIVE_FLAGS = {
-    "android_manifest_merger": (
-        lambda ctx: ctx.fragments.android.manifest_merger,
-        "native",
-    ),
     "desugar_for_android": (lambda ctx: ctx.fragments.android.desugar_java8, "native"),
     "desugar_java8_libs": (lambda ctx: ctx.fragments.android.desugar_java8_libs, "native"),
     "experimental_android_compress_java_resources": (
