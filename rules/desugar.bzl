@@ -48,8 +48,7 @@ def _desugar(
     args.use_param_file("@%s", use_always = True)  # Required for workers.
     args.set_param_file_format("multiline")
 
-    # Explicitly calls input.path here to work around b/310015642
-    args.add("--input", input.path)
+    args.add("--input", input)
     args.add("--output", output)
     args.add_all(classpath, before_each = "--classpath_entry")
     args.add_all(bootclasspath, before_each = "--bootclasspath_entry")
@@ -77,7 +76,7 @@ def _desugar(
         arguments = [args],
         mnemonic = "Desugar",
         progress_message = "Desugaring " + input.short_path + " for Android",
-        execution_requirements = {"supports-workers": "1"},
+        execution_requirements = {"supports-workers": "1", "supports-path-mapping": "1"},
         use_default_shell_env = True,
         toolchain = toolchain_type,
     )

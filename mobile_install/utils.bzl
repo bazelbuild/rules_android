@@ -184,21 +184,27 @@ def dex(ctx, jar, out_dex_shards, deps = None):
         "-Xmx8g",
     ]
 
+    launcher_args = ctx.actions.args()
+    launcher_args.add_all(jvm_flags)
+    launcher_args.add("-jar")
+    launcher_args.add(ctx.executable._desugar_dex_sharding)
+
     ctx.actions.run(
         executable = java,
         tools = [ctx.executable._desugar_dex_sharding],
-        arguments = jvm_flags + ["-jar", ctx.executable._desugar_dex_sharding.path, args],
+        arguments = [launcher_args, args],
         inputs = depset(
             ctx.files._android_sdk + ctx.files._mi_host_javabase + [jar, ctx.file._desugared_lib_config],
             transitive = [deps] if deps else [],
         ),
         outputs = out_dex_shards,
         mnemonic = "DesugarDexSharding",
-        progress_message = "MI Desugar, dex and sharding " + jar.path,
+        progress_message = "MI Desugar, dex and sharding " + jar.short_path,
         execution_requirements = {
             "worker-key-mnemonic": "DesugarDexSharding",
             "supports-workers": "1",
             "supports-multiplex-workers": "1",
+            "supports-path-mapping": "1",
         },
         toolchain = None,
     )
@@ -275,7 +281,7 @@ def merge_dex_shards(
 
 
     args.add("--multidex", "best_effort")
-    args.add("--output", out_dex_zip.path)
+    args.add("--output", out_dex_zip)
     args.add_all(dex_archives, before_each = "--input")
     args.use_param_file(param_file_arg = "@%s", use_always = True)
     args.set_param_file_format("multiline")
@@ -288,6 +294,7 @@ def merge_dex_shards(
         outputs = [out_dex_zip],
         mnemonic = "DexMerge",
         progress_message = "MI Merging dexes",
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = None,
     )
 

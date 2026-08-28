@@ -431,7 +431,7 @@ def _dex(
     if min_sdk_version > 0:
         args.add("--min_sdk_version", min_sdk_version)
 
-    execution_requirements = {}
+    execution_requirements = {"supports-path-mapping": "1"}
     if read_possibly_native_flag(ctx, "internal_persistent_android_dex_desugar"):
         execution_requirements["supports-workers"] = "1"
         if read_possibly_native_flag(ctx, "internal_persistent_multiplex_android_dex_desugar"):

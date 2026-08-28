@@ -130,7 +130,7 @@ def _aspect_impl(target, ctx):
 
                 # Optionally transform the jar before desugaring
                 if bytecode_transformer:
-                    jar_to_desugar = _dex.get_dx_artifact(ctx, (jar.path if basename_clash else jar.basename) + "_injected.jar", min_sdk_version)
+                    jar_to_desugar = _dex.get_dx_artifact(ctx, (jar.short_path if basename_clash else jar.basename) + "_injected.jar", min_sdk_version)
                     partial.call(
                         bytecode_transformer.transformer_fn,
                         ctx,
