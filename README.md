@@ -24,17 +24,44 @@ tree](https://source.bazel.build/bazel/+/master:src/main/java/com/google/devtool
 Stardoc for the Android rules can be found at
 [https://bazelbuild.github.io/rules_android](https://bazelbuild.github.io/rules_android/).
 
-## Getting Started
-To use the Starlark Bazel Android rules, add the following to your WORKSPACE file:
+A complete sample app lives in [`examples/basicapp`](examples/basicapp). Set
+`ANDROID_HOME` to an Android SDK and run `bazel build //java/com/basicapp:basic_app`
+from that directory.
 
+## Getting Started
+
+Bzlmod is the recommended way to depend on these rules. Add the following to your
+`MODULE.bazel` file. `0.7.3` is the latest release on the Bazel Central
+Registry; pin a newer version if one is available.
+
+```starlark
+bazel_dep(name = "rules_java", version = "9.0.3")
+bazel_dep(name = "bazel_skylib", version = "1.8.1")
+
+bazel_dep(name = "rules_android", version = "0.7.3")
+
+remote_android_extensions = use_extension(
+    "@rules_android//bzlmod_extensions:android_extensions.bzl",
+    "remote_android_tools_extensions")
+use_repo(remote_android_extensions, "android_tools")
+
+android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
+use_repo(android_sdk_repository_extension, "androidsdk")
+
+register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
+```
+
+The Android SDK is resolved from `ANDROID_HOME`.
+
+WORKSPACE remains supported. Add the following to your WORKSPACE file:
 
 ```starlark
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "rules_android",
-    sha256 = "fe3d8c4955857b44019d83d05a0b15c2a0330a6a0aab990575bb397e9570ff1b",
-    strip_prefix = "rules_android-0.6.0-alpha1",
-    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.6.0-alpha1/rules_android-v0.6.0-alpha1.tar.gz",
+    sha256 = "c4cd258d3761eff08ee044c0252179bb6ee8af8ab24f7dafb73b280eeda98243",
+    strip_prefix = "rules_android-0.7.3",
+    url = "https://github.com/bazelbuild/rules_android/releases/download/v0.7.3/rules_android-v0.7.3.tar.gz",
 )
 
 # Android rules dependencies
@@ -74,32 +101,10 @@ register_toolchains(
 )
 ```
 
-
-Or, if you want to use bzlmod, add the following to your MODULE.bazel file:
-
-MODULE.bazel:
-
-```starlark
-bazel_dep(name = "rules_java", version = "7.11.1")
-bazel_dep(name = "bazel_skylib", version = "1.3.0")
-
-bazel_dep(name = "rules_android", version = "0.6.5")
-
-remote_android_extensions = use_extension(
-    "@rules_android//bzlmod_extensions:android_extensions.bzl",
-    "remote_android_tools_extensions")
-use_repo(remote_android_extensions, "android_tools")
-
-android_sdk_repository_extension = use_extension("@rules_android//rules/android_sdk_repository:rule.bzl", "android_sdk_repository_extension")
-use_repo(android_sdk_repository_extension, "androidsdk")
-
-register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
-```
-
 Then, in your BUILD files, import and use the rules:
 
 ```starlark
-load("@rules_android//rules:rules.bzl", "android_binary", "android_library")
+load("@rules_android//android:rules.bzl", "android_binary", "android_library")
 android_binary(
     ...
 )
@@ -109,8 +114,10 @@ android_library(
 )
 ```
 
+`@rules_android//rules:rules.bzl` is the same load path.
+
 ## Documentation
 
 * [Stardoc API Reference](https://bazelbuild.github.io/rules_android/)
 * [Shrinking and Optimization with R8](docs/r8-optimization.md)
-
+* [Basic app example](examples/basicapp)
