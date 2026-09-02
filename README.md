@@ -30,7 +30,7 @@ from that directory.
 
 ## Getting Started
 
-Bzlmod is the supported way to depend on these rules. Add the following to your
+Bzlmod is the recommended way to depend on these rules. Add the following to your
 `MODULE.bazel` file. `0.7.3` is the latest release on the Bazel Central
 Registry; pin a newer version if one is available.
 
