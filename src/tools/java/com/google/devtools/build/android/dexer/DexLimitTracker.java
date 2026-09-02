@@ -20,6 +20,7 @@ import com.android.dex.ProtoId;
 import com.android.dex.TypeList;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -30,15 +31,34 @@ import java.util.HashSet;
 class DexLimitTracker {
 
   private static final ThreadLocal<Interner<String>> threadLocalInterner =
-      ThreadLocal.withInitial(Interners::newWeakInterner);
+      ThreadLocal.withInitial(Interners::newStrongInterner);
 
-  private final HashSet<String> fieldsSeen = new HashSet<>();
-  private final HashSet<String> methodsSeen = new HashSet<>();
-  private final HashSet<String> typesSeen = new HashSet<>();
+  /**
+   * Upper bound for initial HashSet capacity. Avoids repeated resizing and rehashing cycles (from
+   * the default capacity of 16) for typical multidex shards without prematurely allocating full
+   * 64K-entry backing tables for smaller archives.
+   */
+  private static final int MAX_INITIAL_EXPECTED_SIZE = 8192;
+
+  /**
+   * Removes the thread-local interner instance for the current thread to prevent accumulation
+   * across multiple builds in persistent worker processes.
+   */
+  public static void clearInterner() {
+    threadLocalInterner.remove();
+  }
+
+  private final HashSet<String> fieldsSeen;
+  private final HashSet<String> methodsSeen;
+  private final HashSet<String> typesSeen;
   private final int maxNumberOfIdxPerDex;
 
   public DexLimitTracker(int maxNumberOfIdxPerDex) {
     this.maxNumberOfIdxPerDex = maxNumberOfIdxPerDex;
+    int initialCapacity = Math.min(maxNumberOfIdxPerDex, MAX_INITIAL_EXPECTED_SIZE);
+    this.fieldsSeen = Sets.newHashSetWithExpectedSize(initialCapacity);
+    this.methodsSeen = Sets.newHashSetWithExpectedSize(initialCapacity);
+    this.typesSeen = Sets.newHashSetWithExpectedSize(initialCapacity);
   }
 
   /**
@@ -57,6 +77,7 @@ class DexLimitTracker {
     fieldsSeen.clear();
     methodsSeen.clear();
     typesSeen.clear();
+    threadLocalInterner.remove();
   }
 
   public void track(Dex dexFile) {
@@ -81,44 +102,55 @@ class DexLimitTracker {
     }
 
     static DexTrackerInfo create(Dex dexFile) {
+      int stringCount = dexFile.getTableOfContents().stringIds.size;
+      String[] stringCache = new String[stringCount];
+
       int typeCount = dexFile.typeIds().size();
       String[] types = new String[typeCount];
       for (int typeIndex = 0; typeIndex < typeCount; ++typeIndex) {
-        types[typeIndex] = typeName(dexFile, typeIndex);
+        int stringIndex = dexFile.typeIds().get(typeIndex);
+        types[typeIndex] = getString(dexFile, stringIndex, stringCache);
       }
 
       int fieldCount = dexFile.fieldIds().size();
       String[] fields = new String[fieldCount];
       for (int fieldIndex = 0; fieldIndex < fieldCount; ++fieldIndex) {
-        fields[fieldIndex] = fieldSignature(dexFile, fieldIndex, types);
+        fields[fieldIndex] = fieldSignature(dexFile, fieldIndex, types, stringCache);
       }
 
       int methodCount = dexFile.methodIds().size();
       String[] methods = new String[methodCount];
       for (int methodIndex = 0; methodIndex < methodCount; ++methodIndex) {
-        methods[methodIndex] = methodSignature(dexFile, methodIndex, types);
+        methods[methodIndex] = methodSignature(dexFile, methodIndex, types, stringCache);
       }
 
       return new DexTrackerInfo(fields, methods, types);
     }
   }
 
-  private static String typeName(Dex dex, int typeIndex) {
-    return threadLocalInterner.get().intern(dex.typeNames().get(typeIndex));
+  private static String getString(Dex dex, int stringIndex, String[] stringCache) {
+    String s = stringCache[stringIndex];
+    if (s == null) {
+      s = threadLocalInterner.get().intern(dex.strings().get(stringIndex));
+      stringCache[stringIndex] = s;
+    }
+    return s;
   }
 
-  private static String fieldSignature(Dex dex, int fieldIndex, String[] typeCache) {
+  private static String fieldSignature(
+      Dex dex, int fieldIndex, String[] typeCache, String[] stringCache) {
     FieldId field = dex.fieldIds().get(fieldIndex);
-    String name = dex.strings().get(field.getNameIndex());
+    String name = getString(dex, field.getNameIndex(), stringCache);
     String declaringClass = typeCache[field.getDeclaringClassIndex()];
     String type = typeCache[field.getTypeIndex()];
     return threadLocalInterner.get().intern(declaringClass + "." + name + ":" + type);
   }
 
-  private static String methodSignature(Dex dex, int methodIndex, String[] typeCache) {
+  private static String methodSignature(
+      Dex dex, int methodIndex, String[] typeCache, String[] stringCache) {
     MethodId method = dex.methodIds().get(methodIndex);
     ProtoId proto = dex.protoIds().get(method.getProtoIndex());
-    String name = dex.strings().get(method.getNameIndex());
+    String name = getString(dex, method.getNameIndex(), stringCache);
     String declaringClass = typeCache[method.getDeclaringClassIndex()];
     String returnType = typeCache[proto.getReturnTypeIndex()];
     TypeList parameterTypeIndices = dex.readTypeList(proto.getParametersOffset());
@@ -128,6 +160,6 @@ class DexLimitTracker {
     }
     return threadLocalInterner
         .get()
-        .intern(declaringClass + "." + name + ":" + returnType + "(" + parameterTypes + ")");
+        .intern(declaringClass + "." + name + "(" + parameterTypes + ")" + returnType);
   }
 }

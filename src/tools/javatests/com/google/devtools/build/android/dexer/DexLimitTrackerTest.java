@@ -122,10 +122,10 @@ public class DexLimitTrackerTest {
     assertThat(info.methods)
         .asList()
         .containsExactly(
-            "Lbase/SimpleClass;.<init>:V()",
-            "Lbase/SimpleClass;.method:V()",
-            "Lbase/SimpleClass;.methodWithParams:V(ILjava/lang/String;)",
-            "Ljava/lang/Object;.<init>:V()");
+            "Lbase/SimpleClass;.<init>()V",
+            "Lbase/SimpleClass;.method()V",
+            "Lbase/SimpleClass;.methodWithParams(ILjava/lang/String;)V",
+            "Ljava/lang/Object;.<init>()V");
 
     // Verify types
     assertThat(info.types).asList().contains("Lbase/SimpleClass;");
@@ -205,5 +205,51 @@ public class DexLimitTrackerTest {
       int modifiers = field.getModifiers();
       assertTrue("Field " + field.getName() + " must be final", Modifier.isFinal(modifiers));
     }
+  }
+
+  @Test
+  public void testTrackMethodsAndTypesLimits() throws Exception {
+    Dex dexSimple = loadDexFromArchive(simpleDexArchive); // 4 methods, 1 field
+
+    // Set method limit to 3 (less than 4) -> should be outside limits
+    DexLimitTracker methodTracker = new DexLimitTracker(3);
+    methodTracker.track(dexSimple);
+    assertThat(methodTracker.outsideLimits()).isTrue();
+
+    // Set type limit to 1 -> should be outside limits
+    DexLimitTracker typeTracker = new DexLimitTracker(1);
+    typeTracker.track(dexSimple);
+    assertThat(typeTracker.outsideLimits()).isTrue();
+  }
+
+  @Test
+  public void testTrackerReuseAfterClear() throws Exception {
+    DexLimitTracker tracker = new DexLimitTracker(8);
+    Dex dexSimple = loadDexFromArchive(simpleDexArchive);
+    Dex dexFieldsTypes = loadDexFromArchive(fieldsTypesDexArchive);
+
+    tracker.track(dexFieldsTypes);
+    assertThat(tracker.outsideLimits()).isTrue();
+
+    // Clear and reuse tracker instance
+    tracker.clear();
+    assertThat(tracker.outsideLimits()).isFalse();
+
+    tracker.track(dexSimple);
+    assertThat(tracker.outsideLimits()).isFalse();
+  }
+
+  @Test
+  public void testClearInterner() throws Exception {
+    Dex dex1 = loadDexFromArchive(simpleDexArchive);
+    DexTrackerInfo info1 = DexTrackerInfo.create(dex1);
+    assertThat(info1.types).isNotEmpty();
+
+    // Calling clearInterner() clears the thread-local interner instance
+    DexLimitTracker.clearInterner();
+
+    Dex dex2 = loadDexFromArchive(simpleDexArchive);
+    DexTrackerInfo info2 = DexTrackerInfo.create(dex2);
+    assertThat(info2.types).isNotEmpty();
   }
 }
