@@ -778,6 +778,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         proguard_output_config = ctx.actions.declare_file(ctx.label.name + "_proguard.config")
     proguard_seeds = ctx.actions.declare_file(ctx.label.name + "_proguard.seeds")
     proguard_usage = ctx.actions.declare_file(ctx.label.name + "_proguard.usage")
+    proguard_why_keeping_file = ctx.actions.declare_file(ctx.label.name + "_proguard.why_keeping")
 
     startup_profile = None
     baseline_profile = None
@@ -816,6 +817,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         proguard_output_map = proguard_output_map,
         proguard_seeds = proguard_seeds,
         proguard_usage = proguard_usage,
+        proguard_why_keeping_file = proguard_why_keeping_file,
         startup_profile = startup_profile,
         baseline_profile = baseline_profile,
         resource_files = packaged_resources_ctx.validation_result if enable_rewrite_resources_through_optimizer else None,
@@ -830,6 +832,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
                 proguard_output.config,
                 proguard_output.seeds,
                 proguard_output.usage,
+                proguard_output.why_keeping_file,
             ],
         )
 

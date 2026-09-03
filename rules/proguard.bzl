@@ -182,6 +182,7 @@ def _optimization_action(
         proguard_output_map = None,
         proguard_seeds = None,
         proguard_usage = None,
+        proguard_why_keeping_file = None,
         proguard_config_output = None,
         startup_profile = None,
         startup_profile_rewritten = None,
@@ -222,6 +223,7 @@ def _optimization_action(
         classes and members which match a keep rule.
       proguard_usage: File. Optional file used to write all classes and members that are removed
         during shrinking (i.e. unused code).
+      proguard_why_keeping_file: File. Optional file used to write whyareyoukeeping relationship graph.
       proguard_config_output: File. Optional file used to write the entire configuration that has
         been parsed, included files and replaced variables. Useful for debugging.
       startup_profile: File. Optional. The merged startup profile to be optimized.
@@ -328,6 +330,10 @@ def _optimization_action(
         args.add("-nextstageoutput", next_stage_output)
         outputs.append(next_stage_output)
 
+    if proguard_why_keeping_file:
+        args.add("-whykeepingfile", proguard_why_keeping_file)
+        outputs.append(proguard_why_keeping_file)
+
     ctx.actions.run(
         outputs = outputs,
         inputs = inputs,
@@ -351,7 +357,8 @@ def _create_empty_proguard_output(
         proguard_output_config = None,
         proguard_output_map = None,
         proguard_seeds = None,
-        proguard_usage = None):
+        proguard_usage = None,
+        proguard_why_keeping_file = None):
     """ Creates empty proguard outputs.
 
     These outputs will fail at execution time when any of them are explicitly requested. This is
@@ -365,6 +372,7 @@ def _create_empty_proguard_output(
       proguard_output_map: File. The output proguard map.
       proguard_seeds: File. The output proguard seeds.
       proguard_usage: File. The output proguard usage.
+      proguard_why_keeping_file: File. Optional file used to write whyareyoukeeping relationship graph.
 
     Returns:
       A struct of proguard outputs.
@@ -376,6 +384,7 @@ def _create_empty_proguard_output(
         proguard_output_config = proguard_output_config,
         proguard_seeds = proguard_seeds,
         proguard_usage = proguard_usage,
+        proguard_why_keeping_file = proguard_why_keeping_file,
         proguard_output_map = proguard_output_map,
         combined_library_jar = None,
         startup_profile_rewritten = None,
@@ -393,6 +402,7 @@ def _create_empty_proguard_output(
         outputs.config,
         outputs.seeds,
         outputs.usage,
+        outputs.why_keeping_file,
     )
     return outputs
 
@@ -407,6 +417,7 @@ def _apply_proguard(
         proguard_output_map = None,
         proguard_seeds = None,
         proguard_usage = None,
+        proguard_why_keeping_file = None,
         startup_profile = None,
         baseline_profile = None,
         resource_files = None,
@@ -425,6 +436,7 @@ def _apply_proguard(
       proguard_output_map: File. The output proguard map.
       proguard_seeds: File. The output proguard seeds.
       proguard_usage: File. The output proguard usage.
+      proguard_why_keeping_file: File. Optional file used to write whyareyoukeeping relationship graph.
       startup_profile: File. The input merged startup profile to be optimized.
       baseline_profile: File. The input merged baseline profile to be optimized.
       resource_files: File. The zipped resources to be optimized.
@@ -442,6 +454,7 @@ def _apply_proguard(
             proguard_output_map,
             proguard_seeds,
             proguard_usage,
+            proguard_why_keeping_file,
         )
 
     library_jar_list = [utils.only(common.get_java_toolchain(ctx)[java_common.JavaToolchainInfo].bootclasspath.to_list())]
@@ -457,6 +470,7 @@ def _apply_proguard(
         proguard_specs,
         proguard_seeds,
         proguard_usage,
+        proguard_why_keeping_file,
         proguard_mapping,
         proguard_output_jar,
         proguard_output_config,
@@ -478,6 +492,7 @@ def _get_proguard_output(
         proguard_output_config,
         proguard_seeds,
         proguard_usage,
+        proguard_why_keeping_file,
         proguard_output_map,
         combined_library_jar,
         startup_profile_rewritten,
@@ -497,6 +512,7 @@ def _get_proguard_output(
         proto_mapping = proguard_output_proto_map,
         seeds = proguard_seeds,
         usage = proguard_usage,
+        why_keeping_file = proguard_why_keeping_file,
         library_jar = combined_library_jar,
         config = proguard_output_config,
         startup_profile_rewritten = startup_profile_rewritten,
@@ -509,6 +525,7 @@ def _create_optimization_actions(
         proguard_specs = None,
         proguard_seeds = None,
         proguard_usage = None,
+        proguard_why_keeping_file = None,
         proguard_mapping = None,
         proguard_output_jar = None,
         proguard_output_config = None,
@@ -560,6 +577,7 @@ def _create_optimization_actions(
         proguard_output_config,
         proguard_seeds,
         proguard_usage,
+        proguard_why_keeping_file,
         proguard_output_map,
         combined_library_jar,
         startup_profile_rewritten,
@@ -583,6 +601,7 @@ def _create_optimization_actions(
             proguard_output_map = outputs.mapping,
             proguard_seeds = outputs.seeds,
             proguard_usage = outputs.usage,
+            proguard_why_keeping_file = outputs.why_keeping_file,
             proguard_config_output = outputs.config,
             startup_profile = startup_profile,
             startup_profile_rewritten = outputs.startup_profile_rewritten,
@@ -613,6 +632,7 @@ def _create_optimization_actions(
         proguard_output_map = None,
         proguard_seeds = outputs.seeds,
         proguard_usage = None,
+        proguard_why_keeping_file = None,
         proguard_config_output = None,
         startup_profile = startup_profile,
         startup_profile_rewritten = None,
@@ -685,6 +705,7 @@ def _create_optimization_actions(
         proguard_output_map = outputs.mapping,
         proguard_seeds = None,
         proguard_usage = outputs.usage,
+        proguard_why_keeping_file = outputs.why_keeping_file,
         proguard_config_output = outputs.config,
         startup_profile = None,
         startup_profile_rewritten = outputs.startup_profile_rewritten,
