@@ -178,6 +178,20 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
             env = attr.string_dict(
                 doc = "A dictionary of environment variables set for the execution of the test. Will be subject to make variable and `$(location)` expansion.",
             ),
+            _lcov_merger = attr.label(
+                cfg = config.exec(exec_group = "test"),
+                default = configuration_field(
+                    fragment = "coverage",
+                    name = "output_generator",
+                ),
+                executable = True,
+            ),
+            _collect_cc_coverage = attr.label(
+                cfg = config.exec(exec_group = "test"),
+                allow_single_file = True,
+                default = "@bazel_tools//tools/test:collect_cc_coverage",
+                executable = True,
+            ),
             # TODO(jiayanl): Change this back to a string once Bazel is fully moved to bzlmod
             robolectric_properties_file = attr.label(
                 doc = "The robolectric-deps.properties file. Note that the file is " +
