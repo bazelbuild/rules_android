@@ -24,8 +24,11 @@ import java.lang.reflect.Field;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /** Utility class for JCommander-based Android options. */
 public class AndroidOptionsUtils {
@@ -33,14 +36,13 @@ public class AndroidOptionsUtils {
   private AndroidOptionsUtils() {}
 
   /** Run the CompatShellQuotedParamsFilePreProcessor on a list of args. */
-  public static String[] runArgFilePreprocessor(JCommander jc, String[] argsAsArray)
-      throws ParameterException {
+  public static String[] runArgFilePreprocessor(JCommander jc, String[] argsAsArray) {
     jc.setExpandAtSign(false);
     return runArgFilePreprocessor(argsAsArray);
   }
 
   /** Run the CompatShellQuotedParamsFilePreProcessor on a list of args. */
-  public static String[] runArgFilePreprocessor(String[] argsAsArray) throws ParameterException {
+  public static String[] runArgFilePreprocessor(String[] argsAsArray) {
     List<String> args = ImmutableList.copyOf(argsAsArray);
     if (args.size() == 1 && args.get(0).startsWith("@")) {
       // Use CompatShellQuotedParamsFilePreProcessor to handle the arg file.
@@ -51,19 +53,6 @@ public class AndroidOptionsUtils {
       args = paramsFilePreProcessor.preProcess(ImmutableList.of("@" + argFile));
     }
     return args.toArray(new String[0]);
-  }
-
-  /**
-   * Same as AndroidOptionsUtils#normalizeBooleanOptions, but accepts an array of option classes
-   * instead.
-   */
-  public static String[] normalizeBooleanOptions(Object[] options, String[] args)
-      throws ParameterException {
-    String[] normalizedArgs = args;
-    for (Object optionsObject : options) {
-      normalizedArgs = normalizeBooleanOptions(optionsObject, normalizedArgs);
-    }
-    return normalizedArgs;
   }
 
   private static int countLeadingChars(String s, char c) {
@@ -78,27 +67,36 @@ public class AndroidOptionsUtils {
   }
 
   /**
+   * Same as AndroidOptionsUtils#normalizeBooleanOptions, but accepts an array of option classes
+   * instead.
+   */
+  public static String[] normalizeBooleanOptions(Object[] options, String[] args) {
+    String[] normalizedArgs = args;
+    for (Object optionsObject : options) {
+      normalizedArgs = normalizeBooleanOptions(optionsObject, normalizedArgs);
+    }
+    return normalizedArgs;
+  }
+
+  /**
    * Normalize boolean options to use --<flagname>=true or --<flagname>=false syntax.
    *
    * <p>This is useful for JCommander-based options.
    */
   public static String[] normalizeBooleanOptions(Object options, String[] args) {
-    List<String> booleanOptions = new ArrayList<>();
-    // The normalized arg list will be as long as the original args.
-    List<String> normalizedArgs = new ArrayList<>(args.length);
+    Set<String> booleanOptionNames = new HashSet<>();
     // Find the list of boolean fields
     for (Field field : options.getClass().getDeclaredFields()) {
       if (field.getType().equals(boolean.class)) {
         // Get the `names` from the annotation of this field.
         // Iterate through the annotations
         for (Annotation annotation : field.getAnnotations()) {
-          if (annotation instanceof Parameter) {
-            Parameter parameter = (Parameter) annotation;
+          if (annotation instanceof Parameter parameter) {
             for (String name : parameter.names()) {
               // Strip leading dashes from the name and assert that the name starts with --.
               try {
                 Preconditions.checkState(name.startsWith("--") || name.startsWith("-"));
-                booleanOptions.add(name.substring(countLeadingChars(name, '-')));
+                booleanOptionNames.add(name.substring(countLeadingChars(name, '-')));
               } catch (IllegalStateException e) {
                 throw new ParameterException(
                     "ParameterException in args: Found an arg not prefixed with '--' or '-': '"
@@ -112,17 +110,19 @@ public class AndroidOptionsUtils {
       }
     }
 
-    // Iterate through the args and normalize boolean options with --<flagname> syntax.
-    for (String arg : args) {
-      for (String booleanOption : booleanOptions) {
-        if (arg.equals("--no" + booleanOption)) {
-          arg = "--" + booleanOption + "=false";
-        } else if (arg.equals("--" + booleanOption)) {
-          arg = "--" + booleanOption + "=true";
-        }
-      }
-      normalizedArgs.add(arg);
+    Map<String, String> replacements = new HashMap<>();
+    for (String booleanOption : booleanOptionNames) {
+      replacements.put("--no" + booleanOption, "--" + booleanOption + "=false");
+      replacements.put("--" + booleanOption, "--" + booleanOption + "=true");
     }
-    return normalizedArgs.toArray(new String[0]);
+
+    // Iterate through the args and normalize boolean options with --<flagname> syntax.
+    String[] normalizedArgs = new String[args.length];
+    for (int i = 0; i < args.length; i++) {
+      String arg = args[i];
+      String replacement = replacements.get(arg);
+      normalizedArgs[i] = replacement != null ? replacement : arg;
+    }
+    return normalizedArgs;
   }
 }

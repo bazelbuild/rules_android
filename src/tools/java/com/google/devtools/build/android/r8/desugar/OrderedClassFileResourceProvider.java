@@ -16,32 +16,31 @@ package com.google.devtools.build.android.r8.desugar;
 import com.android.tools.r8.ClassFileResourceProvider;
 import com.android.tools.r8.ProgramResource;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Classpath provider which will de-dupe duplicate classes from several providers. For any defined
  * class the definition from the first provider defining the class is used.
  */
 public class OrderedClassFileResourceProvider implements ClassFileResourceProvider {
-  private final Set<String> descriptors = Sets.newHashSet();
   private final Map<String, ClassFileResourceProvider> descriptorToProvider = new HashMap<>();
 
   public OrderedClassFileResourceProvider(
       ImmutableList<ClassFileResourceProvider> bootclasspathProviders,
       ImmutableList<ClassFileResourceProvider> classfileProviders) {
-    final Set<String> bootclasspathDescriptors = Sets.newHashSet();
+    final Set<String> bootclasspathDescriptors = new HashSet<>();
     bootclasspathProviders.forEach(p -> bootclasspathDescriptors.addAll(p.getClassDescriptors()));
     for (ClassFileResourceProvider provider : classfileProviders) {
       // Collect all descriptors provided and the first provider providing each.
       for (String descriptor : provider.getClassDescriptors()) {
         // Pick first definition of classpath class and filter out platform classes
         // from classpath if present.
-        if (!bootclasspathDescriptors.contains(descriptor)
-            && descriptors.add(descriptor)) {
-          descriptorToProvider.put(descriptor, provider);
+        if (!bootclasspathDescriptors.contains(descriptor)) {
+          descriptorToProvider.putIfAbsent(descriptor, provider);
         }
       }
     }
@@ -49,10 +48,11 @@ public class OrderedClassFileResourceProvider implements ClassFileResourceProvid
 
   @Override
   public Set<String> getClassDescriptors() {
-    return descriptors;
+    return descriptorToProvider.keySet();
   }
 
   @Override
+  @Nullable
   public ProgramResource getProgramResource(String descriptor) {
     ClassFileResourceProvider provider = descriptorToProvider.get(descriptor);
     return provider != null ? provider.getProgramResource(descriptor) : null;

@@ -14,6 +14,7 @@
 package com.google.devtools.build.android.r8;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.joining;
 
@@ -45,11 +46,13 @@ import com.google.devtools.build.lib.worker.WorkRequestHandler;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /** Desugar compatible wrapper based on D8 desugaring engine */
@@ -220,8 +223,6 @@ public class Desugar {
         description = "Method invocations not to rewrite, given as \"class/Name#method\".")
     public List<String> dontTouchCoreLibraryMembers = ImmutableList.of();
 
-    ;
-
     @Parameter(
         names = "--preserve_core_library_override",
         description =
@@ -332,9 +333,7 @@ public class Desugar {
 
     @Override
     public void warning(Diagnostic warning) {
-      if (warning instanceof InterfaceDesugarMissingTypeDiagnostic) {
-        InterfaceDesugarMissingTypeDiagnostic missingTypeDiagnostic =
-            (InterfaceDesugarMissingTypeDiagnostic) warning;
+      if (warning instanceof InterfaceDesugarMissingTypeDiagnostic missingTypeDiagnostic) {
         outputConsumer.missingImplementedInterface(
             DescriptorUtils.descriptorToBinaryName(
                 missingTypeDiagnostic.getContextType().getDescriptor()),
@@ -360,8 +359,7 @@ public class Desugar {
 
     @Override
     public void error(Diagnostic error) {
-      if (error instanceof DexFileOverflowDiagnostic) {
-        DexFileOverflowDiagnostic overflowDiagnostic = (DexFileOverflowDiagnostic) error;
+      if (error instanceof DexFileOverflowDiagnostic overflowDiagnostic) {
         if (!overflowDiagnostic.hasMainDexSpecification()) {
           DiagnosticsHandler.super.error(
               new StringDiagnostic(
@@ -376,6 +374,14 @@ public class Desugar {
   private static class NoOpGlobalSyntheticsConsumer implements GlobalSyntheticsConsumer {
     @Override
     public void accept(ByteDataView data, ClassReference context, DiagnosticsHandler handler) {}
+  }
+
+  private static ArchiveClassFileProvider createArchiveClassFileProvider(Path path) {
+    try {
+      return new ArchiveClassFileProvider(path);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   private void desugar(
@@ -438,19 +444,31 @@ public class Desugar {
   private void desugar() throws CompilationFailedException, IOException {
     // Prepare bootclasspath and classpath. Some jars on the classpath are considered to be
     // bootclasspath, and are moved there.
+    ImmutableList<ClassFileResourceProvider> bootclasspathProvidersList =
+        options.bootclasspath.parallelStream()
+            .map(Desugar::createArchiveClassFileProvider)
+            .collect(toImmutableList());
+
+    ImmutableList<Map.Entry<ClassFileResourceProvider, Boolean>> evaluatedClasspath =
+        options.classpath.parallelStream()
+            .map(
+                path -> {
+                  ClassFileResourceProvider provider = createArchiveClassFileProvider(path);
+                  return Map.entry(provider, isPlatform(path, provider));
+                })
+            .collect(toImmutableList());
+
     ImmutableList.Builder<ClassFileResourceProvider> bootclasspathProvidersBuilder =
         ImmutableList.builder();
-    for (Path path : options.bootclasspath) {
-      bootclasspathProvidersBuilder.add(new ArchiveClassFileProvider(path));
-    }
+    bootclasspathProvidersBuilder.addAll(bootclasspathProvidersList);
+
     ImmutableList.Builder<ClassFileResourceProvider> classpathProvidersBuilder =
         ImmutableList.builder();
-    for (Path path : options.classpath) {
-      ClassFileResourceProvider provider = new ArchiveClassFileProvider(path);
-      if (isPlatform(path, provider)) {
-        bootclasspathProvidersBuilder.add(provider);
+    for (Map.Entry<ClassFileResourceProvider, Boolean> entry : evaluatedClasspath) {
+      if (entry.getValue()) {
+        bootclasspathProvidersBuilder.add(entry.getKey());
       } else {
-        classpathProvidersBuilder.add(provider);
+        classpathProvidersBuilder.add(entry.getKey());
       }
     }
 
@@ -594,8 +612,7 @@ public class Desugar {
         options.outputJars.size());
   }
 
-  public static int processRequest(List<String> args, PrintStream diagnosticsHandlerPrintStream)
-      throws Exception {
+  public static int processRequest(List<String> args, PrintStream diagnosticsHandlerPrintStream) {
     setDesugarJvmFlags();
     int exitCode = 0;
     try {
@@ -660,7 +677,7 @@ public class Desugar {
     }
   }
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     if (args.length > 0 && args[0].equals("--persistent_worker")) {
       System.exit(runPersistentWorker());
     } else {
