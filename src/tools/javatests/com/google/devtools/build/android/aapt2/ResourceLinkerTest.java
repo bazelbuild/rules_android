@@ -15,6 +15,7 @@
 package com.google.devtools.build.android.aapt2;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -66,14 +67,14 @@ public class ResourceLinkerTest {
       // Add a flat file
       ZipEntry flatEntry = new ZipEntry("values_default.flat");
       zos.putNextEntry(flatEntry);
-      zos.write("fake flat content".getBytes());
+      zos.write("fake flat content".getBytes(UTF_8));
       zos.closeEntry();
 
       if (includeNonFlat) {
         // Add a non-flat file
         ZipEntry txtEntry = new ZipEntry("dummy.txt");
         zos.putNextEntry(txtEntry);
-        zos.write("fake txt content".getBytes());
+        zos.write("fake txt content".getBytes(UTF_8));
         zos.closeEntry();
       }
     }
@@ -119,5 +120,26 @@ public class ResourceLinkerTest {
 
     assertThat(Files.exists(expectedFilteredZip)).isTrue();
     assertThat(paths).containsExactly(expectedFilteredZip.toString());
+  }
+
+  @Test
+  public void testExtractPackages_concurrentParsing() throws Exception {
+    Path manifest1 = tempDir.resolve("AndroidManifest1.xml");
+    Files.writeString(manifest1, "<manifest package=\"com.test.pkg1\"/>");
+    Path manifest2 = tempDir.resolve("AndroidManifest2.xml");
+    Files.writeString(manifest2, "<manifest package=\"com.test.pkg2\"/>");
+
+    Path zip1 = createFakeCompiledResourcesZip(false);
+    CompiledResources res1 = CompiledResources.from(zip1, manifest1);
+    Path zip2 = createFakeCompiledResourcesZip(false);
+    CompiledResources res2 = CompiledResources.from(zip2, manifest2);
+
+    ResourceLinker linker =
+        ResourceLinker.create(AAPT2, executorService, workingDir).include(ImmutableList.of(res1));
+
+    Path packagesFile = linker.extractPackages(res2);
+    assertThat(Files.exists(packagesFile)).isTrue();
+    List<String> packages = Files.readAllLines(packagesFile);
+    assertThat(packages).containsExactly("com.test.pkg1", "com.test.pkg2").inOrder();
   }
 }

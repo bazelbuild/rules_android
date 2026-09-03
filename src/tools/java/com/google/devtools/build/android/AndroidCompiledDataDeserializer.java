@@ -14,8 +14,8 @@
 package com.google.devtools.build.android;
 
 import static com.google.common.base.Predicates.not;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Verify.verify;
-import static java.util.stream.Collectors.toList;
 
 import android.aapt.pb.internal.ResourcesInternal.CompiledFile;
 import com.android.aapt.ConfigurationOuterClass.Configuration;
@@ -73,6 +73,9 @@ import com.android.resources.UiMode;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -87,20 +90,20 @@ import com.google.devtools.build.android.proto.SerializeFormat.Header;
 import com.google.devtools.build.android.resources.ResourceTypeEnum;
 import com.google.devtools.build.android.resources.Visibility;
 import com.google.devtools.build.android.xml.ResourcesAttribute.AttributeType;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -263,14 +266,32 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
     this.includeFileContentsForValidation = includeFileContentsForValidation;
   }
 
+  // 10,000 entries accommodates all distinct configuration qualifier permutations across
+  // dependency resource tables in persistent worker processes (typically hundreds to low
+  // thousands for large apps) while bounding cache memory overhead to ~a few hundred KB.
+  private static final LoadingCache<Configuration, ImmutableList<String>> QUALIFIER_CACHE =
+      CacheBuilder.newBuilder()
+          .maximumSize(10_000)
+          .build(
+              new CacheLoader<Configuration, ImmutableList<String>>() {
+                @Override
+                public ImmutableList<String> load(Configuration protoConfig) {
+                  return computeQualifiers(protoConfig);
+                }
+              });
+
   private static void consumeResourceTable(
       DependencyInfo dependencyInfo,
       KeyValueConsumers consumers,
       ResourceTable resourceTable,
       VisibilityRegistry registry)
-      throws UnsupportedEncodingException, InvalidProtocolBufferException {
-    List<String> sourcePool =
+      throws InvalidProtocolBufferException {
+    ImmutableList<String> sourcePool =
         decodeSourcePool(resourceTable.getSourcePool().getData().toByteArray());
+    Path[] sourcePoolPaths = new Path[sourcePool.size()];
+    for (int i = 0; i < sourcePool.size(); i++) {
+      sourcePoolPaths[i] = Path.of(sourcePool.get(i));
+    }
     ReferenceResolver resolver = ReferenceResolver.asRoot();
 
     for (Package resourceTablePackage : resourceTable.getPackageList()) {
@@ -282,8 +303,12 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
         ResourceType resourceType = ResourceTypeEnum.get(resourceFormatType.getName());
 
         for (Resources.Entry resource : resourceFormatType.getEntryList()) {
-          if (!"android".equals(packageName)) {
+          if (!packageName.equals("android")) {
             // This means this resource is not in the android sdk, add it to the set.
+            ResourceName resourceName =
+                ResourceName.create(packageName, resourceType, resource.getName());
+            Visibility visibility = registry.getVisibility(resourceName);
+
             for (ConfigValue configValue : resource.getConfigValueList()) {
               FullyQualifiedName fqn =
                   createAndRecordFqn(
@@ -292,13 +317,10 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
                       resourceType,
                       resource,
                       convertToQualifiers(configValue.getConfig()));
-              Visibility visibility =
-                  registry.getVisibility(
-                      ResourceName.create(packageName, resourceType, resource.getName()));
 
               int sourceIndex = configValue.getValue().getSource().getPathIdx();
-              String source = sourcePool.get(sourceIndex);
-              DataSource dataSource = DataSource.of(dependencyInfo, Paths.get(source));
+              Path sourcePath = sourcePoolPaths[sourceIndex];
+              DataSource dataSource = DataSource.of(dependencyInfo, sourcePath);
 
               Value resourceValue = configValue.getValue();
               DataResource dataResource =
@@ -359,6 +381,7 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
       return FullyQualifiedName.fromReference(reference, packageName);
     }
 
+    @CanIgnoreReturnValue
     public FullyQualifiedName register(FullyQualifiedName fullyQualifiedName) {
       // The default is that the name can be inlined.
       qualifiedReferenceInlineStatus.put(fullyQualifiedName, InlineStatus.INLINEABLE);
@@ -372,10 +395,11 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
         return false;
       }
 
-      return InlineStatus.INLINEABLE.equals(qualifiedReferenceInlineStatus.get(reference));
+      return qualifiedReferenceInlineStatus.get(reference) == InlineStatus.INLINEABLE;
     }
 
     /** Update the reference's inline state. */
+    @CanIgnoreReturnValue
     public FullyQualifiedName markInlined(FullyQualifiedName reference) {
       qualifiedReferenceInlineStatus.put(reference, InlineStatus.INLINED);
       return reference;
@@ -399,7 +423,11 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
   }
 
   // TODO(b/146498565): remove this and use 'Configuration' directly, which is typesafe and free.
-  private static List<String> convertToQualifiers(Configuration protoConfig) {
+  static ImmutableList<String> convertToQualifiers(Configuration protoConfig) {
+    return QUALIFIER_CACHE.getUnchecked(protoConfig);
+  }
+
+  private static ImmutableList<String> computeQualifiers(Configuration protoConfig) {
     FolderConfiguration configuration = new FolderConfiguration();
     if (protoConfig.getMcc() > 0) {
       configuration.setCountryCodeQualifier(new CountryCodeQualifier(protoConfig.getMcc()));
@@ -517,9 +545,14 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
     }
 
 
-    return Arrays.stream(configuration.getQualifiers())
-        .map(ResourceQualifier::getFolderSegment)
-        .collect(toList());
+    ResourceQualifier[] qualifiers = configuration.getQualifiers();
+    ImmutableList.Builder<String> result = ImmutableList.builderWithExpectedSize(qualifiers.length);
+    for (ResourceQualifier qualifier : qualifiers) {
+      if (qualifier != null) {
+        result.add(qualifier.getFolderSegment());
+      }
+    }
+    return result.build();
   }
 
   /**
@@ -709,8 +742,8 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
 
   private static ResourceContainer readResourceContainer(
       ZipFile zipFile, boolean includeFileContentsForValidation) throws IOException {
-    List<ResourceTable> resourceTables = new ArrayList<>();
-    List<CompiledFileWithData> compiledFiles = new ArrayList<>();
+    ImmutableList.Builder<ResourceTable> resourceTables = ImmutableList.builder();
+    ImmutableList.Builder<CompiledFileWithData> compiledFiles = ImmutableList.builder();
 
     Enumeration<? extends ZipEntry> resourceFiles = zipFile.entries();
     while (resourceFiles.hasMoreElements()) {
@@ -784,7 +817,7 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
         }
       }
     }
-    return ResourceContainer.create(resourceTables, compiledFiles);
+    return ResourceContainer.create(resourceTables.build(), compiledFiles.build());
   }
 
   /** Rounds {@code n} up to the nearest multiple of {@code k}. */
@@ -801,31 +834,39 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
    * resource_files} (b/148110689), we perform the classification on a per-directory basis, so that
    * marking something in {@code foo/res} public has no impact on {@code bar/res}.
    */
-  private static VisibilityRegistry computeResourceVisibility(ResourceContainer resourceContainer)
-      throws UnsupportedEncodingException {
+  private static VisibilityRegistry computeResourceVisibility(ResourceContainer resourceContainer) {
     if (!ResourceCompiler.USE_VISIBILITY_FROM_AAPT2) {
       return new VisibilityRegistry(ImmutableSet.of(), ImmutableSet.of());
     }
 
     // decode source pools ahead of time to avoid having to repeatedly do so later.
-    List<List<String>> sourcePools = new ArrayList<>();
+    ImmutableList.Builder<Path[]> normalizedSourcePoolsBuilder =
+        ImmutableList.builderWithExpectedSize(resourceContainer.resourceTables().size());
     for (ResourceTable resourceTable : resourceContainer.resourceTables()) {
-      sourcePools.add(decodeSourcePool(resourceTable.getSourcePool().getData().toByteArray()));
+      ImmutableList<String> sourcePool =
+          decodeSourcePool(resourceTable.getSourcePool().getData().toByteArray());
+      Path[] normalizedDirs = new Path[sourcePool.size()];
+      for (int j = 0; j < sourcePool.size(); j++) {
+        normalizedDirs[j] = getNormalizedResourceDirectory(sourcePool.get(j));
+      }
+      normalizedSourcePoolsBuilder.add(normalizedDirs);
     }
+    ImmutableList<Path[]> normalizedSourcePools = normalizedSourcePoolsBuilder.build();
 
-    PublicResources publicResources = findExplicitlyPublicResources(resourceContainer, sourcePools);
+    PublicResources publicResources =
+        findExplicitlyPublicResources(resourceContainer, normalizedSourcePools);
     return new VisibilityRegistry(
         publicResources.explicitlyPublicResources(),
-        findImpliedPrivateResources(resourceContainer, sourcePools, publicResources));
+        findImpliedPrivateResources(resourceContainer, normalizedSourcePools, publicResources));
   }
 
   private static PublicResources findExplicitlyPublicResources(
-      ResourceContainer resourceContainer, List<List<String>> sourcePools) {
+      ResourceContainer resourceContainer, ImmutableList<Path[]> normalizedSourcePools) {
     Set<ResourceName> explicitlyPublicResources = new HashSet<>();
     Set<Path> directoriesWithPublicResources = new HashSet<>();
     for (int i = 0; i < resourceContainer.resourceTables().size(); i++) {
       ResourceTable resourceTable = resourceContainer.resourceTables().get(i);
-      List<String> sourcePool = sourcePools.get(i);
+      Path[] normalizedSourcePool = normalizedSourcePools.get(i);
 
       for (Package pkg : resourceTable.getPackageList()) {
         for (Resources.Type type : pkg.getTypeList()) {
@@ -837,9 +878,11 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
 
             explicitlyPublicResources.add(
                 ResourceName.create(pkg.getPackageName(), resourceType, entry.getName()));
-            directoriesWithPublicResources.add(
-                getNormalizedResourceDirectory(
-                    sourcePool.get(entry.getVisibility().getSource().getPathIdx())));
+            int pathIdx = entry.getVisibility().getSource().getPathIdx();
+            Path dir = normalizedSourcePool[pathIdx];
+            if (dir != null) {
+              directoriesWithPublicResources.add(dir);
+            }
           }
         }
       }
@@ -849,14 +892,16 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
 
   private static ImmutableSet<ResourceName> findImpliedPrivateResources(
       ResourceContainer resourceContainer,
-      List<List<String>> sourcePools,
+      ImmutableList<Path[]> normalizedSourcePools,
       PublicResources publicResources) {
-    Set<ResourceName> explicitlyPublicResources = publicResources.explicitlyPublicResources();
-    Set<Path> directoriesWithPublicResources = publicResources.directoriesWithPublicResources();
+    ImmutableSet<ResourceName> explicitlyPublicResources =
+        publicResources.explicitlyPublicResources();
+    ImmutableSet<Path> directoriesWithPublicResources =
+        publicResources.directoriesWithPublicResources();
     Set<ResourceName> impliedPrivateResources = new HashSet<>();
     for (int i = 0; i < resourceContainer.resourceTables().size(); i++) {
       ResourceTable resourceTable = resourceContainer.resourceTables().get(i);
-      List<String> sourcePool = sourcePools.get(i);
+      Path[] normalizedSourcePool = normalizedSourcePools.get(i);
 
       for (Package pkg : resourceTable.getPackageList()) {
         for (Resources.Type type : pkg.getTypeList()) {
@@ -873,13 +918,15 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
               continue; // we already figured out a classification for this resource.
             }
 
-            boolean inDirectoryWithPublic =
-                entry.getConfigValueList().stream()
-                    .map(
-                        configValue ->
-                            getNormalizedResourceDirectory(
-                                sourcePool.get(configValue.getValue().getSource().getPathIdx())))
-                    .anyMatch(directoriesWithPublicResources::contains);
+            boolean inDirectoryWithPublic = false;
+            for (ConfigValue configValue : entry.getConfigValueList()) {
+              int pathIdx = configValue.getValue().getSource().getPathIdx();
+              Path dir = normalizedSourcePool[pathIdx];
+              if (dir != null && directoriesWithPublicResources.contains(dir)) {
+                inDirectoryWithPublic = true;
+                break;
+              }
+            }
             if (inDirectoryWithPublic) {
               impliedPrivateResources.add(resourceName);
             }
@@ -894,8 +941,8 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
           || impliedPrivateResources.contains(resourceName)) {
         continue; // we already figured out a classification for this resource.
       }
-      if (directoriesWithPublicResources.contains(
-          getNormalizedResourceDirectory(compiledFile.getSourcePath()))) {
+      Path dir = getNormalizedResourceDirectory(compiledFile.getSourcePath());
+      if (dir != null && directoriesWithPublicResources.contains(dir)) {
         impliedPrivateResources.add(resourceName);
       }
     }
@@ -906,14 +953,32 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
    * Returns the resource directory (e.g. {@code java/com/pkg/res/}) which contains a file,
    * stripping off any {@code blaze-*} prefix for normalization.
    */
-  private static Path getNormalizedResourceDirectory(String filename) {
-    Path resDir = Paths.get(filename).getParent().getParent();
-    if (resDir.getName(0).toString().startsWith("blaze-")) {
-      // strip off stuff like blaze-out/k8-fastbuild/bin/.
-      return resDir.subpath(3, resDir.getNameCount());
-    } else {
-      return resDir;
+  @Nullable
+  static Path getNormalizedResourceDirectory(@Nullable Path file) {
+    if (file == null) {
+      return null;
     }
+    Path parent = file.getParent();
+    if (parent == null) {
+      return null;
+    }
+    Path grandParent = parent.getParent();
+    if (grandParent == null) {
+      return null;
+    }
+    if (grandParent.getNameCount() > 3 && grandParent.getName(0).toString().startsWith("blaze-")) {
+      return grandParent.subpath(3, grandParent.getNameCount());
+    } else {
+      return grandParent;
+    }
+  }
+
+  @Nullable
+  static Path getNormalizedResourceDirectory(@Nullable String filename) {
+    if (isNullOrEmpty(filename)) {
+      return null;
+    }
+    return getNormalizedResourceDirectory(Path.of(filename));
   }
 
   private static byte[] readBytesAndSkipPadding(LittleEndianDataInputStream input, int size)
@@ -928,7 +993,7 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
     return result;
   }
 
-  private static List<String> decodeSourcePool(byte[] bytes) throws UnsupportedEncodingException {
+  private static ImmutableList<String> decodeSourcePool(byte[] bytes) {
     ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
 
     int stringCount = byteBuffer.getInt(8);
@@ -937,7 +1002,7 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
     // Position the ByteBuffer after the metadata
     byteBuffer.position(28);
 
-    List<String> strings = new ArrayList<>();
+    ImmutableList.Builder<String> strings = ImmutableList.builderWithExpectedSize(stringCount);
 
     for (int i = 0; i < stringCount; i++) {
       int stringOffset = stringsStart + byteBuffer.getInt();
@@ -958,7 +1023,7 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
 
         stringOffset += (length >= 0x80 ? 2 : 1);
 
-        strings.add(new String(bytes, stringOffset, length, "UTF8"));
+        strings.add(new String(bytes, stringOffset, length, StandardCharsets.UTF_8));
       } else {
         // TODO(b/148817379): this next block of lines is forming an int with holes in it.
         int characterCount = byteBuffer.get(stringOffset) & 0xFFFF;
@@ -976,11 +1041,11 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
 
         stringOffset += 2 * (length >= 0x8000 ? 2 : 1);
 
-        strings.add(new String(bytes, stringOffset, length, "UTF16"));
+        strings.add(new String(bytes, stringOffset, length, StandardCharsets.UTF_16LE));
       }
     }
 
-    return strings;
+    return strings.build();
   }
 
   @AutoValue
@@ -990,9 +1055,10 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
     abstract ImmutableList<CompiledFileWithData> compiledFiles();
 
     static ResourceContainer create(
-        List<ResourceTable> resourceTables, List<CompiledFileWithData> compiledFiles) {
+        ImmutableList<ResourceTable> resourceTables,
+        ImmutableList<CompiledFileWithData> compiledFiles) {
       return new AutoValue_AndroidCompiledDataDeserializer_ResourceContainer(
-          ImmutableList.copyOf(resourceTables), ImmutableList.copyOf(compiledFiles));
+          resourceTables, compiledFiles);
     }
   }
 
@@ -1032,8 +1098,8 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
   }
 
   private static class VisibilityRegistry {
-    private final Set<ResourceName> explicitlyPublicResources;
-    private final Set<ResourceName> impliedPrivateResources;
+    private final ImmutableSet<ResourceName> explicitlyPublicResources;
+    private final ImmutableSet<ResourceName> impliedPrivateResources;
 
     VisibilityRegistry(
         Set<ResourceName> explicitlyPublicResources, Set<ResourceName> impliedPrivateResources) {

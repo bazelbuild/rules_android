@@ -13,18 +13,29 @@
 // limitations under the License.
 package com.google.devtools.build.android;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.devtools.build.android.ParsedAndroidDataBuilder.file;
 import static com.google.devtools.build.android.ParsedAndroidDataBuilder.xml;
 
+import com.android.aapt.ConfigurationOuterClass.Configuration;
+import com.android.aapt.ConfigurationOuterClass.Configuration.KeysHidden;
+import com.android.aapt.ConfigurationOuterClass.Configuration.NavHidden;
+import com.android.aapt.ConfigurationOuterClass.Configuration.Orientation;
+import com.android.aapt.ConfigurationOuterClass.Configuration.ScreenLayoutLong;
+import com.android.aapt.ConfigurationOuterClass.Configuration.ScreenLayoutSize;
+import com.android.aapt.ConfigurationOuterClass.Configuration.ScreenRound;
+import com.android.aapt.ConfigurationOuterClass.Configuration.Touchscreen;
+import com.android.aapt.ConfigurationOuterClass.Configuration.UiModeNight;
+import com.android.aapt.ConfigurationOuterClass.Configuration.UiModeType;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Jimfs;
-import com.google.common.truth.Truth;
 import com.google.devtools.build.android.xml.IdXmlResourceValue;
 import com.google.devtools.build.android.xml.ResourcesAttribute;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,7 +80,7 @@ public class AndroidDataSerializerAndDeserializerTest {
     AndroidDataDeserializer deserializer = AndroidParsedDataDeserializer.create();
     TestMapConsumer<DataAsset> assets = TestMapConsumer.ofAssets();
     deserializer.read(binaryPath, KeyValueConsumers.of(null, null, assets));
-    Truth.assertThat(assets).isEqualTo(expected.getPrimary().getAssets());
+    assertThat(assets).isEqualTo(expected.getPrimary().getAssets());
   }
 
   @Test
@@ -96,7 +107,7 @@ public class AndroidDataSerializerAndDeserializerTest {
             resources, // combining
             null // assets
             ));
-    Truth.assertThat(resources).isEqualTo(expected.getPrimary().getCombiningResources());
+    assertThat(resources).isEqualTo(expected.getPrimary().getCombiningResources());
   }
 
   @Test
@@ -122,7 +133,7 @@ public class AndroidDataSerializerAndDeserializerTest {
             null, // combining
             null // assets
             ));
-    Truth.assertThat(resources).isEqualTo(expected.getPrimary().getOverwritingResources());
+    assertThat(resources).isEqualTo(expected.getPrimary().getOverwritingResources());
   }
 
   @Test
@@ -176,8 +187,8 @@ public class AndroidDataSerializerAndDeserializerTest {
             combining,
             null // assets
         ));
-    Truth.assertThat(overwriting).isEqualTo(expected.getPrimary().getOverwritingResources());
-    Truth.assertThat(combining).isEqualTo(expected.getPrimary().getCombiningResources());
+    assertThat(overwriting).isEqualTo(expected.getPrimary().getOverwritingResources());
+    assertThat(combining).isEqualTo(expected.getPrimary().getCombiningResources());
   }
 
   @Test
@@ -215,11 +226,10 @@ public class AndroidDataSerializerAndDeserializerTest {
 
     AndroidDataDeserializer deserializer = AndroidParsedDataDeserializer.create();
     deserializer.read(binaryPath, primary);
-    Truth.assertThat(primary.overwritingConsumer)
+    assertThat(primary.overwritingConsumer)
         .isEqualTo(expected.getPrimary().getOverwritingResources());
-    Truth.assertThat(primary.combiningConsumer)
-        .isEqualTo(expected.getPrimary().getCombiningResources());
-    Truth.assertThat(primary.assetConsumer).isEqualTo(expected.getPrimary().getAssets());
+    assertThat(primary.combiningConsumer).isEqualTo(expected.getPrimary().getCombiningResources());
+    assertThat(primary.assetConsumer).isEqualTo(expected.getPrimary().getAssets());
   }
 
   @Test
@@ -260,8 +270,177 @@ public class AndroidDataSerializerAndDeserializerTest {
             );
 
     deserializer.read(binaryPath, primary);
-    Truth.assertThat(primary.overwritingConsumer).isEqualTo(Collections.emptyMap());
-    Truth.assertThat(primary.combiningConsumer).isEqualTo(Collections.emptyMap());
+    assertThat(primary.overwritingConsumer).isEqualTo(Collections.emptyMap());
+    assertThat(primary.combiningConsumer).isEqualTo(Collections.emptyMap());
+  }
+
+  @Test
+  public void testCompiledDataDeserializerCreation() {
+    AndroidCompiledDataDeserializer deserializer =
+        AndroidCompiledDataDeserializer.create(/* includeFileContentsForValidation= */ false);
+    assertThat(deserializer).isNotNull();
+    AndroidCompiledDataDeserializer validatingDeserializer =
+        AndroidCompiledDataDeserializer.create(/* includeFileContentsForValidation= */ true);
+    assertThat(validatingDeserializer).isNotNull();
+  }
+
+  @Test
+  public void testNormalizedResourceDirectory_blazePrefixStripped() {
+    assertThat(
+            AndroidCompiledDataDeserializer.getNormalizedResourceDirectory(
+                Paths.get("blaze-out/k8-opt/bin/com/example/res/values/strings.xml")))
+        .isEqualTo(Paths.get("com/example/res"));
+    assertThat(
+            AndroidCompiledDataDeserializer.getNormalizedResourceDirectory(
+                Paths.get("blaze-out/bin/res/values/strings.xml")))
+        .isEqualTo(Paths.get("blaze-out/bin/res"));
+  }
+
+  @Test
+  public void testNormalizedResourceDirectory_nonBlazePathPreserved() {
+    assertThat(
+            AndroidCompiledDataDeserializer.getNormalizedResourceDirectory(
+                Paths.get("com/example/res/values/strings.xml")))
+        .isEqualTo(Paths.get("com/example/res"));
+    assertThat(
+            AndroidCompiledDataDeserializer.getNormalizedResourceDirectory(
+                Paths.get("a/b/c/d/res/values/strings.xml")))
+        .isEqualTo(Paths.get("a/b/c/d/res"));
+  }
+
+  @Test
+  public void testNormalizedResourceDirectory_shortPathsAndNulls() {
+    assertThat(
+            AndroidCompiledDataDeserializer.getNormalizedResourceDirectory(
+                Paths.get("values/strings.xml")))
+        .isNull();
+    assertThat(AndroidCompiledDataDeserializer.getNormalizedResourceDirectory((Path) null))
+        .isNull();
+    assertThat(AndroidCompiledDataDeserializer.getNormalizedResourceDirectory((String) null))
+        .isNull();
+    assertThat(AndroidCompiledDataDeserializer.getNormalizedResourceDirectory("")).isNull();
+  }
+
+  @Test
+  public void testConvertToQualifiers_defaultInstance() {
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(Configuration.getDefaultInstance()))
+        .isEmpty();
+  }
+
+  @Test
+  public void testConvertToQualifiers_individualQualifiers() {
+    // MCC & MNC
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder().setMcc(310).setMnc(260).build()))
+        .containsAtLeast("mcc310", "mnc260");
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder().setMnc(0xffff).build()))
+        .containsExactly("mnc000");
+
+    // Locale
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder().setLocale("en-US").build()))
+        .containsExactly("en-rUS");
+
+    // Layout Direction
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder()
+                    .setLayoutDirection(Configuration.LayoutDirection.LAYOUT_DIRECTION_LTR)
+                    .build()))
+        .containsExactly("ldltr");
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder()
+                    .setLayoutDirection(Configuration.LayoutDirection.LAYOUT_DIRECTION_RTL)
+                    .build()))
+        .containsExactly("ldrtl");
+
+    // Dimensions & Smallest Screen Width
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder().setSmallestScreenWidthDp(600).build()))
+        .containsExactly("sw600dp");
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder().setScreenWidthDp(400).setScreenHeightDp(600).build()))
+        .containsAtLeast("w400dp", "h600dp");
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder().setScreenWidth(1024).setScreenHeight(768).build()))
+        .containsExactly("1024x768");
+
+    // Screen Layout Size & Long
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder()
+                    .setScreenLayoutSize(ScreenLayoutSize.SCREEN_LAYOUT_SIZE_LARGE)
+                    .setScreenLayoutLong(ScreenLayoutLong.SCREEN_LAYOUT_LONG_LONG)
+                    .build()))
+        .containsAtLeast("large", "long");
+
+    // Screen Round & Orientation
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder()
+                    .setScreenRound(ScreenRound.SCREEN_ROUND_ROUND)
+                    .setOrientation(Orientation.ORIENTATION_PORT)
+                    .build()))
+        .containsAtLeast("round", "port");
+
+    // UI Mode & Night Mode
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder()
+                    .setUiModeType(UiModeType.UI_MODE_TYPE_TELEVISION)
+                    .setUiModeNight(UiModeNight.UI_MODE_NIGHT_NIGHT)
+                    .build()))
+        .containsAtLeast("television", "night");
+
+    // Density
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder().setDensity(320).build()))
+        .containsExactly("xhdpi");
+
+    // Touchscreen & Keyboard
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder()
+                    .setTouchscreen(Touchscreen.TOUCHSCREEN_FINGER)
+                    .setKeysHidden(KeysHidden.KEYS_HIDDEN_KEYSEXPOSED)
+                    .setKeyboard(Configuration.Keyboard.KEYBOARD_QWERTY)
+                    .build()))
+        .containsAtLeast("finger", "keysexposed", "qwerty");
+
+    // Navigation & NavHidden
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder()
+                    .setNavHidden(NavHidden.NAV_HIDDEN_NAVEXPOSED)
+                    .setNavigation(Configuration.Navigation.NAVIGATION_DPAD)
+                    .build()))
+        .containsAtLeast("navexposed", "dpad");
+
+    // SdkVersion
+    assertThat(
+            AndroidCompiledDataDeserializer.convertToQualifiers(
+                Configuration.newBuilder().setSdkVersion(28).build()))
+        .containsExactly("v28");
+  }
+
+  @Test
+  public void testConvertToQualifiers_cachedLookup() {
+    Configuration config =
+        Configuration.newBuilder().setMcc(310).setLocale("fr-FR").setSdkVersion(30).build();
+    ImmutableList<String> first = AndroidCompiledDataDeserializer.convertToQualifiers(config);
+    ImmutableList<String> second = AndroidCompiledDataDeserializer.convertToQualifiers(config);
+    assertThat(first).containsAtLeast("mcc310", "fr-rFR", "v30");
+    assertThat(second).isSameInstanceAs(first);
   }
 
   private static class TestMapConsumer<T extends DataValue>
@@ -277,7 +456,7 @@ public class AndroidDataSerializerAndDeserializerTest {
       return new TestMapConsumer<>(new HashMap<DataKey, DataResource>());
     }
 
-    public TestMapConsumer(Map<DataKey, T> target) {
+    private TestMapConsumer(Map<DataKey, T> target) {
       this.target = target;
     }
 
@@ -342,7 +521,7 @@ public class AndroidDataSerializerAndDeserializerTest {
     }
 
     @Override
-    public Set<java.util.Map.Entry<DataKey, T>> entrySet() {
+    public Set<Entry<DataKey, T>> entrySet() {
       return target.entrySet();
     }
 

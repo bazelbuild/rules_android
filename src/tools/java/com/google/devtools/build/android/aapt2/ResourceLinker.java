@@ -33,6 +33,7 @@ import static java.util.zip.ZipEntry.STORED;
 import com.android.builder.core.DefaultManifestParser;
 import com.android.builder.core.VariantTypeImpl;
 import com.android.repository.Revision;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -44,6 +45,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.devtools.build.android.AaptCommandBuilder;
 import com.google.devtools.build.android.AndroidCompiledDataDeserializer;
@@ -72,6 +74,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -641,19 +644,49 @@ public class ResourceLinker {
     }
   }
 
-  private Path extractPackages(CompiledResources compiled) throws IOException {
+  @VisibleForTesting
+  Path extractPackages(CompiledResources compiled) throws IOException {
+    profiler.startTask("packages");
     Path packages = workingDirectory.resolve("packages");
-    try (BufferedWriter writer = Files.newBufferedWriter(packages, StandardOpenOption.CREATE_NEW)) {
-      for (CompiledResources resources : FluentIterable.from(include).append(compiled)) {
-        writer.append(
-            new DefaultManifestParser(
-                    resources.getManifest().toFile(),
-                    /* canParseManifest= */ () -> true,
-                    /* isManifestFileRequired= */ true,
-                    /* issueReporter= */ null)
-                .getPackage());
-        writer.newLine();
+    ImmutableList<CompiledResources> allResources =
+        ImmutableList.<CompiledResources>builderWithExpectedSize(include.size() + 1)
+            .addAll(include)
+            .add(compiled)
+            .build();
+
+    ImmutableList.Builder<ListenableFuture<String>> packageFuturesBuilder =
+        ImmutableList.builderWithExpectedSize(allResources.size());
+    Map<Path, ListenableFuture<String>> manifestCache = new HashMap<>();
+    for (CompiledResources resources : allResources) {
+      Path manifest = resources.getManifest();
+      ListenableFuture<String> future = manifestCache.get(manifest);
+      if (future == null) {
+        future =
+            executorService.submit(
+                () ->
+                    new DefaultManifestParser(
+                            manifest.toFile(),
+                            /* canParseManifest= */ () -> true,
+                            /* isManifestFileRequired= */ true,
+                            /* issueReporter= */ null)
+                        .getPackage());
+        manifestCache.put(manifest, future);
       }
+      packageFuturesBuilder.add(future);
+    }
+    ImmutableList<ListenableFuture<String>> packageFutures = packageFuturesBuilder.build();
+
+    try (BufferedWriter writer = Files.newBufferedWriter(packages, StandardOpenOption.CREATE_NEW)) {
+      for (ListenableFuture<String> future : packageFutures) {
+        try {
+          writer.append(future.get());
+          writer.newLine();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    } finally {
+      profiler.recordEndOf("packages");
     }
     return packages;
   }
@@ -678,7 +711,8 @@ public class ResourceLinker {
     }
 
     Preconditions.checkState(
-        !optimizeThroughput, "Invalid state: calling optimize() when optimizeThroughput is enabled");
+        !optimizeThroughput,
+        "Invalid state: calling optimize() when optimizeThroughput is enabled");
 
     profiler.startTask("optimize");
     final Path optimized =
