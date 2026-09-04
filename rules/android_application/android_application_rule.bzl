@@ -133,6 +133,7 @@ def _process_feature_module(
         transitive_compiled_assets = [res.transitive_compiled_assets],
         transitive_resource_files = [res.transitive_resource_files],
         transitive_compiled_resources = [res.transitive_compiled_resources],
+        transitive_compiled_resources_with_public_xml = [res.transitive_compiled_resources_with_public_xml],
         transitive_r_txts = [res.transitive_r_txts],
         additional_apks_to_link_against = [base_apk],
         proto_format = True,  # required for aab.

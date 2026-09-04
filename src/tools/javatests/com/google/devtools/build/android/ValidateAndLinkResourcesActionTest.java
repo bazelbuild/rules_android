@@ -285,6 +285,66 @@ public class ValidateAndLinkResourcesActionTest {
   }
 
   @Test
+  public void visibilityCheck_emptyVisibilityDepsSkipsCheck() throws Exception {
+    Map<String, String> libFiles = new HashMap<>();
+    libFiles.put(
+        "values/values.xml",
+        "<resources><string name=\"lib_string\">@string/private_string</string></resources>");
+
+    CompiledResources lib =
+        createCompiledResources("lib", libFiles, "<manifest package=\"com.lib\"/>");
+
+    // When visibilityDeps is empty, checkVisibilityOfResourceReferences should succeed without
+    // throwing
+    ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
+        XmlUtils.getAllResourceReferences(XmlNode.getDefaultInstance()), lib, ImmutableList.of());
+  }
+
+  @Test
+  public void testCompiledDepWithPublicXml_omittedFallsBackToCompiledDeps() throws Exception {
+    Map<String, String> depFiles = new HashMap<>();
+    depFiles.put(
+        "values/public.xml",
+        "<resources><public name=\"public_string\" type=\"string\"/></resources>");
+    depFiles.put(
+        "values/strings.xml",
+        "<resources><string name=\"private_string\">hello</string></resources>");
+
+    CompiledResources dep =
+        createCompiledResources("dep", depFiles, "<manifest package=\"com.dep\"/>");
+
+    Map<String, String> libFiles = new HashMap<>();
+    libFiles.put(
+        "values/values.xml",
+        "<resources><string name=\"lib_string\">@string/private_string</string></resources>");
+
+    CompiledResources lib =
+        createCompiledResources("lib", libFiles, "<manifest package=\"com.lib\"/>");
+
+    Path outLib = tempDir.resolve("lib.apk");
+    Path outSrcJar = tempDir.resolve("r.srcjar");
+    Path outRTxt = tempDir.resolve("R.txt");
+
+    String[] args =
+        new String[] {
+          "--aapt2",
+          aapt2.toString(),
+          "--resources",
+          lib.getZip().toString() + ":" + lib.getManifest().toString(),
+          "--compiledDep",
+          dep.getZip().toString(),
+          "--staticLibraryOut",
+          outLib.toString(),
+          "--sourceJarOut",
+          outSrcJar.toString(),
+          "--rTxtOut",
+          outRTxt.toString()
+        };
+
+    assertThrows(UserException.class, () -> ValidateAndLinkResourcesAction.main(args));
+  }
+
+  @Test
   public void testCheckVisibilityOfResourceReferences_directoryWithoutPublicNotPrivate()
       throws Exception {
     Map<String, String> depFiles = new HashMap<>();

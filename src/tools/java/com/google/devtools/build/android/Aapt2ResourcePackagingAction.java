@@ -136,7 +136,7 @@ public class Aapt2ResourcePackagingAction {
         names = "--compiledDepWithPublicXml",
         listConverter = CompatPathListConverter.class,
         description = "Compiled resource dependencies containing explicit public.xml declarations.")
-    public List<Path> compiledDepsWithPublicXml = ImmutableList.of();
+    public List<Path> compiledDepsWithPublicXml;
 
     @Parameter(
         names = "--packageId",
@@ -434,7 +434,7 @@ public class Aapt2ResourcePackagingAction {
       }
 
       ImmutableList<CompiledResources> visibilityDeps =
-          !options.compiledDepsWithPublicXml.isEmpty()
+          options.compiledDepsWithPublicXml != null
               ? options.compiledDepsWithPublicXml.stream()
                   .map(CompiledResources::from)
                   .collect(toImmutableList())

@@ -1306,6 +1306,8 @@ starlark_process_test(
                 "bazel-out/k8-fastbuild/bin/test/rules/resources/manifest_without_resources_symbols/R.aapt2.txt",
                 "bazel-out/k8-fastbuild/bin/test/rules/resources/manifest_without_resources_symbols/symbols.zip",
             ]),
+            "--compiledDepWithPublicXml",
+            "",
             "--primaryData",
             ":".join([
                 "",

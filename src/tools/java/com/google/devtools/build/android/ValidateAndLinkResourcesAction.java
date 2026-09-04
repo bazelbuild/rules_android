@@ -62,7 +62,7 @@ public final class ValidateAndLinkResourcesAction {
         names = "--compiledDepWithPublicXml",
         listConverter = Converters.CompatPathListConverter.class,
         description = "Compiled resource dependencies containing explicit public.xml declarations.")
-    public List<Path> compiledDepsWithPublicXml = ImmutableList.of();
+    public List<Path> compiledDepsWithPublicXml;
 
     /**
      * TODO(b/64570523): Still used by blaze. Will be removed as part of the command line cleanup.
@@ -158,7 +158,7 @@ public final class ValidateAndLinkResourcesAction {
       ImmutableList<CompiledResources> includes =
           options.compiledDeps.stream().map(CompiledResources::from).collect(toImmutableList());
       ImmutableList<CompiledResources> visibilityIncludes =
-          !options.compiledDepsWithPublicXml.isEmpty()
+          options.compiledDepsWithPublicXml != null
               ? options.compiledDepsWithPublicXml.stream()
                   .map(CompiledResources::from)
                   .collect(toImmutableList())

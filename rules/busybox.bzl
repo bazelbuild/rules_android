@@ -353,13 +353,15 @@ def _package(
     transitive_input_files.extend(transitive_assets)
     transitive_input_files.extend(transitive_compiled_assets)
     transitive_input_files.extend(transitive_compiled_resources)
-    if transitive_compiled_resources_with_public_xml:
-        compiled_dep_with_public_xml = depset(transitive = transitive_compiled_resources_with_public_xml)
-        args.add_joined(
-            "--compiledDepWithPublicXml",
-            compiled_dep_with_public_xml,
-            join_with = ":",
-        )
+    compiled_dep_with_public_xml = depset(transitive = transitive_compiled_resources_with_public_xml)
+
+    # An empty list explicitly indicates that there are no public resources, causing visibility validation to be skipped.
+    args.add_joined(
+        "--compiledDepWithPublicXml",
+        compiled_dep_with_public_xml,
+        join_with = ":",
+        omit_if_empty = False,
+    )
     transitive_input_files.extend(transitive_manifests)
     transitive_input_files.extend(transitive_r_txts)
     args.add(
@@ -652,12 +654,14 @@ def _validate_and_link(
         join_with = ":",
     )
     transitive_input_files.append(transitive_compiled_resources)
-    if transitive_compiled_resources_with_public_xml:
-        args.add_joined(
-            "--compiledDepWithPublicXml",
-            transitive_compiled_resources_with_public_xml,
-            join_with = ":",
-        )
+
+    # An empty list explicitly indicates that there are no public resources, causing visibility validation to be skipped.
+    args.add_joined(
+        "--compiledDepWithPublicXml",
+        transitive_compiled_resources_with_public_xml,
+        join_with = ":",
+        omit_if_empty = False,
+    )
     args.add("--manifest", manifest)
     input_files.append(manifest)
     if java_package:
