@@ -154,6 +154,11 @@ Bazel places build artifacts in the `bazel-bin` output directory:
 *   **ProGuard Mapping File:** `bazel-bin/path/to/r8-optimized-app_proguard.map`
     (generated when `proguard_generate_mapping = True`), containing mapping data
     for stack trace de-obfuscation.
+*   **Optimization Config Analyzer Report:**
+    `bazel-bin/path/to/r8-optimized-app_optimization_report.html` (generated when
+    requesting the `--output_groups=optimization_config_analyzer` output group),
+    an interactive visual HTML report analyzing R8 configuration quality and keep
+    rule impact.
 *   **Optional diagnostic files:** Diagnostic files such as seeds and usage
     lists indicating which classes and members were kept or removed can
     optionally be configured via flags in `proguard-rules.pro`, e.g.
@@ -166,6 +171,77 @@ unoptimized and optimized builds may be minimal. However, as an application
 grows and incorporates larger third-party dependencies (such as Guava, AndroidX,
 or gRPC), R8's tree shaking and resource shrinking can significantly reduce the
 final download and install size.
+
+## R8 Configuration Analyzer
+
+The
+**[R8 Configuration Analyzer](https://developer.android.com/topic/performance/app-optimization/r8-configuration-analyzer)**
+is a diagnostic tool designed to help you maximize R8's performance benefits by
+providing detailed insights into your application's optimization quality and the
+impact of each keep rule.
+
+Because keep rules prevent R8 from shrinking, optimizing, and obfuscating code,
+broad or overly conservative rules can significantly reduce optimization effectiveness. The
+Configuration Analyzer produces an interactive HTML report to help you audit and
+refine your rules.
+
+### Generating the report
+
+To generate the Configuration Analyzer report, build your target with the
+`optimization_config_analyzer` output group:
+
+```bash
+bazel build //path/to:r8-optimized-app --output_groups=optimization_config_analyzer
+```
+
+Bazel generates the report at:
+
+```
+bazel-bin/path/to/r8-optimized-app_optimization_report.html
+```
+
+You can open this HTML file directly in any web browser to inspect the results.
+
+### Understanding the report metrics
+
+The Configuration Analyzer report calculates three primary scores that represent
+the percentage of your codebase available for optimization:
+
+*   **Shrinking score:** The percentage of classes, fields, and methods that R8
+    is permitted to remove if unused. A higher score means fewer unreachable
+    classes and fewer members are kept unnecessarily.
+*   **Optimization score:** The percentage of code available for R8 bytecode
+    optimizations (such as method inlining, dead-code removal, and class
+    merging). Improving this score helps reduce app startup latency and runtime
+    memory usage.
+*   **Obfuscation score:** The percentage of classes, fields, and methods
+    available for name minification, reducing DEX metadata overhead.
+
+### Refining keep rules with the report
+
+Use the report to systematically optimize your configuration:
+
+1.  **Identify broad keep rules:** View the list of keep rules sorted by the
+    number of classes, methods, and fields they prevent from being optimized.
+    Look for broad wildcards (such as `-keep class com.example.** { *; }`) and
+    refine them to target only the specific members accessed via reflection or
+    JNI.
+2.  **Audit third-party library rules:** Third-party dependencies may bundle
+    conservative consumer keep rules. The report attributes each rule to its
+    source configuration file, helping you identify libraries that
+    disproportionately hinder optimization.
+3.  **Resolve subsumed rules:** The analyzer highlights overlapping rules where
+    a broad rule subsumes a narrower rule (for instance, a package-wide wildcard
+    rule that overlaps a single-class rule). You can remove redundant rules or
+    narrow the broader rule to unlock optimizations.
+4.  **Prune unused and duplicate rules:** Identify **unused rules** (rules that
+    match zero classes or members in your build) and **identical rules**
+    duplicated across configuration files, keeping your configuration clean and
+    maintainable.
+
+After refining rules in your `proguard-rules.pro`, re-run the build with
+`--output_groups=optimization_config_analyzer` to verify score improvements, and
+run your test suite to ensure runtime functionality is preserved.
 
 ## Troubleshooting & testing
 
@@ -187,6 +263,10 @@ app, refer to the following R8 guides:
 
 *   [Android App Tutorial](https://bazel.build/start/android-app) – Step-by-step
     walkthrough of building Android apps with Bazel.
+*   [R8 Configuration
+    Analyzer](https://developer.android.com/topic/performance/app-optimization/r8-configuration-analyzer)
+    – Official Android guide to using the R8 Configuration Analyzer and refining
+    keep rules.
 *   [Fast Iterative Development with mobile-install](https://bazel.build/docs/mobile-install)
     – Accelerate Android development cycles.
 *   [Android R8 Keep Rules
