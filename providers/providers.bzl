@@ -224,6 +224,7 @@ AndroidOptimizationInfo = provider(
     fields = dict(
         d8_optimization_info = "Metadata produced by D8 about the applied optimizations in a JSON format.",
         r8_optimization_info = "Metadata produced by R8 about the applied optimizations in a JSON format.",
+        optimization_analysis_report = "HTML report produced by the optimization configuration analyzer.",
     ),
 )
 

@@ -375,7 +375,7 @@ def _impl(ctx):
         is_executable = True,
     )
 
-    return [
+    providers = [
         ctx.attr.base_module[ApkInfo],
         ctx.attr.base_module[AndroidPreDexJarInfo],
         AndroidBundleInfo(unsigned_aab = ctx.outputs.unsigned_aab),
@@ -387,6 +387,12 @@ def _impl(ctx):
             ] + deploy_script_files, transitive_files = java_runtime.files),
         ),
     ]
+
+    # Pass through AndroidOptimizationInfo from base module, if optimization analysis was performed.
+    if AndroidOptimizationInfo in ctx.attr.base_module:
+        providers.append(ctx.attr.base_module[AndroidOptimizationInfo])
+
+    return providers
 
 android_application = rule(
     attrs = ANDROID_APPLICATION_ATTRS,

@@ -215,6 +215,12 @@ _ATTRS = dict(
         default = "@bazel_tools//tools/jdk:proguard_whitelister",
         executable = True,
     ),
+    optimization_config_analyzer_generator = attr.label(
+        cfg = "exec",
+        default = "//tools/android:keep_radius_html_report_generator",
+        executable = True,
+        allow_files = True,
+    ),
     profgen = attr.label(
         default = "@androidsdk//:fail",
         cfg = "exec",

@@ -66,3 +66,14 @@ script_test(
         "@rules_shell//shell/runfiles",
     ],
 )
+
+filegroup(
+    name = "optimization_config_analyzer_report",
+    srcs = ["//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_R8_shrink"],
+    output_group = "optimization_config_analyzer",
+)
+
+build_test(
+    name = "optimization_config_analyzer_report_test",
+    targets = [":optimization_config_analyzer_report"],
+)

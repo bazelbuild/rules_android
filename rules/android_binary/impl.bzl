@@ -401,8 +401,13 @@ def _process_dex(ctx, validation_ctx, packaged_resources_ctx, manifest_ctx, depl
     )
     providers.append(AndroidPreDexJarInfo(pre_dex_jar = binary_jar))
 
-    if build_metadata_output != None:
-        providers.append(AndroidOptimizationInfo(d8_optimization_info = build_metadata_output))
+    if build_metadata_output != None or optimize_ctx.html_report != None:
+        providers.append(
+            AndroidOptimizationInfo(
+                d8_optimization_info = build_metadata_output,
+                optimization_analysis_report = optimize_ctx.html_report,
+            ),
+        )
 
     if postprocessing_output_map:
         providers.append(ProguardMappingInfo(proguard_mapping = postprocessing_output_map))
@@ -719,7 +724,10 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         return ProviderInfo(
             name = "optimize_ctx",
             value = struct(
-                proguard_output = proguard.create_empty_proguard_output(ctx, proguard_output_jar),
+                proguard_output = proguard.create_empty_proguard_output(
+                    ctx,
+                    proguard_output_jar = proguard_output_jar,
+                ),
                 resources_apk = None,
                 providers = [],
             ),
@@ -776,7 +784,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     else:
         proguard_output_jar = ctx.actions.declare_file(ctx.label.name + "_proguard.jar")
         proguard_output_config = ctx.actions.declare_file(ctx.label.name + "_proguard.config")
-    proguard_seeds = ctx.actions.declare_file(ctx.label.name + "_proguard.seeds")
+    keep_radius = ctx.actions.declare_file(ctx.label.name + "_keep_radius.pb")
     proguard_usage = ctx.actions.declare_file(ctx.label.name + "_proguard.usage")
     proguard_why_keeping_file = ctx.actions.declare_file(ctx.label.name + "_proguard.why_keeping")
 
@@ -815,7 +823,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
         proguard_output_config = proguard_output_config,
         proguard_mapping = ctx.file.proguard_apply_mapping,
         proguard_output_map = proguard_output_map,
-        proguard_seeds = proguard_seeds,
+        keep_radius = keep_radius,
         proguard_usage = proguard_usage,
         proguard_why_keeping_file = proguard_why_keeping_file,
         startup_profile = startup_profile,
@@ -830,7 +838,7 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             [
                 proguard_output.output_jar,
                 proguard_output.config,
-                proguard_output.seeds,
+                proguard_output.keep_radius,
                 proguard_output.usage,
                 proguard_output.why_keeping_file,
             ],
@@ -881,6 +889,18 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
     if not optimized_resources_apk and enable_resource_shrinking:
         optimized_resources_apk = shrunk_resource_output.resources_apk
 
+    report_generator = getattr(get_android_toolchain(ctx), "optimization_config_analyzer_generator", None)
+    html_report = None
+    if proguard_output.keep_radius and report_generator:
+        html_report = ctx.actions.declare_file(ctx.label.name + "_optimization_report.html")
+        proguard.generate_report(
+            ctx,
+            out = html_report,
+            keep_radius = proguard_output.keep_radius,
+            generator_tool = report_generator.files_to_run,
+            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+        )
+
     return ProviderInfo(
         name = "optimize_ctx",
         value = struct(
@@ -888,6 +908,10 @@ def _process_optimize(ctx, validation_ctx, deploy_ctx, packaged_resources_ctx, b
             resources_apk = optimized_resources_apk,
             providers = [],
             implicit_outputs = implicit_outputs,
+            html_report = html_report,
+            output_groups = {
+                "optimization_config_analyzer": depset([html_report]) if html_report else depset(),
+            },
         ),
     )
 

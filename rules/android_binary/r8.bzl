@@ -80,6 +80,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     dexes_zip = ctx.actions.declare_file(ctx.label.name + "_dexes.zip")
     proguard_mappings_output_file = ctx.actions.declare_file(ctx.label.name + "_proguard.map")
     build_metadata_output = ctx.actions.declare_file(ctx.label.name + "_r8_optimization_info.json")
+    keep_radius = ctx.actions.declare_file(ctx.label.name + "_keep_radius.pb")
 
     android_jar = get_android_sdk(ctx).android_jar
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
@@ -141,9 +142,17 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         executable = get_android_toolchain(ctx).r8.files_to_run,
         arguments = [args],
         inputs = depset(r8_inputs, transitive = [neverlink_jars]),
-        outputs = [dexes_zip, proguard_mappings_output_file, build_metadata_output],
+        outputs = [
+            dexes_zip,
+            proguard_mappings_output_file,
+            build_metadata_output,
+            keep_radius,
+        ],
         mnemonic = "AndroidR8",
-        jvm_flags = ["-Xmx8G"],
+        jvm_flags = [
+            "-Xmx8G",
+            "-Dcom.android.tools.r8.dumpkeepradiustofile=" + keep_radius.path,
+        ],
         progress_message = "R8 Optimizing, Desugaring, and Dexing %{label}",
     )
 
@@ -183,16 +192,35 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         java_resource_jar = java_resource_jar,
     )
 
+    report_generator = getattr(get_android_toolchain(ctx), "optimization_config_analyzer_generator", None)
+    html_report = None
+    if report_generator:
+        html_report = ctx.actions.declare_file(ctx.label.name + "_optimization_report.html")
+        proguard.generate_report(
+            ctx,
+            out = html_report,
+            keep_radius = keep_radius,
+            generator_tool = report_generator.files_to_run,
+            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+        )
+
     return ProviderInfo(
         name = "r8_ctx",
         value = struct(
             final_classes_dex_zip = final_classes_dex_zip,
             dex_info = android_dex_info,
             implicit_outputs = [proguard_mappings_output_file],
+            html_report = html_report,
+            output_groups = {
+                "optimization_config_analyzer": depset([html_report]) if html_report else depset(),
+            },
             providers = [
                 android_dex_info,
                 AndroidPreDexJarInfo(pre_dex_jar = deploy_jar),
-                AndroidOptimizationInfo(r8_optimization_info = build_metadata_output),
+                AndroidOptimizationInfo(
+                    r8_optimization_info = build_metadata_output,
+                    optimization_analysis_report = html_report,
+                ),
             ],
         ),
     )

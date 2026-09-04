@@ -284,6 +284,14 @@ java_binary(
 )
 
 java_binary(
+    name = "keep_radius_html_report_generator",
+    jvm_flags = _JVM_FLAGS,
+    main_class = "com.android.tools.r8.keepradius.KeepRadiusHtmlReportGenerator",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@rules_android_maven//:com_android_tools_r8"],
+)
+
+java_binary(
     name = "resource_shrinker",
     main_class = "com.android.build.shrinker.ResourceShrinkerCli",
     visibility = ["//visibility:public"],
