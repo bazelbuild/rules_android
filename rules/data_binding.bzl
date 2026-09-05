@@ -117,7 +117,7 @@ def _setup_dependent_lib_artifacts(ctx, output_dir, deps):
             path = artifact.short_path
             if path.startswith("../"):
                 path = path[3:]
-            dep_lib_artifact = ctx.actions.declare_file(
+            dep_lib_artifact = ctx.actions.declare_directory(
                 output_dir + "dependent-lib-artifacts/" + path,
             )
 
