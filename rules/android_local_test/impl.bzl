@@ -13,6 +13,10 @@
 # limitations under the License.
 """Bazel rule for Android local test."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
 load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:attrs.bzl", "attrs")
@@ -39,10 +43,6 @@ load(
     "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_common.bzl", "java_common")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -134,13 +134,18 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         value = resources_ctx,
     )
 
-def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
-    deps = (
-        ctx.attr._implicit_classpath +
-        ctx.attr.deps +
-        [get_android_toolchain(ctx).testsupport]
-    )
+def _process_coverage(ctx, **_unused_sub_ctxs):
+    """Supplies coverage runtime configuration to the JVM and stub processors.
 
+    Replace CoverageProcessor to select a different coverage runtime. Return
+    coverage_ctx with deps (Java targets), java_start_class, coverage_start_class
+    (the JaCoCo delegate main class, or None), and additional_jvm_flags. Agent
+    jars and configuration files can be supplied via ProviderInfo.runfiles.
+
+    This configures execution only; compilation processors remain responsible
+    for selecting bytecode instrumentation.
+    """
+    deps = []
     target_runner_class = ctx.attr.main_class
 
     if ctx.configuration.coverage_enabled:
@@ -150,6 +155,24 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
     else:
         java_start_class = target_runner_class
         coverage_start_class = None
+
+    return ProviderInfo(
+        name = "coverage_ctx",
+        value = struct(
+            deps = deps,
+            java_start_class = java_start_class,
+            coverage_start_class = coverage_start_class,
+            additional_jvm_flags = [],
+        ),
+    )
+
+def _process_jvm(ctx, resources_ctx, coverage_ctx, **_unused_sub_ctxs):
+    deps = (
+        ctx.attr._implicit_classpath +
+        ctx.attr.deps +
+        [get_android_toolchain(ctx).testsupport] +
+        coverage_ctx.deps
+    )
 
     java_info = java.compile_android(
         ctx,
@@ -194,10 +217,10 @@ def _process_jvm(ctx, resources_ctx, **_unused_sub_ctxs):
             java_info = java_info,
             providers = providers,
             deps = deps,
-            java_start_class = java_start_class,
-            coverage_start_class = coverage_start_class,
+            java_start_class = coverage_ctx.java_start_class,
+            coverage_start_class = coverage_ctx.coverage_start_class,
             android_properties_file = ctx.file.robolectric_properties_file.short_path,
-            additional_jvm_flags = [],
+            additional_jvm_flags = coverage_ctx.additional_jvm_flags,
         ),
         runfiles = ctx.runfiles(files = runfiles),
     )
@@ -332,6 +355,7 @@ PROCESSORS = dict(
     ValidationsProcessor = _validations_processor,
     ManifestProcessor = _process_manifest,
     ResourceProcessor = _process_resources,
+    CoverageProcessor = _process_coverage,
     JvmProcessor = _process_jvm,
     ProtoProcessor = _process_proto,
     DeployJarProcessor = _process_deploy_jar,
