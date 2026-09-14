@@ -424,23 +424,24 @@ public class Aapt2ResourcePackagingAction {
               .link(compiled);
       profiler.recordEndOf("link").startTask("validate");
 
-      ImmutableList<Reference> manifestReferences;
-      if (packagedResources.proto() != null) {
-        manifestReferences =
-            XmlUtils.getAllResourceReferences(
-                ProtoApk.readFrom(packagedResources.proto()).getManifest());
-      } else {
-        manifestReferences = XmlUtils.getAllResourceReferences(compiled.getManifest());
-      }
-
       ImmutableList<CompiledResources> visibilityDeps =
           options.compiledDepsWithPublicXml != null
               ? options.compiledDepsWithPublicXml.stream()
                   .map(CompiledResources::from)
                   .collect(toImmutableList())
               : ImmutableList.copyOf(compiledResourceDeps);
-      ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
-          manifestReferences, compiled, visibilityDeps);
+      if (!visibilityDeps.isEmpty()) {
+        ImmutableList<Reference> manifestReferences;
+        if (packagedResources.proto() != null) {
+          manifestReferences =
+              XmlUtils.getAllResourceReferences(
+                  ProtoApk.readFrom(packagedResources.proto()).getManifest());
+        } else {
+          manifestReferences = XmlUtils.getAllResourceReferences(compiled.getManifest());
+        }
+        ValidateAndLinkResourcesAction.checkVisibilityOfResourceReferences(
+            manifestReferences, compiled, visibilityDeps);
+      }
 
       profiler.recordEndOf("validate");
 
