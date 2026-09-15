@@ -149,13 +149,17 @@ public class Aapt2ResourcePackagingAction {
         description = "Path to where the R.txt should be written.")
     public Path rOutput;
 
+    @Deprecated
     @Parameter(
         names = {
           "--symbolsOut",
           "--symbolsTxtOut" // The old name of the flag.
         },
+        hidden = true,
         converter = CompatPathConverter.class,
-        description = "Path to where the symbols should be written.")
+        description =
+            "[DEPRECATED] Path to where the symbols should be written. The symbols are no longer"
+                + " computed; an empty file is written to this path.")
     public Path symbolsOut;
 
     @Parameter(
@@ -285,7 +289,6 @@ public class Aapt2ResourcePackagingAction {
       final Path tmp = scopedTmp.getPath();
       final Path densityManifest = tmp.resolve("manifest-filtered/AndroidManifest.xml");
       final Path processedManifest = tmp.resolve("manifest-processed/AndroidManifest.xml");
-      final Path symbols = tmp.resolve("symbols/symbols.bin");
       final Path databindingResourcesRoot =
           Files.createDirectories(tmp.resolve("android_data_binding_resources"));
       final Path compiledResources = Files.createDirectories(tmp.resolve("compiled"));
@@ -327,34 +330,34 @@ public class Aapt2ResourcePackagingAction {
                           .process(manifest));
 
       profiler.recordEndOf("compile").startTask("merge");
-      if (options.throwOnResourceConflict || options.symbolsOut != null) {
-        // Checks for merge conflicts, and write the merged data out. This only happens when
-        // --throwOnResourceConflict or --symbolsOut is specified.
-        final Path symbolsBin =
-            AndroidResourceMerger.mergeDataToSymbols(
-                ParsedAndroidData.loadedFrom(
-                    DependencyInfo.DependencyType.PRIMARY,
-                    ImmutableList.of(SerializedAndroidData.from(compiled)),
-                    executorService,
-                    dataDeserializer),
-                new DensitySpecificManifestProcessor(options.densities, densityManifest)
-                    .process(options.primaryData.getManifest()),
-                ImmutableList.<SerializedAndroidData>builder()
-                    .addAll(options.directData)
-                    .addAll(options.directAssets)
-                    .build(),
-                ImmutableList.<SerializedAndroidData>builder()
-                    .addAll(options.transitiveData)
-                    .addAll(options.transitiveAssets)
-                    .build(),
-                options.packageType,
-                symbols,
-                dataDeserializer,
-                options.throwOnResourceConflict,
-                executorService);
-        if (options.symbolsOut != null) {
-          Files.copy(symbolsBin, options.symbolsOut);
-        }
+      if (options.throwOnResourceConflict) {
+        // Checks for merge conflicts.
+        AndroidResourceMerger.checkForResourceConflicts(
+            ParsedAndroidData.loadedFrom(
+                DependencyInfo.DependencyType.PRIMARY,
+                ImmutableList.of(SerializedAndroidData.from(compiled)),
+                executorService,
+                dataDeserializer),
+            compiled.getManifest(),
+            ImmutableList.<SerializedAndroidData>builder()
+                .addAll(options.directData)
+                .addAll(options.directAssets)
+                .build(),
+            ImmutableList.<SerializedAndroidData>builder()
+                .addAll(options.transitiveData)
+                .addAll(options.transitiveAssets)
+                .build(),
+            options.packageType,
+            dataDeserializer,
+            options.throwOnResourceConflict,
+            executorService);
+      }
+
+      // `symbolsOut` is obsolete and will be removed after the next android_rules release.
+      // Until then, it is still necessary to write an empty file as it may be a starlark declared
+      // output.
+      if (options.symbolsOut != null) {
+        Files.write(options.symbolsOut, new byte[0]);
       }
 
       profiler.recordEndOf("merge").startTask("link");

@@ -31,22 +31,21 @@ import java.util.logging.Logger;
 // TODO(bazel-team): Turn into an instance object, in order to use an external ExecutorService.
 public class AndroidResourceMerger {
 
-  /** Performs a merge of compiled android data. */
-  static Path mergeDataToSymbols(
+  /** Performs a merge of compiled android data to check for conflicts. */
+  static void checkForResourceConflicts(
       ParsedAndroidData primary,
       Path manifest,
       ImmutableList<SerializedAndroidData> direct,
       ImmutableList<SerializedAndroidData> transitive,
       VariantTypeImpl packageType,
-      Path symbolsOut,
       AndroidCompiledDataDeserializer deserializer,
       boolean throwOnResourceConflict,
-      ExecutorServiceCloser executorService)
-      throws IOException {
+      ExecutorServiceCloser executorService) {
     AndroidDataMerger merger =
         AndroidDataMerger.createWithPathDeduplictor(
             executorService, deserializer, AndroidDataMerger.NoopSourceChecker.create());
-    final UnwrittenMergedAndroidData merged =
+    // The merge is run purely for its conflict-detection side effect; the merged data is discarded.
+    UnwrittenMergedAndroidData unused =
         merger.loadAndMerge(
             transitive,
             direct,
@@ -54,10 +53,6 @@ public class AndroidResourceMerger {
             manifest,
             packageType.equals(VariantTypeImpl.BASE_APK),
             throwOnResourceConflict);
-    AndroidDataSerializer serializer = AndroidDataSerializer.create();
-    merged.serializeTo(serializer);
-    serializer.flushTo(symbolsOut);
-    return symbolsOut;
   }
 
   /** Thrown when there is a unexpected condition during merging. */

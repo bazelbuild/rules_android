@@ -116,7 +116,6 @@ def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
         java_package = java_package,
         shrink_resources = attrs.tristate.no,
         build_java_with_final_resources = True,
-        generate_out_symbols = False,
         generate_resource_files_zip = False,
         crunch_png = False,
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,

@@ -206,7 +206,6 @@ def _package(
         ctx,
         out_r_src_jar = None,
         out_r_txt = None,
-        out_symbols = None,
         out_manifest = None,
         out_proguard_cfg = None,
         out_main_dex_proguard_cfg = None,
@@ -253,7 +252,6 @@ def _package(
       ctx: The context.
       out_r_src_jar: A File. The R.java outputted by linking resources in a srcjar.
       out_r_txt: A File. The resource IDs outputted by linking resources in text.
-      out_symbols: A File. The output zip containing compiled resources.
       out_manifest: A File. The output processed manifest.
       out_proguard_cfg: A File. The proguard config to be generated.
       out_main_dex_proguard_cfg: A File. The main dex proguard config to be generated.
@@ -380,9 +378,6 @@ def _package(
     input_files.append(android_jar)
     args.add("--rOutput", out_r_txt)
     output_files.append(out_r_txt)
-    if out_symbols:
-        args.add("--symbolsOut", out_symbols)
-        output_files.append(out_symbols)
     args.add("--srcJarOutput", out_r_src_jar)
     output_files.append(out_r_src_jar)
     if out_proguard_cfg:

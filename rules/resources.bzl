@@ -496,7 +496,6 @@ def _package(
         should_compile_java_srcs = True,
         generate_minsdk_proguard_config = False,
         build_java_with_final_resources = False,
-        generate_out_symbols = True,
         generate_resource_files_zip = True,
         feature_flags = "",
         crunch_png = True,
@@ -568,7 +567,6 @@ def _package(
         non-final resources for linking against when building any srcs. This is
         generally only desirable for test targets that aren't potentially
         running compile-time optimizations.
-      generate_out_symbols: boolean. Whether to generate the merged symbols binary file.
       generate_resource_files_zip: boolean. Whether to generate resource_files.zip.
       feature_flags: string. The string value for --feature-flags to pass to aapt2.
       crunch_png: boolean. Determines whether `aapt2 compile` should crunch PNG files.
@@ -743,13 +741,11 @@ def _package(
     resource_files_zip = ctx.actions.declare_file(
         "_migrated/" + ctx.label.name + "_files/resource_files.zip",
     ) if generate_resource_files_zip else None
-    out_symbols = ctx.actions.declare_file("_migrated/" + ctx.label.name + "_symbols/merged.bin") if generate_out_symbols else None
     _busybox.package(
         ctx,
         out_file = resource_apk,
         out_r_src_jar = r_java,
         out_r_txt = r_txt,
-        out_symbols = out_symbols,
         out_manifest = processed_manifest,
         out_proguard_cfg = proguard_cfg,
         out_main_dex_proguard_cfg = main_dex_proguard_cfg,

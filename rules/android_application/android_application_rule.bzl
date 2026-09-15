@@ -115,7 +115,6 @@ def _process_feature_module(
         ctx,
         out_r_src_jar = ctx.actions.declare_file("R.srcjar", sibling = manifest),
         out_r_txt = ctx.actions.declare_file("R.txt", sibling = manifest),
-        out_symbols = ctx.actions.declare_file("merged.bin", sibling = manifest),
         out_manifest = ctx.actions.declare_file("AndroidManifest_processed.xml", sibling = manifest),
         out_proguard_cfg = ctx.actions.declare_file("proguard.cfg", sibling = manifest),
         out_main_dex_proguard_cfg = ctx.actions.declare_file(
