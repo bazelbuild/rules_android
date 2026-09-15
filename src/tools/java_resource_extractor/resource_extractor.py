@@ -39,6 +39,7 @@ EXCLUDED_EXTENSIONS = (
     '.java',  # Java source files
     '.scala',  # Scala source files
     '.class',  # Java class files
+    '.class.uninstrumented',  # Uninstrumented Java class files
     '.scc',  # Visual SourceSafe
     '.swp',  # vi swap file
     '.gwt.xml',  # Google Web Toolkit modules
