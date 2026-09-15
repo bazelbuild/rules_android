@@ -549,7 +549,13 @@ public class AndroidCompiledDataDeserializer implements AndroidDataDeserializer 
     ImmutableList.Builder<String> result = ImmutableList.builderWithExpectedSize(qualifiers.length);
     for (ResourceQualifier qualifier : qualifiers) {
       if (qualifier != null) {
-        result.add(qualifier.getFolderSegment());
+        // sdk-common renders the valid zero MNC as an empty folder segment.
+        if (qualifier instanceof NetworkCodeQualifier
+            && ((NetworkCodeQualifier) qualifier).getCode() == 0) {
+          result.add("mnc000");
+        } else {
+          result.add(qualifier.getFolderSegment());
+        }
       }
     }
     return result.build();

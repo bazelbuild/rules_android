@@ -9,6 +9,11 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+exports_files(
+    ["build_java8_legacy_dex.sh"],
+    visibility = ["//test/tools/android:__pkg__"],
+)
+
 config_setting(
     name = "minimal_desugaring",
     values = {
