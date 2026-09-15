@@ -13,6 +13,9 @@
 # limitations under the License.
 """Implementation."""
 
+load("@rules_java//java/common:java_common.bzl", "java_common")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo")
 load(
     "//rules:acls.bzl",
@@ -41,9 +44,7 @@ load(
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "read_possibly_native_flag", _flags = "flags")
-load("@rules_java//java/common:java_common.bzl", "java_common")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
+load("//toolchains/android:zipper.bzl", "zipper_extract")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -64,26 +65,36 @@ def extract_single_file(
         out_file,
         aar,
         filename,
-        unzip_tool,
         create_empty_file = False):
+    """Extract a single file from an AAR archive.
+
+    Args:
+      ctx: The rule context.
+      out_file: Output file to create.
+      aar: Input AAR archive.
+      filename: Name of the file to extract from the AAR.
+      create_empty_file: Whether to create an empty file if missing.
+    """
+    if create_empty_file:
+        fail("hermetic aar_import does not support create_empty_file=True")
+    extracted = ctx.actions.declare_directory(
+        out_file.dirname + "/extract_" + filename.replace("/", "_"),
+    )
+    zipper_extract(
+        ctx,
+        archive = aar,
+        output_dir = extracted,
+        entries = [filename],
+        mnemonic = "AarFileExtractZip",
+    )
     ctx.actions.run_shell(
-        tools = [unzip_tool],
-        inputs = [aar],
+        inputs = [extracted],
         outputs = [out_file],
-        command =
-            """
-            if ! {create_empty_file} || {unzip_tool} -l {aar} | grep -q {file}; then
-              {unzip_tool} -q {aar} {file} -d {dirname};
-           else
-               touch {dirname}/{file};
-           fi
-        """.format(
-                unzip_tool = unzip_tool.executable.path,
-                aar = aar.path,
-                file = out_file.basename,
-                dirname = out_file.dirname,
-                create_empty_file = str(create_empty_file).lower(),
-            ),
+        command = "cp '{src}/{file}' '{out}'".format(
+            src = extracted.path,
+            file = filename,
+            out = out_file.path,
+        ),
         mnemonic = "AarFileExtractor",
         progress_message = "Extracting %s from %s" % (filename, aar.basename),
         toolchain = ANDROID_TOOLCHAIN_TYPE,
@@ -396,8 +407,7 @@ def _validate_rule(
 
 def _process_lint_rules(
         ctx,
-        aar,
-        unzip_tool):
+        aar):
     transitive_lint_jars = [info.lint_jars for info in _utils.collect_providers(
         AndroidLintRulesInfo,
         ctx.attr.exports,
@@ -410,7 +420,6 @@ def _process_lint_rules(
             lint_jar,
             aar,
             LINT_JAR,
-            unzip_tool,
         )
         return [
             AndroidLintRulesInfo(
@@ -462,7 +471,6 @@ def impl(ctx):
     validation_outputs = []
 
     aar = _utils.only(ctx.files.aar)
-    unzip_tool = _get_android_toolchain(ctx).unzip_tool.files_to_run
     package = _java.resolve_package_from_label(ctx.label, ctx.attr.package)
 
     # Extract the AndroidManifest.xml from the AAR.
@@ -472,7 +480,6 @@ def impl(ctx):
         android_manifest,
         aar,
         ANDROID_MANIFEST,
-        unzip_tool,
     )
 
     # Bump min SDK to floor
@@ -572,7 +579,6 @@ def impl(ctx):
     lint_providers = _process_lint_rules(
         ctx,
         aar = aar,
-        unzip_tool = unzip_tool,
     )
     providers.extend(lint_providers)
 

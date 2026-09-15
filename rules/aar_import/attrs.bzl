@@ -13,12 +13,12 @@
 # limitations under the License.
 """Attributes."""
 
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -70,6 +70,10 @@ ATTRS = _attrs.add(
             cfg = "exec",
             default = Label("//tools/jdk:current_java_runtime"),
         ),
+        _hermetic_zipper = attr.label(
+            cfg = "exec",
+            default = "@bazel_tools//third_party/ijar:zipper",
+        ),
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
         ),
@@ -82,9 +86,9 @@ ATTRS = _attrs.add(
                 # https://developer.android.com/studio/projects/android-library#aar-contents
                 "@platforms//cpu:arm64": "arm64-v8a",
                 "@platforms//cpu:armv7": "armeabi-v7a",
+                "@platforms//cpu:riscv64": "riscv64",
                 "@platforms//cpu:x86_32": "x86",
                 "@platforms//cpu:x86_64": "x86_64",
-                "@platforms//cpu:riscv64": "riscv64",
             },
         ),
     ),

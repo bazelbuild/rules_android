@@ -91,8 +91,13 @@ if [[ -n "${binary_jar}" ]]; then
 
   if [[ ! -s "${rules}" ]]; then
     # No keep rules, meaning nothing to keep, so emit an empty zip
-    "$(rlocation rules_android/tools/android/zip)" -jt -X "${dest}" "${rules}"
-    "$(rlocation rules_android/tools/android/zip)" -jt -X -d "${dest}" "${rules}"
+    zipper="$(rlocation rules_android/tools/android/zip)"
+    if [[ ! -x "${zipper}" && -x "${zipper}.runfiles/bazel_tools/third_party/ijar/zipper" ]]; then
+      zipper="${zipper}.runfiles/bazel_tools/third_party/ijar/zipper"
+    fi
+    [[ "${zipper}" != /* ]] && zipper="${PWD}/${zipper}"
+    : > "${tmpdir}/empty"
+    "${zipper}" c "${dest}" "empty=${tmpdir}/empty"
     if [[ -n "${map}" ]]; then
       echo '# No desugared library mapping' > "${map}"
     fi
