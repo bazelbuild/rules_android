@@ -161,6 +161,18 @@ public class ZipFilterActionTest {
     ZipFilterAction.run(args.toArray(new String[0]));
   }
 
+  @Test
+  public void singleJarParamPath_normalizesWindowsSeparators() {
+    assertThat(
+            ZipFilterAction.singleJarParamPath(
+                Path.of(
+                    "bazel-out\\x64_windows-fastbuild\\bin\\tests\\emulator_instrumentation\\"
+                        + "instrumentation_app_deploy.jar")))
+        .isEqualTo(
+            "bazel-out/x64_windows-fastbuild/bin/tests/emulator_instrumentation/"
+                + "instrumentation_app_deploy.jar");
+  }
+
   @Test public void testFullIntegration() throws IOException {
     Path input = createZip(new Entry("foo.java", "foo"), new Entry("bar.class", "bar"),
         new Entry("baz.class", "baz"), new Entry("1.class", "1"), new Entry("2.class", "2"),
