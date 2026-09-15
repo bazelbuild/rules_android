@@ -13,7 +13,11 @@
 # limitations under the License.
 """Bazel rule for Android sdk."""
 
-load("//providers:providers.bzl", "AndroidSdkInfo")
+load(
+    "//providers:providers.bzl",
+    "AndroidSdkInfo",
+    "AndroidSdkTargetsInfo",
+)
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ANDROID_SDK_ATTRS")
 
@@ -42,6 +46,35 @@ def _impl(ctx):
         system = None,
         legacy_main_dex_list_generator = ctx.attr.legacy_main_dex_list_generator.files_to_run if ctx.attr.legacy_main_dex_list_generator else None,
     )
+    android_sdk_targets_info = AndroidSdkTargetsInfo(
+        build_tools_version = ctx.attr.build_tools_version,
+        framework_aidl = ctx.attr.framework_aidl,
+        android_jar = ctx.attr.android_jar,
+        source_properties = ctx.attr.source_properties,
+        main_dex_classes = ctx.attr.main_dex_classes,
+        adb = ctx.attr.adb,
+        dx = ctx.attr.dx,
+        main_dex_list_creator = ctx.attr.main_dex_list_creator,
+        aidl = ctx.attr.aidl,
+        aapt = ctx.attr.aapt,
+        aapt2 = ctx.attr.aapt2,
+        apk_builder = ctx.attr.apkbuilder,
+        apk_signer = ctx.attr.apksigner,
+        proguard = proguard,
+        zip_align = ctx.attr.zipalign,
+        legacy_main_dex_list_generator = ctx.attr.legacy_main_dex_list_generator,
+        core_for_system_modules_jar = ctx.attr.core_for_system_modules_jar,
+        org_apache_http_legacy = ctx.attr.org_apache_http_legacy,
+        sdk_path = ctx.attr.sdk_path,
+        files = ctx.attr.files,
+    )
+    return [
+        android_sdk_info,
+        android_sdk_targets_info,
+        platform_common.ToolchainInfo(
+            android_sdk_info = android_sdk_info,
+            android_sdk_targets_info = android_sdk_targets_info,
+        ),
     return [
         android_sdk_info,
         platform_common.ToolchainInfo(android_sdk_info = android_sdk_info),
