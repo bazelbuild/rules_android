@@ -691,6 +691,7 @@ def _validate_and_link(
         progress_message =
             "Linking Android Resources in " + out_file.short_path,
         jvm_flags = _C1_ONLY_FLAGS,
+        execution_requirements = {"supports-path-mapping": "1"},
     )
 
 def _compile(
