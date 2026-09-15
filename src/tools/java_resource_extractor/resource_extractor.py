@@ -86,7 +86,10 @@ def IsValidPath(path):
   # allow META-INF/services at the root to support ServiceLoader
   if dirs[:2] == ['meta-inf', 'services']:
     return True
-
+  # allow META-INF/*.version files to support AS Layout Inspector
+  if dirs[:1] == ['meta-inf'] and filename.endswith('.version'):
+    return True
+    
   return not any(dir in EXCLUDED_DIRECTORIES for dir in dirs)
 
 
