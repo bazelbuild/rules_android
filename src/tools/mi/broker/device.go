@@ -48,6 +48,7 @@ type Controller interface {
 // Device holds information of a particular android device.
 type Device struct {
 	Ctl      Controller
+	ADBPath  string
 	abis     []string
 	Props    map[string]string
 	userOnce sync.Once
@@ -59,10 +60,14 @@ type Device struct {
 }
 
 // New creates and returns a new Device.
-func New(ctx context.Context, deviceSerial, port, tmpDir string, adbPath string, useADBRoot bool) (*Device, error) {
-	ctl, err := initDeviceController(ctx, adbPath, deviceSerial, port, useADBRoot)
+func New(ctx context.Context, deviceSerial, port, tmpDir string, adbPath, toolchainADBPath string, useADBRoot bool) (*Device, error) {
+	ctl, err := initDeviceController(ctx, adbPath, toolchainADBPath, deviceSerial, port, useADBRoot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize device controller %v", err)
+	}
+	selectedADBPath := ""
+	if adbCtl, ok := ctl.(*adb.Controller); ok {
+		selectedADBPath = adbCtl.Path
 	}
 	props, err := getProp(ctx, ctl)
 	if err != nil {
@@ -85,7 +90,7 @@ func New(ctx context.Context, deviceSerial, port, tmpDir string, adbPath string,
 	if abis == "" {
 		return nil, errors.New("unable to get supported ABIs from device")
 	}
-	d := &Device{Ctl: ctl, tmpDir: tmpDir, APILevel: apiLevel, ABI: abi, ABIs: strings.Split(abis, ",")}
+	d := &Device{Ctl: ctl, ADBPath: selectedADBPath, tmpDir: tmpDir, APILevel: apiLevel, ABI: abi, ABIs: strings.Split(abis, ",")}
 	return d, nil
 }
 
@@ -181,10 +186,10 @@ func parseProperties(in string) (map[string]string, error) {
 	return props, nil
 }
 
-func initDeviceController(ctx context.Context, adbPath string, deviceSerial, port string, useADBRoot bool) (Controller, error) {
+func initDeviceController(ctx context.Context, adbPath, toolchainADBPath string, deviceSerial, port string, useADBRoot bool) (Controller, error) {
 	var ctl Controller
 	var err error
-	ctl, err = adb.New(ctx, os.Environ(), deviceSerial, port, adbPath, useADBRoot)
+	ctl, err = adb.New(ctx, os.Environ(), deviceSerial, port, adbPath, toolchainADBPath, useADBRoot)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to connect to device: %v", err)
 	}

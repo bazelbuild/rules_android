@@ -215,16 +215,24 @@ func (a *Controller) Pull(ctx context.Context, from, to string) error {
 
 // setupEnv determines which adb path to use and sets up the implicit environment settings required
 // and returns a prepared environment and the correct adb path.
-func setupEnv(ctx context.Context, env []string, adbPath string) (*ADB, error) {
+func setupEnv(ctx context.Context, env []string, adbPath, toolchainADBPath string) (*ADB, error) {
 	adbSource := "default"
-
-	// Find ANDROID_ADB entry from environment vars, if found set it as the path unless overridden.
 	adbEnv := &ADB{}
-	for _, entry := range env {
-		if strings.HasPrefix(entry, androidADBVar) {
-			adbEnv.Path = strings.TrimPrefix(entry, androidADBVar)
-			adbSource = "environment variable"
-			break
+
+	// The flag should always win
+	if adbPath != "" {
+		adbEnv.Path = adbPath
+		adbSource = "flag"
+	}
+
+	if adbEnv.Path == "" {
+		// Find ANDROID_ADB entry from environment vars, if found set it as the path unless overridden.
+		for _, entry := range env {
+			if strings.HasPrefix(entry, androidADBVar) {
+				adbEnv.Path = strings.TrimPrefix(entry, androidADBVar)
+				adbSource = "environment variable"
+				break
+			}
 		}
 	}
 
@@ -237,10 +245,9 @@ func setupEnv(ctx context.Context, env []string, adbPath string) (*ADB, error) {
 		}
 	}
 
-	// The flag should always win
-	if adbPath != "" {
-		adbEnv.Path = adbPath
-		adbSource = "flag"
+	if adbEnv.Path == "" && toolchainADBPath != "" {
+		adbEnv.Path = toolchainADBPath
+		adbSource = "toolchain"
 	}
 
 	// Fallback to default pre-installed adb, if it exists, or fail if not found.
@@ -258,8 +265,8 @@ func setupEnv(ctx context.Context, env []string, adbPath string) (*ADB, error) {
 
 // New creates a new adb Controller.
 // If more than once device is available, deviceFlag must be specified.
-func New(ctx context.Context, env []string, deviceSerial, adbPort, adbPath string, useADBRoot bool) (*Controller, error) {
-	a, err := setupEnv(ctx, env, adbPath)
+func New(ctx context.Context, env []string, deviceSerial, adbPort, adbPath, toolchainADBPath string, useADBRoot bool) (*Controller, error) {
+	a, err := setupEnv(ctx, env, adbPath, toolchainADBPath)
 	if err != nil {
 		return nil, err
 	}
