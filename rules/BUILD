@@ -180,3 +180,10 @@ java_library(
     name = "aidl_lib",
     visibility = ["//visibility:public"],
 )
+
+# Empty AIDL annotations library for OSS. The SDK annotations jar containing
+# @android.annotation.Hide is not available outside google3.
+java_library(
+    name = "aidl_annotations_lib",
+    visibility = ["//visibility:public"],
+)

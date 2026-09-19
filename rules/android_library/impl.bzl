@@ -221,6 +221,7 @@ def _process_idl(ctx, **unused_sub_ctxs):
             exports = utils.collect_providers(AndroidIdlInfo, ctx.attr.exports),
             aidl = get_android_sdk(ctx).aidl,
             aidl_lib = ctx.attr._aidl_lib,
+            aidl_annotations_lib = ctx.attr._aidl_annotations_lib,
             aidl_framework = get_android_sdk(ctx).framework_aidl,
             uses_aosp_compiler = ctx.attr.idl_uses_aosp_compiler,
             idlopts = ctx.attr.idlopts,

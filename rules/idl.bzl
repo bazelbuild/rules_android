@@ -136,6 +136,30 @@ def _determine_idl_import_roots(
         idl_imports,
     )
 
+def _idl_deps(
+        idl_java_srcs,
+        aidl_lib,
+        aidl_annotations_lib,
+        uses_aosp_compiler):
+    """Determines the libraries the generated Java sources need to compile.
+
+    Args:
+      idl_java_srcs: sequence of Files. The Java sources generated from IDL.
+      aidl_lib: Target or None. The google3 AIDL runtime library.
+      aidl_annotations_lib: Target or None. The SDK annotations library.
+      uses_aosp_compiler: boolean. Whether the AOSP AIDL compiler was used.
+
+    Returns:
+      A list of Targets to add to the Java compilation.
+    """
+    if not idl_java_srcs:
+        return []
+    if uses_aosp_compiler:
+        # The AOSP compiler stamps the sources it generates with SDK annotations
+        # such as @android.annotation.Hide, which are not part of android.jar.
+        return [aidl_annotations_lib] if aidl_annotations_lib else []
+    return [aidl_lib] if aidl_lib else []
+
 def _process(
         ctx,
         idl_srcs = [],
@@ -146,6 +170,7 @@ def _process(
         exports = [],
         aidl = None,
         aidl_lib = None,
+        aidl_annotations_lib = None,
         aidl_framework = None,
         uses_aosp_compiler = False,
         idlopts = []):
@@ -196,6 +221,10 @@ def _process(
       aidl_lib: Target. A target pointing to the aidl_lib library required
         during Java compilation when Java code is generated from idl sources using the google aidl
         compiler. Optional.
+      aidl_annotations_lib: Target. A target pointing to the SDK annotations
+        library (@android.annotation.Hide and friends) required during Java
+        compilation when Java code is generated from idl sources using the AOSP
+        aidl compiler. Optional.
       aidl_framework: Target. A target pointing to the aidl framework. Optional,
         unless idl_srcs are supplied.
       uses_aosp_compiler: boolean. If True, the upstream AOSP AIDL compiler is
@@ -259,7 +288,12 @@ def _process(
         idl_srcs = idl_srcs,
         idl_import_root = idl_import_root,
         idl_java_srcs = idl_java_srcs,
-        idl_deps = [aidl_lib] if (idl_java_srcs and aidl_lib and not uses_aosp_compiler) else [],
+        idl_deps = _idl_deps(
+            idl_java_srcs,
+            aidl_lib,
+            aidl_annotations_lib,
+            uses_aosp_compiler,
+        ),
         providers = [
             AndroidIdlInfo(
                 transitive_idl_import_roots = depset(
