@@ -196,3 +196,103 @@ android_sdk_repository_extension = use_extension("//rules/android_sdk_repository
 use_repo(android_sdk_repository_extension, "androidsdk")
 
 register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
+
+flag_alias(
+    name = "android_fixed_resource_neverlinking",
+    starlark_flag = "//flags:fixed_resource_neverlinking",
+)
+
+flag_alias(
+    name = "android_manifest_merger_order",
+    starlark_flag = "//flags:android_manifest_merger_order",
+)
+
+flag_alias(
+    name = "android_platforms",
+    starlark_flag = "//flags:android_platforms",
+)
+
+flag_alias(
+    name = "android_resource_shrinking",
+    starlark_flag = "//flags:android_resource_shrinking",
+)
+
+flag_alias(
+    name = "apk_signing_method",
+    starlark_flag = "//flags:apk_signing_method",
+)
+
+flag_alias(
+    name = "desugar_for_android",
+    starlark_flag = "//flags:desugar_for_android",
+)
+
+flag_alias(
+    name = "desugar_java8_libs",
+    starlark_flag = "//flags:desugar_java8_libs",
+)
+
+flag_alias(
+    name = "dexopts_supported_in_dexsharder",
+    starlark_flag = "//flags:dexopts_supported_in_dexsharder",
+)
+
+flag_alias(
+    name = "experimental_android_compress_java_resources",
+    starlark_flag = "//flags:experimental_android_compress_java_resources",
+)
+
+flag_alias(
+    name = "experimental_android_library_exports_manifest_default",
+    starlark_flag = "//flags:experimental_android_library_exports_manifest_default",
+)
+
+flag_alias(
+    name = "experimental_android_resource_cycle_shrinking",
+    starlark_flag = "//flags:experimental_android_resource_cycle_shrinking",
+)
+
+flag_alias(
+    name = "experimental_android_resource_name_obfuscation",
+    starlark_flag = "//flags:experimental_android_resource_name_obfuscation",
+)
+
+flag_alias(
+    name = "experimental_android_resource_path_shortening",
+    starlark_flag = "//flags:experimental_android_resource_path_shortening",
+)
+
+flag_alias(
+    name = "experimental_android_resource_shrinking",
+    starlark_flag = "//flags:experimental_android_resource_shrinking",
+)
+
+flag_alias(
+    name = "experimental_get_android_java_resources_from_optimized_jar",
+    starlark_flag = "//flags:experimental_get_android_java_resources_from_optimized_jar",
+)
+
+flag_alias(
+    name = "experimental_incremental_dexing_after_proguard",
+    starlark_flag = "//flags:experimental_incremental_dexing_after_proguard",
+)
+
+flag_alias(
+    name = "internal_persistent_android_dex_desugar",
+    starlark_flag = "//flags:internal_persistent_android_dex_desugar",
+)
+
+flag_alias(
+    name = "internal_persistent_busybox_tools",
+    starlark_flag = "//flags:internal_persistent_busybox_tools",
+)
+
+flag_alias(
+    name = "internal_persistent_multiplex_android_dex_desugar",
+    starlark_flag = "//flags:internal_persistent_multiplex_android_dex_desugar",
+)
+
+flag_alias(
+    name = "internal_persistent_multiplex_busybox_tools",
+    starlark_flag = "//flags:internal_persistent_multiplex_busybox_tools",
+)
