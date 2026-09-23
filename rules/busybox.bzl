@@ -1386,6 +1386,7 @@ def _optimize(
         output_files.append(resource_path_shortening_map)
     if resource_optimization_config:
         args.add("--collapse-resource-names")
+        args.add("--deduplicate-entry-values")
         args.add("--resources-config-path", resource_optimization_config)
         input_files.append(resource_optimization_config)
     if enable_sparse_encoding:
