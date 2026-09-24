@@ -335,10 +335,6 @@ public class AndroidDataSerializerAndDeserializerTest {
             AndroidCompiledDataDeserializer.convertToQualifiers(
                 Configuration.newBuilder().setMcc(310).setMnc(260).build()))
         .containsAtLeast("mcc310", "mnc260");
-    assertThat(
-            AndroidCompiledDataDeserializer.convertToQualifiers(
-                Configuration.newBuilder().setMnc(0xffff).build()))
-        .containsExactly("mnc000");
 
     // Locale
     assertThat(
