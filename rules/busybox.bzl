@@ -1120,7 +1120,7 @@ def _generate_binary_r(
         inputs = depset([r_txt, manifest], transitive = transitive_r_txts + transitive_manifests),
         outputs = [out_class_jar],
         mnemonic = "StarlarkRClassGenerator",
-        progress_message = "Generating R classes",
+        progress_message = "Generating R classes for %s" % out_class_jar.short_path,
     )
 
 def _make_aar(
