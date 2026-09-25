@@ -1,5 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//rules:rules.bzl", "android_local_test")
+load(":coverage_test.bzl", "coverage_test_suite")
 load(":java_launcher_integration_test.bzl", "android_local_test_launcher_integration_test_suite")
 load(":java_launcher_test.bzl", "android_local_test_launcher_test_suite")
 
@@ -20,10 +21,15 @@ bzl_library(
     srcs = glob(["*.bzl"]),
     visibility = ["//visibility:private"],
     deps = [
+        "//rules:common_bzl",
         "//rules:visibility_bzl",
+        "//rules/android_local_test:bzl",
+        "@bazel_skylib//lib:unittest",
         "@rules_java//java/common",
     ],
 )
+
+coverage_test_suite(name = "coverage_tests")
 
 android_local_test(
     name = "sample_test_default_launcher",
