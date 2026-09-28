@@ -147,7 +147,7 @@ def host_jvm_path(ctx):
     """
     return str(ctx.attr._host_java_runtime[java_common.JavaRuntimeInfo].java_executable_exec_path)
 
-def dex(ctx, jar, out_dex_shards, deps = None):
+def dex(ctx, jar, out_dex_shards, deps = None, bootclasspath = None):
     """Desugar, dex and shard a Jar.
 
     Args:
@@ -157,12 +157,16 @@ def dex(ctx, jar, out_dex_shards, deps = None):
         is given, will shard the Jar to Dex across all given files in a
         deterministic manner.
       deps: The list of dependencies for the Jar being desugared.
+      bootclasspath: The list of bootclasspath entries for the Jar being
+        desugared. Defaults to the android.jar from the _android_sdk attr.
     """
     min_sdk = _min_sdk_version.DEX_DESUGAR
     args = ctx.actions.args()
     args.use_param_file(param_file_arg = "-flagfile=%s", use_always = True)
 
-    args.add("-android_jar", first(ctx.files._android_sdk))
+    if not bootclasspath:
+        bootclasspath = [first(ctx.files._android_sdk)]
+    args.add_joined("-bootclasspath", bootclasspath, join_with = ",")
     if deps:
         args.add_joined("-classpath", deps, join_with = ",")
     args.add("-desugar_core_libs", "True")
@@ -194,7 +198,7 @@ def dex(ctx, jar, out_dex_shards, deps = None):
         tools = [ctx.executable._desugar_dex_sharding],
         arguments = [launcher_args, args],
         inputs = depset(
-            ctx.files._android_sdk + ctx.files._mi_host_javabase + [jar, ctx.file._desugared_lib_config],
+            bootclasspath + ctx.files._mi_host_javabase + [jar, ctx.file._desugared_lib_config],
             transitive = [deps] if deps else [],
         ),
         outputs = out_dex_shards,

@@ -66,10 +66,10 @@ final class DesugarDexShardingAction {
   @Parameters(separators = "= ")
   public static class Options {
     @Parameter(
-        names = "-android_jar",
+        names = "-bootclasspath",
         converter = CompatExistingPathConverter.class,
-        description = "Path to the android.jar")
-    public Path androidJar;
+        description = "Path(s) to the bootclasspath entries")
+    public List<Path> bootclasspath = new ArrayList<>();
 
     @Parameter(
         names = "-classpath",
@@ -138,10 +138,13 @@ final class DesugarDexShardingAction {
             Arrays.asList(
                 "--input",
                 options.inputJar.toString(),
-                "--bootclasspath_entry",
-                options.androidJar.toString(),
                 "--output",
                 jar.toString()));
+
+    for (Path bootclasspathEntry : options.bootclasspath) {
+      args.add("--bootclasspath_entry");
+      args.add(bootclasspathEntry.toString());
+    }
 
     if (options.minSdkVersion > 0) {
       args.add("--min_sdk_version");
@@ -365,8 +368,8 @@ final class DesugarDexShardingAction {
     Options options = new Options();
     JCommander.newBuilder().addObject(options).build().parse(argsList.toArray(new String[0]));
 
-    if (options.androidJar == null) {
-      throw new ParameterException("--android_jar is required for desugaring.");
+    if (options.bootclasspath.isEmpty()) {
+      throw new ParameterException("-bootclasspath is required for desugaring.");
     }
 
     if (options.inputJar == null || options.outs.toString().isEmpty()) {

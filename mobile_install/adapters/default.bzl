@@ -21,6 +21,7 @@ load(
 )
 load("//mobile_install:transform.bzl", "dex", "extract_jar_resources")
 load("//mobile_install:utils.bzl", "utils")
+load("//rules:desugar.bzl", _desugar = "desugar")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
@@ -61,6 +62,7 @@ def _adapt(target, ctx):
                 ctx,
                 target[JavaInfo].runtime_output_jars,
                 get_desugar_classpath(target[JavaInfo]),
+                bootclasspath = _desugar.get_boot_classpath(target, ctx),
                 create_file = utils.declare_file,
             ),
             deps = providers.collect(

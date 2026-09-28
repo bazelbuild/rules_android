@@ -61,7 +61,7 @@ public final class DesugarDexShardingActionTest {
 
   private List<String> createArgs(List<Path> outs) {
     List<String> args = new ArrayList<>();
-    args.add("-android_jar=" + androidJar);
+    args.add("-bootclasspath=" + androidJar);
     args.add("-in=" + in);
     args.add("-classpath=" + classpath);
     args.add("-out=" + Joiner.on(",").join(outs));

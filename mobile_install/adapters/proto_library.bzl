@@ -15,6 +15,7 @@
 
 load("//mobile_install:providers.bzl", "MIAndroidDexInfo", "providers")
 load("//mobile_install:transform.bzl", "dex")
+load("//rules:desugar.bzl", _desugar = "desugar")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":base.bzl", "make_adapter")
@@ -44,6 +45,7 @@ def _adapt(target, ctx):
                 ctx,
                 [j.class_jar for j in target[JavaInfo].outputs.jars],
                 get_desugar_classpath(target[JavaInfo]),
+                bootclasspath = _desugar.get_boot_classpath(target, ctx),
             ),
             deps = providers.collect(MIAndroidDexInfo, ctx.rule.attr.deps),
         ),

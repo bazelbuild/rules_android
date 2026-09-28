@@ -24,7 +24,7 @@ load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
 load(":dex_toolchains.bzl", "dex_toolchains")
 load(":min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
-load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", _get_android_sdk = "get_android_sdk", _utils = "utils")
+load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", _utils = "utils")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -113,7 +113,7 @@ def _aspect_impl(target, ctx):
 
     dex_archives_dict = {}
     runtime_jars = _get_produced_runtime_jars(target, ctx, extra_toolchain_jars)
-    bootclasspath = _get_boot_classpath(target, ctx)
+    bootclasspath = _desugar.get_boot_classpath(target, ctx)
     desugar_classpath = _get_desugar_classpath(target[JavaInfo]) if JavaInfo in target else depset([])
 
     bt = ctx.attr._bytecode_transformer
@@ -217,19 +217,6 @@ def _get_platform_based_toolchain_jars(ctx):
 
 def _get_aspect_dexopts():
     return _power_set(_dex.normalize_dexopts(_dex.DEXOPTS_SUPPORTED_IN_INCREMENTAL_DEXING))
-
-def _get_boot_classpath(target, ctx):
-    if JavaInfo in target:
-        compilation_info = target[JavaInfo].compilation_info
-        if compilation_info and compilation_info.boot_classpath:
-            return compilation_info.boot_classpath
-
-    android_jar = _get_android_sdk(ctx).android_jar
-    if android_jar:
-        return [android_jar]
-
-    # This shouldn't ever be reached, but if it is, we should be clear about the error.
-    fail("No compilation info or android jar!")
 
 def _check_basename_clash(artifacts):
     seen = {}

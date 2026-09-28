@@ -42,7 +42,8 @@ def dex(
         data,
         deps = constants.EMPTY_LIST,
         num_shards = None,
-        create_file = _declare_file):
+        create_file = _declare_file,
+        bootclasspath = None):
     """Dex a list of Jars.
 
     Args:
@@ -64,6 +65,8 @@ def dex(
 
         Returns:
           A File.
+      bootclasspath: The list of bootclasspath entries for the Jars being
+        desugared.
 
     Returns:
       A list of tuples where each entry contains the originating Jar path and
@@ -86,7 +89,7 @@ def dex(
                 dirname + "/" + str(i) + ".zip",
                 sibling = jar,
             ))
-        utils.dex(ctx, jar, out_dex_shards, deps)
+        utils.dex(ctx, jar, out_dex_shards, deps, bootclasspath)
         dex_files.append(out_dex_shards)
     return dex_files
 
