@@ -24,7 +24,7 @@ load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
 load(":dex_toolchains.bzl", "dex_toolchains")
 load(":min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
-load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", _utils = "utils")
+load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE", "ANDROID_TOOLCHAIN_TYPE", "get_android_toolchain", _utils = "utils")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -146,8 +146,9 @@ def _aspect_impl(target, ctx):
                     bootclasspath = bootclasspath,
                     classpath = desugar_classpath,
                     min_sdk_version = min_sdk_version,
-                    desugar_exec = ctx.executable._desugar_java8,
+                    desugar_exec = get_android_toolchain(ctx).desugar.files_to_run,
                     desugared_lib_config = ctx.file._desugared_lib_config,
+                    toolchain_type = ANDROID_TOOLCHAIN_TYPE,
                 )
             else:
                 desugared_jar = None
@@ -164,7 +165,8 @@ def _aspect_impl(target, ctx):
                     output = dex,
                     incremental_dexopts = incremental_dexopts_list,
                     min_sdk_version = min_sdk_version,
-                    dex_exec = ctx.executable._dexbuilder,
+                    dex_exec = get_android_toolchain(ctx).dexbuilder.files_to_run,
+                    toolchain_type = ANDROID_TOOLCHAIN_TYPE,
                 )
 
                 dex_archive = struct(
@@ -265,21 +267,9 @@ dex_desugar_aspect = aspect(
                     "//rules/flags:bytecode_transformer",
                 ),
             ),
-            "_desugar_java8": attr.label(
-                default = Label("//tools/android:desugar_java8"),
-                allow_files = True,
-                cfg = "exec",
-                executable = True,
-            ),
             "_desugared_lib_config": attr.label(
                 allow_single_file = True,
                 default = Label("//tools/android:full_desugar_jdk_libs_config_json"),
-            ),
-            "_dexbuilder": attr.label(
-                default = Label("//tools/android:dexbuilder"),
-                allow_files = True,
-                cfg = "exec",
-                executable = True,
             ),
         },
         _attrs.ANDROID_SDK,
@@ -289,6 +279,7 @@ dex_desugar_aspect = aspect(
     fragments = ["android"],
     toolchains = [
         ANDROID_SDK_TOOLCHAIN_TYPE,
+        ANDROID_TOOLCHAIN_TYPE,
     ],
     required_aspect_providers = [[JavaInfo]],
     **_opt_kwargs()
