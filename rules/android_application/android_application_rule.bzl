@@ -200,7 +200,7 @@ def _create_feature_manifest(
                 aapt2,
             ],
             mnemonic = "GenFeatureManifest",
-            progress_message = "Generating AndroidManifest.xml for " + feature_target.label.name,
+            progress_message = "Generating AndroidManifest.xml %{output}",
             toolchain = None,
         )
         return manifest
@@ -229,7 +229,7 @@ def _create_feature_manifest(
             aapt2,
         ],
         mnemonic = "GenPriorityFeatureManifest",
-        progress_message = "Generating Priority AndroidManifest.xml for " + feature_target.label.name,
+        progress_message = "Generating Priority AndroidManifest.xml %{output}",
         toolchain = None,
     )
 

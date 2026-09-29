@@ -59,7 +59,7 @@ def _filter_zip_include(ctx, in_zip, out_zip, filters = []):
         inputs = [in_zip],
         outputs = [out_zip],
         mnemonic = "FilterZipInclude",
-        progress_message = "Filtering %s" % in_zip.short_path,
+        progress_message = "Filtering %{input}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -112,7 +112,7 @@ def _filter_zip_exclude(
         inputs = [input] + filter_zips,
         outputs = [output],
         mnemonic = "FilterZipExclude",
-        progress_message = "Filtering %s" % input.short_path,
+        progress_message = "Filtering %{input}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 

@@ -85,7 +85,7 @@ def extract_single_file(
                 create_empty_file = str(create_empty_file).lower(),
             ),
         mnemonic = "AarFileExtractor",
-        progress_message = "Extracting %s from %s" % (filename, aar.basename),
+        progress_message = "Extracting %s from %%{input}" % filename,
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -105,7 +105,7 @@ def _extract_resources(
         inputs = [aar],
         outputs = [out_resources_dir, out_assets_dir],
         mnemonic = "AarResourcesExtractor",
-        progress_message = "Extracting resources and assets from %s" % aar.basename,
+        progress_message = "Extracting resources and assets from %{input}",
         toolchain = None,
     )
 
@@ -196,7 +196,7 @@ def _extract_jars(
         inputs = [aar],
         outputs = [out_jars_tree_artifact, out_jars_params_file],
         mnemonic = "AarEmbeddedJarsExtractor",
-        progress_message = "Extracting classes.jar and libs/*.jar from %s" % aar.basename,
+        progress_message = "Extracting classes.jar and libs/*.jar from %{input}",
         toolchain = None,
     )
 
@@ -285,7 +285,7 @@ def _create_import_deps_check(
         ),
         outputs = [jdeps_output],
         mnemonic = "ImportDepsChecker",
-        progress_message = "Checking the completeness of the deps for %s" % jars_to_check,
+        progress_message = "Checking the completeness of the deps for %{label}",
     )
 
 def _process_jars(
@@ -389,7 +389,7 @@ def _validate_rule(
         inputs = [aar, manifest],
         outputs = [validation_output],
         mnemonic = "ValidateAAR",
-        progress_message = "Validating aar_import %s" % str(ctx.label),
+        progress_message = "Validating aar_import %{label}",
         toolchain = None,
     )
     return validation_output
@@ -441,7 +441,7 @@ def _collect_proguard(
         inputs = [aar],
         outputs = [out_proguard],
         mnemonic = "AarEmbeddedProguardExtractor",
-        progress_message = "Extracting proguard spec from %s" % aar.basename,
+        progress_message = "Extracting proguard spec from %{input}",
         toolchain = None,
     )
     transitive_proguard_specs = []

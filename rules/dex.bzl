@@ -213,7 +213,7 @@ def _process_incremental_dexing(
             output = output,
             inputs = [dexes],
             mnemonic = "MergeDexZips",
-            progress_message = "Merging dex shards for %s." % ctx.label,
+            progress_message = "Merging dex shards for %{label}.",
             java_toolchain = _common.get_java_toolchain(ctx),
         )
 
@@ -244,7 +244,7 @@ def _process_monolithic_dexing(
         inputs = inputs,
         outputs = [classes_dex_intermediate],
         arguments = [args],
-        progress_message = "Converting %s to dex format" % input.short_path,
+        progress_message = "Converting %{input} to dex format",
         mnemonic = "AndroidDexer",
         use_default_shell_env = True,
         resource_set = _resource_set_for_monolithic_dexing,
@@ -260,7 +260,7 @@ def _process_monolithic_dexing(
         include_prefixes = ["classes"],
         java_toolchain = _common.get_java_toolchain(ctx),
         mnemonic = "TrimDexZip",
-        progress_message = "Trimming %s." % classes_dex_intermediate.short_path,
+        progress_message = "Trimming %{input}.",
     )
 
 def _shard_proguarded_jar_and_dex(
@@ -300,7 +300,7 @@ def _shard_proguarded_jar_and_dex(
         inputs = inputs,
         arguments = [args],
         mnemonic = "ShardClassesToDex",
-        progress_message = "Sharding classes for dexing for " + str(ctx.label),
+        progress_message = "Sharding classes for dexing for %{label}",
         use_default_shell_env = True,
         toolchain = toolchain_type,
     )
@@ -362,7 +362,7 @@ def _shard_dexes(
         mnemonic = "ShardForMultidex",
         # TODO(b/519583193): update CPU reservation when b/519583193 is implemented
         execution_requirements = {"cpu:4": ""},  # see b/501344408
-        progress_message = "Assembling dex files for " + ctx.label.name,
+        progress_message = "Assembling dex files for %{label}",
         use_default_shell_env = True,
         toolchain = toolchain_type,
     )
@@ -384,7 +384,7 @@ def _append_desugar_dexes(ctx, output = None, input = None, dexes = None, dex_zi
         arguments = [args],
         use_default_shell_env = True,
         mnemonic = "AppendDesugarDexes",
-        progress_message = "Adding Desugar dex file(s) for %s" % ctx.label,
+        progress_message = "Adding Desugar dex file(s) for %{label}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -443,7 +443,7 @@ def _dex(
         inputs = [input],
         outputs = [output],
         mnemonic = "DexBuilder",
-        progress_message = "Dexing " + input.path + " with applicable dexopts " + str(incremental_dexopts),
+        progress_message = "Dexing %{input} with applicable dexopts " + str(incremental_dexopts),
         execution_requirements = execution_requirements,
         toolchain = toolchain_type,
     )
@@ -500,7 +500,7 @@ def _optimizing_dex(
         inputs = inputs,
         outputs = [output, globals_output],
         mnemonic = "ShardedOptimizingDex",
-        progress_message = "Optimized dexing " + input.path + " with applicable dexopts " + str(incremental_dexopts),
+        progress_message = "Optimized dexing %{input} with applicable dexopts " + str(incremental_dexopts),
         toolchain = toolchain_type,
     )
 
@@ -556,7 +556,7 @@ def _get_java8_legacy_dex_and_map(ctx, build_customized_files = False, binary_ja
             outputs = [java8_legacy_dex_rules, java8_legacy_dex_map, java8_legacy_dex],
             arguments = [args],
             mnemonic = "BuildLegacyDex",
-            progress_message = "Building Java8 legacy library for %s" % ctx.label,
+            progress_message = "Building Java8 legacy library for %{label}",
             toolchain = ANDROID_TOOLCHAIN_TYPE,
         )
 
@@ -586,7 +586,7 @@ def _dex_merge(
         inputs = inputs,
         outputs = [output],
         mnemonic = "DexMerger",
-        progress_message = "Assembling dex files into " + output.short_path,
+        progress_message = "Assembling dex files into %{output}",
         toolchain = toolchain_type,
     )
 
@@ -672,7 +672,7 @@ def _optimized_dex_merge(
         inputs = inputs,
         outputs = outputs,
         mnemonic = "OptimizingDex",
-        progress_message = "Optimized dexing for " + ctx.label.name,
+        progress_message = "Optimized dexing for %{label}",
         execution_requirements = acls.get_optimizer_execution_requirements(ctx.label.package),
         toolchain = toolchain_type,
     )

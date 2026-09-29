@@ -198,12 +198,12 @@ def dex(ctx, jar, out_dex_shards, deps = None, bootclasspath = None):
         tools = [ctx.executable._desugar_dex_sharding],
         arguments = [launcher_args, args],
         inputs = depset(
-            bootclasspath + ctx.files._mi_host_javabase + [jar, ctx.file._desugared_lib_config],
+            [jar, ctx.file._desugared_lib_config] + bootclasspath + ctx.files._mi_host_javabase,
             transitive = [deps] if deps else [],
         ),
         outputs = out_dex_shards,
         mnemonic = "DesugarDexSharding",
-        progress_message = "MI Desugar, dex and sharding " + jar.short_path,
+        progress_message = "MI Desugar, dex and sharding %{input}",
         execution_requirements = {
             "worker-key-mnemonic": "DesugarDexSharding",
             "supports-workers": "1",
@@ -234,7 +234,7 @@ def extract_jar_resources(ctx, jar, out_resources):
         inputs = [jar],
         outputs = [out_resources],
         mnemonic = "ExtractJarResources",
-        progress_message = "MI Extracting resources from " + jar.path,
+        progress_message = "MI Extracting resources from %{input}",
     )
 
 def first(collection, allow_empty = False):
@@ -323,7 +323,7 @@ def strip_r(ctx, jar, out_jar):
         inputs = [jar],
         outputs = [out_jar],
         mnemonic = "StripR",
-        progress_message = "MI Stripping R from " + jar.path,
+        progress_message = "MI Stripping R from %{input}",
         toolchain = None,
     )
 
@@ -348,7 +348,7 @@ def _extract_package_name(ctx, apk, package_name_output_file):
         inputs = [apk],
         outputs = [package_name_output_file],
         mnemonic = "ExtractPackageName",
-        progress_message = "MI Extracts the package name from %s" % apk.path,
+        progress_message = "MI Extracts the package name from %{input}",
     )
 
 def _get_extension_registry_class_jar(target):

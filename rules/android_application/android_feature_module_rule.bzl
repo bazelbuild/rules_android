@@ -60,7 +60,7 @@ def _impl(ctx):
             get_android_toolchain(ctx).unzip_tool.files_to_run.executable,
         ],
         mnemonic = "ValidateFeatureModule",
-        progress_message = "Validating feature module %s" % str(ctx.label),
+        progress_message = "Validating feature module %{label}",
         toolchain = None,
     )
 

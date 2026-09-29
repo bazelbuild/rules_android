@@ -454,7 +454,7 @@ def _package(
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
         mnemonic = "PackageAndroidResources",
-        progress_message = "Packaging Android Resources in %s" % ctx.label,
+        progress_message = "Packaging Android Resources in %{label}",
         jvm_flags = _C1_ONLY_FLAGS,
     )
 
@@ -499,7 +499,7 @@ def _parse(
         inputs = assets,
         outputs = [out_symbols],
         mnemonic = "ParseAndroidResources",
-        progress_message = "Parsing Android Resources in %s" % out_symbols.short_path,
+        progress_message = "Parsing Android Resources in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
     )
 
@@ -586,8 +586,7 @@ def _merge_assets(
         ),
         outputs = [out_assets_zip],
         mnemonic = "MergeAndroidAssets",
-        progress_message =
-            "Merging Android Assets in %s" % out_assets_zip.short_path,
+        progress_message = "Merging Android Assets in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
     )
 
@@ -662,11 +661,9 @@ def _validate_and_link(
     if java_package:
         args.add("--packageForR", java_package)
     args.add("--sourceJarOut", out_r_src_jar)
-    output_files.append(out_r_src_jar)
     args.add("--rTxtOut", out_r_txt)
-    output_files.append(out_r_txt)
     args.add("--staticLibraryOut", out_file)
-    output_files.append(out_file)
+    output_files.extend([out_file, out_r_src_jar, out_r_txt])
     args.add_joined(
         "--resourceApks",
         resource_apks,
@@ -688,8 +685,7 @@ def _validate_and_link(
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
         mnemonic = "LinkAndroidResources",
-        progress_message =
-            "Linking Android Resources in " + out_file.short_path,
+        progress_message = "Linking Android Resources in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
         execution_requirements = {"supports-path-mapping": "1"},
     )
@@ -752,7 +748,7 @@ def _compile(
         inputs = resource_files + assets,
         outputs = [out_file],
         mnemonic = "CompileAndroidResources",
-        progress_message = "Compiling Android Resources in %s" % out_file.short_path,
+        progress_message = "Compiling Android Resources in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
     )
 
@@ -859,8 +855,7 @@ def _merge_compiled(
         inputs = depset(input_files, transitive = transitive_input_files),
         outputs = output_files,
         mnemonic = "StarlarkMergeCompiledAndroidResources",
-        progress_message =
-            "Merging compiled Android Resources in " + out_class_jar.short_path,
+        progress_message = "Merging compiled Android Resources in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
     )
 
@@ -988,7 +983,7 @@ def _merge_manifests(
         inputs = depset(directs, transitive = transitives),
         outputs = outputs,
         mnemonic = "MergeManifests",
-        progress_message = "Merging Android Manifests in %s" % out_file.short_path,
+        progress_message = "Merging Android Manifests in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
     )
 
@@ -1120,7 +1115,7 @@ def _generate_binary_r(
         inputs = depset([r_txt, manifest], transitive = transitive_r_txts + transitive_manifests),
         outputs = [out_class_jar],
         mnemonic = "StarlarkRClassGenerator",
-        progress_message = "Generating R classes for %s" % out_class_jar.short_path,
+        progress_message = "Generating R classes for %{output}",
     )
 
 def _make_aar(
@@ -1199,7 +1194,7 @@ def _make_aar(
         ),
         outputs = [out_aar],
         mnemonic = "StarlarkAARGenerator",
-        progress_message = "Generating AAR package for %s" % ctx.label,
+        progress_message = "Generating AAR package for %{label}",
         jvm_flags = _C1_ONLY_FLAGS,
     )
 
@@ -1281,8 +1276,7 @@ def _shrink(
         inputs = input_files,
         arguments = [args],
         mnemonic = "ResourceShrinker",
-        progress_message =
-            "Shrinking resources for " + str(ctx.label),
+        progress_message = "Shrinking resources for %{label}",
         host_javabase = host_javabase,
         use_default_shell_env = True,
     )
@@ -1340,8 +1334,7 @@ def _convert_resources_to_apk(
         inputs = input_files,
         arguments = [args],
         mnemonic = "ResourceConverter",
-        progress_message =
-            "Converting resources for " + str(ctx.label),
+        progress_message = "Converting resources for %{label}",
         host_javabase = host_javabase,
         use_default_shell_env = True,
     )
@@ -1405,8 +1398,7 @@ def _optimize(
         inputs = input_files,
         outputs = output_files,
         mnemonic = "Aapt2Optimize",
-        progress_message =
-            "Optimizing Android resources for " + str(ctx.label),
+        progress_message = "Optimizing Android resources for %{label}",
         use_default_shell_env = True,
     )
 

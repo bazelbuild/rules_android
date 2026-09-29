@@ -51,9 +51,7 @@ def _validate_proguard_spec(
         inputs = [proguard_spec],
         outputs = [out_validated_proguard_spec],
         mnemonic = "ValidateProguard",
-        progress_message = (
-            "Validating proguard configuration %s" % proguard_spec.short_path
-        ),
+        progress_message = "Validating proguard configuration %{input}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -613,7 +611,7 @@ def _create_optimization_actions(
             optimize_resources = optimize_resources,
             final = True,
             mnemonic = mnemonic,
-            progress_message = "Trimming %s with %s" % (ctx.label, mnemonic),
+            progress_message = "Trimming %%{label} with %s" % mnemonic,
             proguard_tool = proguard_tool,
         )
         return outputs
@@ -645,7 +643,7 @@ def _create_optimization_actions(
         runtype = "INITIAL",
         next_stage_output = last_stage_output,
         mnemonic = mnemonic,
-        progress_message = "Trimming %s with %s: Verification/Shrinking Pass" % (ctx.label, mnemonic),
+        progress_message = "Trimming %%{label} with %s: Verification/Shrinking Pass" % mnemonic,
         proguard_tool = proguard_tool,
     )
     for i in range(1, num_passes + 1):
@@ -719,7 +717,7 @@ def _create_optimization_actions(
         runtype = "FINAL",
         last_stage_output = last_stage_output,
         mnemonic = mnemonic,
-        progress_message = "Trimming %s with %s: Obfuscation and Final Output Pass" % (ctx.label, mnemonic),
+        progress_message = "Trimming %%{label} with %s: Obfuscation and Final Output Pass" % mnemonic,
         proguard_tool = proguard_tool,
     )
     return outputs
@@ -751,7 +749,7 @@ def _create_single_optimization_action(
         runtype = "OPTIMIZATION" + runtype_suffix,
         last_stage_output = last_stage_output,
         next_stage_output = next_stage_output,
-        progress_message = "Trimming %s with %s: Optimization%s Pass %d" % (ctx.label, mnemonic, runtype_suffix, optimization_pass_num),
+        progress_message = "Trimming %%{label} with %s: Optimization%s Pass %d" % (mnemonic, runtype_suffix, optimization_pass_num),
         proguard_tool = proguard_tool,
     )
     return next_stage_output
@@ -772,7 +770,7 @@ def _merge_proguard_maps(
         inputs = inputs,
         arguments = [args],
         mnemonic = "MergeProguardMaps",
-        progress_message = "Merging app and desugared library Proguard maps for %s" % ctx.label,
+        progress_message = "Merging app and desugared library Proguard maps for %{label}",
         use_default_shell_env = True,
         toolchain = toolchain_type,
     )
@@ -800,7 +798,7 @@ def _generate_report(
         executable = generator_tool,
         arguments = [args],
         mnemonic = "GenerateOptimizationReport",
-        progress_message = "Generating optimization report for %s" % ctx.label,
+        progress_message = "Generating optimization report for %{label}",
         toolchain = toolchain_type,
     )
 

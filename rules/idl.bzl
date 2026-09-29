@@ -77,7 +77,7 @@ def _gen_java_from_idl(
         executable = aidl,
         arguments = [args],
         inputs = depset(
-            [aidl_framework],
+            [idl_src, aidl_framework],
             transitive = aidl_lib_files + [
                 transitive_idl_imports,
                 transitive_idl_preprocessed,
@@ -85,7 +85,7 @@ def _gen_java_from_idl(
         ),
         outputs = [out_idl_java_src],
         mnemonic = "AndroidIDLGenerate",
-        progress_message = "Android IDL generation %s" % idl_src.path,
+        progress_message = "Android IDL generation %{input}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 

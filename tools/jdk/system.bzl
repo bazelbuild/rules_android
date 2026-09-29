@@ -36,7 +36,7 @@ def _ijar(ctx, input, output):
         outputs = [output],
         executable = ijar_bin,
         arguments = [args],
-        progress_message = "Extracting interfaces from %s" % input.short_path,
+        progress_message = "Extracting interfaces from %{input}",
         mnemonic = "Ijar",
     )
 

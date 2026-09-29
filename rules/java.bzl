@@ -509,7 +509,7 @@ def _create_deploy_jar(
         inputs = runtime_jars,
         output = output,
         mnemonic = "JavaDeployJar",
-        progress_message = "Building deploy jar %s" % output.short_path,
+        progress_message = "Building deploy jar %{output}",
         java_toolchain = java_toolchain,
         build_target = build_target,
         check_desugar_deps = True,

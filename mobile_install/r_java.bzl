@@ -53,7 +53,7 @@ fi
         inputs = [resource_src_jar],
         outputs = [out_r_java],
         mnemonic = "MakeRJava",
-        progress_message = "MI R.java " + out_r_java.path,
+        progress_message = "MI R.java %{output}",
     )
 
 def _make_r_jar(ctx, r_java, packages, out_r_jar):
@@ -89,7 +89,7 @@ def _make_r_jar(ctx, r_java, packages, out_r_jar):
         inputs = depset([r_packages, r_java], transitive = [ctx.attr._java_jdk[DefaultInfo].files]),
         outputs = [out_r_jar],
         mnemonic = "RJar",
-        progress_message = "MI RJar " + out_r_jar.path,
+        progress_message = "MI RJar %{output}",
     )
 
 def make_r(ctx, r_java_zip, main_package, packages, sibling):

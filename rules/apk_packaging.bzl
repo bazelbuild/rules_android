@@ -436,7 +436,7 @@ def _create_deploy_info(
         arguments = [args],
         outputs = [deploy_info],
         mnemonic = "WriteDeployInfo",
-        progress_message = "Writing Deploy info proto file %s" % deploy_info.short_path,
+        progress_message = "Writing Deploy info proto file %{output}",
         toolchain = toolchain_type,
     )
 

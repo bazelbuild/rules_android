@@ -77,7 +77,7 @@ def _desugar(
         executable = desugar_exec,
         arguments = [args],
         mnemonic = "Desugar",
-        progress_message = "Desugaring " + input.short_path + " for Android",
+        progress_message = "Desugaring %{input} for Android",
         execution_requirements = {"supports-workers": "1", "supports-path-mapping": "1"},
         use_default_shell_env = True,
         toolchain = toolchain_type,

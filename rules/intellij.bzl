@@ -47,9 +47,9 @@ def _extract_idl_jars(
         executable = idlclass,
         arguments = [args],
         inputs = idl_java_srcs + [jar, manifest_proto],
-        outputs = [out_srcjar, out_jar],
+        outputs = [out_jar, out_srcjar],
         mnemonic = "AndroidIdlJars",
-        progress_message = "Building idl jars %s" % out_jar.path,
+        progress_message = "Building idl jars %{output}",
         execution_requirements = {"supports-path-mapping": ""},
     )
 

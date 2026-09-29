@@ -92,9 +92,7 @@ def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_
         inputs = inputs,
         outputs = [class_info, srcjar],
         mnemonic = "GenerateDataBindingBaseClasses",
-        progress_message = (
-            "GenerateDataBindingBaseClasses %s" % class_info.short_path
-        ),
+        progress_message = "GenerateDataBindingBaseClasses %{output}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
     return srcjar, class_info

@@ -159,7 +159,7 @@ def _bucketize_resources(ctx, data):
             inputs = data[res_dir],
             outputs = res_buckets,
             mnemonic = "BucketizeRes",
-            progress_message = "MI Bucketize resources for %s" % res_dir,
+            progress_message = "MI Bucketize resources for %{input}",
         )
         res_dir_buckets_map[res_dir] = res_buckets
     return res_dir_buckets_map
@@ -201,7 +201,7 @@ def _compile_bucketized_resources(ctx, data):
                 inputs = [res_bucket] + ctx.attr._aapt2[DefaultInfo].files.to_list(),
                 outputs = [out],
                 mnemonic = "CompileRes",
-                progress_message = "MI Compiling resources for %s" % res_dir,
+                progress_message = "MI Compiling resources for %{input}",
             )
             compiled_res_buckets.append(out)
 
@@ -246,7 +246,7 @@ def _compile_library_resouces(ctx, data):
                 inputs = data[res_type][res_dir] + ctx.attr._aapt2[DefaultInfo].files.to_list(),
                 outputs = [out],
                 mnemonic = "CompileRes",
-                progress_message = "MI Compiling resources for %s" % res_dir,
+                progress_message = "MI Compiling resources for %{input}",
             )
     return compiled_res_dirs
 
@@ -298,7 +298,7 @@ def link_resources(
         ),
         outputs = [resource_apk, rjava_zip],
         mnemonic = "LinkRes",
-        progress_message = "MI Linking resources for %s" % ctx.label,
+        progress_message = "MI Linking resources for %{label}",
     )
     return resource_apk, rjava_zip
 
@@ -328,7 +328,7 @@ def liteparse(ctx):
         inputs = ctx.rule.files.resource_files,
         outputs = [r_pb],
         mnemonic = "ResLiteParse",
-        progress_message = "MI Lite parse Android Resources %s" % ctx.label,
+        progress_message = "MI Lite parse Android Resources %{label}",
     )
     return r_pb
 
@@ -354,5 +354,5 @@ def compiletime_r_srcjar(ctx, output_srcjar, r_pbs, package):
         inputs = r_pbs,
         outputs = [output_srcjar],
         mnemonic = "CompileTimeRSrcjar",
-        progress_message = "MI Make compile-time R.srcjar %s" % ctx.label,
+        progress_message = "MI Make compile-time R.srcjar %{label}",
     )

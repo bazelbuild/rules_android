@@ -217,7 +217,7 @@ def _copy_file(ctx, src, dest):
         inputs = [src],
         outputs = [dest],
         mnemonic = "CopyFile",
-        progress_message = "Copy %s to %s" % (src.short_path, dest.short_path),
+        progress_message = "Copy %{input} to %{output}",
     )
 
 def _copy_dir(ctx, src, dest):
@@ -229,7 +229,7 @@ def _copy_dir(ctx, src, dest):
         inputs = [src],
         outputs = [dest],
         mnemonic = "CopyDir",
-        progress_message = "Copy %s to %s" % (src.short_path, dest.short_path),
+        progress_message = "Copy %{input} to %{output}",
     )
 
 def _info(msg):

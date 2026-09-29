@@ -65,7 +65,7 @@ def _build(
         ),
         outputs = [out],
         mnemonic = "BuildBundle",
-        progress_message = "Building bundle %s" % out.short_path,
+        progress_message = "Building bundle %{output}",
     )
 
 def _build_device_json(
@@ -123,7 +123,7 @@ def _build_sdk_apks(
         tools = [aapt2],
         outputs = [apks_out],
         mnemonic = "BuildSdkApksDir",
-        progress_message = "Building SDK APKs directory %s" % apks_out.short_path,
+        progress_message = "Building SDK APKs directory %{output}",
     )
 
     # Now move standalone APK out of bundletool output dir.
@@ -143,7 +143,7 @@ mv "${APKS_OUT_DIR}/standalones/standalone.apk" "${DEBUG_APK_PATH}"
         inputs = [apks_out],
         outputs = [out],
         mnemonic = "ExtractDebugSdkApk",
-        progress_message = "Extract debug SDK APK to %s" % out.short_path,
+        progress_message = "Extract debug SDK APK to %{output}",
     )
 
 def _build_sdk_apks_for_app(
@@ -189,7 +189,7 @@ def _build_sdk_apks_for_app(
         tools = [aapt2],
         outputs = [split_out_dir],
         mnemonic = "BuildSdkSplit",
-        progress_message = "Building SDK split %s" % out.short_path,
+        progress_message = "Building SDK split %{output}",
     )
 
     # Now move split out of bundletool output dir.
@@ -215,7 +215,7 @@ mv "${SPLIT_APKS[0]}" "${OUTPUT_SPLIT}"
         inputs = [split_out_dir],
         outputs = [out],
         mnemonic = "MoveSplitApk",
-        progress_message = "Move SDK split APK from Bundletool output: %s" % out.short_path,
+        progress_message = "Move SDK split APK from Bundletool output: %{output}",
     )
 
 def _build_sdk_bundle(
@@ -245,7 +245,7 @@ def _build_sdk_bundle(
         ],
         outputs = [out],
         mnemonic = "BuildASB",
-        progress_message = "Building SDK bundle %s" % out.short_path,
+        progress_message = "Building SDK bundle %{output}",
     )
 
 def _build_sdk_module(
@@ -263,7 +263,7 @@ def _build_sdk_module(
         executable = bundletool_module_builder,
         arguments = [args],
         mnemonic = "BuildSdkModule",
-        progress_message = "Building ASB zip module %s" % out.short_path,
+        progress_message = "Building ASB zip module %{output}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -332,7 +332,7 @@ def _bundle_to_apks(
         outputs = [out],
         tools = [aapt2],
         mnemonic = "BundleToApks",
-        progress_message = "Converting bundle to .apks: %s" % out.short_path,
+        progress_message = "Converting bundle to .apks: %{output}",
     )
 
 def _extract_config(
@@ -358,7 +358,7 @@ echo "$contents" > %s
         outputs = [out],
         tools = depset([bundletool.executable], transitive = [host_javabase[java_common.JavaRuntimeInfo].files]),
         mnemonic = "ExtractBundleConfig",
-        progress_message = "Extract bundle config to %s" % out.short_path,
+        progress_message = "Extract bundle config to %{output}",
         command = cmd,
         exec_group = "android_and_java",
     )
@@ -394,7 +394,7 @@ echo "$contents" > %s
         outputs = [out],
         tools = depset([bundletool.executable], transitive = [host_javabase[java_common.JavaRuntimeInfo].files]),
         mnemonic = "ExtractBundleManifest",
-        progress_message = "Extract bundle manifest to %s" % out.short_path,
+        progress_message = "Extract bundle manifest to %{output}",
         command = cmd,
         exec_group = "android_and_java",
     )
@@ -415,7 +415,7 @@ def _proto_apk_to_module(
         executable = bundletool_module_builder,
         arguments = [args],
         mnemonic = "BuildAppModule",
-        progress_message = "Building AAB zip module %s" % out.short_path,
+        progress_message = "Building AAB zip module %{output}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 

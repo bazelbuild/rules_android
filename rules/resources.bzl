@@ -226,7 +226,7 @@ def _add_g3itr(
         inputs = [manifest, instrument_xslt],
         outputs = [out_manifest],
         mnemonic = "AddG3ITRStarlark",
-        progress_message = "Adding G3ITR to test manifest for %s" % ctx.label,
+        progress_message = "Adding G3ITR to test manifest for %{label}",
         toolchain = None,
     )
 
@@ -885,7 +885,7 @@ def _liteparse(ctx, out_r_pb, resource_files, android_kit):
         inputs = resource_files,
         outputs = [out_r_pb],
         mnemonic = "ResLiteParse",
-        progress_message = "Lite parse Android Resources %s" % ctx.label,
+        progress_message = "Lite parse Android Resources %{label}",
         toolchain = None,
     )
 
@@ -1057,7 +1057,7 @@ def _bump_min_sdk(
         outputs = [out_manifest, log],
         arguments = ["minsdkfloor", args],
         mnemonic = "BumpMinSdkFloor",
-        progress_message = "Bumping up AndroidManifest min SDK %s" % str(ctx.label),
+        progress_message = "Bumping up AndroidManifest min SDK %{label}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
     manifest_ctx[_PROCESSED_MANIFEST] = out_manifest
@@ -1105,7 +1105,7 @@ def _set_default_min_sdk(
         outputs = [out_manifest, log],
         arguments = ["minsdkfloor", args],
         mnemonic = "SetDefaultMinSdkFloor",
-        progress_message = "Setting AndroidManifest min SDK to default %s" % str(ctx.label),
+        progress_message = "Setting AndroidManifest min SDK to default %{label}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
     manifest_ctx[_PROCESSED_MANIFEST] = out_manifest

@@ -42,7 +42,7 @@ def _compile_android_manifest(ctx, manifest, resources_zip, out_manifest):
         inputs = [manifest, resources_zip, android_jar],
         outputs = [out_manifest],
         mnemonic = "CompileAndroidManifest",
-        progress_message = "MI Compiling AndroidManifest.xml from " + manifest.path,
+        progress_message = "MI Compiling AndroidManifest.xml from %{input}",
     )
 
 def _patch_split_manifests(ctx, orig_manifest, split_manifests, out_manifest_package_name):
@@ -87,7 +87,7 @@ def _make_split_apk(ctx, dirs, artifacts, debug_signing_keys, debug_signing_line
         inputs = inputs,
         outputs = [unsigned],
         mnemonic = "MakeSplitApk",
-        progress_message = "MI Making split app %s" % out.path,
+        progress_message = "MI Making split app %{output}",
     )
 
     _zipalign_sign(ctx, unsigned, out, debug_signing_keys, debug_signing_lineage_file, key_rotation_min_sdk, zipalign_alignment)
@@ -202,7 +202,7 @@ def make_split_apks(
         inputs = [ctx.file._mi_java8_legacy_dex],
         outputs = [java8_legacy],
         mnemonic = "CopyJava8Legacy",
-        progress_message = "MI Copy %s to %s" % (ctx.file._mi_java8_legacy_dex.path, java8_legacy.path),
+        progress_message = "MI Copy %{input} to %{output}",
     )
 
     # Resources are now in the base apk to support RRO. Previously they were a separate split, but
@@ -257,12 +257,12 @@ ${jvm} -jar ${apk_signer} sign ${signing_params} --alignment-preserved true --ou
             str(zipalign_alignment),
         ],
         tools = [ctx.executable._zipalign],
-        inputs = (debug_signing_keys +
+        inputs = ([unsigned_apk] +
+                  debug_signing_keys +
                   ([debug_signing_lineage_file] if debug_signing_lineage_file else []) +
-                  [unsigned_apk] +
                   ctx.attr._apk_signer[DefaultInfo].files.to_list() +
                   ctx.attr._java_jdk[DefaultInfo].files.to_list()),
         outputs = [signed_apk],
         mnemonic = "SignShellApp",
-        progress_message = "MI Signing shell app %s" % unsigned_apk.path,
+        progress_message = "MI Signing shell app %{input}",
     )

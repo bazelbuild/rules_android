@@ -76,7 +76,7 @@ done
         inputs = resource_files,
         outputs = [out_dir],
         mnemonic = "CompileAndroidResources",
-        progress_message = "ResV3 Compiling Android Resources in %s" % out_dir,
+        progress_message = "ResV3 Compiling Android Resources in %{output}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -98,7 +98,7 @@ def _convert(
         inputs = [input],
         outputs = [out],
         mnemonic = "AaptConvert",
-        progress_message = "ResV3 Convert to %s" % out.short_path,
+        progress_message = "ResV3 Convert to %{output}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -118,7 +118,7 @@ OUT=%s
         inputs = [apk],
         outputs = [out],
         mnemonic = "GenerateAaptManifestDump",
-        progress_message = "Generate AAPT manifest dump %s" % out,
+        progress_message = "Generate AAPT manifest dump %{output}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
@@ -219,7 +219,7 @@ echo $(tac $1) > $2
         ),
         outputs = [out_resource_apk, out_r_java],
         mnemonic = "LinkAndroidResources",
-        progress_message = "ResV3 Linking Android Resources to %s" % out_resource_apk.short_path,
+        progress_message = "ResV3 Linking Android Resources to %{output}",
         toolchain = ANDROID_TOOLCHAIN_TYPE,
     )
 
