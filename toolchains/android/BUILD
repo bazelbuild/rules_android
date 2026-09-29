@@ -2,7 +2,6 @@
 #   Defines the Android toolchain.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 load(":toolchain.bzl", "android_toolchain")
 
 licenses(["notice"])
@@ -35,24 +34,16 @@ bzl_library(
     srcs = glob(["*.bzl"]),
 )
 
-genrule(
-    name = "gen_unzip",
-    outs = ["unzip.sh"],
-    cmd = """cat > $@ <<EOF
-unzip \\$$@
-EOF
-""",
-    executable = True,
-)
+_ZIPPER = "@bazel_tools//third_party/ijar:zipper"
 
-sh_binary(
+alias(
     name = "zip",
-    srcs = [":zip.sh"],
+    actual = _ZIPPER,
     visibility = ["//visibility:public"],
 )
 
-sh_binary(
+alias(
     name = "unzip",
-    srcs = [":unzip.sh"],
+    actual = _ZIPPER,
     visibility = ["//visibility:public"],
 )

@@ -16,6 +16,7 @@
 
 load("@rules_java//java:defs.bzl", "java_common")
 load("//rules:java.bzl", _java = "java")
+load("//toolchains/android:zipper.bzl", "zipper_sandbox_path")
 
 def _single_jar(ctx, inputs, output):
     _java.singlejar(
@@ -86,10 +87,11 @@ def _android_system(ctx):
 
     system = ctx.actions.declare_directory("%s_system" % ctx.label.name)
     java_runtime = ctx.attr._runtime[java_common.JavaRuntimeInfo]
+    unzip_target = ctx.attr._unzip
     args = ctx.actions.args()
     args.add("--input", core_jar)
     args.add("--output", system.path)
-    args.add("--unzip", ctx.executable._unzip)
+    args.add("--unzip", zipper_sandbox_path(unzip_target))
     args.add("--java_home", java_runtime.java_home)
     args.add("--module_info", module_info)
     ctx.actions.run(
@@ -100,7 +102,7 @@ def _android_system(ctx):
             ],
             transitive = [java_runtime.files],
         ),
-        tools = [ctx.executable._unzip],
+        tools = [unzip_target[DefaultInfo].files_to_run],
         outputs = [system],
         arguments = [args],
         executable = ctx.executable.create_system,
@@ -124,38 +126,6 @@ android_system = rule(
     implementation = _android_system,
     doc = "Creates a system directory for targeting the default android.jar.",
     attrs = {
-        "_java_toolchain": attr.label(
-            default = Label("//tools/jdk:current_java_toolchain"),
-        ),
-        "_unzip": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//tools/android:unzip"),
-            allow_files = True,
-        ),
-        "_jar_to_module_info": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//src/tools/jar_to_module_info"),
-            allow_files = True,
-        ),
-        "create_system": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//tools/jdk:create_system"),
-            allow_files = True,
-        ),
-        "_split_core_jar": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("//src/tools/split_core_jar"),
-            allow_files = True,
-        ),
-        "_runtime": attr.label(
-            default = Label("//tools/jdk:current_java_runtime"),
-            cfg = "exec",
-            providers = [java_common.JavaRuntimeInfo],
-        ),
         "bootclasspath": attr.label_list(
             mandatory = True,
             allow_files = True,
@@ -164,11 +134,43 @@ android_system = rule(
             cfg = "target",
             allow_files = True,
         ),
+        "create_system": attr.label(
+            executable = True,
+            cfg = "exec",
+            default = Label("//tools/jdk:create_system"),
+            allow_files = True,
+        ),
         "exclusions": attr.string_list(),
         "overlay_jar": attr.label(
             cfg = "exec",
             allow_single_file = True,
             executable = False,
+        ),
+        "_jar_to_module_info": attr.label(
+            executable = True,
+            cfg = "exec",
+            default = Label("//src/tools/jar_to_module_info"),
+            allow_files = True,
+        ),
+        "_java_toolchain": attr.label(
+            default = Label("//tools/jdk:current_java_toolchain"),
+        ),
+        "_runtime": attr.label(
+            default = Label("//tools/jdk:current_java_runtime"),
+            cfg = "exec",
+            providers = [java_common.JavaRuntimeInfo],
+        ),
+        "_split_core_jar": attr.label(
+            executable = True,
+            cfg = "exec",
+            default = Label("//src/tools/split_core_jar"),
+            allow_files = True,
+        ),
+        "_unzip": attr.label(
+            executable = True,
+            cfg = "exec",
+            default = Label("//tools/android:unzip"),
+            allow_files = True,
         ),
         # TODO(b/281980093): No matching toolchains found for types //tools/jdk:runtime_toolchain_type.
         "_use_auto_exec_groups": attr.bool(default = False),

@@ -13,14 +13,15 @@
 # limitations under the License.
 """Bazel Android Resources."""
 
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("//providers:providers.bzl", "AndroidLibraryResourceClassJarProvider", "ResourcesNodeInfo", "StarlarkAndroidResourcesInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "read_possibly_native_flag")
-load("@rules_java//java/common:java_info.bzl", "JavaInfo")
-load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("//toolchains/android:zipper.bzl", "zipper_resolve_bash")
 load(":attrs.bzl", _attrs = "attrs")
 load(":busybox.bzl", _busybox = "busybox")
 load(":path.bzl", _path = "path")
@@ -357,59 +358,60 @@ def _fix_databinding_compiled_resources(
       ctx: The context.
       out_compiled_resources: File. The modified compiled_resources output.
       compiled_resources: File. The compiled_resources zip.
-      zip_tool: FilesToRunProvider. The zip tool executable or FilesToRunProvider
+      zip_tool: FilesToRunProvider. Hermetic ijar:zipper executable.
     """
+    resolve = zipper_resolve_bash(zip_tool, "ZIPPER")
     ctx.actions.run_shell(
         outputs = [out_compiled_resources],
         inputs = [compiled_resources],
         tools = [zip_tool],
-        arguments = [compiled_resources.path, out_compiled_resources.path, zip_tool.executable.path],
+        arguments = [compiled_resources.path, out_compiled_resources.path],
         toolchain = None,
         mnemonic = "FixDatabindingCompiledResources",
-        command = """#!/bin/bash
+        command = resolve + """#!/bin/bash
 set -e
 
 IN_DIR=$(mktemp -d)
 OUT_DIR=$(mktemp -d)
 CUR_PWD=$(pwd)
+ARCHIVE="$1"
+OUT="$2"
+[[ "${ARCHIVE}" != /* ]] && ARCHIVE="${CUR_PWD}/${ARCHIVE}"
+[[ "${OUT}" != /* ]] && OUT="${CUR_PWD}/${OUT}"
 
-if zipinfo -t "$1"; then
-    # Use awk instead of 'head -n -2' for macOS compatibility (BSD head doesn't support negative counts)
-    ORDERED_LIST=`(unzip -l "$1" | sed -e '1,3d' | awk '{lines[NR]=$0} END{for(i=1;i<=NR-2;i++) print lines[i]}' | tr -s " " | cut -d " " -f5)`
+if "${ZIPPER}" v "${ARCHIVE}" >/dev/null 2>&1; then
+    ORDERED_LIST=`("${ZIPPER}" v "${ARCHIVE}" | awk '$1 == "f" {print $3}')`
 
-    unzip -q "$1" -d "$IN_DIR"
+    ( cd "$IN_DIR" && "${ZIPPER}" x "${ARCHIVE}" )
 
-    # Iterate through the ordered list, change "Databinding" to "databinding" in the file header
-    # and file name and zip the files with the right comment
     for FILE in $ORDERED_LIST; do
         cd "$IN_DIR"
         if [ -f "$FILE" ]; then
-            # Use sed with backup extension for macOS compatibility, then remove backup
             sed -i.bak 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' "$FILE" && rm -f "$FILE.bak"
             NEW_NAME=`echo "$FILE" | sed 's/Databinding\\-processed\\-resources/databinding\\-processed\\-resources/g' | sed 's#'"$IN_DIR"'/##g'`
             mkdir -p `dirname "$OUT_DIR/$NEW_NAME"` && touch "$OUT_DIR/$NEW_NAME"
             cp -p "$FILE" "$OUT_DIR/$NEW_NAME"
-
-            PATH_SEGMENTS=(`echo ${FILE} | tr '/' ' '`)
-            BASE_PATH_SEGMENT="${PATH_SEGMENTS[0]}"
-                COMMENT=
-            if [ "${BASE_PATH_SEGMENT}" == "generated" ]; then
-                COMMENT="generated"
-            elif [ "${BASE_PATH_SEGMENT}" == "default" ]; then
-                COMMENT="default"
-            fi
-
-            cd "$OUT_DIR"
-            "$CUR_PWD/$3" -jt -X -0 -q -r -c "$CUR_PWD/$2" $NEW_NAME <<EOM
-${COMMENT}
-EOM
         fi
     done
 
+    cd "$OUT_DIR"
+    args=()
+    while IFS= read -r -d '' f; do
+      relpath=${f#./}
+      args+=("${relpath}=${f}")
+    done < <(find . -type f -print0)
+    if [ ${#args[@]} -eq 0 ]; then
+      empty=$(mktemp)
+      : >"${empty}"
+      "${ZIPPER}" c "${OUT}" "empty=${empty}"
+    else
+      "${ZIPPER}" c "${OUT}" "${args[@]}"
+    fi
+
     cd "$CUR_PWD"
-    touch -r "$1" "$2"
+    touch -r "${ARCHIVE}" "${OUT}"
 else
-    cp -p "$1" "$2"
+    cp -p "${ARCHIVE}" "${OUT}"
 fi
         """,
     )

@@ -59,7 +59,14 @@ DIR="$(mktemp -d)"
 
 mkdir -p "${DIR}/jmod" "${DIR}/classes"
 
-"${FLAGS_unzip}" -o -q -d "${DIR}/classes" "${FLAGS_input}"
+[[ "${FLAGS_unzip}" != /* && ! "${FLAGS_unzip}" =~ ^[A-Za-z]: ]] && FLAGS_unzip="${PWD}/${FLAGS_unzip}"
+runfiles="${FLAGS_unzip}.runfiles/bazel_tools/third_party/ijar/$(basename "${FLAGS_unzip}")"
+if [[ ! -x "${FLAGS_unzip}" && -x "${runfiles}" ]]; then
+  FLAGS_unzip="${runfiles}"
+fi
+[[ "${FLAGS_input}" != /* && ! "${FLAGS_input}" =~ ^[A-Za-z]: ]] && FLAGS_input="${PWD}/${FLAGS_input}"
+
+( cd "${DIR}/classes" && "${FLAGS_unzip}" x "${FLAGS_input}" )
 chmod -R a+rx "${DIR}/classes"
 
 rm -rf "${FLAGS_output}"
