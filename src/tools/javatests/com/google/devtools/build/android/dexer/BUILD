@@ -29,6 +29,7 @@ java_library(
         "@androidsdk//:has_androidsdk": [
             "DexFileSplitterTest.java",
             "DexLimitTrackerTest.java",
+            "ZipEntryComparatorTest.java",
         ],
         "//conditions:default": ["NoAndroidSdkStubTest.java"],
     }),

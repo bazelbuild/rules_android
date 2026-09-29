@@ -107,6 +107,7 @@ java_test(
         ":guava",
         ":test_utils",
         "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
+        "@rules_android_maven//:com_android_tools_build_aapt2_proto",
         "@rules_android_maven//:com_google_jimfs_jimfs",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",
