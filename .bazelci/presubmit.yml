@@ -2,8 +2,9 @@
 
 matrix:
   bazel: [
-    7.7.1,
-    8.5.0,
+    7.x,
+    8.x,
+    9.x,
     last_green,
   ]
   platform: [
@@ -12,15 +13,11 @@ matrix:
     # windows # TODO: Windows unit tests don't work yet.
   ]
 
-tools_flags: &tools_flags
-  ? "--enable_bzlmod=false"
-  ? "--enable_workspace=true"
-rules_flags: &rules_flags
+workspace_flags: &workspace_flags
   ? "--enable_bzlmod=false"
   ? "--enable_workspace=true"
 bzlmod_flags: &bzlmod_flags
-  <<: *rules_flags
-  ? "--enable_bzlmod"
+  ? "--enable_bzlmod=true"
   ? "--enable_workspace=false"
 
 # These flags are used to build the app using the mobile-install aspect
@@ -38,14 +35,17 @@ mi_aspect_flags: &mi_aspect_flags
   # is a crude workaround for that problem.
   ? "--tool_java_runtime_version=21"
 
-tools: &tools
-  name: "Tools"
+targets: &targets
+  name: "bzlmod mode"
   build_targets:
     - "//android/..."
     - "//src/..."
     - "-//src/java/com/example/sampleapp/..."
+    - "//rules/..."
     - "//test/..."
-    - "-//test/rules/..." # Tested in `rules`
+    # Resource processor tests need an extra flag for now,
+    # due to legacy compatibility reasons.
+    - "-//test/rules/resources/..."
     - "//toolchains/..."
     - "//tools/..."
     - "-//tools/android/..." # TODO(#122): Un-exclude this once #122 is fixed.
@@ -53,88 +53,53 @@ tools: &tools
     - "//src/..."
     - "-//src/java/com/example/sampleapp/..."
     - "//test/..."
-    - "-//test/rules/..."
-  build_flags:
-    <<: *tools_flags
-  test_flags:
-    <<: *tools_flags
-tools_bzlmod: &tools_bzlmod
-  name: "Tools Bzlmod"
-  build_flags:
-    <<: *tools_flags
-    ? "--enable_bzlmod"
-    ? "--enable_workspace=false"
-  test_flags:
-    <<: *tools_flags
-    ? "--enable_bzlmod"
-    ? "--enable_workspace=false"
-  <<: *tools
-rules: &rules
-  name: "Rules"
-  build_targets:
-    - "//rules/..."
-  test_targets:
-    - "//test/rules/..."
     # Resource processor tests need an extra flag for now,
     # due to legacy compatibility reasons.
     - "-//test/rules/resources/..."
   build_flags:
-    <<: *rules_flags
+    <<: *bzlmod_flags
   test_flags:
-    <<: *rules_flags
+    <<: *bzlmod_flags
+targets_workspace: &targets_workspace
+  name: "WORKSPACE mode"
+  build_flags:
+    <<: *workspace_flags
+  test_flags:
+    <<: *workspace_flags
+  <<: *targets
 resource_rules: &resource_rules
-  name: "Resource Rules"
-  build_targets:
-    - "//test/rules/resources/..."
-  test_targets:
-    - "//test/rules/resources/..."
-  build_flags:
-    <<: *rules_flags
-    ? "--//rules/flags:manifest_merge_order=legacy"
-  test_flags:
-    <<: *rules_flags
-    ? "--//rules/flags:manifest_merge_order=legacy"
-rules_coverage: &rules_coverage
-  coverage_targets:
-    - "//test/rules/android_local_test/java/com/..."
-  coverage_flags:
-    <<: *rules_flags
-    ? "--enable_bzlmod"
-    ? "--enable_workspace=false"
-rules_bzlmod: &rules_bzlmod
-  name: "Rules Bzlmod"
-  build_flags:
-    <<: *rules_flags
-    ? "--enable_bzlmod"
-    ? "--enable_workspace=false"
-  test_flags:
-    <<: *rules_flags
-    ? "--enable_bzlmod"
-    ? "--enable_workspace=false"
-  <<: *rules
-resource_rules_bzlmod: &resource_rules_bzlmod
   name: "Resource Rules Bzlmod"
   build_targets:
     - "//test/rules/resources/..."
   test_targets:
     - "//test/rules/resources/..."
   build_flags:
-    <<: *rules_flags
-    ? "--enable_bzlmod"
-    ? "--enable_workspace=false"
+    <<: *bzlmod_flags
     ? "--//rules/flags:manifest_merge_order=legacy"
   test_flags:
-    <<: *rules_flags
-    ? "--enable_bzlmod"
-    ? "--enable_workspace=false"
+    <<: *bzlmod_flags
     ? "--//rules/flags:manifest_merge_order=legacy"
+resource_rules_workspace: &resource_rules_workspace
+  name: "Resource Rules WORKSPACE"
+  build_flags:
+    <<: *workspace_flags
+    ? "--//rules/flags:manifest_merge_order=legacy"
+  test_flags:
+    <<: *workspace_flags
+    ? "--//rules/flags:manifest_merge_order=legacy"
+  <<: *resource_rules
+rules_coverage: &rules_coverage
+  coverage_targets:
+    - "//test/rules/android_local_test/java/com/..."
+  coverage_flags:
+    <<: *bzlmod_flags
 
 basicapp: &basicapp
   platform: ${{ platform }}
   bazel: ${{ bazel }}
   working_directory: examples/basicapp
   build_flags:
-    <<: *rules_flags
+    <<: *workspace_flags
   build_targets:
     - "//java/com/basicapp:basic_app"
     - "//java/com/basicapp:basic_app_bundle"
@@ -151,35 +116,27 @@ r8_app_bzlmod: &r8_app_bzlmod
     - "//:r8_app_bundle"
 
 tasks:
-  tools:
+  targets:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
-    <<: *tools
-  rules:
+    <<: *targets
+  targets_workspace:
     platform: ${{ platform }}
     bazel: ${{ bazel }}
-    <<: *rules
+    <<: *targets_workspace
   resource_rules:
     # Resource tests have macOS compatibility issues, run only on Linux
     platform: ubuntu2404
     bazel: ${{ bazel }}
     <<: *resource_rules
-  tools_bzlmod:
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    <<: *tools_bzlmod
-  resource_rules_bzlmod:
+  resource_rules_workspace:
     # Resource tests have macOS compatibility issues, run only on Linux
     platform: ubuntu2404
     bazel: ${{ bazel }}
-    <<: *resource_rules_bzlmod
-  rules_bzlmod:
-    platform: ${{ platform }}
-    bazel: ${{ bazel }}
-    <<: *rules_bzlmod
+    <<: *resource_rules_workspace
   ubuntu_a_l_t_coverage:
     name: "Ubuntu android_local_test coverage"
-    platform: ubuntu2004
+    platform: ubuntu2404
     bazel: ${{ bazel }}
     <<: *rules_coverage
   macos_a_l_t_coverage:
