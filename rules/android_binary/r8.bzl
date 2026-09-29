@@ -13,9 +13,10 @@
 # limitations under the License.
 """R8 processor steps for android_binary."""
 
-load("//providers:providers.bzl", "AndroidDexInfo", "AndroidOptimizationInfo", "AndroidPreDexJarInfo")
+load("//providers:providers.bzl", "AndroidDexInfo", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "BaselineProfileProvider")
 load("//rules:acls.bzl", "acls")
 load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
+load("//rules:baseline_profiles.bzl", _baseline_profiles = "baseline_profiles")
 load("//rules:common.bzl", "common")
 load("//rules:dex.bzl", _dex = "dex")
 load("//rules:java.bzl", "java")
@@ -37,6 +38,31 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "read_possibly_native_flag", _flags = "flags")
 
 visibility(PROJECT_VISIBILITY)
+
+def _collect_baseline_profiles(ctx):
+    return depset(transitive = [
+        provider.files
+        for provider in utils.collect_providers(BaselineProfileProvider, ctx.attr.deps)
+    ])
+
+def r8_art_profiles_enabled(ctx):
+    """Whether this R8 build compiles an ART profile from baseline or startup profiles."""
+    return bool(ctx.attr.generate_art_profile and
+                (ctx.files.startup_profiles or _collect_baseline_profiles(ctx)))
+
+def _merge_profiles(ctx, output, inputs):
+    args = ctx.actions.args()
+    args.add_all(inputs, before_each = "--input")
+    args.add("--output", output)
+    ctx.actions.run(
+        executable = get_android_toolchain(ctx).merge_baseline_profiles_tool.files_to_run,
+        arguments = [args],
+        inputs = inputs,
+        outputs = [output],
+        mnemonic = "MergeBaselineProfiles",
+        progress_message = "Merging baseline profiles for %{label}",
+        toolchain = ANDROID_TOOLCHAIN_TYPE,
+    )
 
 def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_ctxs):
     """Runs R8 for desugaring, optimization, and dexing.
@@ -132,6 +158,33 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     args.add("--build-metadata-output", build_metadata_output)
 
     r8_inputs = [android_jar, deploy_jar] + proguard_specs
+    r8_outputs = [
+        dexes_zip,
+        proguard_mappings_output_file,
+        build_metadata_output,
+        keep_radius,
+    ]
+
+    # R8 lays out startup code from the startup profile, and rewrites the merged profile to
+    # the names it emits, so profgen needs no mapping afterwards.
+    rewritten_profile = None
+    if r8_art_profiles_enabled(ctx):
+        if ctx.files.startup_profiles:
+            startup_profile = _baseline_profiles.get_profile_artifact(ctx, "static-startup-prof.txt")
+            _merge_profiles(ctx, startup_profile, ctx.files.startup_profiles)
+            args.add("--startup-profile", startup_profile)
+            r8_inputs.append(startup_profile)
+        merged_profile = _baseline_profiles.get_profile_artifact(ctx, "static-prof.txt")
+        _merge_profiles(
+            ctx,
+            merged_profile,
+            ctx.files.startup_profiles + _collect_baseline_profiles(ctx).to_list(),
+        )
+        rewritten_profile = _baseline_profiles.get_profile_artifact(ctx, "rewritten-prof.txt")
+        args.add("--art-profile", merged_profile)
+        args.add(rewritten_profile)
+        r8_inputs.append(merged_profile)
+        r8_outputs.append(rewritten_profile)
     if read_possibly_native_flag(ctx, "desugar_java8_libs") and desugared_lib_config:
         args.add("--desugared-lib", desugared_lib_config)
         r8_inputs.append(desugared_lib_config)
@@ -142,12 +195,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         executable = get_android_toolchain(ctx).r8.files_to_run,
         arguments = [args],
         inputs = depset(r8_inputs, transitive = [neverlink_jars]),
-        outputs = [
-            dexes_zip,
-            proguard_mappings_output_file,
-            build_metadata_output,
-            keep_radius,
-        ],
+        outputs = r8_outputs,
         mnemonic = "AndroidR8",
         jvm_flags = [
             "-Xmx8G",
@@ -204,11 +252,23 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
             toolchain_type = ANDROID_TOOLCHAIN_TYPE,
         )
 
+    art_profile_info = None
+    if rewritten_profile:
+        art_profile_info = _baseline_profiles.process_art_profile(
+            ctx,
+            final_classes_dex = final_classes_dex_zip,
+            merged_profile = rewritten_profile,
+            output_primary_profile = ctx.outputs.primary_profile,
+            profgen = get_android_toolchain(ctx).profgen.files_to_run,
+            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+        )
+
     return ProviderInfo(
         name = "r8_ctx",
         value = struct(
             final_classes_dex_zip = final_classes_dex_zip,
             dex_info = android_dex_info,
+            art_profile_zip = art_profile_info.art_profile_zip if art_profile_info else None,
             implicit_outputs = [proguard_mappings_output_file],
             html_report = html_report,
             output_groups = {
@@ -221,7 +281,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
                     r8_optimization_info = build_metadata_output,
                     optimization_analysis_report = html_report,
                 ),
-            ],
+            ] + ([art_profile_info] if art_profile_info else []),
         ),
     )
 

@@ -51,7 +51,7 @@ load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:java_plugin_info.bzl", "JavaPluginInfo")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
-load(":r8.bzl", "process_r8", "process_resource_shrinking_r8")
+load(":r8.bzl", "process_r8", "process_resource_shrinking_r8", "r8_art_profiles_enabled")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -700,7 +700,9 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
             )
             providers.append(art_profile_info)
 
-    if ctx.attr._generate_art_profile_outputs and not art_profile_info:
+    # R8 builds with profiles compile the ART profile in process_r8, which writes this output.
+    r8_writes_art_profile = validation_ctx.use_r8 and r8_art_profiles_enabled(ctx)
+    if ctx.attr._generate_art_profile_outputs and not art_profile_info and not r8_writes_art_profile:
         # There are a lot of ways baseline profiles could fail, and thus art profile generation also
         # fails. For example, if the baseline profile is not included as a dependency, if the
         # baseline profile is empty, or if you're attempting to use R8.
@@ -972,7 +974,7 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
         native_libs_name = native_libs_ctx.native_libs_info.native_libs_name,
         coverage_metadata = dex_info.deploy_jar if ctx.configuration.coverage_enabled else None,
         merged_manifest = packaged_resources_ctx.processed_manifest,
-        art_profile_zip = ap_ctx.art_profile_zip,
+        art_profile_zip = ap_ctx.art_profile_zip or getattr(r8_ctx, "art_profile_zip", None),
         java_resources_zip = dex_info.java_resource_jar,
         compress_java_resources = read_possibly_native_flag(
             ctx,
