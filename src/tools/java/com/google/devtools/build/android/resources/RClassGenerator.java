@@ -13,22 +13,20 @@
 // limitations under the License.
 package com.google.devtools.build.android.resources;
 
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
-
 import com.android.SdkConstants;
 import com.android.resources.ResourceType;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -61,45 +59,40 @@ public class RClassGenerator {
   private final RPackageId rPackageId;
   private boolean rPackageWritten = false;
 
+  /** Generated class files, keyed by the path under {@code outFolder} they belong at. */
+  private final ConcurrentMap<Path, byte[]> classFiles;
+
   private static final Splitter PACKAGE_SPLITTER = Splitter.on('.');
 
   /**
-   * Create an RClassGenerator given a collection of initializers.
+   * Create an RClassGenerator given a collection of initializers. Class files are not written to
+   * disk; they are stored in {@code classFiles}, keyed by their path under {@code outFolder}.
    *
    * @param label Bazel target which owns the generated R class
-   * @param outFolder base folder to place the output R class files.
+   * @param outFolder base folder that the class file paths are relative to
+   * @param classFiles map that receives the generated class files
    * @param initializers the list of initializers to use for each inner class
    * @param finalFields true if the fields should be marked final
    * @param annotateTransitiveFields whether the R class and fields from transitive dependencies
    *     should be annotated.
    * @param rPackageId if provided fields values will be generated using RPackage class.
    */
-  public static RClassGenerator with(
+  public static RClassGenerator inMemory(
       String label,
       Path outFolder,
+      ConcurrentMap<Path, byte[]> classFiles,
       FieldInitializers initializers,
       boolean finalFields,
       boolean annotateTransitiveFields,
       RPackageId rPackageId) {
     return new RClassGenerator(
-        label, outFolder, initializers, finalFields, annotateTransitiveFields, rPackageId);
-  }
-
-  @VisibleForTesting
-  static RClassGenerator with(Path outFolder, FieldInitializers initializers, boolean finalFields) {
-    return with(outFolder, initializers, finalFields, /* rPackageId= */ null);
-  }
-
-  @VisibleForTesting
-  static RClassGenerator with(
-      Path outFolder, FieldInitializers initializers, boolean finalFields, RPackageId rPackageId) {
-    return new RClassGenerator(
-        /* label= */ null,
+        label,
         outFolder,
         initializers,
         finalFields,
-        /* annotateTransitiveFields= */ false,
-        rPackageId);
+        annotateTransitiveFields,
+        rPackageId,
+        classFiles);
   }
 
   private RClassGenerator(
@@ -108,13 +101,15 @@ public class RClassGenerator {
       FieldInitializers initializers,
       boolean finalFields,
       boolean annotateTransitiveFields,
-      RPackageId rPackageId) {
+      RPackageId rPackageId,
+      ConcurrentMap<Path, byte[]> classFiles) {
     this.label = label;
     this.outFolder = outFolder;
     this.initializers = initializers;
     this.finalFields = finalFields;
     this.annotateTransitiveFields = annotateTransitiveFields;
     this.rPackageId = rPackageId;
+    this.classFiles = classFiles;
   }
 
   /**
@@ -122,6 +117,15 @@ public class RClassGenerator {
    * symbols.
    */
   public void write(String packageName, FieldInitializers symbolsToWrite) throws IOException {
+    writeClasses(packageName, initializers.filter(symbolsToWrite));
+  }
+
+  /**
+   * Builds bytecode and writes out R.class file, and R$inner.class files for provided package and
+   * the union of the provided symbols.
+   */
+  public void write(String packageName, Collection<FieldInitializers> symbolsToWrite)
+      throws IOException {
     writeClasses(packageName, initializers.filter(symbolsToWrite));
   }
 
@@ -140,10 +144,8 @@ public class RClassGenerator {
     for (String folder : folders) {
       packageDir = packageDir.resolve(folder);
     }
-    // At least create the outFolder that was requested. However, if there are no symbols, don't
-    // create the R.class and inner class files (no need to have an empty class).
-    Files.createDirectories(packageDir);
-
+    // If there are no symbols, don't create the R.class and inner class files (no need to have an
+    // empty class).
     if (Iterables.isEmpty(initializersToWrite)) {
       return;
     }
@@ -178,7 +180,7 @@ public class RClassGenerator {
           Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL | Opcodes.ACC_STATIC);
     }
     classWriter.visitEnd();
-    Files.write(rClassFile, classWriter.toByteArray(), CREATE_NEW);
+    writeClassFile(rClassFile, classWriter.toByteArray());
     // Now generate the R$inner.class files.
     for (Map.Entry<ResourceType, Collection<FieldInitializer>> entry : initializersToWrite) {
       writeInnerClass(entry.getValue(), packageDir, rClassName, entry.getKey().toString());
@@ -211,7 +213,7 @@ public class RClassGenerator {
 
     innerClassWriter.visitEnd();
     Path innerFile = packageDir.resolve("R$" + innerClass + ".class");
-    Files.write(innerFile, innerClassWriter.toByteArray(), CREATE_NEW);
+    writeClassFile(innerFile, innerClassWriter.toByteArray());
   }
 
   private String writeInnerClassHeader(
@@ -306,7 +308,7 @@ public class RClassGenerator {
     }
   }
 
-  private void writeRPackageClassIfNeeded() throws IOException {
+  private synchronized void writeRPackageClassIfNeeded() throws IOException {
     if (rPackageId == null || rPackageWritten) {
       return;
     }
@@ -314,7 +316,6 @@ public class RClassGenerator {
     final String rPackageClassName = rPackageId.getRPackageClassName();
     final String internalClassname = rPackageClassName.replace('.', '/');
     final Path outputPath = outFolder.resolve(internalClassname + ".class");
-    Files.createDirectories(outputPath.getParent());
 
     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
     classWriter.visit(
@@ -334,8 +335,14 @@ public class RClassGenerator {
         rPackageId.getPackageId());
 
     classWriter.visitEnd();
-    Files.write(outputPath, classWriter.toByteArray(), CREATE_NEW);
+    writeClassFile(outputPath, classWriter.toByteArray());
 
     rPackageWritten = true;
+  }
+
+  private void writeClassFile(Path path, byte[] content) throws IOException {
+    if (classFiles.putIfAbsent(path, content) != null) {
+      throw new FileAlreadyExistsException(path.toString());
+    }
   }
 }

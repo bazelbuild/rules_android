@@ -22,7 +22,10 @@ import com.google.devtools.build.android.resources.RSourceGenerator;
 import com.google.devtools.build.android.resources.Visibility;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Generates the R class for an android_library with made up field initializers for the ids. The
@@ -67,6 +70,7 @@ public class AndroidResourceClassWriter extends AndroidResourceSymbolSink {
   private boolean includeClassFile = true;
   private boolean includeJavaFile = true;
   private boolean annotateTransitiveFields = false;
+  private final ConcurrentSkipListMap<Path, byte[]> classFiles = new ConcurrentSkipListMap<>();
 
   private final PlaceholderIdFieldInitializerBuilder generator;
 
@@ -91,6 +95,14 @@ public class AndroidResourceClassWriter extends AndroidResourceSymbolSink {
 
   void setAnnotateTransitiveFields(boolean annotateTransitiveFields) {
     this.annotateTransitiveFields = annotateTransitiveFields;
+  }
+
+  /**
+   * Returns the generated class files, sorted and keyed by their path under the output base path.
+   * Class files are not written to disk.
+   */
+  SortedMap<Path, byte[]> getClassFiles() {
+    return Collections.unmodifiableSortedMap(classFiles);
   }
 
   @Override
@@ -129,9 +141,10 @@ public class AndroidResourceClassWriter extends AndroidResourceSymbolSink {
   }
 
   private void writeAsClass(FieldInitializers initializers) throws IOException {
-    RClassGenerator.with(
+    RClassGenerator.inMemory(
             label,
             outputBasePath,
+            classFiles,
             initializers,
             /* finalFields= */ false,
             annotateTransitiveFields,

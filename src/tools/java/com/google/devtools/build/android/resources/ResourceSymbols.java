@@ -13,31 +13,51 @@
 // limitations under the License.
 package com.google.devtools.build.android.resources;
 
-import com.android.builder.core.DefaultManifestParser;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.android.SdkConstants;
 import com.android.manifmerger.ManifestProvider;
+import com.android.manifmerger.PlaceholderHandler;
 import com.android.resources.ResourceType;
+import com.android.utils.XmlUtils;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.devtools.build.android.DependencyInfo;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /** Encapsulates the logic for loading and writing resource symbols. */
 public class ResourceSymbols {
@@ -56,9 +76,10 @@ public class ResourceSymbols {
     public ResourceSymbols call() throws Exception {
       List<String> lines = Files.readAllLines(rTxtSymbols, StandardCharsets.UTF_8);
 
-      // NB: the inner map is working around a bug in R.txt generation!
+      // NB: deduping by field name is working around a bug in R.txt generation!
       // TODO(b/140643407): read directly without having to dedup by field name
-      final Map<ResourceType, Map<String, FieldInitializer>> initializers = new TreeMap<>();
+      final Map<ResourceType, List<FieldInitializer>> initializers =
+          new EnumMap<>(ResourceType.class);
 
       for (int lineIndex = 1; lineIndex <= lines.size(); lineIndex++) {
         String line = null;
@@ -86,8 +107,8 @@ public class ResourceSymbols {
           }
 
           initializers
-              .computeIfAbsent(ResourceTypeEnum.get(className), k -> new TreeMap<>())
-              .put(name, initializer);
+              .computeIfAbsent(ResourceTypeEnum.get(className), k -> new ArrayList<>())
+              .add(initializer);
         } catch (IndexOutOfBoundsException e) {
           String s =
               String.format(
@@ -98,16 +119,53 @@ public class ResourceSymbols {
         }
       }
 
-      return ResourceSymbols.from(
-          FieldInitializers.copyOf(
-              initializers.entrySet().stream()
-                  .collect(
-                      ImmutableMap.toImmutableMap(
-                          Map.Entry::getKey, entry -> entry.getValue().values()))));
+      ImmutableMap.Builder<ResourceType, Collection<FieldInitializer>> sortedInitializers =
+          ImmutableMap.builderWithExpectedSize(initializers.size());
+      for (Map.Entry<ResourceType, List<FieldInitializer>> entry : initializers.entrySet()) {
+        sortedInitializers.put(entry.getKey(), sortAndDedupeByName(entry.getValue()));
+      }
+      return ResourceSymbols.from(FieldInitializers.copyOf(sortedInitializers.buildOrThrow()));
+    }
+
+    /**
+     * Sorts by field name, keeping only the last occurrence of each name. Equivalent to inserting
+     * all fields into a {@link java.util.TreeMap} keyed by name, but cheaper since R.txt files are
+     * typically already sorted.
+     */
+    private static ImmutableList<FieldInitializer> sortAndDedupeByName(
+        List<FieldInitializer> fields) {
+      // List.sort is stable, so duplicates stay in encounter order.
+      fields.sort(Comparator.comparing(FieldInitializer::getFieldName));
+      ImmutableList.Builder<FieldInitializer> result =
+          ImmutableList.builderWithExpectedSize(fields.size());
+      for (int i = 0; i < fields.size(); i++) {
+        if (i + 1 == fields.size()
+            || !fields.get(i).getFieldName().equals(fields.get(i + 1).getFieldName())) {
+          result.add(fields.get(i));
+        }
+      }
+      return result.build();
     }
   }
 
   private static final class PackageParsingTask implements Callable<String> {
+
+    private static final SAXParserFactory PARSER_FACTORY =
+        XmlUtils.configureSaxFactory(
+            SAXParserFactory.newInstance(), /* namespaceAware= */ true, /* checkDtd= */ false);
+
+    /** SAX parsers are not thread-safe, but can be reused for sequential parses. */
+    private static final ThreadLocal<SAXParser> PARSER =
+        ThreadLocal.withInitial(
+            () -> {
+              try {
+                synchronized (PARSER_FACTORY) {
+                  return XmlUtils.createSaxParser(PARSER_FACTORY);
+                }
+              } catch (ParserConfigurationException | SAXException e) {
+                throw new IllegalStateException(e);
+              }
+            });
 
     private final File manifest;
 
@@ -115,14 +173,38 @@ public class ResourceSymbols {
       this.manifest = manifest;
     }
 
+    /**
+     * Equivalent to {@code DefaultManifestParser.getPackage()}, which serializes all parsing
+     * behind a global lock and creates a new parser for each file.
+     */
     @Override
-    public String call() throws Exception {
-      return new DefaultManifestParser(
-              manifest,
-              /* canParseManifest= */ () -> true,
-              /* isManifestFileRequired= */ true,
-              /* issueReporter= */ null)
-          .getPackage();
+    public String call() throws IOException, SAXException {
+      if (!manifest.isFile()) {
+        throw new FileNotFoundException(
+            "Manifest file does not exist: " + manifest.getAbsolutePath());
+      }
+      String[] packageName = new String[1];
+      DefaultHandler handler =
+          new DefaultHandler() {
+            @Override
+            public void startElement(
+                String uri, String localName, String qName, Attributes attributes) {
+              if (Strings.isNullOrEmpty(uri) && localName.equals(SdkConstants.TAG_MANIFEST)) {
+                String value = attributes.getValue("", SdkConstants.ATTR_PACKAGE);
+                if (value != null && !PlaceholderHandler.isPlaceHolder(value)) {
+                  packageName[0] = value;
+                }
+              }
+            }
+          };
+      SAXParser parser = PARSER.get();
+      try {
+        parser.parse(manifest, handler);
+      } catch (IOException | SAXException | RuntimeException e) {
+        PARSER.remove();
+        throw e;
+      }
+      return packageName[0];
     }
   }
 
@@ -213,28 +295,64 @@ public class ResourceSymbols {
     return values;
   }
 
+  /**
+   * Generates the R classes for the given packages, storing them in {@code classFiles} keyed by
+   * their path under {@code classesOut}.
+   */
   public void writeClassesTo(
       Multimap<String, ResourceSymbols> libMap,
       String appPackageName,
       Path classesOut,
+      ConcurrentMap<Path, byte[]> classFiles,
       boolean finalFields,
       RPackageId rPackageId)
       throws IOException {
     RClassGenerator classWriter =
-        RClassGenerator.with(
+        RClassGenerator.inMemory(
             /* label= */ null,
             classesOut,
+            classFiles,
             values,
             finalFields,
             /* annotateTransitiveFields= */ false,
             rPackageId);
-    for (String packageName : libMap.keySet()) {
-      classWriter.write(packageName, ResourceSymbols.merge(libMap.get(packageName)).values);
-    }
-    if (appPackageName != null) {
-      // Unlike the R.java generation, we also write the app's R.class file so that the class
-      // jar file can be complete (aapt doesn't generate it for us).
-      classWriter.write(appPackageName);
+    // Packages are independent, so they can be written in parallel.
+    ExecutorService executor =
+        Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    try {
+      List<Future<?>> futures = new ArrayList<>();
+      for (Map.Entry<String, Collection<ResourceSymbols>> entry : libMap.asMap().entrySet()) {
+        String packageName = entry.getKey();
+        ImmutableList<FieldInitializers> packageInitializers =
+            entry.getValue().stream()
+                .map(ResourceSymbols::asInitializers)
+                .collect(toImmutableList());
+        futures.add(
+            executor.submit(
+                () -> {
+                  classWriter.write(packageName, packageInitializers);
+                  return null;
+                }));
+      }
+      if (appPackageName != null) {
+        // Unlike the R.java generation, we also write the app's R.class file so that the class
+        // jar file can be complete (aapt doesn't generate it for us).
+        futures.add(
+            executor.submit(
+                () -> {
+                  classWriter.write(appPackageName);
+                  return null;
+                }));
+      }
+      for (Future<?> future : futures) {
+        Uninterruptibles.getUninterruptibly(future);
+      }
+    } catch (ExecutionException e) {
+      Throwables.throwIfInstanceOf(e.getCause(), IOException.class);
+      Throwables.throwIfUnchecked(e.getCause());
+      throw new IllegalStateException(e.getCause());
+    } finally {
+      executor.shutdownNow();
     }
   }
 }

@@ -39,8 +39,10 @@ import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
@@ -282,16 +284,6 @@ public class AndroidResourceOutputs {
       return out.toByteArray();
     }
 
-    @Override
-    protected void writeEntry(Path file) throws IOException {
-      Path filename = file.getFileName();
-      String name = filename.toString();
-      if (name.endsWith(".class")) {
-        byte[] content = Files.readAllBytes(file);
-        addEntry(file, content);
-      }
-    }
-
     void writeManifestContent(@Nullable String targetLabel, @Nullable String injectingRuleKind)
         throws IOException {
       addEntry("META-INF/", new byte[] {});
@@ -476,9 +468,13 @@ public class AndroidResourceOutputs {
     }
   }
 
-  /** Creates a zip archive from all found R.class (and inner class) files. */
+  /**
+   * Creates a zip archive from R.class (and inner class) file contents, keyed by their path under
+   * {@code generatedClassesRoot}.
+   */
   public static void createClassJar(
       Path generatedClassesRoot,
+      SortedMap<Path, byte[]> classFiles,
       Path classJar,
       @Nullable String targetLabel,
       @Nullable String injectingRuleKind) {
@@ -486,9 +482,10 @@ public class AndroidResourceOutputs {
       Files.createDirectories(classJar.getParent());
       try (final ZipBuilder zip = ZipBuilder.createFor(classJar)) {
         ClassJarBuildingVisitor visitor = new ClassJarBuildingVisitor(zip, generatedClassesRoot);
-        Files.walkFileTree(generatedClassesRoot, visitor);
         visitor.writeManifestContent(targetLabel, injectingRuleKind);
-        visitor.writeEntries();
+        for (Map.Entry<Path, byte[]> classFile : classFiles.entrySet()) {
+          visitor.addEntry(classFile.getKey(), classFile.getValue());
+        }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);

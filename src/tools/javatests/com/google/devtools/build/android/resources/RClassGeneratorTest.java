@@ -21,10 +21,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.devtools.build.android.AndroidResourceOutputs;
 import com.google.devtools.build.android.resources.JavaIdentifierValidator.InvalidJavaIdentifier;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -33,13 +33,13 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
@@ -58,6 +58,7 @@ import org.junit.runners.JUnit4;
 public class RClassGeneratorTest {
 
   private Path temp;
+  private final ConcurrentSkipListMap<Path, byte[]> classFiles = new ConcurrentSkipListMap<>();
   @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Before
@@ -98,11 +99,9 @@ public class RClassGeneratorTest {
     }
     ResourceSymbols symbolValues = createSymbolFile("R.txt", resourceFields.toArray(new String[0]));
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
     RPackageId rPackageId = withRPackage ? RPackageId.createFor("com.bar") : null;
     RClassGenerator writer =
-        RClassGenerator.with(
-            out, symbolValues.asInitializers(), /* finalFields= */ false, rPackageId);
+        generator(out, symbolValues.asInitializers(), /* finalFields= */ false, rPackageId);
 
     writer.write("com.bar", symbolValues.asInitializers());
 
@@ -139,11 +138,9 @@ public class RClassGeneratorTest {
     }
     ResourceSymbols symbolValues = createSymbolFile("R.txt", resourceFields.toArray(new String[0]));
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
     RPackageId rPackageId = withRPackage ? RPackageId.createFor("com.bar") : null;
     RClassGenerator writer =
-        RClassGenerator.with(
-            out, symbolValues.asInitializers(), /* finalFields= */ false, rPackageId);
+        generator(out, symbolValues.asInitializers(), /* finalFields= */ false, rPackageId);
 
     writer.write("com.bar", symbolValues.asInitializers());
 
@@ -167,9 +164,8 @@ public class RClassGeneratorTest {
         "int[] styleable " + fieldName + " { " + String.join(", ", arrayValue) + " }";
     ResourceSymbols symbolValues = createSymbolFile("R.txt", resourceField);
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
     RClassGenerator writer =
-        RClassGenerator.with(out, symbolValues.asInitializers(), /*finalFields=*/ false);
+        generator(out, symbolValues.asInitializers(), /* finalFields= */ false);
 
     thrown.expect(IllegalStateException.class);
 
@@ -200,8 +196,7 @@ public class RClassGeneratorTest {
             "int string ok 0x1",
             "int string largePackageId 0x1");
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
-    RClassGenerator writer = RClassGenerator.with(out, symbolValues.asInitializers(), finalFields);
+    RClassGenerator writer = generator(out, symbolValues.asInitializers(), finalFields);
     writer.write("com.bar", symbolsInLibrary.asInitializers());
 
     Path packageDir = out.resolve("com/bar");
@@ -244,12 +239,10 @@ public class RClassGeneratorTest {
     Path out = temp.resolve("classes");
     String packageName = "com";
     Path packageFolder = out.resolve(packageName);
-    Files.createDirectories(packageFolder);
 
     RPackageId rPackageId = withRPackage ? RPackageId.createFor(packageName) : null;
-    RClassGenerator writer =
-        RClassGenerator.with(out, symbolValues.asInitializers(), false, rPackageId);
-    Files.write(packageFolder.resolve(existingFile), new byte[0]);
+    RClassGenerator writer = generator(out, symbolValues.asInitializers(), false, rPackageId);
+    classFiles.put(packageFolder.resolve(existingFile), new byte[0]);
 
     try {
       writer.write(packageName, symbolsInLibrary.asInitializers());
@@ -278,8 +271,7 @@ public class RClassGeneratorTest {
             "R.txt", "int[] styleable ActionMenuView { }", "int[] styleable ActionMenuView2 {  }");
     ResourceSymbols symbolsInLibrary = symbolValues;
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
-    RClassGenerator writer = RClassGenerator.with(out, symbolValues.asInitializers(), finalFields);
+    RClassGenerator writer = generator(out, symbolValues.asInitializers(), finalFields);
     writer.write("com.testEmptyIntArray", symbolsInLibrary.asInitializers());
 
     Path packageDir = out.resolve("com/testEmptyIntArray");
@@ -347,9 +339,9 @@ public class RClassGeneratorTest {
     Path path = createFile("R.txt", "int id 42ActionMenuView 0x7f020000");
     final ResourceSymbols resourceSymbols =
         ResourceSymbols.load(path, MoreExecutors.newDirectExecutorService()).get();
-    Path out = Files.createDirectories(temp.resolve("classes"));
+    Path out = temp.resolve("classes");
     thrown.expect(INVALID_JAVA_IDENTIFIER);
-    RClassGenerator.with(out, resourceSymbols.asInitializers(), true).write("somepackage");
+    generator(out, resourceSymbols.asInitializers(), true).write("somepackage");
   }
 
   @Test
@@ -357,9 +349,9 @@ public class RClassGeneratorTest {
     Path path = createFile("R.txt", "int id Action:MenuView 0x7f020000");
     final ResourceSymbols resourceSymbols =
         ResourceSymbols.load(path, MoreExecutors.newDirectExecutorService()).get();
-    Path out = Files.createDirectories(temp.resolve("classes"));
+    Path out = temp.resolve("classes");
     thrown.expect(INVALID_JAVA_IDENTIFIER);
-    RClassGenerator.with(out, resourceSymbols.asInitializers(), true).write("somepackage");
+    generator(out, resourceSymbols.asInitializers(), true).write("somepackage");
   }
 
   @Test
@@ -367,9 +359,9 @@ public class RClassGeneratorTest {
     Path path = createFile("R.txt", "int id package 0x7f020000");
     final ResourceSymbols resourceSymbols =
         ResourceSymbols.load(path, MoreExecutors.newDirectExecutorService()).get();
-    Path out = Files.createDirectories(temp.resolve("classes"));
+    Path out = temp.resolve("classes");
     thrown.expect(INVALID_JAVA_IDENTIFIER);
-    RClassGenerator.with(out, resourceSymbols.asInitializers(), true).write("somepackage");
+    generator(out, resourceSymbols.asInitializers(), true).write("somepackage");
   }
 
   @Test
@@ -386,8 +378,7 @@ public class RClassGeneratorTest {
             "int id debug_text_field2 0x1",
             "int layout stubbable_activity 0x1");
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
-    RClassGenerator writer = RClassGenerator.with(out, symbolValues.asInitializers(), finalFields);
+    RClassGenerator writer = generator(out, symbolValues.asInitializers(), finalFields);
     writer.write("com.foo", symbolsInLibrary.asInitializers());
 
     Path packageDir = out.resolve("com/foo");
@@ -410,8 +401,7 @@ public class RClassGeneratorTest {
         createSymbolFile("R.txt", "int layout stubbable_activity 0x7f020000");
     ResourceSymbols symbolsInLibrary = createSymbolFile("lib.R.txt");
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
-    RClassGenerator writer = RClassGenerator.with(out, symbolValues.asInitializers(), finalFields);
+    RClassGenerator writer = generator(out, symbolValues.asInitializers(), finalFields);
     writer.write("com.foo", symbolsInLibrary.asInitializers());
 
     Path packageDir = out.resolve("com/foo");
@@ -457,8 +447,7 @@ public class RClassGeneratorTest {
             "int styleable ActionButton_zoo 8");
     ResourceSymbols symbolsInLibrary = symbolValues;
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
-    RClassGenerator writer = RClassGenerator.with(out, symbolValues.asInitializers(), finalFields);
+    RClassGenerator writer = generator(out, symbolValues.asInitializers(), finalFields);
     writer.write("com.intArray", symbolsInLibrary.asInitializers());
 
     Path packageDir = out.resolve("com/intArray");
@@ -518,8 +507,7 @@ public class RClassGeneratorTest {
     ResourceSymbols symbolValues = createSymbolFile("R.txt", "int string some_string 0x7f200000");
     ResourceSymbols symbolsInLibrary = symbolValues;
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
-    RClassGenerator writer = RClassGenerator.with(out, symbolValues.asInitializers(), finalFields);
+    RClassGenerator writer = generator(out, symbolValues.asInitializers(), finalFields);
     writer.write("", symbolsInLibrary.asInitializers());
 
     Path packageDir = out.resolve("");
@@ -572,10 +560,8 @@ public class RClassGeneratorTest {
             "int styleable StyleableName_attrName 2");
     ResourceSymbols symbolsInLibrary = createSymbolFile("lib.R.txt", "int id idName 0x1");
     Path out = temp.resolve("classes");
-    Files.createDirectories(out);
 
-    RClassGenerator writer =
-        RClassGenerator.with(out, symbolValues.asInitializers(), finalFields, rPackageId);
+    RClassGenerator writer = generator(out, symbolValues.asInitializers(), finalFields, rPackageId);
     writer.write("com.libraryRemapping", symbolsInLibrary.asInitializers());
     writer.write("com.remapping");
 
@@ -651,6 +637,23 @@ public class RClassGeneratorTest {
 
   // Test utilities
 
+  private RClassGenerator generator(
+      Path outFolder, FieldInitializers initializers, boolean finalFields) {
+    return generator(outFolder, initializers, finalFields, /* rPackageId= */ null);
+  }
+
+  private RClassGenerator generator(
+      Path outFolder, FieldInitializers initializers, boolean finalFields, RPackageId rPackageId) {
+    return RClassGenerator.inMemory(
+        /* label= */ null,
+        outFolder,
+        classFiles,
+        initializers,
+        finalFields,
+        /* annotateTransitiveFields= */ false,
+        rPackageId);
+  }
+
   private Path createFile(String name, String... contents) throws IOException {
     Path path = temp.resolve(name);
     Files.createDirectories(path.getParent());
@@ -693,26 +696,30 @@ public class RClassGeneratorTest {
     return id -> id - rPackageId.getPackageId() + newPackageId;
   }
 
-  private static void checkFilesInPackage(Path packageDir, String... expectedFiles)
-      throws IOException {
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(packageDir)) {
-      ImmutableList<String> filesInPackage =
-          ImmutableList.copyOf(
-              Iterables.transform(
-                  stream,
-                  new Function<Path, String>() {
-                    @Override
-                    public String apply(Path path) {
-                      return path.getFileName().toString();
-                    }
-                  }));
-      assertThat(filesInPackage).containsExactly((Object[]) expectedFiles);
-    }
+  /** Checks the names of the class files generated directly in {@code packageDir}. */
+  private void checkFilesInPackage(Path packageDir, String... expectedFiles) {
+    ImmutableList<String> filesInPackage =
+        classFiles.keySet().stream()
+            .filter(path -> packageDir.equals(path.getParent()))
+            .map(path -> path.getFileName().toString())
+            .collect(toImmutableList());
+    assertThat(filesInPackage).containsExactlyElementsIn(expectedFiles);
   }
 
-  private static Class<?> checkTopLevelClass(
+  /**
+   * Writes the generated class files to a jar, the same way the actions do, and returns a class
+   * loader for it.
+   */
+  private URLClassLoader classLoader(Path baseDir) throws IOException {
+    Path classJar = Files.createTempFile(temp, "classes", ".jar");
+    AndroidResourceOutputs.createClassJar(
+        baseDir, classFiles, classJar, /* targetLabel= */ null, /* injectingRuleKind= */ null);
+    return new URLClassLoader(new URL[] {classJar.toUri().toURL()}, getClass().getClassLoader());
+  }
+
+  private Class<?> checkTopLevelClass(
       Path baseDir, String expectedClassName, String... expectedInnerClasses) throws Exception {
-    try (URLClassLoader urlClassLoader = new URLClassLoader(new URL[] {baseDir.toUri().toURL()})) {
+    try (URLClassLoader urlClassLoader = classLoader(baseDir)) {
       Class<?> toplevelClass = urlClassLoader.loadClass(expectedClassName);
       assertThat(toplevelClass.getSuperclass()).isEqualTo(Object.class);
       int outerModifiers = toplevelClass.getModifiers();
@@ -759,8 +766,7 @@ public class RClassGeneratorTest {
       boolean areFieldsFinal,
       Consumer<URLClassLoader> beforeLoadClass)
       throws Exception {
-    try (URLClassLoader urlClassLoader =
-        new URLClassLoader(new URL[] {baseDir.toUri().toURL()}, getClass().getClassLoader())) {
+    try (URLClassLoader urlClassLoader = classLoader(baseDir)) {
       if (beforeLoadClass != null) {
         beforeLoadClass.accept(urlClassLoader);
       }
@@ -799,8 +805,7 @@ public class RClassGeneratorTest {
    * to initialize in the <clinit> alone.
    */
   private void checkStaticInitCreated(Path baseDir, String expectedClassName) throws Exception {
-    try (URLClassLoader urlClassLoader =
-        new URLClassLoader(new URL[] {baseDir.toUri().toURL()}, getClass().getClassLoader())) {
+    try (URLClassLoader urlClassLoader = classLoader(baseDir)) {
       Class<?> innerClass = urlClassLoader.loadClass(expectedClassName);
       try {
         Method unused = innerClass.getDeclaredMethod("staticInit0");
@@ -811,8 +816,7 @@ public class RClassGeneratorTest {
   }
 
   private void checkRPackageClass(Path baseDir, RPackageId rPackageId) throws Exception {
-    try (URLClassLoader urlClassLoader =
-        new URLClassLoader(new URL[] {baseDir.toUri().toURL()}, getClass().getClassLoader())) {
+    try (URLClassLoader urlClassLoader = classLoader(baseDir)) {
       Class<?> rPackageClass = urlClassLoader.loadClass(rPackageId.getRPackageClassName());
       assertThat(rPackageClass.getSuperclass()).isEqualTo(Object.class);
       assertThat(rPackageClass.getFields()).hasLength(1);

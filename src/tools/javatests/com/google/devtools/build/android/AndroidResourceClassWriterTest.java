@@ -31,11 +31,14 @@ import java.util.Map;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -47,6 +50,7 @@ public class AndroidResourceClassWriterTest {
   private TestLoggingHandler loggingHandler;
 
   @Rule public final ExpectedException thrown = ExpectedException.none();
+  @Rule public final TemporaryFolder tmp = new TemporaryFolder();
 
   private static final AndroidFrameworkAttrIdProvider mockAndroidFrameworkIds =
       new MockAndroidFrameworkAttrIdProvider(ImmutableMap.<String, Integer>of());
@@ -90,6 +94,17 @@ public class AndroidResourceClassWriterTest {
         UnwrittenMergedAndroidData.of(
             source.resolve("AndroidManifest.xml"), direct, ParsedAndroidDataBuilder.empty());
     unwrittenMergedAndroidData.writeResourceClass(resourceClassWriter);
+    // Class files are only written to the jar.
+    assertThat(Files.exists(target.resolve("com/carroll/lewis/R.class"))).isFalse();
+    Path classJar = writeClassJar(resourceClassWriter, target);
+    assertThat(jarEntryNames(classJar))
+        .containsExactly(
+            "META-INF/",
+            "META-INF/MANIFEST.MF",
+            "com/carroll/lewis/R$id.class",
+            "com/carroll/lewis/R$layout.class",
+            "com/carroll/lewis/R.class")
+        .inOrder();
 
     assertAbout(paths)
         .that(target.resolve("com/carroll/lewis/R.java"))
@@ -105,7 +120,7 @@ public class AndroidResourceClassWriterTest {
             "}",
             "}");
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.carroll.lewis.R$id")
         .classContentsIsEqualTo(
             ImmutableMap.of(
@@ -114,7 +129,7 @@ public class AndroidResourceClassWriterTest {
             ImmutableMap.<String, List<Integer>>of(),
             false);
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.carroll.lewis.R$layout")
         .classContentsIsEqualTo(
             ImmutableMap.of("some_layout", 0x7f020000),
@@ -140,6 +155,7 @@ public class AndroidResourceClassWriterTest {
         UnwrittenMergedAndroidData.of(
             source.resolve("AndroidManifest.xml"), direct, ParsedAndroidDataBuilder.empty());
     unwrittenMergedAndroidData.writeResourceClass(resourceClassWriter);
+    Path classJar = writeClassJar(resourceClassWriter, target);
     assertAbout(paths)
         .that(target.resolve("com/boop/R.java"))
         .javaContentsIsEqualTo(
@@ -151,7 +167,7 @@ public class AndroidResourceClassWriterTest {
             "}",
             "}");
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.boop.R$drawable")
         .classContentsIsEqualTo(
             ImmutableMap.of(
@@ -186,6 +202,7 @@ public class AndroidResourceClassWriterTest {
         UnwrittenMergedAndroidData.of(
             source.resolve("AndroidManifest.xml"), direct, ParsedAndroidDataBuilder.empty());
     unwrittenMergedAndroidData.writeResourceClass(resourceClassWriter);
+    Path classJar = writeClassJar(resourceClassWriter, target);
     assertAbout(paths)
         .that(target.resolve("com/boop/R.java"))
         .javaContentsIsEqualTo(
@@ -199,7 +216,7 @@ public class AndroidResourceClassWriterTest {
             "}",
             "}");
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.boop.R$drawable")
         .classContentsIsEqualTo(
             ImmutableMap.of(
@@ -268,6 +285,7 @@ public class AndroidResourceClassWriterTest {
     UnwrittenMergedAndroidData unwrittenMergedAndroidData =
         UnwrittenMergedAndroidData.of(source.resolve("AndroidManifest.xml"), direct, transitiveDep);
     unwrittenMergedAndroidData.writeResourceClass(resourceClassWriter);
+    Path classJar = writeClassJar(resourceClassWriter, target);
 
     assertAbout(paths)
         .that(target.resolve("com/carroll/lewis/R.java"))
@@ -296,7 +314,7 @@ public class AndroidResourceClassWriterTest {
             "}",
             "}");
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.carroll.lewis.R$attr")
         .classContentsIsEqualTo(
             ImmutableMap.of(
@@ -306,7 +324,7 @@ public class AndroidResourceClassWriterTest {
             ImmutableMap.<String, List<Integer>>of(),
             false);
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.carroll.lewis.R$style")
         .classContentsIsEqualTo(
             ImmutableMap.of(
@@ -315,7 +333,7 @@ public class AndroidResourceClassWriterTest {
             ImmutableMap.<String, List<Integer>>of(),
             false);
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.carroll.lewis.R$styleable")
         .classContentsIsEqualTo(
             ImmutableMap.<String, Integer>builder()
@@ -381,6 +399,7 @@ public class AndroidResourceClassWriterTest {
         UnwrittenMergedAndroidData.of(
             source.resolve("AndroidManifest.xml"), direct, ParsedAndroidDataBuilder.empty());
     unwrittenMergedAndroidData.writeResourceClass(resourceClassWriter);
+    Path classJar = writeClassJar(resourceClassWriter, target);
 
     assertAbout(paths)
         .that(target.resolve("com/carroll/lewis/R.java"))
@@ -404,7 +423,7 @@ public class AndroidResourceClassWriterTest {
             "}",
             "}");
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.carroll.lewis.R$attr")
         .classContentsIsEqualTo(
             ImmutableMap.of(
@@ -413,12 +432,12 @@ public class AndroidResourceClassWriterTest {
             ImmutableMap.<String, List<Integer>>of(),
             false);
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.carroll.lewis.R$style")
         .classContentsIsEqualTo(
             ImmutableMap.of("YStyle", 0x7f020000), ImmutableMap.<String, List<Integer>>of(), false);
     assertAbout(paths)
-        .that(target)
+        .that(classJar)
         .withClass("com.carroll.lewis.R$styleable")
         .classContentsIsEqualTo(
             ImmutableMap.of(
@@ -596,6 +615,33 @@ public class AndroidResourceClassWriterTest {
     assertThrows(
         InvalidJavaIdentifier.class,
         () -> unwrittenMergedAndroidData.writeResourceClass(resourceClassWriter));
+  }
+
+  /**
+   * Writes the generated class files to a jar the same way {@link
+   * AndroidCompiledResourceMergingAction} does, and returns the jar. The jar is on the default file
+   * system so that classes can be loaded from it.
+   */
+  private Path writeClassJar(AndroidResourceClassWriter writer, Path classesRoot)
+      throws IOException {
+    Path classJar = tmp.newFolder().toPath().resolve("classes.jar");
+    AndroidResourceOutputs.createClassJar(
+        classesRoot,
+        writer.getClassFiles(),
+        classJar,
+        /* targetLabel= */ null,
+        /* injectingRuleKind= */ null);
+    return classJar;
+  }
+
+  private static ImmutableList<String> jarEntryNames(Path jar) throws IOException {
+    ImmutableList.Builder<String> names = ImmutableList.builder();
+    try (ZipInputStream zip = new ZipInputStream(Files.newInputStream(jar))) {
+      for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
+        names.add(entry.getName());
+      }
+    }
+    return names.build();
   }
 
   private static class MockAndroidFrameworkAttrIdProvider

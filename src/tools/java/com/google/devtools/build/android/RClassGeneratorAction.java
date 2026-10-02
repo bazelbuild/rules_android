@@ -28,9 +28,9 @@ import com.google.devtools.build.android.Converters.CompatPathConverter;
 import com.google.devtools.build.android.Converters.NoOpSplitter;
 import com.google.devtools.build.android.resources.RPackageId;
 import com.google.devtools.build.android.resources.ResourceSymbols;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -130,10 +130,11 @@ public class RClassGeneratorAction {
 
     Preconditions.checkNotNull(options.classJarOutput);
     final AndroidResourceProcessor resourceProcessor = new AndroidResourceProcessor(STD_LOGGER);
-    try (ScopedTemporaryDirectory scopedTmp =
-        new ScopedTemporaryDirectory("android_res_compile_tmp")) {
-      Path tmp = scopedTmp.getPath();
-      Path classOutPath = tmp.resolve("compiled_classes");
+    try {
+      // Class files are generated in memory, keyed (and sorted) by the path they would have if
+      // written to disk under classOutPath.
+      Path classOutPath = Path.of("compiled_classes");
+      ConcurrentSkipListMap<Path, byte[]> classFiles = new ConcurrentSkipListMap<>();
 
       logger.fine(String.format("Setup finished at %sms", timer.elapsed(TimeUnit.MILLISECONDS)));
       // Note that we need to write the R class for the main binary (so proceed even if there
@@ -159,7 +160,12 @@ public class RClassGeneratorAction {
             options.useRPackage ? RPackageId.createFor(appPackageName) : null;
         // For now, assuming not used for libraries and setting final access for fields.
         fullSymbolValues.writeClassesTo(
-            libSymbolMap, appPackageName, classOutPath, options.finalFields, rPackageId);
+            libSymbolMap,
+            appPackageName,
+            classOutPath,
+            classFiles,
+            options.finalFields,
+            rPackageId);
         logger.fine(
             String.format("Finished R.class at %sms", timer.elapsed(TimeUnit.MILLISECONDS)));
       } else if (!options.libraries.isEmpty()) {
@@ -170,16 +176,17 @@ public class RClassGeneratorAction {
             String.format("Load symbols finished at %sms", timer.elapsed(TimeUnit.MILLISECONDS)));
         // For now, assuming not used for libraries and setting final access for fields.
         fullSymbolValues.writeClassesTo(
-            libSymbolMap, null, classOutPath, true, /* rPackageId= */ null);
+            libSymbolMap, null, classOutPath, classFiles, true, /* rPackageId= */ null);
         logger.fine(
             String.format("Finished R.class at %sms", timer.elapsed(TimeUnit.MILLISECONDS)));
-      } else {
-        Files.createDirectories(classOutPath);
       }
-      // We write .class files to temp, then jar them up after (we create a dummy jar, even if
-      // there are no class files).
+      // We create a dummy jar, even if there are no class files.
       AndroidResourceOutputs.createClassJar(
-          classOutPath, options.classJarOutput, options.targetLabel, options.injectingRuleKind);
+          classOutPath,
+          classFiles,
+          options.classJarOutput,
+          options.targetLabel,
+          options.injectingRuleKind);
       logger.fine(
           String.format("createClassJar finished at %sms", timer.elapsed(TimeUnit.MILLISECONDS)));
     } finally {

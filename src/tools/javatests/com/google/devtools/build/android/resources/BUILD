@@ -22,6 +22,7 @@ java_test(
         "@rules_android_maven//:com_google_guava_guava",
     ],
     deps = [
+        "//src/tools/java/com/google/devtools/build/android:android_builder_lib",
         "//src/tools/java/com/google/devtools/build/android:android_common_30_1_3",
         "//src/tools/java/com/google/devtools/build/android/resources",
         "@rules_android_maven//:com_google_guava_failureaccess",

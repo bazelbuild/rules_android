@@ -43,7 +43,7 @@ public class JavaIdentifierValidator {
    * @throws InvalidJavaIdentifier if the identifier is invalid.
    */
   public static String validate(String identifier, Object... additionalInformation) {
-    if (VALID_JAVA_IDENTIFIER.test(identifier)) {
+    if (isSimpleIdentifier(identifier) || VALID_JAVA_IDENTIFIER.test(identifier)) {
       return identifier;
     }
     throw new InvalidJavaIdentifier(
@@ -113,4 +113,27 @@ public class JavaIdentifierValidator {
       ((Predicate<String>) JAVA_RESERVED::contains)
           .negate()
           .and(Pattern.compile("^([a-zA-Z_$][a-zA-Z\\d_$]*)$").asPredicate());
+
+  /**
+   * Fast check that accepts a subset of {@link #VALID_JAVA_IDENTIFIER}: non-reserved words matching
+   * {@code [a-zA-Z_$][a-zA-Z0-9_$]*}.
+   */
+  private static boolean isSimpleIdentifier(String identifier) {
+    if (identifier.isEmpty()) {
+      return false;
+    }
+    for (int i = 0; i < identifier.length(); i++) {
+      char c = identifier.charAt(i);
+      boolean valid =
+          (c >= 'a' && c <= 'z')
+              || (c >= 'A' && c <= 'Z')
+              || c == '_'
+              || c == '$'
+              || (i > 0 && c >= '0' && c <= '9');
+      if (!valid) {
+        return false;
+      }
+    }
+    return !JAVA_RESERVED.contains(identifier);
+  }
 }
