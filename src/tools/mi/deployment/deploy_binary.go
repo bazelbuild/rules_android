@@ -32,18 +32,19 @@ import (
 )
 
 var (
-	adbArgs        = flags.NewStringList("adb_arg", "Options for the adb binary.")
-	adbPath        = flag.String("adb", "", "Path to the adb binary to use with mobile-install.")
-	device         = flag.String("device", "", "The adb device serial number.")
-	javaHome       = flag.String("java_home", "", "Path to JDK.")
-	launchActivity = flag.String("launch_activity", "", "Activity to launch via am start -n package/.activity_to_launch.")
-	appPackagePath = flag.String("manifest_package_name_path", "", "Path to file containing the manifest package name.")
-	splits         = flags.NewStringList("splits", "The list of split apk paths.")
-	start          = flag.String("start", "", "start_type from mobile-install.")
-	startType      = flag.String("start_type", "", "start_type (deprecated, use --start).")
-	toolTag        = flag.String("tool_tag", "", "tool_tag from blaze.")
-	useADBRoot     = flag.Bool("use_adb_root", true, "whether (true) or not (false) to use root permissions.")
-	userID         = flag.Int("user", 0, "User id to install the app for.")
+	adbArgs          = flags.NewStringList("adb_arg", "Options for the adb binary.")
+	adbPath          = flag.String("adb", "", "Path to the adb binary to use with mobile-install.")
+	toolchainADBPath = flag.String("toolchain_adb", "", "Path to the adb binary from the Android toolchain.")
+	device           = flag.String("device", "", "The adb device serial number.")
+	javaHome         = flag.String("java_home", "", "Path to JDK.")
+	launchActivity   = flag.String("launch_activity", "", "Activity to launch via am start -n package/.activity_to_launch.")
+	appPackagePath   = flag.String("manifest_package_name_path", "", "Path to file containing the manifest package name.")
+	splits           = flags.NewStringList("splits", "The list of split apk paths.")
+	start            = flag.String("start", "", "start_type from mobile-install.")
+	startType        = flag.String("start_type", "", "start_type (deprecated, use --start).")
+	toolTag          = flag.String("tool_tag", "", "tool_tag from blaze.")
+	useADBRoot       = flag.Bool("use_adb_root", true, "whether (true) or not (false) to use root permissions.")
+	userID           = flag.Int("user", 0, "User id to install the app for.")
 
 	// Studio deployer args
 	studioDeployerPath = flag.String("studio_deployer", "", "Path to the Android Studio deployer.")
@@ -165,7 +166,7 @@ func main() {
 	}
 
 	pprint.Info("Connecting to device %s", deviceSerial)
-	d, err := devlib.New(ctx, deviceSerial, port, devTmp, *adbPath, *useADBRoot)
+	d, err := devlib.New(ctx, deviceSerial, port, devTmp, *adbPath, *toolchainADBPath, *useADBRoot)
 	if err != nil {
 		glog.Exitln(err)
 	}
@@ -178,7 +179,7 @@ func main() {
 	startTime := time.Now()
 
 	pprint.Info("Installing application using the Android Studio deployer ...")
-	if err := deployment.AndroidStudioSync(ctx, deviceSerial, port, appPackage, *splits, *studioDeployerPath, *adbPath, *javaHome, *optimisticInstall, *studioVerboseLog, *userID, *useADBRoot); err != nil {
+	if err := deployment.AndroidStudioSync(ctx, deviceSerial, port, appPackage, *splits, *studioDeployerPath, d.ADBPath, *javaHome, *optimisticInstall, *studioVerboseLog, *userID, *useADBRoot); err != nil {
 		flushAndExitf(ctx, "", "", "", "", "Got error installing using the Android Studio deployer: %v", err)
 	}
 
