@@ -117,7 +117,9 @@ def process(ctx, filename, merged_libraries_map = {}):
     libs = dict()
     for key, deps in ctx.split_attr.deps.items():
         cc_toolchain_dep = ctx.split_attr._cc_toolchain_split[key]
-        cc_toolchain = cc_toolchain_dep[cc_common.CcToolchainInfo]
+        cc_toolchain = None
+        if cc_common.CcToolchainInfo in cc_toolchain_dep:
+            cc_toolchain = cc_toolchain_dep[cc_common.CcToolchainInfo]
         build_config = cc_toolchain_dep[SplitConfigInfo].build_config
         libs_dir_name = _get_libs_dir_name(
             cc_toolchain_dep[SplitConfigInfo].target_platform,
@@ -382,6 +384,15 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, targe
     for input in all_inputs:
         needs_linking = needs_linking or _contains_code_to_link(input)
 
+    if not needs_linking:
+        return None
+
+    if not cc_toolchain:
+        fail(
+            "An Android C++ toolchain is required to link the native dependencies of %s. " % ctx.label +
+            "Register an Android NDK toolchain for the requested Android platform.",
+        )
+
     configured_features = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
@@ -390,7 +401,7 @@ def _link_native_deps_if_present(ctx, cc_info, cc_toolchain, build_config, targe
     )
 
     # Note: the hasattr() call here is necessary for Bazel 7 compatibility.
-    if not needs_linking or (hasattr(configured_features, "is_requested") and configured_features.is_requested("disable_fallback_native_deps_linking")):
+    if hasattr(configured_features, "is_requested") and configured_features.is_requested("disable_fallback_native_deps_linking"):
         return None
 
     # This does not need to be shareable, but we use this API to specify the
