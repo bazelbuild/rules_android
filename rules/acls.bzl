@@ -73,7 +73,6 @@ load(
 load("//rules/acls:proguard_apply_mapping.bzl", "ALLOW_PROGUARD_APPLY_MAPPING")
 load("//rules/acls:r8.bzl", "USE_R8")
 load("//rules/acls:resource_translation_merging_rollout.bzl", "RESOURCE_TRANSLATION_MERGING_FALLBACK", "RESOURCE_TRANSLATION_MERGING_ROLLOUT")
-load("//rules/acls:shared_library_resource_linking.bzl", "SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST")
 load("//rules/acls:stamp_signing.bzl", "STAMP_SIGNING_FALLBACK", "STAMP_SIGNING_ROLLOUT")
 load("//rules/acls:test_to_instrument_test_rollout.bzl", "TEST_TO_INSTRUMENT_TEST_FALLBACK", "TEST_TO_INSTRUMENT_TEST_ROLLOUT")
 load("//rules/acls:use_baseline_as_startup_profile.bzl", "USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK", "USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT")
@@ -168,9 +167,6 @@ def _in_android_apk_to_bundle_features(fqn):
 
 def _get_android_archive_duplicate_class_allowlist(fqn):
     return ANDROID_ARCHIVE_DUPLICATE_CLASS_ALLOWLIST.get(fqn, [])
-
-def _in_shared_library_resource_linking_allowlist(fqn):
-    return matches(fqn, SHARED_LIBRARY_RESOURCE_LINKING_DICT)
 
 def _in_android_binary_min_sdk_version_attribute_allowlist(fqn):
     return matches(fqn, ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_DICT)
@@ -276,7 +272,6 @@ BASELINE_PROFILES_OPTIMIZER_INTEGRATION_FALLBACK_DICT = make_dict(BASELINE_PROFI
 ANDROID_APK_TO_BUNDLE_FEATURES_DICT = make_dict(ANDROID_APK_TO_BUNDLE_FEATURES)
 DATABINDING_ALLOWED_DICT = make_dict(DATABINDING_ALLOWED)
 DATABINDING_DISALLOWED_DICT = make_dict(DATABINDING_DISALLOWED)
-SHARED_LIBRARY_RESOURCE_LINKING_DICT = make_dict(SHARED_LIBRARY_RESOURCE_LINKING_ALLOWLIST)
 ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_DICT = make_dict(ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST)
 ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST)
 ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST_DICT = make_dict(ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST)
@@ -376,7 +371,6 @@ acls = struct(
     in_baseline_profiles_rollout = _in_baseline_profiles_rollout,
     in_baseline_profiles_optimizer_integration = _in_baseline_profiles_optimizer_integration,
     in_android_apk_to_bundle_features = _in_android_apk_to_bundle_features,
-    in_shared_library_resource_linking_allowlist = _in_shared_library_resource_linking_allowlist,
     in_android_binary_min_sdk_version_attribute_allowlist = _in_android_binary_min_sdk_version_attribute_allowlist,
     in_android_binary_raw_access_to_resource_paths_allowlist = _in_android_binary_raw_access_to_resource_paths_allowlist,
     in_android_binary_resource_name_obfuscation_opt_out_allowlist = _in_android_binary_resource_name_obfuscation_opt_out_allowlist,
