@@ -380,6 +380,7 @@ resources_package = rule(
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
         ),
+        _wrapped_flags = ANDROID_BINARY_ATTRS.get("_wrapped_flags"),
     ),
     toolchains = [
         "//toolchains/android:toolchain_type",

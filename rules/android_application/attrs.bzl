@@ -83,6 +83,7 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
         ),
     ),
     _attrs.ANDROID_SDK,
+    _attrs.FLAGS_ATTRS,
 )
 
 ANDROID_FEATURE_MODULE_ATTRS = dict(
