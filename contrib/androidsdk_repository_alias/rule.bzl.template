@@ -1,0 +1,160 @@
+def _androidsdk_alias_impl(ctx):
+    """An experimental implementation of androidsdk using toolchain resolution."""
+    toolchain = ctx.toolchains[":sdk_toolchain_type"]
+    return [
+        toolchain,
+        toolchain.android_sdk_info,
+        toolchain.android_sdk_targets_info,
+    ]
+
+android_sdk_alias = rule(
+    implementation = _androidsdk_alias_impl,
+    toolchains = [":sdk_toolchain_type"],
+)
+
+
+def _androidsdk_toolchain_alias_impl(ctx):
+    """An experimental implementation of androidsdk using toolchain resolution."""
+    return [
+      ctx.toolchains[":sdk_toolchain_type"],
+    ]
+
+android_sdk_toolchain_alias = rule(
+    implementation = _androidsdk_toolchain_alias_impl,
+    toolchains = [":sdk_toolchain_type"],
+)
+
+RUNFILES_SUPPORT_HEADER = """
+# --- begin runfiles.bash initialization v3 ---
+# Copy-pasted from the Bazel Bash runfiles library v3.
+set -uo pipefail; set +e; f=bazel_tools/tools/bash/runfiles/runfiles.bash
+source "${RUNFILES_DIR:-/dev/null}/$f" 2>/dev/null || \
+source "$(grep -sm1 "^$f " "${RUNFILES_MANIFEST_FILE:-/dev/null}" | cut -f2- -d' ')" 2>/dev/null || \
+source "$0.runfiles/$f" 2>/dev/null || \
+source "$(grep -sm1 "^$f " "$0.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+source "$(grep -sm1 "^$f " "$0.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+{ echo>&2 "ERROR: cannot find $f"; exit 1; }; f=; set -e
+# --- end runfiles.bash initialization v3 ---
+"""
+
+def _android_tool_alias_impl(ctx):
+    toolchain = ctx.toolchains[":sdk_toolchain_type"]
+    targets_info = toolchain.android_sdk_targets_info
+    tool_name = ctx.attr.tool_name
+    field_name = tool_name
+    tool_target = getattr(targets_info, field_name)
+
+    print(tool_target)
+    runfiles = getattr(tool_target, "default_runfiles", ctx.runfiles())
+
+    executable = tool_target.files_to_run.executable
+
+    # Native tools that need a wrapper script to set LD_LIBRARY_PATH
+    if tool_name in ["aapt", "aapt2", "aidl", "zipalign"]:
+        rlocation_tool_path = "{}/build-tools/{}/{}".format(
+            executable.owner.workspace_name,
+            targets_info.build_tools_version,
+            tool_name,
+        )
+        script_content = """#!/bin/bash
+set -e
+{runfiles_header}
+BUILD_TOOLS_DIR="$(dirname "$(rlocation "{tool_path}")")"
+tool="${{BUILD_TOOLS_DIR}}/{tool_name}"
+exec env LD_LIBRARY_PATH="${{BUILD_TOOLS_DIR}}/lib64" "${{tool}}" "$@"
+""".format(
+            runfiles_header = RUNFILES_SUPPORT_HEADER,
+            tool_path = rlocation_tool_path,
+            tool_name = tool_name,
+        )
+        ctx.actions.write(
+            output = ctx.outputs.executable,
+            content = script_content,
+            is_executable = True,
+        )
+    else:
+        # For other tools, create a symlink to the original executable.
+        ctx.actions.symlink(
+            output = ctx.outputs.executable,
+            target_file = executable,
+        )
+
+    return [
+        DefaultInfo(
+            executable = ctx.outputs.executable,
+            runfiles = runfiles,
+        ),
+    ]
+
+android_tool_alias = rule(
+    implementation = _android_tool_alias_impl,
+    attrs = {
+        "tool_name": attr.string(mandatory = True),
+        "_sh_runfiles": attr.label(default = "@bazel_tools//tools/bash/runfiles"),
+    },
+    toolchains = [":sdk_toolchain_type"],
+    executable = True,
+)
+
+def _java_import_alias_impl(ctx):
+    toolchain = ctx.toolchains[":sdk_toolchain_type"]
+    targets_info = toolchain.android_sdk_targets_info
+    target = getattr(targets_info, ctx.attr.target_name)
+    return [
+        DefaultInfo(files = target[DefaultInfo].files),
+        target[JavaInfo],
+    ]
+
+java_import_alias = rule(
+    implementation = _java_import_alias_impl,
+    attrs = {
+        "target_name": attr.string(mandatory = True),
+    },
+    toolchains = [":sdk_toolchain_type"],
+)
+
+def _java_binary_alias_impl(ctx):
+    toolchain = ctx.toolchains[":sdk_toolchain_type"]
+    targets_info = toolchain.android_sdk_targets_info
+    target = getattr(targets_info, ctx.attr.target_name)
+
+    executable = target.files_to_run.executable
+
+    ctx.actions.symlink(
+        output = ctx.outputs.executable,
+        target_file = executable,
+    )
+
+    return [
+        DefaultInfo(
+            executable = ctx.outputs.executable,
+            files = target[DefaultInfo].files,
+            runfiles = target[DefaultInfo].default_runfiles,
+        ),
+        target[JavaInfo],
+    ]
+
+java_binary_alias = rule(
+    implementation = _java_binary_alias_impl,
+    attrs = {
+        "target_name": attr.string(mandatory = True),
+    },
+    toolchains = [":sdk_toolchain_type"],
+    executable = True,
+)
+
+def _filegroup_alias_impl(ctx):
+    toolchain = ctx.toolchains[":sdk_toolchain_type"]
+    targets_info = toolchain.android_sdk_targets_info
+    target = getattr(targets_info, ctx.attr.target_name)
+    return [
+        DefaultInfo(files = target[DefaultInfo].files),
+    ]
+
+filegroup_alias = rule(
+    implementation = _filegroup_alias_impl,
+    attrs = {
+        "target_name": attr.string(mandatory = True),
+    },
+    toolchains = [":sdk_toolchain_type"],
+)
