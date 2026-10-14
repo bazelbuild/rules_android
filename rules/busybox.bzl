@@ -132,16 +132,18 @@ def _make_resources_flag(
         ],
     )
 
+def _is_worker_mode_enabled(ctx):
+    return (read_possibly_native_flag(ctx, "internal_persistent_busybox_tools") or
+            read_possibly_native_flag(ctx, "internal_persistent_multiplex_busybox_tools"))
+
 def _set_worker_mode_param_file(ctx, args):
-    if (read_possibly_native_flag(ctx, "internal_persistent_busybox_tools") or
-        read_possibly_native_flag(ctx, "internal_persistent_multiplex_busybox_tools")):
+    if _is_worker_mode_enabled(ctx):
         # Only sets param file mode when worker mode is enabled.
         args.use_param_file("@%s", use_always = True)
         args.set_param_file_format("multiline")
 
 def _set_warning_level(ctx, args):
-    if (read_possibly_native_flag(ctx, "internal_persistent_busybox_tools") or
-        read_possibly_native_flag(ctx, "internal_persistent_multiplex_busybox_tools")):
+    if _is_worker_mode_enabled(ctx):
         # Disable warnings - this are output to stdin/stderr which breaks worker mode
         args.add("--logWarnings=false")
 
@@ -687,7 +689,7 @@ def _validate_and_link(
         mnemonic = "LinkAndroidResources",
         progress_message = "Linking Android Resources in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
-        execution_requirements = {"supports-path-mapping": "1"},
+        supports_path_mapping = True,
     )
 
 def _compile(
@@ -857,11 +859,20 @@ def _merge_compiled(
         mnemonic = "StarlarkMergeCompiledAndroidResources",
         progress_message = "Merging compiled Android Resources in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
+        supports_path_mapping = True,
     )
 
-def _java_run(ctx, mnemonic = None, *args, **kwargs):
+def _java_run(ctx, mnemonic = None, supports_path_mapping = False, *args, **kwargs):
     enable_workers = read_possibly_native_flag(ctx, "internal_persistent_busybox_tools")
     multiplex_workers = read_possibly_native_flag(ctx, "internal_persistent_multiplex_busybox_tools")
+
+    # Path mapped spawns must be sandboxed, which forces persistent workers to be sandboxed and
+    # multiplex workers to fall back to singleplex. Only enable path mapping when worker mode is
+    # disabled.
+    if supports_path_mapping and not _is_worker_mode_enabled(ctx):
+        execution_requirements = dict(kwargs.pop("execution_requirements", {}))
+        execution_requirements["supports-path-mapping"] = "1"
+        kwargs["execution_requirements"] = execution_requirements
 
     _java.run(ctx, mnemonic = mnemonic, supports_workers = enable_workers, supports_multiplex_workers = multiplex_workers, *args, **kwargs)
 
@@ -985,6 +996,7 @@ def _merge_manifests(
         mnemonic = "MergeManifests",
         progress_message = "Merging Android Manifests in %{output}",
         jvm_flags = _C1_ONLY_FLAGS,
+        supports_path_mapping = True,
     )
 
 def _process_databinding(
@@ -1116,6 +1128,7 @@ def _generate_binary_r(
         outputs = [out_class_jar],
         mnemonic = "StarlarkRClassGenerator",
         progress_message = "Generating R classes for %{output}",
+        supports_path_mapping = True,
     )
 
 def _make_aar(
@@ -1279,6 +1292,7 @@ def _shrink(
         progress_message = "Shrinking resources for %{label}",
         host_javabase = host_javabase,
         use_default_shell_env = True,
+        supports_path_mapping = True,
     )
 
 def _convert_resources_to_apk(
@@ -1337,6 +1351,7 @@ def _convert_resources_to_apk(
         progress_message = "Converting resources for %{label}",
         host_javabase = host_javabase,
         use_default_shell_env = True,
+        supports_path_mapping = True,
     )
 
 def _optimize(
@@ -1400,6 +1415,7 @@ def _optimize(
         mnemonic = "Aapt2Optimize",
         progress_message = "Optimizing Android resources for %{label}",
         use_default_shell_env = True,
+        supports_path_mapping = True,
     )
 
 busybox = struct(
