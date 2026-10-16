@@ -79,6 +79,9 @@ maven.install(
         "com.android.tools.build:builder:7.1.3",
         "com.android.tools.build:builder-model:7.1.3",
     ],
+    # To generate, run:
+    # REPIN=1 bazelisk run --enable_bzlmod @android_ide_common_30_1_3//:pin
+    lock_file = "//:android_ide_common_30_1_3_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
@@ -86,6 +89,19 @@ maven.install(
     use_starlark_android_rules = True,
 )
 use_repo(maven, "android_ide_common_30_1_3")
+
+# Pin @bazel_worker_java's maven repository so Coursier does not need to run at fetch time.
+maven.install(
+    name = "bazel_worker_maven",
+    known_contributing_modules = [
+        "bazel_worker_java",
+        "rules_android",
+    ],
+    # To generate, run:
+    # REPIN=1 bazelisk run --enable_bzlmod @bazel_worker_maven//:pin
+    lock_file = "//:bazel_worker_maven_install.json",
+)
+use_repo(maven, "bazel_worker_maven")
 
 maven.install(
     name = "rules_android_maven",
@@ -147,13 +163,13 @@ maven.install(
         "com.google.truth.extensions:truth-proto-extension:1.4.0",
         "org.mockito:mockito-core:5.4.0",
     ],
+    # To generate, run:
+    # REPIN=1 bazelisk run --enable_bzlmod @rules_android_maven//:pin
+    lock_file = "//:rules_android_maven_install.json",
     repositories = [
         "https://maven.google.com",
         "https://repo1.maven.org/maven2",
     ],
-    # To generate, run:
-    # REPIN=1 bazelisk run --enable_bzlmod @rules_android_maven//:pin
-    # lock_file = "//:rules_android_maven_install.json",
     use_starlark_android_rules = True,
 )
 use_repo(
