@@ -170,7 +170,6 @@ def _android_sdk_repository_impl(repo_ctx):
     system_images = _find_system_images(repo_ctx, android_sdk_path)
 
     # Write the build file.
-    repo_ctx.symlink(Label(":helper.bzl"), "helper.bzl")
     repo_ctx.template(
         "BUILD.bazel",
         _SDK_REPO_TEMPLATE,
