@@ -16,7 +16,7 @@ This module contains repository rules and helpers needed to configure the Androi
 """
 
 load(
-    ":helper.bzl",
+    "@rules_android//rules/android_sdk_repository:helper.bzl",
     "create_android_sdk_rules",
     "create_system_images_filegroups",
 )
