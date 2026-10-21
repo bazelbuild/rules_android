@@ -123,7 +123,6 @@ bzl_library(
         "//stardoc:__pkg__",
         "//test/rules/android_binary/r8_integration:__pkg__",
         "//test/rules/android_sdk_repository:__pkg__",
-        "//test/rules/desugar:__pkg__",
     ],
     deps = [
         ":common_bzl",
