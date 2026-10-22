@@ -16,14 +16,16 @@ package device
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 type mockController struct {
-	mockExec func(context.Context, []string) (string, string, error)
+	mockExec func(ctx context.Context, cmd string, args []string) (string, string, error)
 }
 
 func (*mockController) Push(context.Context, string, string) error {
@@ -38,7 +40,7 @@ func (m *mockController) Exec(ctx context.Context, cmd string, args []string, sh
 	if m.mockExec == nil {
 		return "", "", nil
 	}
-	return m.mockExec(ctx, args)
+	return m.mockExec(ctx, cmd, args)
 }
 
 func (m *mockController) Install(ctx context.Context, args []string, apks ...string) error {
@@ -74,7 +76,7 @@ func TestGetProp(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			mockExec := func(context.Context, []string) (string, string, error) {
+			mockExec := func(context.Context, string, []string) (string, string, error) {
 				if tt.execErr {
 					return "", "", fmt.Errorf("error requested")
 				}
@@ -93,4 +95,134 @@ func TestGetProp(t *testing.T) {
 		})
 	}
 
+}
+
+func TestParseResolvedActivity(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		out     string
+		want    string
+		wantErr error
+	}{
+		{
+			name: "SingleLauncherActivity",
+			out:  "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\ncom.example/.MainActivity\n",
+			want: "com.example/.MainActivity",
+		},
+		{
+			name: "FullyQualifiedActivity",
+			out:  "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\r\ncom.example/com.other.MainActivity\r\n",
+			want: "com.example/com.other.MainActivity",
+		},
+		{
+			name:    "NoActivity",
+			out:     "No activity found\n",
+			wantErr: errNoLauncherActivity,
+		},
+		{
+			name:    "MultipleActivities",
+			out:     "priority=0 preferredOrder=0 match=0x0 specificIndex=-1 isDefault=false\nandroid/com.android.internal.app.ResolverActivity\n",
+			wantErr: errMultipleLauncherActivities,
+		},
+		{
+			name:    "OtherPackage",
+			out:     "com.example.other/.MainActivity\n",
+			wantErr: errMultipleLauncherActivities,
+		},
+		{
+			name:    "UnexpectedOutput",
+			out:     "Error: Unknown option: --brief\n",
+			wantErr: cmpopts.AnyError,
+		},
+		{
+			name:    "Empty",
+			out:     "",
+			wantErr: cmpopts.AnyError,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseResolvedActivity(tt.out, "com.example")
+			if !cmp.Equal(err, tt.wantErr, cmpopts.EquateErrors()) {
+				t.Fatalf("parseResolvedActivity() error = %v, want %v", err, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("parseResolvedActivity() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestLauncherWarningReason(t *testing.T) {
+	for _, tt := range []struct {
+		err  error
+		want string
+	}{
+		{err: errNoLauncherActivity, want: "No launcher activity found"},
+		{err: errMultipleLauncherActivities, want: "Multiple launcher activities found"},
+		{err: fmt.Errorf("resolve-activity failed: %v", errors.New("non-zero return code")), want: "Unable to determine the launcher activity"},
+	} {
+		if got := launcherWarningReason(tt.err); got != tt.want {
+			t.Errorf("launcherWarningReason(%v) = %q, want %q", tt.err, got, tt.want)
+		}
+	}
+}
+
+func TestLaunch(t *testing.T) {
+	const pkg = "com.example"
+	for _, tt := range []struct {
+		name        string
+		activity    string
+		resolveOut  string
+		resolveErr  bool
+		wantCommand []string
+	}{
+		{
+			name:        "ExplicitActivity",
+			activity:    ".SomeActivity",
+			wantCommand: []string{"am", "start", "-a", "android.intent.action.MAIN", "-n", "com.example/.SomeActivity"},
+		},
+		{
+			name:        "ResolvedLauncherActivity",
+			resolveOut:  "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\ncom.example/.MainActivity\n",
+			wantCommand: []string{"am", "start", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER", "-n", "com.example/.MainActivity"},
+		},
+		{
+			name:        "NoLauncherActivityFallsBackToMonkey",
+			resolveOut:  "No activity found\n",
+			wantCommand: []string{"monkey", "-p", "com.example", "1"},
+		},
+		{
+			name:        "ResolveFailureFallsBackToMonkey",
+			resolveErr:  true,
+			wantCommand: []string{"monkey", "-p", "com.example", "1"},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var launchCommand []string
+			mockExec := func(_ context.Context, cmd string, args []string) (string, string, error) {
+				switch {
+				case cmd == "am" && args[0] == "force-stop":
+					return "", "", nil
+				case cmd == "cmd" && args[0] == "package":
+					if tt.resolveErr {
+						return "", "Unknown command", fmt.Errorf("non-zero return code")
+					}
+					return tt.resolveOut, "", nil
+				default:
+					if launchCommand != nil {
+						t.Errorf("unexpected second launch command %q after %q", append([]string{cmd}, args...), launchCommand)
+					}
+					launchCommand = append([]string{cmd}, args...)
+					return "Starting: Intent { ... }", "", nil
+				}
+			}
+			d := &Device{Ctl: &mockController{mockExec: mockExec}}
+			if err := d.Launch(context.Background(), pkg, tt.activity); err != nil {
+				t.Fatalf("Launch() returned unexpected error: %v", err)
+			}
+			if diff := cmp.Diff(tt.wantCommand, launchCommand); diff != "" {
+				t.Errorf("Launch() ran unexpected command (-want +got):\n%s", diff)
+			}
+		})
+	}
 }

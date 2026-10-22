@@ -35,6 +35,14 @@ const (
 	abiListProp          = "ro.product.cpu.abilist"
 	buildDescriptionProp = "ro.build.description"
 	sdkProp              = "ro.build.version.sdk"
+
+	mainAction       = "android.intent.action.MAIN"
+	launcherCategory = "android.intent.category.LAUNCHER"
+)
+
+var (
+	errNoLauncherActivity         = errors.New("no launcher activity found")
+	errMultipleLauncherActivities = errors.New("multiple launcher activities found")
 )
 
 // Controller exposes basic functionality to interact with a device.
@@ -103,19 +111,71 @@ func (d *Device) Launch(ctx context.Context, manifestPackageName, activity strin
 	if activity != "" {
 		cmp := manifestPackageName + "/" + activity
 		stdOut, stdErr, err = d.Ctl.Exec(
-			ctx, "am", []string{"start", "-a", "android.intent.action.MAIN", "-n", cmp}, true)
+			ctx, "am", []string{"start", "-a", mainAction, "-n", cmp}, true)
+	} else if cmp, resolveErr := d.resolveLauncherActivity(ctx, manifestPackageName); resolveErr == nil {
+		// `am start <package>` builds an implicit MAIN/LAUNCHER intent, which only resolves activities
+		// that also declare CATEGORY_DEFAULT. Launcher activities usually don't, so resolve the
+		// launcher activity explicitly and start it by component name, as the home screen does.
+		stdOut, stdErr, err = d.Ctl.Exec(
+			ctx, "am", []string{"start", "-a", mainAction, "-c", launcherCategory, "-n", cmp}, true)
 	} else {
-		stdOut, stdErr, err = d.Ctl.Exec(ctx, "am", []string{"start", manifestPackageName}, true)
-		if err != nil || strings.Contains(stdOut+stdErr, "Error: ") {
-			pprint.Warning(
-				"No or multiple main activities found, falling back to Monkey launcher. Specify the activity you want with `-- --launch_activity` or `-- --nolaunch_app` to launch nothing.")
-			stdOut, stdErr, err = d.Ctl.Exec(ctx, "monkey", []string{"-p", manifestPackageName, "1"}, true)
-		}
+		pprint.Warning(
+			"%s, falling back to Monkey launcher. Specify the activity you want with `-- --launch_activity` or `-- --nolaunch_app` to launch nothing.", launcherWarningReason(resolveErr))
+		stdOut, stdErr, err = d.Ctl.Exec(ctx, "monkey", []string{"-p", manifestPackageName, "1"}, true)
 	}
 	if err == nil && strings.Contains(stdOut+stdErr, "Error: ") {
 		err = errors.New(stdOut + stdErr)
 	}
 	return err
+}
+
+// resolveLauncherActivity returns the component name (e.g. "com.example/.MainActivity") of the
+// activity that the home screen would launch for the given package.
+func (d *Device) resolveLauncherActivity(ctx context.Context, manifestPackageName string) (string, error) {
+	stdOut, stdErr, err := d.Ctl.Exec(ctx, "cmd", []string{
+		"package", "resolve-activity", "--brief", "-c", launcherCategory, manifestPackageName}, true)
+	if err != nil {
+		return "", fmt.Errorf("resolve-activity failed: %v %s", err, stdErr)
+	}
+	return parseResolvedActivity(stdOut, manifestPackageName)
+}
+
+// parseResolvedActivity extracts the component name from the output of
+// `cmd package resolve-activity --brief`, which looks like:
+//
+//	priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false
+//	com.example/.MainActivity
+//
+// If the package has no launcher activity the output is "No activity found", and errNoLauncherActivity
+// is returned. If it has multiple, the intent resolves to the system chooser (e.g.
+// "android/com.android.internal.app.ResolverActivity"), and errMultipleLauncherActivities is returned.
+func parseResolvedActivity(out, manifestPackageName string) (string, error) {
+	lines := strings.Split(strings.TrimSpace(out), "\n")
+	cmp := strings.TrimSpace(lines[len(lines)-1])
+	switch {
+	case strings.HasPrefix(cmp, manifestPackageName+"/"):
+		return cmp, nil
+	case cmp == "No activity found":
+		return "", errNoLauncherActivity
+	case strings.Contains(cmp, "/") && !strings.ContainsAny(cmp, " \t"):
+		// A component in another package: the system chooser.
+		return "", errMultipleLauncherActivities
+	default:
+		return "", fmt.Errorf("unexpected resolve-activity output %q", strings.TrimSpace(out))
+	}
+}
+
+// launcherWarningReason returns a short, user-facing explanation of why the launcher activity could
+// not be resolved.
+func launcherWarningReason(err error) string {
+	switch {
+	case errors.Is(err, errNoLauncherActivity):
+		return "No launcher activity found"
+	case errors.Is(err, errMultipleLauncherActivities):
+		return "Multiple launcher activities found"
+	default:
+		return "Unable to determine the launcher activity"
+	}
 }
 
 // WaitForDebugger sets up the application of the package main to be debuggable.
