@@ -5,7 +5,8 @@
 NOTE: This branch is a development preview of the Starlark implementation of
 Android rules for Bazel. This code is incomplete and may not function as-is.
 
-A recent version of Bazel (7.4+, 8.0+, HEAD, Bazel 9 pre-release) is required.
+A recent version of Bazel (7.7+, 8.5+, Bazel 9+) is required. Due to the use of
+`flag_alias` in `MODULE.bazel`, Bazel 8.0.0 through 8.4.2 are not supported.
 
 This ruleset depends on [Protobuf](https://github.com/protocolbuffers/protobuf),
 which has a minimum C++ language level of 17 (as of Protobuf v30, ~2025 Q3).
