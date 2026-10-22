@@ -22,6 +22,8 @@ java_test(
         ":testdata_basic_desugared_with_dependency_metadata",
         ":testdata_basic_desugared_with_dependency_metadata_missing_interface",
         ":testdata_basic_double_desugared_with_dependency_metadata",
+        ":testdata_basic_sharded_1_with_dependency_metadata.jar",
+        ":testdata_basic_sharded_2_with_dependency_metadata.jar",
     ],
     jvm_flags = [
         "-DDesugarBasicTest.testdata_basic=$(location :testdata_basic)",
@@ -31,6 +33,8 @@ java_test(
         "-DDesugarBasicTest.testdata_basic_double_desugared_with_dependency_metadata=$(location :testdata_basic_double_desugared_with_dependency_metadata)",
         "-DDesugarBasicTest.testdata_basic_desugared_classpath_with_dependency_metadata=$(location :testdata_basic_desugared_classpath_with_dependency_metadata)",
         "-DDesugarBasicTest.testdata_basic_desugared_with_dependency_metadata_missing_interface=$(location :testdata_basic_desugared_with_dependency_metadata_missing_interface)",
+        "-DDesugarBasicTest.testdata_basic_sharded_1_with_dependency_metadata=$(location :testdata_basic_sharded_1_with_dependency_metadata.jar)",
+        "-DDesugarBasicTest.testdata_basic_sharded_2_with_dependency_metadata=$(location :testdata_basic_sharded_2_with_dependency_metadata.jar)",
     ],
     deps = [
         "//src/tools/java/com/google/devtools/build/android/r8",
@@ -211,4 +215,28 @@ java_import(
     tags = [
         "incomplete-deps",  # remove this suppression and add any missing deps, see internal java_import deps checking doc
     ],
+)
+
+# Desugars two inputs with a shard for each input entry, to compare with desugaring unsharded.
+genrule(
+    name = "desugar_testdata_basic_sharded_with_dependency_metadata",
+    srcs = [
+        ":testdata_basic_interfaces",
+        ":testdata_basic_classes",
+        "//tools/android:bootclasspath",
+    ],
+    outs = [
+        "testdata_basic_sharded_1_with_dependency_metadata.jar",
+        "testdata_basic_sharded_2_with_dependency_metadata.jar",
+    ],
+    cmd = "$(location //src/tools/java/com/google/devtools/build/android/r8:desugar) " +
+          "--classpath_entry $(location :testdata_basic_interfaces) " +
+          "-i $(location :testdata_basic_classes) " +
+          "-o $(location :testdata_basic_sharded_1_with_dependency_metadata.jar) " +
+          "-i $(location :testdata_basic_classes) " +
+          "-o $(location :testdata_basic_sharded_2_with_dependency_metadata.jar) " +
+          "--bootclasspath_entry $(location //tools/android:bootclasspath) " +
+          "--emit_dependency_metadata_as_needed " +
+          "--number_of_entries_per_shard=1",
+    tools = ["//src/tools/java/com/google/devtools/build/android/r8:desugar"],
 )

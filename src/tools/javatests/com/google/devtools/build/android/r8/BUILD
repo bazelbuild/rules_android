@@ -35,6 +35,7 @@ java_library(
         "@rules_android_maven//:com_google_guava_guava",
         "@rules_android_maven//:com_google_truth_truth",
         "@rules_android_maven//:junit_junit",
+        "@rules_android_maven//:org_ow2_asm_asm",
         "@rules_java//java/runfiles",
     ],
 )

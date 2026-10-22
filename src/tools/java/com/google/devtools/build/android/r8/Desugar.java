@@ -35,10 +35,13 @@ import com.android.tools.r8.utils.StringDiagnostic;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.converters.CommaParameterSplitter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.devtools.build.android.AndroidOptionsUtils;
 import com.google.devtools.build.android.r8.CompatOptionsConverters.CompatExistingPathConverter;
 import com.google.devtools.build.android.r8.CompatOptionsConverters.CompatPathConverter;
+import com.google.devtools.build.android.r8.desugar.LazyArchiveClassFileProvider;
 import com.google.devtools.build.android.r8.desugar.OrderedClassFileResourceProvider;
 import com.google.devtools.build.android.r8.desugar.OutputConsumer;
 import com.google.devtools.build.lib.worker.ProtoWorkerMessageProcessor;
@@ -50,6 +53,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -60,9 +64,10 @@ public class Desugar {
 
   public static final String DESUGAR_DEPS_FILENAME = "META-INF/desugar_deps";
   public static final String CONTEXT_MAP_FILENAME = "META-INF/metadata/synthetic-contexts.map";
-  // We shard the compilation if we have more than this number of entries to avoid timing out.
-  private static final int NUMBER_OF_ENTRIES_PER_SHARD = 100000;
   private static final Logger logger = Logger.getLogger(Desugar.class.getName());
+  private static final String CLASSPATH_ENTRY_FLAG = "--classpath_entry";
+  private static final String BOOTCLASSPATH_ENTRY_FLAG = "--bootclasspath_entry";
+  private static final CommaParameterSplitter COMMA_SPLITTER = new CommaParameterSplitter();
 
   /** Commandline options for {@link com.google.devtools.build.android.r8.Desugar}. */
   @Parameters(separators = "= ")
@@ -76,17 +81,19 @@ public class Desugar {
                 + " with the n-th output).")
     public List<Path> inputJars = ImmutableList.of();
 
+    // Parsed directly by parseCommandLineOptions for performance.
     @Parameter(
-        names = "--classpath_entry",
-        converter = CompatExistingPathConverter.class,
+        names = CLASSPATH_ENTRY_FLAG,
+        converter = CompatPathConverter.class,
         description =
             "Ordered classpath jars to resolve symbols in the --input jars, like "
                 + "javac's -cp flag.")
     public List<Path> classpath = ImmutableList.of();
 
+    // Parsed directly by parseCommandLineOptions for performance.
     @Parameter(
-        names = "--bootclasspath_entry",
-        converter = CompatExistingPathConverter.class,
+        names = BOOTCLASSPATH_ENTRY_FLAG,
+        converter = CompatPathConverter.class,
         description =
             "Bootclasspath that was used to compile the --input jars with, like javac's "
                 + "-bootclasspath flag (required).")
@@ -269,6 +276,13 @@ public class Desugar {
         description = "Run as a Bazel persistent worker.")
     public boolean persistentWorker;
 
+    // We shard the compilation if we have more than this number of entries to avoid timing out.
+    @Parameter(
+        names = "--number_of_entries_per_shard",
+        hidden = true,
+        description = "Number of input entries per D8 compilation, only meant for tests.")
+    public int numberOfEntriesPerShard = 100000;
+
     @Parameter(
         names = "--desugared_lib_config",
         converter = CompatExistingPathConverter.class,
@@ -286,12 +300,65 @@ public class Desugar {
     this.diagnosticsHandlerPrintStream = diagnosticsHandlerPrintStream;
   }
 
-  private static DesugarOptions parseCommandLineOptions(String[] args) {
+  @VisibleForTesting
+  static DesugarOptions parseCommandLineOptions(String[] args) {
     DesugarOptions options = new DesugarOptions();
     String[] preprocessedArgs = AndroidOptionsUtils.runArgFilePreprocessor(args);
-    String[] normalizedArgs =
-        AndroidOptionsUtils.normalizeBooleanOptions(options, preprocessedArgs);
-    JCommander.newBuilder().addObject(options).build().parse(normalizedArgs);
+    // JCommander's parsing time grows with (number of args) * (number of options)^2, which is
+    // slow for the tens of thousands of classpath entries passed by large builds. Extract those
+    // options here and only pass the remaining arguments to JCommander.
+    List<String> remainingArgs = new ArrayList<>();
+    List<Path> classpath = new ArrayList<>();
+    List<Path> bootclasspath = new ArrayList<>();
+    // Existence of the entries is checked when they are opened.
+    CompatPathConverter pathConverter = new CompatPathConverter();
+    for (int i = 0; i < preprocessedArgs.length; i++) {
+      String arg = preprocessedArgs[i];
+      List<Path> paths;
+      String name;
+      if (arg.startsWith(CLASSPATH_ENTRY_FLAG)) {
+        paths = classpath;
+        name = CLASSPATH_ENTRY_FLAG;
+      } else if (arg.startsWith(BOOTCLASSPATH_ENTRY_FLAG)) {
+        paths = bootclasspath;
+        name = BOOTCLASSPATH_ENTRY_FLAG;
+      } else {
+        remainingArgs.add(arg);
+        continue;
+      }
+      String value;
+      if (arg.length() == name.length() && i + 1 < preprocessedArgs.length) {
+        value = preprocessedArgs[++i];
+      } else if (arg.length() > name.length()
+          && (arg.charAt(name.length()) == '=' || arg.charAt(name.length()) == ' ')) {
+        // JCommander (separators = "= ") also accepts the flag and value in one argument, separated
+        // by '=' or a space. Nothing is known to pass the space form, but accept it so parsing
+        // doesn't change.
+        value = arg.substring(name.length() + 1);
+      } else {
+        remainingArgs.add(arg);
+        continue;
+      }
+      // JCommander's default splitter for list options.
+      for (String path : COMMA_SPLITTER.split(value)) {
+        paths.add(pathConverter.convert(path));
+      }
+    }
+    JCommander.newBuilder()
+        .addObject(options)
+        .build()
+        .parse(
+            AndroidOptionsUtils.normalizeBooleanOptions(
+                options, remainingArgs.toArray(new String[0])));
+    // JCommander only sees these flags in forms the loop above doesn't handle, such as in an @file
+    // that is not the only argument. Fail rather than drop them.
+    checkArgument(
+        options.classpath.isEmpty() && options.bootclasspath.isEmpty(),
+        "%s and %s must be passed directly or in a single @file argument",
+        CLASSPATH_ENTRY_FLAG,
+        BOOTCLASSPATH_ENTRY_FLAG);
+    options.classpath = classpath;
+    options.bootclasspath = bootclasspath;
 
     return options;
   }
@@ -384,6 +451,14 @@ public class Desugar {
     }
   }
 
+  private static LazyArchiveClassFileProvider createLazyArchiveClassFileProvider(Path path) {
+    try {
+      return new LazyArchiveClassFileProvider(path);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
   private void desugar(
       List<ClassFileResourceProvider> bootclasspathProviders,
       ClassFileResourceProvider classpath,
@@ -404,19 +479,20 @@ public class Desugar {
         consumer.setFinish(true);
       }
       final int currentShard = i;
-      ImmutableList.Builder<ClassFileResourceProvider> classpathProvidersBuilder =
-          ImmutableList.builder();
-      classpathProvidersBuilder
-          .add(classpath)
-          .add(
-              new ArchiveClassFileProvider(
-                  input,
-                  p ->
-                      ArchiveProgramResourceProvider.includeClassFileOrDexEntries(p)
-                          && !isProgramClassForShard(numberOfShards, currentShard, p)));
-      OrderedClassFileResourceProvider orderedClassFileResourceProvider =
-          new OrderedClassFileResourceProvider(
-              ImmutableList.copyOf(bootclasspathProviders), classpathProvidersBuilder.build());
+      ClassFileResourceProvider shardClasspath = classpath;
+      if (numberOfShards > 1) {
+        // Classes from the other shards of the input are on the classpath of this shard.
+        shardClasspath =
+            new OrderedClassFileResourceProvider(
+                ImmutableList.copyOf(bootclasspathProviders),
+                ImmutableList.of(
+                    classpath,
+                    new ArchiveClassFileProvider(
+                        input,
+                        p ->
+                            ArchiveProgramResourceProvider.includeClassFileOrDexEntries(p)
+                                && !isProgramClassForShard(numberOfShards, currentShard, p))));
+      }
       ArchiveProgramResourceProvider programProvider =
           ArchiveProgramResourceProvider.fromArchive(
               input,
@@ -425,7 +501,7 @@ public class Desugar {
                       && isProgramClassForShard(numberOfShards, currentShard, p));
       D8Command.Builder builder =
           D8Command.builder(new DesugarDiagnosticsHandler(consumer, diagnosticsHandlerPrintStream))
-              .addClasspathResourceProvider(orderedClassFileResourceProvider)
+              .addClasspathResourceProvider(shardClasspath)
               .addProgramResourceProvider(programProvider)
               .setGlobalSyntheticsConsumer(new NoOpGlobalSyntheticsConsumer())
               .setIntermediate(true)
@@ -453,8 +529,9 @@ public class Desugar {
         options.classpath.parallelStream()
             .map(
                 path -> {
-                  ClassFileResourceProvider provider = createArchiveClassFileProvider(path);
-                  return Map.entry(provider, isPlatform(path, provider));
+                  LazyArchiveClassFileProvider provider = createLazyArchiveClassFileProvider(path);
+                  return Map.<ClassFileResourceProvider, Boolean>entry(
+                      provider, isPlatform(path, provider.getClassDescriptorList()));
                 })
             .collect(toImmutableList());
 
@@ -495,7 +572,7 @@ public class Desugar {
   }
 
   private int getShardCount(Path input) throws IOException {
-    return max(1, ZipUtils.getNumberOfEntries(input) / NUMBER_OF_ENTRIES_PER_SHARD);
+    return max(1, ZipUtils.getNumberOfEntries(input) / options.numberOfEntriesPerShard);
   }
 
   private int getShardNumberForString(int numberOfShards, String string) {
@@ -507,12 +584,12 @@ public class Desugar {
     return Math.floorMod(string.hashCode(), numberOfShards);
   }
 
-  private static boolean isPlatform(Path path, ClassFileResourceProvider provider) {
+  private static boolean isPlatform(Path path, List<String> descriptors) {
     // See b/456670962
     // If the jar name contains "wear_sdk_stubs" and it only contains classes in the package
     // com.google.wear, then it is part of the platform.
     if (path.toString().contains("android_libs/wear_sdk_stubs/")) {
-      for (String descriptor : provider.getClassDescriptors()) {
+      for (String descriptor : descriptors) {
         if (!descriptor.startsWith("Lcom/google/wear/")) {
           return false;
         }
@@ -522,7 +599,7 @@ public class Desugar {
 
     // See b/153106333
     boolean mightBePlatform = false;
-    for (String descriptor : provider.getClassDescriptors()) {
+    for (String descriptor : descriptors) {
       // If the jar contains classes in the package android.car.content this could be a platform
       // library. However, if it also has classes in the package android.car.test it is not.
       if (!mightBePlatform && descriptor.startsWith("Landroid/car/content/")) {

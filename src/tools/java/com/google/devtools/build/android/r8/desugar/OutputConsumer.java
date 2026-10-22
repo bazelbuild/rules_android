@@ -35,6 +35,7 @@ import com.google.common.io.ByteStreams;
 import com.google.devtools.build.android.r8.DependencyCollector;
 import com.google.devtools.build.android.r8.DescriptorUtils;
 import com.google.devtools.build.android.r8.Desugar;
+import com.google.devtools.build.android.r8.R8Utils;
 import com.google.devtools.build.android.r8.ZipUtils;
 import org.objectweb.asm.Opcodes;
 import java.io.BufferedOutputStream;
@@ -262,6 +263,11 @@ public class OutputConsumer implements ClassFileConsumer {
 
   private static class DesugaredClassFileDependencyCollector {
 
+    // See https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.4.1
+    private static final int CONSTANT_CLASS_TAG = 7;
+    private static final byte[] companionSuffix =
+        R8Utils.INTERFACE_COMPANION_SUFFIX.getBytes(UTF_8);
+
     private static class DependencyCollectorClassVisitor extends ClassVisitor {
 
       private final DependencyCollector dependencyCollector;
@@ -349,10 +355,51 @@ public class OutputConsumer implements ClassFileConsumer {
     }
 
     private void run() {
-      new ClassReader(classFileData.data)
-          .accept(
-              new DependencyCollectorClassVisitor(dependencyCollector),
-              ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+      ClassReader reader = new ClassReader(classFileData.data);
+      String className = reader.getClassName();
+      // Visiting a class only records something for companion classes, classes calling companion
+      // classes and interfaces, so other classes, such as R classes with many fields, are not
+      // decoded at all.
+      if (DescriptorUtils.isCompanionClassBinaryName(className)
+          || referencesCompanionClass(reader)) {
+        reader.accept(
+            new DependencyCollectorClassVisitor(dependencyCollector),
+            ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+      } else if ((reader.getAccess() & ACC_INTERFACE) == ACC_INTERFACE) {
+        // Visiting the class would only record the extended interfaces.
+        dependencyCollector.recordExtendedInterfaces(className, reader.getInterfaces());
+      }
+    }
+
+    /** Returns whether the constant pool contains a class constant for a companion class. */
+    private static boolean referencesCompanionClass(ClassReader reader) {
+      // ClassReader.getItem(i) returns the offset just after the entry's 1-byte tag, so the tag is
+      // at offset - 1. For a CONSTANT_Class the next u2 is the name_index. For the CONSTANT_Utf8 it
+      // points to, the next u2 is the length in bytes and the bytes start at nameOffset + 2.
+      for (int i = 1; i < reader.getItemCount(); i++) {
+        int offset = reader.getItem(i);
+        if (offset > 0 && reader.readByte(offset - 1) == CONSTANT_CLASS_TAG) {
+          int nameOffset = reader.getItem(reader.readUnsignedShort(offset));
+          int nameEnd = nameOffset + 2 + reader.readUnsignedShort(nameOffset);
+          if (endsWith(reader, nameOffset + 2, nameEnd, companionSuffix)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    private static boolean endsWith(ClassReader reader, int start, int end, byte[] suffix) {
+      if (end - start < suffix.length) {
+        return false;
+      }
+      for (int i = 0; i < suffix.length; i++) {
+        // readByte returns the byte as an unsigned int.
+        if ((byte) reader.readByte(end - suffix.length + i) != suffix[i]) {
+          return false;
+        }
+      }
+      return true;
     }
   }
 

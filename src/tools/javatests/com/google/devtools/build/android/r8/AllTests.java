@@ -22,6 +22,9 @@ import org.junit.runners.Suite;
   CompatDexBuilderTest.class,
   CompatDxTest.class,
   DescriptorUtilsTest.class,
+  DesugarOptionsTest.class,
   DexingKeyR8Test.class,
+  LazyArchiveClassFileProviderTest.class,
+  OutputConsumerTest.class,
 })
 public class AllTests {}

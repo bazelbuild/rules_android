@@ -59,6 +59,7 @@ public class DesugarBasicTest {
   private Path doubleDesugaredWithDependencyMetadata;
   private Path desugaredClasspathWithDependencyMetadata;
   private Path desugaredWithDependencyMetadataMissingInterface;
+  private ImmutableList<Path> shardedWithDependencyMetadata;
 
   @Before
   public void setup() {
@@ -94,6 +95,24 @@ public class DesugarBasicTest {
         Paths.get(
             System.getProperty(
                 "DesugarBasicTest.testdata_basic_desugared_with_dependency_metadata_missing_interface"));
+    // Same as testdata_basic_desugared_classpath_with_dependency_metadata, but desugaring the input
+    // twice in one invocation, with a shard for each input entry.
+    shardedWithDependencyMetadata =
+        ImmutableList.of(
+            Paths.get(
+                System.getProperty(
+                    "DesugarBasicTest.testdata_basic_sharded_1_with_dependency_metadata")),
+            Paths.get(
+                System.getProperty(
+                    "DesugarBasicTest.testdata_basic_sharded_2_with_dependency_metadata")));
+  }
+
+  @Test
+  public void shardedSameAsUnsharded() throws Exception {
+    for (Path sharded : shardedWithDependencyMetadata) {
+      assertThat(Files.readAllBytes(sharded))
+          .isEqualTo(Files.readAllBytes(desugaredClasspathWithDependencyMetadata));
+    }
   }
 
   @Test
