@@ -122,9 +122,18 @@ func (a *Controller) deviceArgs() []string {
 	return []string{"-s", a.DeviceSerial}
 }
 
+func shellQuote(arg string) string {
+	return "'" + strings.ReplaceAll(arg, "'", `'\''`) + "'"
+}
+
 // Exec executes the command in the shell of the specified device. The shell param is ignored and always assumed to be true
 func (a *Controller) Exec(ctx context.Context, cmd string, args []string, shell bool) (string, string, error) {
-	fullArgs := []string{"shell", cmd + " " + strings.Join(args, " ") + "; echo ret=$?"}
+	quotedArgs := make([]string, len(args))
+	for i, arg := range args {
+		quotedArgs[i] = shellQuote(arg)
+	}
+	shellCmd := cmd + " " + strings.Join(quotedArgs, " ")
+	fullArgs := []string{"shell", shellCmd + "; echo ret=$?"}
 	oB, eB, err := a.run(ctx, fullArgs...)
 	o := string(oB)
 	e := string(eB)
@@ -136,7 +145,7 @@ func (a *Controller) Exec(ctx context.Context, cmd string, args []string, shell 
 		if convErr != nil {
 			err = fmt.Errorf("error parsing return code %v", r)
 		} else if ret != 0 {
-			err = fmt.Errorf("non-zero return code '%d' from %s", ret, "adb shell "+cmd+" "+strings.Join(args, " "))
+			err = fmt.Errorf("non-zero return code '%d' from %s", ret, "adb shell "+shellCmd)
 		}
 	}
 	return o, e, err

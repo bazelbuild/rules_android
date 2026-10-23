@@ -110,6 +110,11 @@ func TestParseResolvedActivity(t *testing.T) {
 			want: "com.example/.MainActivity",
 		},
 		{
+			name: "ActivityWithDollarSign",
+			out:  "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\ncom.example/.app.honeycomb.Shell$HomeActivity\n",
+			want: "com.example/.app.honeycomb.Shell$HomeActivity",
+		},
+		{
 			name: "FullyQualifiedActivity",
 			out:  "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\r\ncom.example/com.other.MainActivity\r\n",
 			want: "com.example/com.other.MainActivity",
@@ -182,9 +187,19 @@ func TestLaunch(t *testing.T) {
 			wantCommand: []string{"am", "start", "-a", "android.intent.action.MAIN", "-n", "com.example/.SomeActivity"},
 		},
 		{
+			name:        "ExplicitActivityWithDollarSign",
+			activity:    ".app.honeycomb.Shell$HomeActivity",
+			wantCommand: []string{"am", "start", "-a", "android.intent.action.MAIN", "-n", "com.example/.app.honeycomb.Shell$HomeActivity"},
+		},
+		{
 			name:        "ResolvedLauncherActivity",
 			resolveOut:  "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\ncom.example/.MainActivity\n",
 			wantCommand: []string{"am", "start", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER", "-n", "com.example/.MainActivity"},
+		},
+		{
+			name:        "ResolvedLauncherActivityWithDollarSign",
+			resolveOut:  "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=false\ncom.example/.app.honeycomb.Shell$HomeActivity\n",
+			wantCommand: []string{"am", "start", "-a", "android.intent.action.MAIN", "-c", "android.intent.category.LAUNCHER", "-n", "com.example/.app.honeycomb.Shell$HomeActivity"},
 		},
 		{
 			name:        "NoLauncherActivityFallsBackToMonkey",

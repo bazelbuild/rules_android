@@ -172,3 +172,74 @@ List of devices attached
 		})
 	}
 }
+
+func TestControllerExec(t *testing.T) {
+	tcs := []struct {
+		name        string
+		cmd         string
+		args        []string
+		adbOut      string
+		wantRunArgs []string
+		wantOut     string
+		wantErr     bool
+	}{
+		{
+			name:   "QuotesDollarSignComponent",
+			cmd:    "am",
+			args:   []string{"start", "-a", "android.intent.action.MAIN", "-n", "com.example/.Shell$HomeActivity"},
+			adbOut: "Starting: Intent { cmp=com.example/.Shell$HomeActivity }\nret=0\n",
+			wantRunArgs: []string{
+				"-s", "127.0.0.1:60001", "shell",
+				"am 'start' '-a' 'android.intent.action.MAIN' '-n' 'com.example/.Shell$HomeActivity'; echo ret=$?",
+			},
+			wantOut: "Starting: Intent { cmp=com.example/.Shell$HomeActivity }",
+		},
+		{
+			name:   "EscapesSingleQuoteInArg",
+			cmd:    "echo",
+			args:   []string{"a'b"},
+			adbOut: "a'b\nret=0\n",
+			wantRunArgs: []string{
+				"-s", "127.0.0.1:60001", "shell",
+				`echo 'a'\''b'; echo ret=$?`,
+			},
+			wantOut: "a'b",
+		},
+		{
+			name:   "NonZeroReturnCode",
+			cmd:    "cmd",
+			args:   []string{"package", "resolve-activity", "com.example"},
+			adbOut: "Unknown command\nret=1\n",
+			wantRunArgs: []string{
+				"-s", "127.0.0.1:60001", "shell",
+				"cmd 'package' 'resolve-activity' 'com.example'; echo ret=$?",
+			},
+			wantOut: "Unknown command",
+			wantErr: true,
+		},
+	}
+	ctx := context.Background()
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			var gotRunArgs []string
+			mockRunner := func(_ context.Context, _ *ADB, args ...string) ([]byte, []byte, error) {
+				gotRunArgs = args
+				return []byte(tc.adbOut), nil, nil
+			}
+			ctl := &Controller{
+				ADB:          &ADB{runner: mockRunner},
+				DeviceSerial: "127.0.0.1:60001",
+			}
+			gotOut, _, err := ctl.Exec(ctx, tc.cmd, tc.args, true)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("Exec() error = %v, wantErr %v", err, tc.wantErr)
+			}
+			if !reflect.DeepEqual(gotRunArgs, tc.wantRunArgs) {
+				t.Errorf("Exec() run args = %q, want %q", gotRunArgs, tc.wantRunArgs)
+			}
+			if gotOut != tc.wantOut {
+				t.Errorf("Exec() stdout = %q, want %q", gotOut, tc.wantOut)
+			}
+		})
+	}
+}
