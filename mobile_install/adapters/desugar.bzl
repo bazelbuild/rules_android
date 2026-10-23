@@ -13,12 +13,9 @@
 # limitations under the License.
 """Shared logic related to desugaring. """
 
-load("//rules:acls.bzl", "acls")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
 
 def get_desugar_classpath(java_info):
-    if acls.in_desugaring_runtime_jar_classpath_rollout():
-        return java_info._transitive_full_compile_time_jars
-    return java_info.transitive_compile_time_jars
+    return java_info._transitive_full_compile_time_jars

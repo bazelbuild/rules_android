@@ -18,7 +18,6 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//lib:partial.bzl", "partial")
-load(":acls.bzl", "acls")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
@@ -84,9 +83,7 @@ def get_aspect_deps(ctx):
     return deps_list
 
 def _get_desugar_classpath(java_info):
-    if acls.in_desugaring_runtime_jar_classpath_rollout():
-        return java_info._transitive_full_compile_time_jars
-    return java_info.transitive_compile_time_jars
+    return java_info._transitive_full_compile_time_jars
 
 def _aspect_impl(target, ctx):
     """Adapts the rule and target data.
