@@ -143,8 +143,10 @@ class PlaceholderIdFieldInitializerBuilder {
   private final Map<ResourceType, SortedMap<String, ResourceLinkageInfo>> innerClasses =
       new EnumMap<>(ResourceType.class);
 
-  private final Map<String, Map<String, /*inlineable=*/ Boolean>> styleableAttrs =
-      new LinkedHashMap<>();
+  // Use TreeMap for deterministic iteration order. LinkedHashMap depends on
+  // insertion order from addStyleableResource() calls, which varies across builds
+  // due to non-deterministic resource merge ordering.
+  private final Map<String, Map<String, /*inlineable=*/ Boolean>> styleableAttrs = new TreeMap<>();
 
   private PlaceholderIdFieldInitializerBuilder(AndroidFrameworkAttrIdProvider androidIdProvider) {
     this.androidIdProvider = androidIdProvider;
@@ -170,8 +172,8 @@ class PlaceholderIdFieldInitializerBuilder {
     // However, we don't combine across configurations, so there can be a pre-existing definition.
     Map<String, Boolean> normalizedAttrs = styleableAttrs.get(normalizedStyleableName);
     if (normalizedAttrs == null) {
-      // We need to maintain the original order of the attrs.
-      normalizedAttrs = new LinkedHashMap<>();
+      // Use TreeMap for deterministic iteration order regardless of resource merge ordering.
+      normalizedAttrs = new TreeMap<>();
       styleableAttrs.put(normalizedStyleableName, normalizedAttrs);
     }
     for (Map.Entry<FullyQualifiedName, Boolean> attrEntry : attrs.entrySet()) {
@@ -181,8 +183,12 @@ class PlaceholderIdFieldInitializerBuilder {
   }
 
   private Map<String, Integer> assignAttrIds(int attrTypeId) {
-    // Attrs are special, since they can be defined within a declare-styleable. Those are sorted
-    // after top-level definitions.
+    // Attrs are special, since they can be defined within a declare-styleable. Those were
+    // historically sorted after top-level definitions to match aapt1 ordering. However, the
+    // inline vs non-inline classification depends on resource merge order (via
+    // ReferenceResolver.shouldInline/markInlined first-come-first-served semantics), making
+    // the partition non-deterministic. Since these are placeholder IDs that get reassigned
+    // during android_binary linking, we assign all attrs in sorted order for determinism.
     if (!innerClasses.containsKey(ResourceType.ATTR)) {
       return ImmutableMap.of();
     }
@@ -191,34 +197,13 @@ class PlaceholderIdFieldInitializerBuilder {
     // After assigning public IDs, we count up monotonically, so we don't need to track additional
     // assignedIds to avoid collisions (use an ImmutableSet to ensure we don't add more).
     Set<Integer> assignedIds = ImmutableSet.of();
-    Set<String> inlineAttrs = new LinkedHashSet<>();
-    Set<String> styleablesWithInlineAttrs = new TreeSet<>();
-    for (Map.Entry<String, Map<String, Boolean>> styleableAttrEntry : styleableAttrs.entrySet()) {
-      Map<String, Boolean> attrs = styleableAttrEntry.getValue();
-      for (Map.Entry<String, Boolean> attrEntry : attrs.entrySet()) {
-        if (attrEntry.getValue()) {
-          inlineAttrs.add(attrEntry.getKey());
-          styleablesWithInlineAttrs.add(styleableAttrEntry.getKey());
-        }
-      }
-    }
     int nextId = nextFreeId(getInitialIdForTypeId(attrTypeId), assignedIds);
-    // Technically, aapt assigns based on declaration order, but the merge should have sorted
-    // the non-inline attributes, so assigning by sorted order is the same.
+    // Assign all attrs in sorted order regardless of inline status for determinism.
     SortedMap<String, ?> sortedAttrs = innerClasses.get(ResourceType.ATTR);
     for (String attr : sortedAttrs.keySet()) {
-      if (!inlineAttrs.contains(attr) && !attrToId.containsKey(attr)) {
+      if (!attrToId.containsKey(attr)) {
         attrToId.put(attr, nextId);
         nextId = nextFreeId(nextId + 1, assignedIds);
-      }
-    }
-    for (String styleable : styleablesWithInlineAttrs) {
-      Map<String, Boolean> attrs = styleableAttrs.get(styleable);
-      for (Map.Entry<String, Boolean> attrEntry : attrs.entrySet()) {
-        if (attrEntry.getValue() && !attrToId.containsKey(attrEntry.getKey())) {
-          attrToId.put(attrEntry.getKey(), nextId);
-          nextId = nextFreeId(nextId + 1, assignedIds);
-        }
       }
     }
     return ImmutableMap.copyOf(attrToId);
