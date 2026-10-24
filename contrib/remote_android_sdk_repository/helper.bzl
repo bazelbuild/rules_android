@@ -1,0 +1,595 @@
+load("@platforms//host:constraints.bzl", "HOST_CONSTRAINTS")
+load("@rules_android//rules:rules.bzl", "android_sdk")
+load("@rules_java//java:defs.bzl", "java_binary", "java_import")
+load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
+
+RUNFILES_SUPPORT_HEADER = """
+# --- begin runfiles.bash initialization v3 ---
+# Copy-pasted from the Bazel Bash runfiles library v3.
+set -uo pipefail; set +e; f=bazel_tools/tools/bash/runfiles/runfiles.bash
+echo "$$0"
+echo "$$0"
+echo "$$0"
+source "$${RUNFILES_DIR:-/dev/null}/$$f" 2>/dev/null || \
+source "$$(grep -sm1 "^$$f " "$${RUNFILES_MANIFEST_FILE:-/dev/null}" | cut -f2- -d' ')" 2>/dev/null || \
+source "$$0.runfiles/$$f" 2>/dev/null || \
+source "$$(grep -sm1 "^$$f " "$$0.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+source "$$(grep -sm1 "^$$f " "$$0.exe.runfiles_manifest" | cut -f2- -d' ')" 2>/dev/null || \
+{ echo>&2 "ERROR: cannot find $$f"; exit 1; }; f=; set -e
+       # --- end runfiles.bash initialization v3 ---
+"""
+
+def _bool_flag_impl(_unused_ctx):
+    pass
+
+_bool_flag = rule(
+    implementation = _bool_flag_impl,
+    build_setting = config.bool(flag = True),
+)
+
+def _int_flag_impl(ctx):
+    allowed_values = ctx.attr.values
+    value = ctx.build_setting_value
+    if len(allowed_values) != 0 and value not in ctx.attr.values:
+        fail(
+            "Error setting %s: invalid value '%d'. Allowed values are %s" % (
+                ctx.label,
+                value,
+                ",".join([str(val) for val in allowed_values]),
+            ),
+        )
+
+int_flag = rule(
+    implementation = _int_flag_impl,
+    build_setting = config.int(flag = True),
+    attrs = {
+        "values": attr.int_list(
+            doc = "The list of allowed values for this setting. An error is raised if any other value is given.",
+        ),
+    },
+    doc = "An int-typed build setting that can be set on the command line",
+)
+
+def _create_config_setting_rule():
+    """Create config_setting rule for windows.
+
+    These represent the matching --host_cpu values.
+    """
+    name = "windows"
+    if not native.existing_rule(name):
+        native.config_setting(
+            name = name,
+            constraint_values = ["@platforms//os:windows"],
+        )
+
+    native.config_setting(
+        name = "d8_standalone_dexer",
+        values = {"define": "android_standalone_dexing_tool=d8_compat_dx"},
+    )
+
+    native.config_setting(
+        name = "dx_standalone_dexer",
+        values = {"define": "android_standalone_dexing_tool=dx_compat_dx"},
+    )
+
+    _bool_flag(
+        name = "allow_proguard",
+        build_setting_default = True,
+    )
+
+    native.config_setting(
+        name = "disallow_proguard",
+        flag_values = {":allow_proguard": "false"},
+    )
+
+def create_android_sdk_rules(
+        name,
+        build_tools_version,
+        build_tools_directory,
+        api_levels,
+        default_api_level,
+        exec_compatible_with = None):
+    """Generate android_sdk rules for the API levels in the Android SDK.
+
+    Args:
+      name: string, the name of the repository being generated.
+      build_tools_version: string, the version of Android's build tools to use.
+      build_tools_directory: string, the directory name of the build tools in
+          sdk's build-tools directory.
+      api_levels: list of ints, the API levels from which to get android.jar
+          et al. and create android_sdk rules.
+      default_api_level: int, the API level to alias the default sdk to if
+          --android_sdk is not specified on the command line.
+    """
+
+    _create_config_setting_rule()
+
+    int_flag(
+        name = "api_level",
+        build_setting_default = default_api_level,
+        values = api_levels,
+        visibility = ["//visibility:public"],
+    )
+
+    windows_only_files = [
+        "build-tools/%s/aapt.exe" % build_tools_directory,
+        "build-tools/%s/aidl.exe" % build_tools_directory,
+        "build-tools/%s/zipalign.exe" % build_tools_directory,
+        "platform-tools/adb.exe",
+    ] + native.glob(
+        [
+            "build-tools/%s/aapt2.exe" % build_tools_directory,
+            "build-tools/%s/dexdump.exe" % build_tools_directory,
+        ],
+        allow_empty = True,
+    )
+
+    linux_only_files = [
+        "build-tools/%s/aapt" % build_tools_directory,
+        "build-tools/%s/aidl" % build_tools_directory,
+        "build-tools/%s/zipalign" % build_tools_directory,
+        "platform-tools/adb",
+    ] + native.glob(
+        [
+            "extras",
+            "build-tools/%s/aapt2" % build_tools_directory,
+            "build-tools/%s/dexdump" % build_tools_directory,
+        ],
+        allow_empty = True,
+        exclude_directories = 0,
+    )
+
+    # This filegroup is used to pass the minimal contents of the SDK to the
+    # Android integration tests. Note that in order to work on Windows, we cannot
+    # include directories and must keep the size small.
+    build_tools_major_version = int(build_tools_version.split(".")[0])
+    native.filegroup(
+        name = "files",
+        srcs = (
+                   [
+                       "build-tools/%s/lib/dx.jar" % build_tools_directory,
+                       "build-tools/%s/mainDexClasses.rules" % build_tools_directory,
+                   ] if build_tools_major_version <= 30 else []
+               ) +
+               [
+                   "build-tools/%s/lib/apksigner.jar" % build_tools_directory,
+                   "build-tools/%s/lib/d8.jar" % build_tools_directory,
+                   ":build_tools_libs",
+               ] + [
+            "platforms/android-%d/%s" % (api_level, filename)
+            for api_level in api_levels
+            for filename in ["android.jar", "core-for-system-modules.jar", "framework.aidl"]
+        ] + select({
+            ":windows": windows_only_files,
+            "//conditions:default": linux_only_files,
+        }),
+    )
+
+    for api_level in api_levels:
+        if api_level >= 23:
+            # Android 23 removed most of org.apache.http from android.jar and moved it
+            # to a separate jar.
+            java_import(
+                name = "org_apache_http_legacy-%d" % api_level,
+                jars = ["platforms/android-%d/optional/org.apache.http.legacy.jar" % api_level],
+            )
+
+        if api_level >= 28:
+            # Android 28 removed most of android.test from android.jar and moved it
+            # to separate jars.
+            java_import(
+                name = "legacy_test-%d" % api_level,
+                jars = [
+                    "platforms/android-%d/optional/android.test.base.jar" % api_level,
+                    "platforms/android-%d/optional/android.test.mock.jar" % api_level,
+                    "platforms/android-%d/optional/android.test.runner.jar" % api_level,
+                ],
+                neverlink = 1,
+            )
+
+        native.config_setting(
+            name = "api_%d_enabled" % api_level,
+            flag_values = {
+                ":api_level": str(api_level),
+            },
+        )
+
+        android_sdk(
+            name = "sdk-%d" % api_level,
+            aapt = select({
+                ":windows": "build-tools/%s/aapt.exe" % build_tools_directory,
+                "//conditions:default": ":aapt_binary",
+            }),
+            aapt2 = select({
+                ":windows": "build-tools/%s/aapt2.exe" % build_tools_directory,
+                "//conditions:default": ":aapt2_binary",
+            }),
+            adb = select({
+                ":windows": "platform-tools/adb.exe",
+                "//conditions:default": "platform-tools/adb",
+            }),
+            aidl = select({
+                ":windows": "build-tools/%s/aidl.exe" % build_tools_directory,
+                "//conditions:default": ":aidl_binary",
+            }),
+            android_jar = "platforms/android-%d/android.jar" % api_level,
+            apksigner = ":apksigner",
+            build_tools_version = build_tools_version,
+            dx = select({
+                "d8_standalone_dexer": ":d8_compat_dx",
+                "dx_standalone_dexer": ":dx_binary",
+                "//conditions:default": ":d8_compat_dx",
+            }),
+            framework_aidl = "platforms/android-%d/framework.aidl" % api_level,
+            legacy_main_dex_list_generator = ":generate_main_dex_list",
+            main_dex_classes = "build-tools/%s/mainDexClasses.rules" % build_tools_directory,
+            main_dex_list_creator = ":main_dex_list_creator",
+            proguard = select({
+                ":disallow_proguard": ":fail",
+                "//conditions:default": "@remote_java_tools//:proguard",
+            }),
+            # See https://github.com/bazelbuild/bazel/issues/8757
+            tags = ["__ANDROID_RULES_MIGRATION__"],
+            zipalign = select({
+                ":windows": "build-tools/%s/zipalign.exe" % build_tools_directory,
+                "//conditions:default": ":zipalign_binary",
+            }),
+            core_for_system_modules_jar = ":core-for-system-modules-jar",
+            org_apache_http_legacy = ":org_apache_http_legacy",
+            sdk_path = ":sdk_path",
+            files = ":files",
+        )
+
+        native.toolchain(
+            name = "sdk-%d-toolchain" % api_level,
+            toolchain = ":sdk-%d" % api_level,
+            toolchain_type = "@androidsdk//:sdk_toolchain_type",
+            target_settings = [
+                ":api_%d_enabled" % api_level,
+            ],
+            exec_compatible_with = exec_compatible_with or HOST_CONSTRAINTS,
+            visibility = ["//visibility:public"],
+        )
+
+    create_dummy_sdk_toolchain()
+
+    native.alias(
+        name = "org_apache_http_legacy",
+        actual = ":org_apache_http_legacy-%d" % default_api_level,
+    )
+
+    sdk_alias_dict = {
+        "//conditions:default": "sdk-%d" % default_api_level,
+    }
+
+    for api_level in api_levels:
+        sdk_alias_dict[":api_%d_enabled" % api_level] = "sdk-%d" % api_level
+
+    native.alias(
+        name = "sdk",
+        actual = select(
+            sdk_alias_dict,
+            no_match_error = "Unknown Android SDK level, valid levels are %s" % ",".join([str(level) for level in api_levels]),
+        ),
+    )
+
+    native.alias(
+        name = "sdk-toolchain",
+        actual = ":sdk-%d-toolchain" % default_api_level,
+    )
+
+    java_import(
+        name = "core-for-system-modules-jar",
+        jars = ["platforms/android-%d/core-for-system-modules.jar" % default_api_level],
+    )
+
+    java_binary(
+        name = "apksigner",
+        main_class = "com.android.apksigner.ApkSignerTool",
+        runtime_deps = ["build-tools/%s/lib/apksigner.jar" % build_tools_directory],
+    )
+
+    native.filegroup(
+        name = "build_tools_libs",
+        srcs = native.glob([
+            "build-tools/%s/lib/**" % build_tools_directory,
+            # Build tools version 24.0.0 added a lib64 folder.
+            "build-tools/%s/lib64/**" % build_tools_directory,
+        ], allow_empty = True),
+    )
+
+    for tool in ["aapt2", "aidl", "zipalign"]:
+        native.genrule(
+            name = tool + "_runner",
+            srcs = [],
+            outs = [tool + "_runner.sh"],
+            cmd = "\n".join([
+                "cat > $@ << 'EOF'",
+                "#!/usr/bin/env bash",
+                RUNFILES_SUPPORT_HEADER,
+                # The tools under build-tools/VERSION require the libraries under
+                # build-tools/VERSION/lib, so we can't simply depend on them as a
+                # file like we do with aapt.
+                # On Windows however we can use these binaries directly because
+                # there's no runfiles support so Bazel just creates a junction to
+                # {SDK}/build-tools.
+                "env",
+                "SDK=$${0}.runfiles/%s" % name,
+                # If $${SDK} is not a directory, it means that this tool is running
+                # from a runfiles directory, in the case of
+                # android_instrumentation_test. Hence, use the androidsdk
+                # that's already present in the runfiles of the current context.
+                "if [[ ! -d $${SDK} ]] ; then",
+                "  SDK=$$(pwd)/../%s" % name,
+                "fi",
+                "tool=$${SDK}/build-tools/%s/%s" % (build_tools_directory, tool),
+                "exec env LD_LIBRARY_PATH=$${SDK}/build-tools/%s/lib64 $$tool $$*" % build_tools_directory,
+                "EOF\n",
+            ]),
+        )
+
+        sh_binary(
+            name = tool + "_binary",
+            srcs = [tool + "_runner.sh"],
+            data = [
+                ":build_tools_libs",
+                "build-tools/%s/%s" % (build_tools_directory, tool),
+            ],
+            deps = ["@bazel_tools//tools/bash/runfiles"],
+        )
+
+    # For the default Android toolchain //toolchains/android:android_default
+    native.alias(
+        name = "aapt2",
+        actual = select({
+            ":windows": "build-tools/%s/aapt2.exe" % build_tools_directory,
+            "//conditions:default": ":aapt2_binary",
+        }),
+    )
+
+    native.alias(
+        name = "fail",
+        actual = select({
+            ":windows": ":windows_fail.cmd",
+            "//conditions:default": ":bash_fail",
+        }),
+    )
+
+    sh_binary(
+        name = "bash_fail",
+        srcs = [":generate_fail_sh"],
+    )
+
+    native.genrule(
+        name = "generate_fail_sh",
+        outs = ["fail.sh"],
+        cmd = "echo -e '#!/bin/bash\\nexit 1' >> $@; chmod +x $@",
+        executable = 1,
+    )
+
+    sh_binary(
+        name = "windows_fail.cmd",
+        srcs = [":generate_fail_cmd"],
+    )
+
+    native.genrule(
+        name = "generate_fail_cmd",
+        outs = ["fail.cmd"],
+        cmd = "echo @exit /b 1 > $@",
+        executable = 1,
+    )
+
+    native.genrule(
+        name = "dx_binary_source",
+        srcs = [],
+        outs = ["dx_binary.sh"],
+        cmd = "\n".join([
+            "cat > $@ <<'EOF'",
+            "#!/bin/bash",
+            "",
+            "echo dx_binary should not be used anymore.",
+            "exit 1",
+            "",
+            "EOF\n",
+        ]),
+    )
+
+    native.genrule(
+        name = "main_dex_list_creator_source",
+        srcs = [],
+        outs = ["main_dex_list_creator.sh"],
+        cmd = "\n".join([
+            "cat > $@ <<'EOF'",
+            "#!/bin/bash",
+            "",
+            "echo main_dex_list_creator should not be used anymore.",
+            "exit 1",
+            "",
+            "EOF\n",
+        ]),
+    )
+
+    sh_binary(
+        name = "main_dex_list_creator",
+        srcs = ["main_dex_list_creator.sh"],
+    )
+    sh_binary(
+        name = "dx_binary",
+        srcs = [":dx_binary_source"],
+    )
+    java_binary(
+        name = "generate_main_dex_list",
+        jvm_flags = [
+            "-XX:+TieredCompilation",
+            "-XX:TieredStopAtLevel=1",
+            # Consistent with what we use for desugar.
+            "-Xms8g",
+            "-Xmx8g",
+        ],
+        main_class = "com.android.tools.r8.GenerateMainDexList",
+        runtime_deps = ["@rules_android//src/tools/java/com/google/devtools/build/android/r8"],
+    )
+    java_binary(
+        name = "d8_compat_dx",
+        main_class = "com.google.devtools.build.android.r8.CompatDx",
+        runtime_deps = [
+            "@rules_android//src/tools/java/com/google/devtools/build/android/r8",
+        ],
+    )
+    native.alias(
+        name = "d8_jar_import",
+        actual = ":fail",
+    )
+
+TAGDIR_TO_TAG_MAP = {
+    "google_apis_playstore": "playstore",
+    "google_apis": "google",
+    "default": "android",
+    "android-tv": "tv",
+    "android-wear": "wear",
+}
+
+ARCHDIR_TO_ARCH_MAP = {
+    "x86": "x86",
+    "armeabi-v7a": "arm",
+}
+
+# buildifier: disable=unnamed-macro
+def create_system_images_filegroups(system_image_dirs):
+    """Generate filegroups for the system images in the Android SDK.
+
+    Args:
+      system_image_dirs: list of strings, the directories containing system image
+          files to be used to create android_device rules.
+    """
+
+    # These images will need to be updated as Android releases new system images.
+    # We are intentionally not adding future releases because there is no
+    # guarantee that they will work out of the box. Supported system images should
+    # be added here once they have been confirmed to work with the Bazel Android
+    # testing infrastructure.
+    system_images = [
+        (tag, str(api), arch)
+        for tag in ["android", "google"]
+        for api in [10] + list(range(15, 20)) + list(range(21, 30))
+        for arch in ("x86", "arm")
+    ] + [
+        ("playstore", str(api), "x86")
+        for api in list(range(24, 30))
+    ]
+    tv_images = [
+        ("tv", str(api), "x86")
+        for api in range(21, 30)
+    ] + [
+        ("tv", "21", "arm"),
+        ("tv", "23", "arm"),
+    ]
+    wear_images = [
+        ("wear", str(api), "x86")
+        for api in [23, 25, 26, 28]
+    ] + [
+        ("wear", str(api), "arm")
+        for api in [23, 25]
+    ]
+    supported_system_images = system_images + tv_images + wear_images
+
+    installed_system_images_dirs = {}
+    for system_image_dir in system_image_dirs:
+        apidir, tagdir, archdir = system_image_dir.split("/")[1:]
+        if "-" not in apidir:
+            continue
+        api = apidir.split("-")[1]  # "android-24" --> "24", "android-O" --> "O"
+        if tagdir not in TAGDIR_TO_TAG_MAP:
+            continue
+        tag = TAGDIR_TO_TAG_MAP[tagdir]
+        if archdir not in ARCHDIR_TO_ARCH_MAP:
+            continue
+        arch = ARCHDIR_TO_ARCH_MAP[archdir]
+        if (tag, api, arch) in supported_system_images:
+            name = "emulator_images_%s_%s_%s" % (tag, api, arch)
+            installed_system_images_dirs[name] = system_image_dir
+        else:
+            # TODO(bazel-team): If the user has an unsupported system image installed,
+            # should we print a warning? This includes all 64-bit system-images.
+            pass
+
+    for (tag, api, arch) in supported_system_images:
+        name = "emulator_images_%s_%s_%s" % (tag, api, arch)
+        if name in installed_system_images_dirs:
+            system_image_dir = installed_system_images_dirs[name]
+
+            # For supported system images that exist in /sdk/system-images/, we
+            # create a filegroup with their contents.
+            native.filegroup(
+                name = name,
+                srcs = native.glob([
+                    "%s/**" % system_image_dir,
+                ]),
+            )
+            native.filegroup(
+                name = "%s_qemu2_extra" % name,
+                srcs = native.glob(["%s/kernel-ranchu" % system_image_dir], allow_empty = True),
+            )
+        else:
+            # For supported system images that are not installed in the SDK, we
+            # create a "poison pill" genrule to display a helpful error message to
+            # a user who attempts to run a test against an android_device that
+            # they don't have the system image for installed.
+            native.genrule(
+                name = name,
+                outs = [
+                    # Necessary so that the build doesn't fail in analysis because
+                    # android_device expects a file named source.properties.
+                    "poison_pill_for_%s/source.properties" % name,
+                ],
+                cmd = """echo \
+          This rule requires that the Android SDK used by Bazel has the \
+          following system image installed: %s. Please install this system \
+          image through the Android SDK Manager and try again. ; \
+          exit 1
+          """ % name,
+            )
+            native.filegroup(
+                name = "%s_qemu2_extra" % name,
+                srcs = [],
+            )  # buildifier: disable=unnamed-macro
+
+# This is a dummy sdk toolchain that matches any platform. It will
+# fail if actually resolved to and used.
+# buildifier: disable=unnamed-macro
+def create_dummy_sdk_toolchain():
+    "Create a dummy SDK for fallback builds"
+
+    native.toolchain(
+        name = "sdk-dummy-toolchain",
+        toolchain = ":sdk-dummy",
+        toolchain_type = ":sdk_toolchain_type",
+    )
+
+    native.filegroup(name = "jar-filegroup", srcs = ["dummy.jar"])
+
+    native.genrule(
+        name = "genrule",
+        srcs = [],
+        outs = ["empty.sh"],
+        cmd = "echo '' >> \"$@\"",
+        executable = 1,
+    )
+
+    sh_binary(name = "empty-binary", srcs = [":genrule"])
+
+    android_sdk(
+        name = "sdk-dummy",
+        aapt = ":empty-binary",
+        adb = ":empty-binary",
+        aidl = ":empty-binary",
+        android_jar = ":jar-filegroup",
+        apksigner = ":empty-binary",
+        dx = ":empty-binary",
+        framework_aidl = "dummy.jar",
+        main_dex_classes = "dummy.jar",
+        main_dex_list_creator = ":empty-binary",
+        proguard = ":empty-binary",
+        tags = ["__ANDROID_RULES_MIGRATION__"],
+        zipalign = ":empty-binary",
+    )
