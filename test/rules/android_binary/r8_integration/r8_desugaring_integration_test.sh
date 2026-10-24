@@ -100,4 +100,27 @@ function test_serviceloader_metadata_consistent_with_dex_when_desugaring() {
     fail "No META-INF/services entries found in APK."
 }
 
+function test_desugar_worker_flags() {
+  for workers in false true; do
+    for multiplex in false true; do
+      "${BIT_BAZEL_BINARY}" aquery 'mnemonic(Desugar, //app:app_without_r8)' \
+        "--@rules_android//flags:internal_persistent_android_dex_desugar=${workers}" \
+        "--@rules_android//flags:internal_persistent_multiplex_android_dex_desugar=${multiplex}" \
+        --include_commandline=false --include_artifacts=false > "$TEST_log" 2>&1 || \
+        fail "Desugar action query failed"
+      expect_log 'Mnemonic: Desugar'
+      if [[ "${workers}" == "true" ]]; then
+        expect_log 'supports-workers: 1'
+      else
+        expect_not_log 'supports-workers'
+      fi
+      if [[ "${workers}" == "true" && "${multiplex}" == "true" ]]; then
+        expect_log 'supports-multiplex-workers: 1'
+      else
+        expect_not_log 'supports-multiplex-workers'
+      fi
+    done
+  done
+}
+
 run_suite "R8 desugaring integration tests"

@@ -101,8 +101,6 @@ register_toolchains("@androidsdk//:sdk-toolchain", "@androidsdk//:all")
 EOF
 
   cat > .bazelrc <<EOF
-common --noenable_workspace
-common --enable_bzlmod
 common --java_language_version=17
 common --java_runtime_version=17
 common --tool_java_language_version=17
@@ -203,6 +201,14 @@ android_binary(
         "//lib:lib_with_resources",
         "//spi:spi_lib",
     ],
+)
+
+android_binary(
+    name = "app_without_r8",
+    srcs = glob(["*.java"]),
+    manifest = "AndroidManifest.xml",
+    resource_files = glob(["res/**"]),
+    deps = ["//lib:lib_with_resources", "//spi:spi_lib"],
 )
 
 android_binary(
