@@ -51,6 +51,12 @@ RULE_PREFIX = "_aar"
 ANDROID_MANIFEST = "AndroidManifest.xml"
 LINT_JAR = "lint.jar"
 
+# Tag that suppresses ImportDepsChecker validation on an aar_import. This is the
+# aar_import analogue of java_import's `tags = ["incomplete-deps"]`, but is
+# deliberately named to make the consequences obvious: missing deps are not
+# caught at build time and can surface as NoClassDefFoundError at runtime.
+INCOMPLETE_DEPS_TAG = "incomplete-deps-this-may-cause-runtime-errors"
+
 def _create_aar_tree_artifact(ctx, name):
     return ctx.actions.declare_directory("%s/unzipped/%s/%s" % (RULE_PREFIX, name, ctx.label.name))
 
@@ -501,8 +507,10 @@ def impl(ctx):
         r_java = resources_ctx.r_java,
         exports = _utils.collect_providers(JavaInfo, ctx.attr.exports),
         enable_desugar_java8 = read_possibly_native_flag(ctx, "desugar_for_android"),
-        enable_imports_deps_check =
-            _acls.in_aar_import_deps_checker(str(ctx.label)),
+        enable_imports_deps_check = (
+            _acls.in_aar_import_deps_checker(str(ctx.label)) and
+            INCOMPLETE_DEPS_TAG not in ctx.attr.tags
+        ),
         aar_embedded_jars_extractor_tool =
             _get_android_toolchain(ctx).aar_embedded_jars_extractor.files_to_run,
         bootclasspath =

@@ -41,6 +41,18 @@ aar_import(
     ],
 )
 ```
+
+#### Dependency checking
+
+`aar_import` runs `ImportDepsChecker` to verify that every class referenced by
+the jars inside the AAR is provided by `deps`, `exports`, or the bootclasspath.
+The correct fix for a failure is to add the missing deps.
+
+As an escape hatch, the check can be suppressed with
+`tags = ["incomplete-deps-this-may-cause-runtime-errors"]`. As the tag name
+says, suppressing the check means missing classes are no longer caught at build
+time and may instead fail at runtime (e.g. `NoClassDefFoundError`). Use with
+caution and only after confirming that all required dependencies have been provided.
 """
 
 def _impl_proxy(ctx):
