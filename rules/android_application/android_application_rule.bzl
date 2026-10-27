@@ -48,6 +48,7 @@ load(
 )
 load(
     "//rules:utils.bzl",
+    "ANDROID_SDK_AND_JAVA_EXEC_GROUPS",
     "ANDROID_SDK_TOOLCHAIN_TYPE",
     "get_android_sdk",
     "get_android_toolchain",
@@ -408,6 +409,7 @@ android_application = rule(
         "deploy_script": "%{name}.sh",
         "unsigned_aab": "%{name}_unsigned.aab",
     },
+    exec_groups = ANDROID_SDK_AND_JAVA_EXEC_GROUPS,
     toolchains = [
         "//toolchains/android:toolchain_type",
         "@bazel_tools//tools/jdk:toolchain_type",
