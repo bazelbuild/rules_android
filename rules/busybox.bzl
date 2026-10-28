@@ -17,6 +17,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load(":busybox_compat.bzl", "AAPT2_COMPAT_FLAGS")
 load(":java.bzl", _java = "java")
+load(":utils.bzl", "ANDROID_SDK_AND_JAVA_EXEC_GROUP")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -449,7 +450,8 @@ def _package(
 
     _java_run(
         ctx = ctx,
-        host_javabase = host_javabase,
+        java_runtime = _sdk_and_java_runtime(ctx),
+        exec_group = ANDROID_SDK_AND_JAVA_EXEC_GROUP,
         executable = busybox,
         tools = [aapt],
         arguments = [args],
@@ -680,7 +682,8 @@ def _validate_and_link(
 
     _java_run(
         ctx = ctx,
-        host_javabase = host_javabase,
+        java_runtime = _sdk_and_java_runtime(ctx),
+        exec_group = ANDROID_SDK_AND_JAVA_EXEC_GROUP,
         executable = busybox,
         tools = [aapt],
         arguments = [args],
@@ -743,7 +746,8 @@ def _compile(
 
     _java_run(
         ctx = ctx,
-        host_javabase = host_javabase,
+        java_runtime = _sdk_and_java_runtime(ctx),
+        exec_group = ANDROID_SDK_AND_JAVA_EXEC_GROUP,
         executable = busybox,
         tools = [aapt],
         arguments = [args],
@@ -875,6 +879,9 @@ def _java_run(ctx, mnemonic = None, supports_path_mapping = False, *args, **kwar
         kwargs["execution_requirements"] = execution_requirements
 
     _java.run(ctx, mnemonic = mnemonic, supports_workers = enable_workers, supports_multiplex_workers = multiplex_workers, *args, **kwargs)
+
+def _sdk_and_java_runtime(ctx):
+    return ctx.exec_groups[ANDROID_SDK_AND_JAVA_EXEC_GROUP].toolchains["@bazel_tools//tools/jdk:toolchain_type"].java.java_runtime
 
 def _escape_mv(s):
     """Escapes `:` and `,` in manifest values so they can be used as a busybox flag."""
@@ -1290,7 +1297,8 @@ def _shrink(
         arguments = [args],
         mnemonic = "ResourceShrinker",
         progress_message = "Shrinking resources for %{label}",
-        host_javabase = host_javabase,
+        java_runtime = _sdk_and_java_runtime(ctx),
+        exec_group = ANDROID_SDK_AND_JAVA_EXEC_GROUP,
         use_default_shell_env = True,
         supports_path_mapping = True,
     )
@@ -1349,7 +1357,8 @@ def _convert_resources_to_apk(
         arguments = [args],
         mnemonic = "ResourceConverter",
         progress_message = "Converting resources for %{label}",
-        host_javabase = host_javabase,
+        java_runtime = _sdk_and_java_runtime(ctx),
+        exec_group = ANDROID_SDK_AND_JAVA_EXEC_GROUP,
         use_default_shell_env = True,
         supports_path_mapping = True,
     )
@@ -1406,7 +1415,8 @@ def _optimize(
 
     _java_run(
         ctx = ctx,
-        host_javabase = host_javabase,
+        java_runtime = _sdk_and_java_runtime(ctx),
+        exec_group = ANDROID_SDK_AND_JAVA_EXEC_GROUP,
         executable = busybox,
         tools = [aapt],
         arguments = [args],
