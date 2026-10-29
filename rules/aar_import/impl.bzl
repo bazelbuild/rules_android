@@ -13,7 +13,7 @@
 # limitations under the License.
 """Implementation."""
 
-load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo")
+load("//providers:providers.bzl", "AndroidLintRulesInfo", "AndroidNativeLibsInfo", "BaselineProfileProvider")
 load(
     "//rules:acls.bzl",
     _acls = "acls",
@@ -50,6 +50,7 @@ visibility(PROJECT_VISIBILITY)
 RULE_PREFIX = "_aar"
 ANDROID_MANIFEST = "AndroidManifest.xml"
 LINT_JAR = "lint.jar"
+BASELINE_PROFILE = "baseline-prof.txt"
 
 # Tag that suppresses ImportDepsChecker validation on an aar_import. This is the
 # aar_import analogue of java_import's `tags = ["incomplete-deps"]`, but is
@@ -583,6 +584,34 @@ def impl(ctx):
         unzip_tool = unzip_tool,
     )
     providers.extend(lint_providers)
+
+    # The Android Gradle Plugin merges the baseline-prof.txt an AAR ships at its root into
+    # the app's ART profile. Export it the way android_library exports its own profiles so
+    # a consuming android_binary can merge it. An AAR without one contributes an empty file.
+    baseline_profile = create_aar_artifact(ctx, BASELINE_PROFILE)
+    extract_single_file(
+        ctx,
+        baseline_profile,
+        aar,
+        BASELINE_PROFILE,
+        unzip_tool,
+        create_empty_file = True,
+    )
+    providers.append(
+        BaselineProfileProvider(
+            files = depset(
+                [baseline_profile],
+                transitive = [
+                    info.files
+                    for info in _utils.collect_providers(
+                        BaselineProfileProvider,
+                        ctx.attr.deps,
+                        ctx.attr.exports,
+                    )
+                ],
+            ),
+        ),
+    )
 
     validation_outputs.append(_validate_rule(
         ctx,
