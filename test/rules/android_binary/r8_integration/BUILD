@@ -77,3 +77,31 @@ build_test(
     name = "optimization_config_analyzer_report_test",
     targets = [":optimization_config_analyzer_report"],
 )
+
+[
+    script_test(
+        name = "desugar_worker_bazel_%s_test" % major,
+        srcs = ["r8_desugaring_integration_test.sh"],
+        additional_env_inherit = ["ANDROID_HOME"],
+        bazel_binaries = bazel_binaries,
+        bazel_version = version,
+        env = {"TESTBRIDGE_TEST_ONLY": "test_desugar_worker_flags"},
+        deps = [
+            ":r8_integration_helper",
+            "//test/bashunit",
+            "@rules_shell//shell/runfiles",
+        ],
+    )
+    for major, version in [
+        ("9", "9.2.0"),
+        ("10", "last_green"),
+    ]
+]
+
+test_suite(
+    name = "desugar_worker_tests",
+    tests = [
+        ":desugar_worker_bazel_10_test",
+        ":desugar_worker_bazel_9_test",
+    ],
+)
