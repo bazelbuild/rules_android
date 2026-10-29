@@ -627,8 +627,14 @@ def is_instrumentation(ctx):
 
 def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
     baseline_profile_output = None
-    if ctx.attr.generate_art_profile and not validation_ctx.use_r8:
-        enable_optimizer_integration = acls.in_baseline_profiles_optimizer_integration(str(ctx.label))
+    if ctx.attr.generate_art_profile:
+        # On the R8 path the merged profile is rewritten by R8 itself in process_r8, so the
+        # legacy optimizer integration, which needs the deploy jar that path never builds,
+        # stays off there.
+        enable_optimizer_integration = (
+            acls.in_baseline_profiles_optimizer_integration(str(ctx.label)) and
+            not validation_ctx.use_r8
+        )
         has_proguard_specs = bool(ctx.files.proguard_specs)
 
         if ctx.files.startup_profiles and not enable_optimizer_integration:
@@ -654,7 +660,7 @@ def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
             ctx,
             transitive_profiles = transitive_profiles,
             startup_profiles = ctx.files.startup_profiles,
-            deploy_jar = deploy_ctx.deploy_jar,
+            deploy_jar = getattr(deploy_ctx, "deploy_jar", None),
             has_proguard_specs = has_proguard_specs,
             enable_optimizer_integration = enable_optimizer_integration,
             merge_tool = get_android_toolchain(ctx).merge_baseline_profiles_tool.files_to_run,
@@ -668,11 +674,24 @@ def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
         ),
     )
 
-def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_unused_ctxs):
+def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, r8_ctx, **_unused_ctxs):
     providers = []
     art_profile_info = None
 
-    if ctx.attr.generate_art_profile and not validation_ctx.use_r8:
+    if ctx.attr.generate_art_profile and validation_ctx.use_r8:
+        # R8 rewrote the merged profile to its output names in process_r8, so profgen
+        # compiles it against R8's dex without a mapping.
+        if r8_ctx.baseline_profile_rewritten:
+            art_profile_info = _baseline_profiles.process_art_profile(
+                ctx,
+                final_classes_dex = r8_ctx.dex_info.final_classes_dex_zip,
+                merged_profile = r8_ctx.baseline_profile_rewritten,
+                output_primary_profile = ctx.outputs.primary_profile,
+                profgen = get_android_toolchain(ctx).profgen.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
+            )
+            providers.append(art_profile_info)
+    elif ctx.attr.generate_art_profile:
         merged_baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
         merged_baseline_profile_rewritten = \
             optimize_ctx.proguard_output.baseline_profile_rewritten if optimize_ctx.proguard_output else None
@@ -703,7 +722,7 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
     if ctx.attr._generate_art_profile_outputs and not art_profile_info:
         # There are a lot of ways baseline profiles could fail, and thus art profile generation also
         # fails. For example, if the baseline profile is not included as a dependency, if the
-        # baseline profile is empty, or if you're attempting to use R8.
+        # baseline profile is empty.
         ctx.actions.run_shell(
             mnemonic = "FailedGeneratingArtProfile",
             outputs = [ctx.outputs.primary_profile],
@@ -1096,8 +1115,8 @@ PROCESSORS = dict(
     BaselineProfilesProcessor = _process_baseline_profiles,
     OptimizeProcessor = _process_optimize,
     DexProcessor = _process_dex,
-    ArtProfileProcessor = _process_art_profile,
     R8Processor = process_r8,
+    ArtProfileProcessor = _process_art_profile,
     ResourecShrinkerR8Processor = process_resource_shrinking_r8,
     IdlProcessor = _process_idl,
     ApkPackagingProcessor = _process_apk_packaging,
