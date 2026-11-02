@@ -1,3 +1,5 @@
+# Worker-mode settings
+import android_persistent_workers.bazelrc
 # Config for library desugaring
 common:core_library_desugaring --desugar_java8_libs
 
