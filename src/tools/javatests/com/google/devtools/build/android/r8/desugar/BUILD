@@ -1,4 +1,5 @@
 load("@rules_java//java:defs.bzl", "java_import", "java_library", "java_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 
 licenses(["notice"])
 
@@ -239,4 +240,32 @@ genrule(
           "--emit_dependency_metadata_as_needed " +
           "--number_of_entries_per_shard=1",
     tools = ["//src/tools/java/com/google/devtools/build/android/r8:desugar"],
+)
+
+sh_test(
+    name = "desugar_integration_test",
+    size = "medium",
+    srcs = ["desugar_singlejar_integration_test.sh"],
+    args = [
+        "$(rootpath //src/tools/java/com/google/devtools/build/android/r8:desugar)",
+        "$(rootpath @bazel_tools//tools/jdk:singlejar)",
+        "$(rootpath //tools/android:bootclasspath)",
+        "$(rootpath :testdata_basic)",
+        "$(rootpath :testdata_basic_interfaces)",
+        "$(rootpath :testdata_basic_classes)",
+        "$(rootpath :testdata_basic_just_k)",
+        "$(rootpath :testdata_basic_missing_interface)",
+        "$(rootpath //tools/android:unzip)",
+    ],
+    data = [
+        ":testdata_basic",
+        ":testdata_basic_classes",
+        ":testdata_basic_interfaces",
+        ":testdata_basic_just_k",
+        ":testdata_basic_missing_interface",
+        "//src/tools/java/com/google/devtools/build/android/r8:desugar",
+        "//tools/android:bootclasspath",
+        "//tools/android:unzip",
+        "@bazel_tools//tools/jdk:singlejar",
+    ],
 )
