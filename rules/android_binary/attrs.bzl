@@ -80,10 +80,11 @@ ATTRS = _attrs.replace(
             generate_art_profile = attr.bool(
                 default = True,
                 doc = """
-                Whether to generate ART profile. If true, the ART profile will be generated
-                and bundled into your APK’s asset directory. During APK installation, Android
-                Runtime(ART) will perform Ahead-of-time (AOT) compilation of methods in the
-                profile, speeding up app startup time or reducing jank in some circumstances.
+                Whether to generate ART profile when `proguard_specs` is non-empty. If true and
+                `proguard_specs` is non-empty, the ART profile will be generated and bundled into
+                your APK’s asset directory. During APK installation, Android Runtime(ART) will
+                perform Ahead-of-time (AOT) compilation of methods in the profile, speeding up app
+                startup time or reducing jank in some circumstances.
                 """,
             ),
             startup_profiles = attr.label_list(

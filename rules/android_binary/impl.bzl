@@ -634,33 +634,34 @@ def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
         if ctx.files.startup_profiles and not enable_optimizer_integration:
             fail("Target %s is not allowed to set startup_profiles." % str(ctx.label))
 
-        # Include startup profiles if the optimizer is disabled since profiles won't be merged
-        # in the optimizer.
-        startup_profiles = ctx.files.startup_profiles if enable_optimizer_integration and not has_proguard_specs else []
-        if ctx.attr.baseline_profiles_override:
-            transitive_profiles = depset(ctx.files.baseline_profiles_override + startup_profiles)
-        else:
-            transitive_profiles = depset(
-                startup_profiles,
-                transitive = [
-                    profile_provider.files
-                    for profile_provider in utils.collect_providers(
-                        BaselineProfileProvider,
-                        ctx.attr.deps,
-                    )
-                ],
+        if has_proguard_specs:
+            # Include startup profiles if optimizer integration is disabled since profiles won't be
+            # merged in the optimizer.
+            startup_profiles = ctx.files.startup_profiles if not enable_optimizer_integration else []
+            if ctx.attr.baseline_profiles_override:
+                transitive_profiles = depset(ctx.files.baseline_profiles_override + startup_profiles)
+            else:
+                transitive_profiles = depset(
+                    startup_profiles,
+                    transitive = [
+                        profile_provider.files
+                        for profile_provider in utils.collect_providers(
+                            BaselineProfileProvider,
+                            ctx.attr.deps,
+                        )
+                    ],
+                )
+            baseline_profile_output = _baseline_profiles.process(
+                ctx,
+                transitive_profiles = transitive_profiles,
+                startup_profiles = ctx.files.startup_profiles,
+                deploy_jar = deploy_ctx.deploy_jar,
+                has_proguard_specs = has_proguard_specs,
+                enable_optimizer_integration = enable_optimizer_integration,
+                merge_tool = get_android_toolchain(ctx).merge_baseline_profiles_tool.files_to_run,
+                profgen = get_android_toolchain(ctx).profgen.files_to_run,
+                toolchain_type = ANDROID_TOOLCHAIN_TYPE,
             )
-        baseline_profile_output = _baseline_profiles.process(
-            ctx,
-            transitive_profiles = transitive_profiles,
-            startup_profiles = ctx.files.startup_profiles,
-            deploy_jar = deploy_ctx.deploy_jar,
-            has_proguard_specs = has_proguard_specs,
-            enable_optimizer_integration = enable_optimizer_integration,
-            merge_tool = get_android_toolchain(ctx).merge_baseline_profiles_tool.files_to_run,
-            profgen = get_android_toolchain(ctx).profgen.files_to_run,
-            toolchain_type = ANDROID_TOOLCHAIN_TYPE,
-        )
     return ProviderInfo(
         name = "bp_ctx",
         value = struct(
@@ -672,7 +673,12 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
     providers = []
     art_profile_info = None
 
-    if ctx.attr.generate_art_profile and not validation_ctx.use_r8:
+    if (
+        ctx.attr.generate_art_profile and
+        bool(ctx.files.proguard_specs) and
+        not validation_ctx.use_r8 and
+        bp_ctx.baseline_profile_output
+    ):
         merged_baseline_profile = bp_ctx.baseline_profile_output.baseline_profile
         merged_baseline_profile_rewritten = \
             optimize_ctx.proguard_output.baseline_profile_rewritten if optimize_ctx.proguard_output else None
