@@ -19,8 +19,42 @@ from __future__ import division
 from __future__ import print_function
 
 import io
+import os
 import re
 import zipfile
+
+
+_R8_VERSION_FILE = "tools/android/r8.version"
+
+
+def ReadR8Version(script_path):
+  """Reads the R8 version label bundled next to an extractor in its runfiles.
+
+  The extractors avoid the runfiles library: its repository root would shadow
+  this repository's tools package when rules_android is an external
+  repository.
+
+  Args:
+    script_path: Path of the running extractor script.
+
+  Returns:
+    The R8 version label, or None if it can't be found.
+  """
+  path = os.path.join(os.path.dirname(script_path), os.path.basename(_R8_VERSION_FILE))
+  if not os.path.exists(path):
+    path = None
+    manifest = os.environ.get("RUNFILES_MANIFEST_FILE")
+    if manifest and os.path.exists(manifest):
+      with open(manifest) as f:
+        for line in f:
+          key, _, value = line.rstrip("\n").partition(" ")
+          if key.endswith("/" + _R8_VERSION_FILE):
+            path = value
+            break
+  if not path:
+    return None
+  with open(path) as f:
+    return f.readline().strip() or None
 
 
 def _parse_version(ver:str):

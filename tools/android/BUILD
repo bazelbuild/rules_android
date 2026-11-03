@@ -448,7 +448,6 @@ py_binary(
         ":json_worker_wrapper",
         ":junction_lib",
         ":proguard_extractor_lib",
-        "@bazel_tools//tools/python/runfiles",
         "@py_absl//absl:app",
     ],
 )
@@ -462,7 +461,6 @@ py_binary(
         ":json_worker_wrapper",
         ":junction_lib",
         ":proguard_extractor_lib",
-        "@bazel_tools//tools/python/runfiles",
         "@py_absl//absl:app",
     ],
 )
