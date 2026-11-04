@@ -99,7 +99,7 @@ def define_flags():
         name = "r8_extract_embedded_proguard_specs",
         default = False,
         description = "When enabled, R8 extracts embedded proguard specs from META-INF/proguard/ " +
-                      "and META-INF/com.android.tools/ in the deploy JAR and passes them to R8.",
+                      "and META-INF/com.android.tools/ in each runtime JAR and passes them to R8.",
     )
 
     flags.DEFINE_bool(

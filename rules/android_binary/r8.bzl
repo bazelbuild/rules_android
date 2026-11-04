@@ -35,6 +35,7 @@ load(
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "read_possibly_native_flag", _flags = "flags")
+load("@rules_java//java/common:java_common.bzl", "java_common")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -64,14 +65,16 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     # The deploy jar from the deploy_jar processor is not used because as of now, whether it
     # actually produces a deploy jar is determinted by a separate set of ACLs, and also does
     # desugaring differently than with R8.
+    runtime_jars = depset(
+        direct = jvm_ctx.java_info.runtime_output_jars + [packaged_resources_ctx.class_jar],
+        transitive = [jvm_ctx.java_info.transitive_runtime_jars],
+    )
+
     deploy_jar = ctx.actions.declare_file(ctx.label.name + "_deploy.jar")
     java.create_deploy_jar(
         ctx,
         output = deploy_jar,
-        runtime_jars = depset(
-            direct = jvm_ctx.java_info.runtime_output_jars + [packaged_resources_ctx.class_jar],
-            transitive = [jvm_ctx.java_info.transitive_runtime_jars],
-        ),
+        runtime_jars = runtime_jars,
         java_toolchain = common.get_java_toolchain(ctx),
         build_target = ctx.label.name,
         deploy_manifest_lines = build_info_ctx.deploy_manifest_lines,
@@ -86,21 +89,32 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
     desugared_lib_config = ctx.file._desugared_lib_config
 
-    # Optionally extract proguard specs embedded in the deploy JAR (META-INF/proguard/
-    # and META-INF/com.android.tools/) so they are passed to R8.
+    # Optionally extract proguard specs embedded in runtime JARs (META-INF/proguard/
+    # and META-INF/com.android.tools/) so they are passed to R8. Each JAR is processed
+    # independently to avoid META-INF clobbering from the deploy JAR merge. R8's
+    # ExtractR8Rules selects each JAR's rules the way R8 does for its own inputs.
     if _flags.get(ctx).r8_extract_embedded_proguard_specs:
         jar_embedded_proguard = ctx.actions.declare_file(ctx.label.name + "_jar_embedded_proguard.pro")
-        jar_extractor_args = ctx.actions.args()
-        jar_extractor_args.add("--input_jar", deploy_jar)
-        jar_extractor_args.add("--output_proguard_file", jar_embedded_proguard)
+        r8_jar = get_android_toolchain(ctx).r8.files_to_run.executable
+        java_runtime = common.get_host_javabase(ctx)[java_common.JavaRuntimeInfo]
+        extract_args = ctx.actions.args()
+
+        # Runtime classpaths of large apps exceed the OS argument length limit. The
+        # java launcher only expands an argument file that also holds the main class.
+        extract_args.use_param_file("@%s", use_always = True)
+        extract_args.set_param_file_format("multiline")
+        extract_args.add("-cp", r8_jar)
+        extract_args.add("com.android.tools.r8.ExtractR8Rules")
+        extract_args.add("--rules-output", jar_embedded_proguard)
+        extract_args.add_all(runtime_jars)
         ctx.actions.run(
-            executable = get_android_toolchain(ctx).jar_embedded_proguard_extractor.files_to_run,
-            arguments = [jar_extractor_args],
-            inputs = [deploy_jar],
+            executable = java_runtime.java_executable_exec_path,
+            arguments = [extract_args],
+            inputs = depset([r8_jar], transitive = [runtime_jars, java_runtime.files]),
             outputs = [jar_embedded_proguard],
-            mnemonic = "JarEmbeddedProguardExtractor",
-            progress_message = "Extracting proguard specs from deploy jar for %{label}",
-            toolchain = None,
+            mnemonic = "ExtractR8Rules",
+            progress_message = "Extracting proguard specs from runtime jars for %{label}",
+            toolchain = "@bazel_tools//tools/jdk:toolchain_type",
         )
         proguard_specs = proguard_specs + [jar_embedded_proguard]
 
