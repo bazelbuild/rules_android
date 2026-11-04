@@ -73,7 +73,7 @@ class AarEmbeddedProguardExtractorTest(unittest.TestCase):
     proguard_file.seek(0)
     self.assertEqual(b"\n-keep class targeted", proguard_file.read())
 
-  def testFallsBackToProguardTxtWhenNoVersionMatch(self):
+  def testNoVersionMatchSuppressesProguardTxt(self):
     classes_jar = self.make_classes_jar({
         "META-INF/com.android.tools/r8-from-1.0.0-upto-2.0.0/rules.pro": "-keep class old",
     })
@@ -83,7 +83,7 @@ class AarEmbeddedProguardExtractorTest(unittest.TestCase):
     proguard_file = io.BytesIO()
     proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, proguard_file, "8.9.35")
     proguard_file.seek(0)
-    self.assertEqual(b"-keep class legacy", proguard_file.read())
+    self.assertEqual(b"", proguard_file.read())
 
   def testNoClassesJarFallsBackToProguardTxt(self):
     aar = zipfile.ZipFile(io.BytesIO(), "w")
