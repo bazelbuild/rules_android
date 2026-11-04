@@ -88,6 +88,10 @@ ANDROID_APPLICATION_ATTRS = _attrs.add(
 
 ANDROID_FEATURE_MODULE_ATTRS = dict(
     binary = attr.label(aspects = [android_feature_module_validation_aspect]),
+    has_code = attr.bool(
+        default = False,
+        doc = "Whether the feature module contains code. Code feature modules are optimized together with the base module by R8, so the android_application must use R8.",
+    ),
     feature_name = attr.string(),
     library = attr.label(
         allow_rules = ["android_library"],

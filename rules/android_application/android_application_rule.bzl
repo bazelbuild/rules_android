@@ -90,6 +90,9 @@ def _process_feature_module(
         ctx.executable._priority_feature_manifest_script,
     )
 
+    if feature_target[AndroidFeatureModuleInfo].has_code:
+        fail("%s: android_application does not support feature modules with code yet" % feature_target.label)
+
     # Remove all dexes from the feature module apk. jvm / resources are not
     # supported in feature modules. The android_feature_module rule has
     # already validated that there are no transitive sources / resources, but
@@ -190,6 +193,7 @@ def _create_feature_manifest(
         args.add(info.feature_name)
         args.add(info.title_id)
         args.add(aapt2.executable)
+        args.add(str(info.has_code).lower())
 
         ctx.actions.run(
             executable = feature_manifest_script,
@@ -219,6 +223,7 @@ def _create_feature_manifest(
     args.add(aapt2.executable)
     args.add(info.manifest)
     args.add(is_asset_pack)
+    args.add(str(info.has_code).lower())
 
     ctx.actions.run(
         executable = priority_feature_manifest_script,

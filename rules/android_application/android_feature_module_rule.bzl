@@ -28,12 +28,16 @@ load(
     "utils",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@rules_java//java/common:java_info.bzl", "JavaInfo")
+load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
 load(":attrs.bzl", "ANDROID_FEATURE_MODULE_ATTRS")
 
 visibility(PROJECT_VISIBILITY)
 
 def _impl(ctx):
     validation = ctx.actions.declare_file(ctx.label.name + "_validation")
+    if ctx.attr.has_code and ctx.attr.is_asset_pack:
+        fail("Feature module %s is marked as an asset pack but has code" % ctx.label.name)
     if ctx.attr.binary[AndroidIdeInfo].native_libs and ctx.attr.is_asset_pack:
         fail("Feature module %s is marked as an asset pack but contains native libraries" % ctx.label.name)
     inputs = [ctx.attr.binary[ApkInfo].unsigned_apk]
@@ -64,15 +68,19 @@ def _impl(ctx):
         toolchain = None,
     )
 
+    library = utils.dedupe_split_attr(ctx.split_attr.library)
     return [
         AndroidFeatureModuleInfo(
             binary = ctx.attr.binary,
-            library = utils.dedupe_split_attr(ctx.split_attr.library),
+            library = library,
             title_id = ctx.attr.title_id,
             title_lib = ctx.attr.title_lib,
             feature_name = ctx.attr.feature_name,
             manifest = ctx.file.manifest,
             is_asset_pack = ctx.attr.is_asset_pack,
+            has_code = ctx.attr.has_code,
+            java_info = ctx.attr.binary[JavaInfo] if ctx.attr.has_code else None,
+            proguard_specs = library[ProguardSpecInfo].specs if ctx.attr.has_code and ProguardSpecInfo in library else depset(),
         ),
         OutputGroupInfo(_validation = depset([validation])),
     ]
@@ -192,7 +200,8 @@ EOF
         testonly = testonly,
     )
 
-    # Wrap any deps in an android_binary. Will be validated to ensure does not contain any dexes
+    # Wrap any deps in an android_binary. Unless the feature has code, it will be
+    # validated to ensure it does not contain any dexes.
     binary_attrs = {
         "name": targets.binary.name,
         "custom_package": getattr(attrs, "custom_package", None),
@@ -220,4 +229,5 @@ EOF
         visibility = visibility,
         testonly = testonly,
         is_asset_pack = getattr(attrs, "is_asset_pack", False),
+        has_code = getattr(attrs, "has_code", False),
     )

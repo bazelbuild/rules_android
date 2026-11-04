@@ -112,6 +112,9 @@ AndroidFeatureModuleInfo = provider(
         title_id = "String, resource identifier for the split title.",
         title_lib = "String, target of the split title android_library.",
         is_asset_pack = "Boolean, whether this feature module is an asset pack. AI packs are a type of asset pack.",
+        has_code = "Boolean, whether this feature module contains code.",
+        java_info = "JavaInfo of the underlying split android_binary target, for optimizing the feature's code with the base.",
+        proguard_specs = "Depset of the feature's ProGuard specs.",
     ),
 )
 

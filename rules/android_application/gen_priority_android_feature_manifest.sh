@@ -20,6 +20,7 @@ split="${4}"
 aapt="${5}"
 in_manifest="${6}" # Developer-provided manifest for the feature module
 is_asset_pack="${7}"
+has_code="${8:-false}"
 
 aapt_cmd="$aapt dump xmltree $base_apk --file AndroidManifest.xml"
 version_code=$(${aapt_cmd} | grep "http://schemas.android.com/apk/res/android:versionCode" | cut -d "=" -f2 | head -n 1)
@@ -58,7 +59,7 @@ else
 			android:versionCode="$version_code"
 			android:isFeatureSplit="true">
 
-		<application android:hasCode="false" /> <!-- currently only supports asset splits -->
+		<application android:hasCode="$has_code" />
 		<uses-sdk android:minSdkVersion="$min_sdk" />
 	</manifest>
 	EOF
