@@ -349,7 +349,7 @@ def _process_jars(
 
     java_info = JavaInfo(
         out_jar,
-        compile_jar = java_common.stamp_jar(
+        compile_jar = java_common.run_ijar(
             actions = ctx.actions,
             jar = out_jar,
             target_label = ctx.label,
