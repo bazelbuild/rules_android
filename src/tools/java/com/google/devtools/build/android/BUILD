@@ -28,7 +28,6 @@ java_binary(
     # recent example, 400 MB of memory was enough for about 500,000 entries.
     jvm_flags = [
         "-Xmx1600m",
-        "-Drunfiles.path=$$0.runfiles",
         "-Dsinglejar.path=$(rlocationpath //tools/jdk:singlejar)",
     ],
     main_class = "com.google.devtools.build.android.ZipFilterAction",
@@ -88,10 +87,10 @@ java_library(
             "Fnv1a32bHash.java",
         ],
     ),
-    resources = [":rpbb_properties"],
     javacopts = [
         "--add-exports=java.xml/com.sun.org.apache.xerces.internal.dom=ALL-UNNAMED",
     ],
+    resources = [":rpbb_properties"],
     exports = [
         # Separated out to avoid a dependency cycle with resources/, but it logically belongs here.
         ":dependency_info",
@@ -109,6 +108,7 @@ java_library(
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
         "@rules_android_maven//:com_google_errorprone_error_prone_annotations",
         "@rules_android_maven//:com_google_guava_guava",
+        "@rules_java//java/runfiles",
         ":android_common_30_1_3",
         ":android_databinding_wrapper_lib",
         ":android_options_utils",

@@ -27,6 +27,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
+import com.google.devtools.build.runfiles.Runfiles;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -305,15 +306,13 @@ public class ZipFilterAction {
       throw new IllegalArgumentException("FORCE_DEFLATE is not supported.");
     }
 
-    String singleJarPath =
-        Path.of(System.getProperty("runfiles.path"), System.getProperty("singlejar.path"))
-            .toString();
+    String singleJarPath = resolveSingleJarPath();
     ImmutableList.Builder<String> singleJarArgsBuilder = ImmutableList.builder();
     singleJarArgsBuilder
         .add("--sources")
-        .add(options.inputZip.toString())
+        .add(singleJarParamPath(options.inputZip))
         .add("--output")
-        .add(options.outputZip.toString())
+        .add(singleJarParamPath(options.outputZip))
         .add(compressionStrategy)
         .add("--exclude_build_data")
         .add("--normalize");
@@ -366,5 +365,29 @@ public class ZipFilterAction {
     logger.fine(String.format("Filtering completed in %dms", timer.elapsed(TimeUnit.MILLISECONDS)));
 
     return sawErrors;
+  }
+
+  private static String resolveSingleJarPath() throws IOException {
+    String singleJarPath = System.getProperty("singlejar.path");
+    if (singleJarPath == null || singleJarPath.isEmpty()) {
+      throw new IOException("Missing singlejar.path system property.");
+    }
+
+    Path directPath = Path.of(singleJarPath);
+    if (directPath.isAbsolute() && Files.exists(directPath)) {
+      return directPath.toString();
+    }
+
+    String resolvedPath = Runfiles.create().rlocation(singleJarPath);
+    if (resolvedPath != null) {
+      return resolvedPath;
+    }
+
+    throw new IOException("Could not resolve singlejar runfile: " + singleJarPath);
+  }
+
+  @VisibleForTesting
+  static String singleJarParamPath(Path path) {
+    return path.toString().replace('\\', '/');
   }
 }
