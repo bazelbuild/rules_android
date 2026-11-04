@@ -109,22 +109,23 @@ def ExtractEmbeddedProguardFromJar(jar, output, r8_version):
       output.write(jar.read(entry))
 
 
-def ExtractEmbeddedProguardFromAar(aar, output, r8_version):
+def ExtractEmbeddedProguardFromAar(aar, output, r8_version, extract_r8_rules=True):
   """Extract proguard specs from an AAR file.
 
   Extracts the R8-targeted rules in classes.jar that match r8_version. Like
   AGP, uses proguard.txt from the AAR root instead if classes.jar has no
-  R8-targeted rules or r8_version is unknown.
+  R8-targeted rules, r8_version is unknown, or extract_r8_rules is False.
 
   Args:
     aar: The AAR file to extract from.
     output: The output file to write to.
     r8_version: The R8 version label, or None if unknown.
+    extract_r8_rules: Whether to consider R8-targeted rules in classes.jar.
   """
   proguard_spec = "proguard.txt"
   classes_jar = "classes.jar"
 
-  if classes_jar in aar.namelist():
+  if extract_r8_rules and classes_jar in aar.namelist():
     with zipfile.ZipFile(io.BytesIO(aar.read(classes_jar)), "r") as jar:
       if _ExtractTargetedR8Rules(jar, output, r8_version):
         return
