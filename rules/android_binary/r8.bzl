@@ -92,7 +92,10 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     if _flags.get(ctx).r8_extract_embedded_proguard_specs:
         jar_embedded_proguard = ctx.actions.declare_file(ctx.label.name + "_jar_embedded_proguard.pro")
         jar_extractor_args = ctx.actions.args()
-        jar_extractor_args.add_all("--input_jars", runtime_jars)
+        # Runtime classpaths of large apps exceed the OS argument length limit.
+        jar_extractor_args.use_param_file("--flagfile=%s", use_always = True)
+        jar_extractor_args.set_param_file_format("multiline")
+        jar_extractor_args.add_all(runtime_jars, format_each = "--input_jars=%s")
         jar_extractor_args.add("--output_proguard_file", jar_embedded_proguard)
         ctx.actions.run(
             executable = get_android_toolchain(ctx).jar_embedded_proguard_extractor.files_to_run,
