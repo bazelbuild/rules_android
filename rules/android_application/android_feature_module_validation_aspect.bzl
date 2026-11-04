@@ -26,6 +26,11 @@ def _has_disallowed_srcs(srcs):
     return False
 
 def _impl(target, ctx):
+    # Code feature modules may depend on any Java/Kotlin library. Their code is
+    # optimized together with the base module, and their resources must already
+    # be in the base module.
+    if ctx.attr.has_code:
+        return []
     if ctx.rule.kind in _DISALLOWED_RULE_TYPES:
         fail("android_feature_module cannot transitively depend on {} rules".format(ctx.rule.kind))
     srcs = getattr(ctx.rule.files, "srcs", [])
@@ -38,5 +43,9 @@ def _impl(target, ctx):
 android_feature_module_validation_aspect = aspect(
     implementation = _impl,
     attr_aspects = ["deps", "exports"],
+    attrs = {
+        # Set from the android_feature_module's has_code attribute.
+        "has_code": attr.bool(),
+    },
     doc = "An aspect that validates the dependencies of an android_feature_module.",
 )
