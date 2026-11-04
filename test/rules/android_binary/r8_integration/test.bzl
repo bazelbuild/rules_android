@@ -13,6 +13,7 @@
 # limitations under the License.
 """Tests for R8 integration."""
 
+load("//providers:providers.bzl", "AndroidDexInfo", "AndroidFeatureDexInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//test/utils:lib.bzl",
@@ -80,4 +81,18 @@ def r8_implicit_outputs_test_impl(ctx):
 
 r8_implicit_outputs_test = analysistest.make(
     impl = r8_implicit_outputs_test_impl,
+)
+
+def _r8_feature_split_dexes_impl(ctx):
+    base = ctx.attr.binary[AndroidDexInfo].final_classes_dex_zip
+    feature = ctx.attr.binary[AndroidFeatureDexInfo].feature_dex_zips[ctx.attr.feature_name]
+    return [DefaultInfo(files = depset([base, feature]))]
+
+r8_feature_split_dexes = rule(
+    implementation = _r8_feature_split_dexes_impl,
+    doc = "The base and feature DEX zips from R8 optimizing a binary together with a feature module.",
+    attrs = {
+        "binary": attr.label(mandatory = True, providers = [AndroidDexInfo, AndroidFeatureDexInfo]),
+        "feature_name": attr.string(mandatory = True),
+    },
 )

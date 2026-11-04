@@ -6,7 +6,7 @@ load(
 )
 load("@rules_python//python:py_test.bzl", "py_test")
 load("@rules_shell//shell:sh_library.bzl", "sh_library")
-load(":test.bzl", "r8_implicit_outputs_test", "r8_neverlink_deps_test")
+load(":test.bzl", "r8_feature_split_dexes", "r8_implicit_outputs_test", "r8_neverlink_deps_test")
 
 py_test(
     name = "r8_integration_test",
@@ -17,6 +17,27 @@ py_test(
         "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_R8_shrink",
         "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_no_R8",
         "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_select_R8_generate_pg_map",
+        "@androidsdk//:dexdump",
+    ],
+)
+
+r8_feature_split_dexes(
+    name = "feature_split_dexes",
+    binary = "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_R8_feature_split",
+    feature_name = "basic_feature",
+)
+
+py_test(
+    name = "r8_feature_split_test",
+    srcs = ["r8_feature_split_test.py"],
+    args = [
+        "$(location @androidsdk//:dexdump)",
+        "$(location //test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_bundle_feature_split_unsigned.aab)",
+        "$(locations :feature_split_dexes)",
+    ],
+    data = [
+        ":feature_split_dexes",
+        "//test/rules/android_binary/r8_integration/java/com/basicapp:basic_app_bundle_feature_split_unsigned.aab",
         "@androidsdk//:dexdump",
     ],
 )

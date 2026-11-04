@@ -13,7 +13,7 @@
 # limitations under the License.
 """R8 processor steps for android_binary."""
 
-load("//providers:providers.bzl", "AndroidDexInfo", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "ProguardMappingInfo")
+load("//providers:providers.bzl", "AndroidDexInfo", "AndroidFeatureDexInfo", "AndroidFeatureModuleInfo", "AndroidOptimizationInfo", "AndroidPreDexJarInfo", "ProguardMappingInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:android_neverlink_aspect.bzl", "StarlarkAndroidNeverlinkInfo")
 load("//rules:common.bzl", "common")
@@ -38,6 +38,48 @@ load("//rules/flags:flags.bzl", "read_possibly_native_flag", _flags = "flags")
 
 visibility(PROJECT_VISIBILITY)
 
+def _feature_r8_inputs(ctx, deploy_jar, code_features):
+    """Creates the R8 --feature input JARs for feature modules with code.
+
+    Each feature's input is built from its runtime JARs rather than its split
+    binary, whose classes are already desugared. R8 requires every class to be in
+    exactly one input, so classes in the base or a preceding feature are removed.
+
+    Returns:
+      A tuple of dicts from feature name to the input JAR and to the DEX output zip.
+    """
+    feature_jars = {}
+    feature_dex_zips = {}
+    preceding_jars = [deploy_jar]
+    for feature in sorted(code_features, key = lambda f: f.feature_name):
+        name = feature.feature_name
+        if name in feature_jars:
+            fail("%s: duplicate feature module name %s" % (ctx.label, name))
+        feature_deploy_jar = ctx.actions.declare_file(ctx.label.name + "_features/" + name + "_deploy.jar")
+        java.create_deploy_jar(
+            ctx,
+            output = feature_deploy_jar,
+            runtime_jars = depset(
+                direct = feature.java_info.runtime_output_jars,
+                transitive = [feature.java_info.transitive_runtime_jars],
+            ),
+            java_toolchain = common.get_java_toolchain(ctx),
+            build_target = name,
+            deploy_manifest_lines = [],
+        )
+        feature_jar = ctx.actions.declare_file(ctx.label.name + "_features/" + name + "_r8_input.jar")
+        common.filter_zip_exclude(
+            ctx,
+            output = feature_jar,
+            input = feature_deploy_jar,
+            filter_zips = preceding_jars,
+            filter_types = [".class"],
+        )
+        preceding_jars.append(feature_deploy_jar)
+        feature_jars[name] = feature_jar
+        feature_dex_zips[name] = ctx.actions.declare_file(ctx.label.name + "_features/" + name + "_dexes.zip")
+    return feature_jars, feature_dex_zips
+
 def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_ctx, **_unused_ctxs):
     """Runs R8 for desugaring, optimization, and dexing.
 
@@ -52,7 +94,15 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     Returns:
       The r8_ctx ProviderInfo.
     """
+    code_features = [
+        feature[AndroidFeatureModuleInfo]
+        for feature in getattr(ctx.attr, "feature_modules", [])
+        if feature[AndroidFeatureModuleInfo].has_code
+    ]
+
     if not validation_ctx.use_r8:
+        if code_features:
+            fail("%s: feature modules with code require R8 (set proguard_specs)" % ctx.label)
         return ProviderInfo(
             name = "r8_ctx",
             value = struct(
@@ -117,6 +167,10 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         else:
             fail("minSdkVersion must be an integer")
 
+    feature_jars, feature_dex_zips = _feature_r8_inputs(ctx, deploy_jar, code_features)
+    for feature in code_features:
+        proguard_specs = proguard_specs + feature.proguard_specs.to_list()
+
     neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
     neverlink_jars = depset(transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])
 
@@ -127,11 +181,15 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     args.add_all(proguard_specs, before_each = "--pg-conf")
     args.add("--lib", android_jar)
     args.add_all(neverlink_jars, before_each = "--lib")
+    for feature_name in sorted(feature_jars):
+        args.add("--feature")
+        args.add(feature_jars[feature_name])
+        args.add(feature_dex_zips[feature_name])
     args.add(deploy_jar)  # jar to optimize + desugar + dex
     args.add("--pg-map-output", proguard_mappings_output_file)
     args.add("--build-metadata-output", build_metadata_output)
 
-    r8_inputs = [android_jar, deploy_jar] + proguard_specs
+    r8_inputs = [android_jar, deploy_jar] + proguard_specs + feature_jars.values()
     if read_possibly_native_flag(ctx, "desugar_java8_libs") and desugared_lib_config:
         args.add("--desugared-lib", desugared_lib_config)
         r8_inputs.append(desugared_lib_config)
@@ -147,7 +205,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
             proguard_mappings_output_file,
             build_metadata_output,
             keep_radius,
-        ],
+        ] + feature_dex_zips.values(),
         mnemonic = "AndroidR8",
         jvm_flags = [
             "-Xmx8G",
@@ -222,7 +280,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
                     r8_optimization_info = build_metadata_output,
                     optimization_analysis_report = html_report,
                 ),
-            ],
+            ] + ([AndroidFeatureDexInfo(feature_dex_zips = feature_dex_zips)] if feature_dex_zips else []),
         ),
     )
 

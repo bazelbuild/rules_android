@@ -265,6 +265,13 @@ AndroidPreDexJarInfo = provider(
     ),
 )
 
+AndroidFeatureDexInfo = provider(
+    doc = "DEX output for feature modules optimized together with their base module by R8.",
+    fields = dict(
+        feature_dex_zips = "Dict[str, File]. Map of feature name to the zip of its DEX files.",
+    ),
+)
+
 # buildifier: disable=name-conventions
 AndroidFeatureFlagSet = provider(
     doc = "AndroidFeatureFlagSet",

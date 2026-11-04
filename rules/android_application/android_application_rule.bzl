@@ -16,6 +16,7 @@
 load(
     "//providers:providers.bzl",
     "AndroidBundleInfo",
+    "AndroidFeatureDexInfo",
     "AndroidFeatureModuleInfo",
     "AndroidIdeInfo",
     "AndroidOptimizationInfo",
@@ -79,7 +80,8 @@ def _process_feature_module(
         base_apk = None,
         feature_target = None,
         java_package = None,
-        application_id = None):
+        application_id = None,
+        feature_dex = None):
     manifest = _create_feature_manifest(
         ctx,
         base_apk,
@@ -90,8 +92,9 @@ def _process_feature_module(
         ctx.executable._priority_feature_manifest_script,
     )
 
-    if feature_target[AndroidFeatureModuleInfo].has_code:
-        fail("%s: android_application does not support feature modules with code yet" % feature_target.label)
+    has_code = bool(feature_target[AndroidFeatureModuleInfo].has_code)
+    if has_code and not feature_dex:
+        fail("%s: feature modules with code require the application to use R8" % feature_target.label)
 
     # Remove all dexes from the feature module apk. jvm / resources are not
     # supported in feature modules. The android_feature_module rule has
@@ -110,7 +113,7 @@ def _process_feature_module(
 
     # Create res .proto-apk_, output depending on whether further manipulations
     # are required after busybox. This prevents action conflicts.
-    if has_native_libs or is_asset_pack:
+    if has_native_libs or is_asset_pack or has_code:
         res_apk = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/res.proto-ap_")
     else:
         res_apk = out
@@ -150,25 +153,37 @@ def _process_feature_module(
         application_id = application_id,
     )
 
-    if not is_asset_pack and not has_native_libs:
+    if not is_asset_pack and not has_native_libs and not has_code:
         return
 
     if is_asset_pack:
         # Return AndroidManifest.xml and assets from res-ap_
         _common.filter_zip_include(ctx, res_apk, out, ["AndroidManifest.xml", "assets/*"])
     else:
-        # Extract libs/ from split binary
-        native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
-        _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
-
-        # Extract AndroidManifest.xml and assets from res-ap_
+        # Extract AndroidManifest.xml and assets from res-ap_. Resources of feature
+        # modules with code must come from the base module, which they are linked
+        # against, so resources.pb isn't needed.
         filtered_res = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/filtered_res.zip")
         _common.filter_zip_include(ctx, res_apk, filtered_res, ["AndroidManifest.xml", "assets/*"])
+        inputs = [filtered_res]
+
+        if has_native_libs:
+            # Extract libs/ from split binary
+            native_libs = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/native_libs.zip")
+            _common.filter_zip_include(ctx, binary, native_libs, ["lib/*"])
+            inputs.append(native_libs)
+
+        if has_code:
+            # R8 also writes Java resources such as kotlin builtins to the feature
+            # output. Those are already in the base module, so keep only the DEX.
+            dexes = ctx.actions.declare_file(ctx.label.name + "/" + feature_target.label.name + "/dexes.zip")
+            _common.filter_zip_include(ctx, feature_dex, dexes, ["*.dex"])
+            inputs.append(dexes)
 
         # Merge into output
         _java.singlejar(
             ctx,
-            inputs = [filtered_res, native_libs],
+            inputs = inputs,
             output = out,
             java_toolchain = _common.get_java_toolchain(ctx),
         )
@@ -274,6 +289,10 @@ def _impl(ctx):
         aapt = get_android_toolchain(ctx).aapt2.files_to_run,
     )
 
+    feature_dex_zips = {}
+    if AndroidFeatureDexInfo in ctx.attr.base_module:
+        feature_dex_zips = ctx.attr.base_module[AndroidFeatureDexInfo].feature_dex_zips
+
     modules = []
     base_module = ctx.actions.declare_file(
         base_proto_apk.basename + ".zip",
@@ -301,6 +320,7 @@ def _impl(ctx):
             feature_target = feature,
             java_package = _java.resolve_package_from_label(ctx.label, ctx.attr.custom_package),
             application_id = ctx.attr.manifest_values.get("applicationId"),
+            feature_dex = feature_dex_zips.get(feature[AndroidFeatureModuleInfo].feature_name),
         )
         module = ctx.actions.declare_file(
             proto_apk.basename + ".zip",
@@ -473,6 +493,7 @@ def android_application_macro(_android_binary, **attrs):
     _android_binary(
         name = base_split_name,
         deps = deps,
+        feature_modules = feature_modules,
         **attrs
     )
 

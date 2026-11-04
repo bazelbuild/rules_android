@@ -13,7 +13,7 @@
 # limitations under the License.
 """Attributes."""
 
-load("//providers:providers.bzl", "StarlarkApkInfo")
+load("//providers:providers.bzl", "AndroidFeatureModuleInfo", "StarlarkApkInfo")
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
 load("//rules:android_split_transition.bzl", "android_split_transition")
 load(
@@ -67,6 +67,11 @@ ATTRS = _attrs.replace(
             ),
             deps = make_deps(DEPS_ALLOW_RULES, DEPS_PROVIDERS, DEPS_ASPECTS),
             enable_data_binding = attr.bool(),
+            feature_modules = attr.label_list(
+                providers = [AndroidFeatureModuleInfo],
+                doc = "Feature modules whose code R8 optimizes together with this binary, " +
+                      "emitting each feature's DEX separately. Set by android_application.",
+            ),
             instruments = attr.label(),
             manifest_values = attr.string_dict(),
             manifest_merger = attr.string(
