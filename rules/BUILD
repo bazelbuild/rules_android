@@ -80,6 +80,7 @@ bzl_library(
     deps = [
         ":common_bzl",
         ":visibility_bzl",
+        "@bazel_skylib//lib:sets",
     ],
 )
 

@@ -1,6 +1,6 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "int_flag", "string_flag", "string_list_flag")
-load("//flags:flags_wrapper.bzl", "flags_wrapper_macro")
+load("//flags:flags_wrapper.bzl", "android_platforms_flag", "flags_wrapper_macro")
 
 package(
     default_applicable_licenses = ["//:license"],
@@ -46,9 +46,8 @@ string_flag(
     visibility = ["//visibility:public"],
 )
 
-string_list_flag(
+android_platforms_flag(
     name = "android_platforms",
-    build_setting_default = [],
     visibility = ["//visibility:public"],
 )
 

@@ -291,10 +291,44 @@ def _expand_make_vars(ctx, vals):
         res[k] = _expand_var(ctx.var, v)
     return res
 
-def _dedupe_split_attr(attr):
+_ANDROID_PLATFORM_PRIORITY_SUBSTRINGS = (
+    ("arm64", 0),
+    ("aarch64", 0),
+    ("x86_64", 1),
+    ("amd64", 1),
+    ("riscv64", 2),
+    ("armeabi", 3),
+    ("armv7", 3),
+    ("x86", 4),
+    ("i386", 4),
+    ("i686", 4),
+)
+
+def _android_platform_priority(platform):
+    """Returns a deterministic sort key preferring 64-bit Android ABIs first."""
+    name = platform.name if hasattr(platform, "name") else str(platform).rsplit(":", 1)[-1].rsplit("/", 1)[-1]
+    tier = 5
+    if name == "arm":
+        tier = 3
+    else:
+        for substr, candidate_tier in _ANDROID_PLATFORM_PRIORITY_SUBSTRINGS:
+            if substr in name:
+                tier = candidate_tier
+                break
+    return (tier, str(platform))
+
+def _select_primary_android_platform(android_platforms):
+    """Selects the preferred primary Android platform from a non-empty iterable."""
+    return sorted(android_platforms, key = _android_platform_priority)[0]
+
+def _dedupe_split_attr(attr, ctx = None):
     if not attr:
         return []
-    arch = _first(sorted(attr.keys()))
+    if ctx and hasattr(ctx.fragments, "platform") and ctx.fragments.platform.platform:
+        platform_name = ctx.fragments.platform.platform.name
+        if platform_name in attr:
+            return attr[platform_name]
+    arch = _select_primary_android_platform(attr.keys())
     return attr[arch]
 
 def _get_runfiles(ctx, attrs):
@@ -438,7 +472,7 @@ def _get_cls(settings, name, default = None):
 def _get_android_platforms(settings):
     starlark_val = settings.get(_ANDROID_PLATFORMS_SETTING)
     if starlark_val != None and len(starlark_val) > 0:
-        return [Label(p) if type(p) == "string" else p for p in starlark_val]
+        return {Label(p) if type(p) == "string" else p: None for p in starlark_val}.keys()
     return _get_cls(settings, "android_platforms")
 
 def _get_compilation_mode(ctx):
@@ -475,6 +509,7 @@ utils = struct(
     add_cls_prefix = _add_cls_prefix,
     get_cls = _get_cls,
     get_android_platforms = _get_android_platforms,
+    select_primary_android_platform = _select_primary_android_platform,
     ANDROID_PLATFORMS_SETTING = _ANDROID_PLATFORMS_SETTING,
 )
 
