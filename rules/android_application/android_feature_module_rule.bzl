@@ -165,12 +165,27 @@ EOF
 """.format(package = package, min_sdk_version = min_sdk_version),
     )
 
+    # The title is only referenced from the feature's manifest, so the resource
+    # shrinker would remove it from the base module, which the feature's manifest
+    # is linked against. The shrinker only reads tools:keep from res/raw files.
+    title_keep_xml = targets.title_strings_xml.name + "_keep"
+    native.genrule(
+        name = title_keep_xml,
+        outs = [attrs.name + "/res/raw/{}_keep.xml".format(title_id.lower())],
+        cmd = """cat > $@ <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@string/{title_id}" />
+EOF
+""".format(title_id = title_id),
+    )
+
     # Resource processing requires an android_library target
     _android_library(
         name = targets.title_lib.name,
         custom_package = getattr(attrs, "custom_package", None),
         manifest = str(targets.manifest_lib),
-        resource_files = [str(targets.title_strings_xml)],
+        resource_files = [str(targets.title_strings_xml), ":" + title_keep_xml],
         tags = tags,
         transitive_configs = transitive_configs,
         visibility = visibility,
