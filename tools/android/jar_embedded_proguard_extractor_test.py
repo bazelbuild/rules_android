@@ -110,6 +110,49 @@ class JarEmbeddedProguardExtractorTest(unittest.TestCase):
     proguard_file.seek(0)
     self.assertEqual(b"\n-keep class legacy", proguard_file.read())
 
+  def testReadR8VersionNextToScript(self):
+    script_dir = os.path.join(os.environ["TEST_TMPDIR"], "script")
+    os.makedirs(script_dir, exist_ok=True)
+    with open(os.path.join(script_dir, "r8.version"), "w") as f:
+      f.write("9.5.28\n")
+    self.assertEqual(
+        "9.5.28",
+        proguard_extractor_lib.ReadR8Version(os.path.join(script_dir, "extractor.py")),
+    )
+
+  def testReadR8VersionFromRunfilesManifest(self):
+    tmp = os.environ["TEST_TMPDIR"]
+    version_file = os.path.join(tmp, "manifest_r8.version")
+    with open(version_file, "w") as f:
+      f.write("9.3.16\n")
+    manifest = os.path.join(tmp, "MANIFEST")
+    with open(manifest, "w") as f:
+      f.write("rules_android+/tools/android/r8.version %s\n" % version_file)
+    old = os.environ.get("RUNFILES_MANIFEST_FILE")
+    os.environ["RUNFILES_MANIFEST_FILE"] = manifest
+    try:
+      self.assertEqual(
+          "9.3.16",
+          proguard_extractor_lib.ReadR8Version(os.path.join(tmp, "missing", "extractor.py")),
+      )
+    finally:
+      if old is None:
+        del os.environ["RUNFILES_MANIFEST_FILE"]
+      else:
+        os.environ["RUNFILES_MANIFEST_FILE"] = old
+
+  def testReadR8VersionMissing(self):
+    old = os.environ.pop("RUNFILES_MANIFEST_FILE", None)
+    try:
+      self.assertIsNone(
+          proguard_extractor_lib.ReadR8Version(
+              os.path.join(os.environ["TEST_TMPDIR"], "missing", "extractor.py")
+          )
+      )
+    finally:
+      if old is not None:
+        os.environ["RUNFILES_MANIFEST_FILE"] = old
+
   def testMultipleVersionedDirsOnlyMatchingIncluded(self):
     jar = zipfile.ZipFile(io.BytesIO(), "w")
     jar.writestr(
