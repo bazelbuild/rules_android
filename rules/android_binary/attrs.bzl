@@ -15,7 +15,7 @@
 
 load("//providers:providers.bzl", "StarlarkApkInfo")
 load("//rules:android_neverlink_aspect.bzl", "android_neverlink_aspect")
-load("//rules:android_split_transition.bzl", "android_split_transition")
+load("//rules:android_split_transition.bzl", "android_split_transition", "android_transition")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -111,7 +111,11 @@ ATTRS = _attrs.replace(
                 as startup profiles if startup profiles are not specified.
                 """,
             ),
-            proguard_specs = attr.label_list(allow_empty = True, allow_files = True),
+            proguard_specs = attr.label_list(
+                allow_empty = True,
+                allow_files = True,
+                cfg = android_transition,
+            ),
             resource_apks = attr.label_list(
                 allow_rules = ["apk_import"],
                 providers = [
