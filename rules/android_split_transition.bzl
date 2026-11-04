@@ -28,6 +28,7 @@ The intended order of checks is:
 """
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@bazel_skylib//lib:sets.bzl", "sets")
 load(":utils.bzl", "utils")
 
 visibility(PROJECT_VISIBILITY)
@@ -58,14 +59,21 @@ def _android_transition_impl(settings, attr):
     # we apply this transition to. In that case we end up applying this transition twice.
     # The second transition will fail. Since the transition clears out --android_platforms we can
     # use that as a signal to do nothing.
-    if not utils.get_android_platforms(settings):
+    android_platforms = utils.get_android_platforms(settings)
+    if not android_platforms:
         return None
 
     configs = _android_split_transition_impl(settings, attr)
 
-    # Always pick the config based on the first value in --android_platforms
-    # This ensures the choice is consistent with the android_platforms_transition
-    return configs[utils.get_android_platforms(settings)[0].name]
+    # If the current value of --platforms is already one of --android_platforms, keep it;
+    # otherwise pick the preferred primary platform from --android_platforms.
+    # This ensures the choice is consistent with the android_platforms_transition.
+    current_platforms = utils.get_cls(settings, "platforms")
+    if current_platforms and sets.is_subset(sets.make(current_platforms), sets.make(android_platforms)):
+        primary_platform = utils.first(current_platforms)
+    else:
+        primary_platform = utils.select_primary_android_platform(android_platforms)
+    return configs[primary_platform.name]
 
 def _handle_android_platforms(settings, platforms_to_split):
     """
@@ -91,7 +99,7 @@ def _handle_android_platforms(settings, platforms_to_split):
         result[name] = split_options
     return result
 
-def _cc_flags_from_android(settings, new_settings):
+def _cc_flags_from_android(unused_settings, new_settings):
     new_settings[utils.add_cls_prefix("dynamic_mode")] = "off"
 
 _INPUTS = [

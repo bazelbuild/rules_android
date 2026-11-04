@@ -35,12 +35,12 @@ def _android_platforms_transition_impl(settings, attrs):
     # 2. Otherwise, leave --platforms alone (this will probably lead to build errors).
     if android_platforms:
         # If the current value of --platforms is not one of the values of --android_platforms, change
-        # it to be the first one. If the current --platforms is part of --android_platforms, leave it
-        # as-is.
+        # it to the preferred primary platform (64-bit ABIs first). If the current --platforms is part
+        # of --android_platforms, leave it as-is.
         # NOTE: This does not handle aliases at all, so if someone is using aliases with platform
         # definitions this check will break.
         if not sets.is_subset(sets.make(new_platforms), sets.make(android_platforms)):
-            new_platforms = [android_platforms[0]]
+            new_platforms = [utils.select_primary_android_platform(android_platforms)]
 
     # We only attempt this transition for rules that have the min_sdk_version attribute and set it explicitly
     # We do not transition the value if it was set previously. This can happen if an android_binary
