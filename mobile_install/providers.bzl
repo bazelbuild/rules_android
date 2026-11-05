@@ -109,6 +109,13 @@ MIJavaResourcesInfo = provider(
     ),
 )
 
+MIPlatformInfo = provider(
+    doc = "Provides the target platform configuration for a mobile-install aspect node.",
+    fields = dict(
+        platform = "The target platform Label from ctx.fragments.platform.platform.",
+    ),
+)
+
 def _collect(provider_type, *all_deps):
     providers = []
     for deps in all_deps:

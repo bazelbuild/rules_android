@@ -20,6 +20,7 @@ load(
     "MIAndroidDexInfo",
     "MIAndroidResourcesInfo",
     "MIJavaResourcesInfo",
+    "MIPlatformInfo",
     "providers",
 )
 load("//mobile_install:transform.bzl", "dex", "filter_jars")
@@ -38,6 +39,25 @@ def _aspect_attrs():
     """Attrs of the rule requiring traversal by the aspect."""
     return ["_android_sdk", "deps", "resources", "instruments"]
 
+def get_primary_deps(ctx):
+    """Returns deps configured for the binary's primary target platform.
+
+    Args:
+      ctx: The aspect context.
+
+    Returns:
+      A list of dependency targets matching the primary target platform, or all
+      deps if no split matches.
+    """
+    deps = ctx.rule.attr.deps
+    primary_platform = ctx.fragments.platform.platform
+    primary_deps = [
+        dep
+        for dep in deps
+        if MIPlatformInfo in dep and dep[MIPlatformInfo].platform == primary_platform
+    ]
+    return primary_deps if primary_deps else deps
+
 def extract(target, ctx):
     # extract is made visibile for testing
     """extract the rule and target data.
@@ -55,6 +75,8 @@ def extract(target, ctx):
     java_package = target[AndroidIdeInfo].java_package
     if java_package == None:
         fail("Unable to infer Java package for %s. Try setting `custom_package` if it does not live under a java/ or javatests/ package." % str(target))
+
+    deps = get_primary_deps(ctx)
 
     return dict(
         debug_key = utils.only(ctx.rule.files.debug_key, allow_empty = True),
@@ -86,7 +108,7 @@ def extract(target, ctx):
                 get_desugar_classpath(target[JavaInfo]),
                 bootclasspath = _desugar.get_boot_classpath(target, ctx),
             ),
-            deps = providers.collect(MIAndroidDexInfo, ctx.rule.attr.deps),
+            deps = providers.collect(MIAndroidDexInfo, deps),
         ),
         # TODO(djwhang): It wasteful to collect packages in
         # android_resources_info, rather we should be looking to pull them
@@ -95,13 +117,13 @@ def extract(target, ctx):
             package = target[AndroidIdeInfo].java_package,
             deps = providers.collect(
                 MIAndroidResourcesInfo,
-                ctx.rule.attr.deps,
+                deps,
             ),
         ),
         java_resources_info = providers.make_mi_java_resources_info(
             deps = providers.collect(
                 MIJavaResourcesInfo,
-                ctx.rule.attr.deps,
+                deps,
             ),
         ),
         apk = target[AndroidIdeInfo].signed_apk,

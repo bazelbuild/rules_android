@@ -20,6 +20,7 @@ load("//rules/flags:flags.bzl", "flags")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":adapters.bzl", "adapters")
 load(":debug.bzl", "debug")
+load(":providers.bzl", "MIPlatformInfo")
 load(":tools.bzl", "TOOLCHAIN_TYPES", "TOOL_ATTRS")
 
 visibility(PROJECT_VISIBILITY)
@@ -40,9 +41,14 @@ def aspect_impl(target, ctx):
         return []
 
     # Debug.
-    infos = adapter.adapt(target, ctx)
+    infos = list(adapter.adapt(target, ctx))
     if flags.get(ctx).debug:
         infos.append(OutputGroupInfo(**debug.make_output_groups(infos)))
+    infos.append(
+        MIPlatformInfo(
+            platform = ctx.fragments.platform.platform,
+        ),
+    )
     return infos
 
 def make_aspect(
@@ -81,7 +87,7 @@ def make_aspect(
         required_aspect_providers = [
             [JavaInfo],  # JavaLiteProtoLibrary aspect.
         ],
-        fragments = ["cpp", "java"],
+        fragments = ["cpp", "java", "platform"],
         implementation = aspect_impl,
         toolchains = [
             ANDROID_SDK_TOOLCHAIN_TYPE,

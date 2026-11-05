@@ -119,6 +119,7 @@ def process(
         merged_manifest = merged_manifest,
         r_dex = r_dex,
         merged_dex_shards = merged_dex_shards,
+        dex_shards = android_dex_info.transitive_dex_shards,
         native_zip = native_zips,
         splits = splits,
         apk = apk,
