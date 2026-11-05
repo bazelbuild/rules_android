@@ -291,11 +291,21 @@ def _expand_make_vars(ctx, vals):
         res[k] = _expand_var(ctx.var, v)
     return res
 
-def _dedupe_split_attr(attr):
-    if not attr:
-        return []
-    arch = _first(sorted(attr.keys()))
-    return attr[arch]
+def _get_primary_split(ctx, attr_name, default = []):
+    """Returns attr_name from the primary (android_platforms[0]) split.
+
+    Falls back to ctx.attr.<attr_name> if the attr isn't split (e.g. in aspects).
+    """
+    split_attr = getattr(ctx, "split_attr", None)
+    split = getattr(split_attr, attr_name, None) if split_attr else None
+    if split == None:
+        return getattr(ctx.attr, attr_name, default)
+    if not split:
+        return default
+    platform = ctx.fragments.platform.platform
+    if platform and platform.name in split:
+        return split[platform.name]
+    return split[sorted(split.keys())[0]]
 
 def _get_runfiles(ctx, attrs):
     all_runfiles = []
@@ -356,8 +366,11 @@ def _check_for_failures(label, *all_deps):
     failure_infos = _collect_providers(FailureInfo, *all_deps)
     if failure_infos:
         error = "in label '%s':" % label
+        seen_errors = {}
         for failure_info in failure_infos:
-            error += "\n\t" + failure_info.error
+            if failure_info.error not in seen_errors:
+                seen_errors[failure_info.error] = True
+                error += "\n\t" + failure_info.error
         _error(error)
 
 def _run_validation(
@@ -463,7 +476,7 @@ utils = struct(
     copy_dir = _copy_dir,
     expand_make_vars = _expand_make_vars,
     first = _first,
-    dedupe_split_attr = _dedupe_split_attr,
+    get_primary_split = _get_primary_split,
     get_runfiles = _get_runfiles,
     join_depsets = _join_depsets,
     only = _only,

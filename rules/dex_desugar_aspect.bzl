@@ -56,18 +56,10 @@ def get_aspect_deps(ctx):
     """
     deps_list = []
     for attr in _ATTR_ASPECTS:
-        # android_binary's deps attr has a split transition, so when
-        # this is called from android_binary, deps should be accessed
-        # via ctx.split_attr instead of ctx.attr to ensure that the same
-        # branch of the split is used throughout the build. An aspect's
-        # ctx doesn't have split_attr, so access that via ctx.attr when
-        # this is called from the aspect impl.
-        if attr == "deps" and hasattr(ctx, "split_attr"):
-            deps = _utils.dedupe_split_attr(ctx.split_attr.deps)
-        elif attr == "_toolchain" and getattr(ctx, "kind", "") == "kt_jvm_toolchain":
+        if attr == "_toolchain" and getattr(ctx, "kind", "") == "kt_jvm_toolchain":
             pass  # TODO(b/370300302): Prevent double-deps on Kotlin toolchain. Delete when fixed.
         else:
-            deps = getattr(ctx.attr, attr, [])
+            deps = _utils.get_primary_split(ctx, attr)
 
         if str(type(deps)) == "list":
             deps_list += deps

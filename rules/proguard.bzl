@@ -125,7 +125,7 @@ def _get_proguard_specs(
         ctx,
         resource_proguard_config,
         proguard_specs_for_manifest = []):
-    proguard_deps = utils.collect_providers(ProguardSpecInfo, utils.dedupe_split_attr(ctx.split_attr.deps))
+    proguard_deps = utils.collect_providers(ProguardSpecInfo, utils.get_primary_split(ctx, "deps"))
     if ctx.configuration.coverage_enabled and hasattr(ctx.attr, "_jacoco_runtime"):
         proguard_deps.append(ctx.attr._jacoco_runtime[ProguardSpecInfo])
 
@@ -458,7 +458,8 @@ def _apply_proguard(
     library_jar_list = [utils.only(common.get_java_toolchain(ctx)[java_common.JavaToolchainInfo].bootclasspath.to_list())]
     if read_possibly_native_flag(ctx, "desugar_for_android"):
         library_jar_list.append(ctx.file._desugared_java8_legacy_apis)
-    neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
+    deps = utils.get_primary_split(ctx, "deps")
+    neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, deps)
     library_jars = depset(library_jar_list, transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])
 
     optimize_resources = bool(resource_shrinker_log)

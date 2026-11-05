@@ -111,7 +111,7 @@ def _process_resources(ctx, manifest_ctx, java_package, **unused_ctxs):
         should_throw_on_conflict = not acls.in_allow_resource_conflicts(str(ctx.label)),
         enable_data_binding = ctx.attr.enable_data_binding,
         enable_manifest_merging = ctx.attr._enable_manifest_merging,
-        deps = utils.dedupe_split_attr(ctx.split_attr.deps),
+        deps = utils.get_primary_split(ctx, "deps"),
         resource_apks = resource_apks,
         instruments = ctx.attr.instruments,
         build_java_with_final_resources = acls.in_force_final_android_binary_resources(str(ctx.label)),
@@ -198,7 +198,7 @@ def _process_data_binding(ctx, java_package, packaged_resources_ctx, **_unused_c
             java_package = java_package,
             layout_info = packaged_resources_ctx.data_binding_layout_info,
             artifact_type = "APPLICATION",
-            deps = utils.collect_providers(DataBindingV2Info, utils.dedupe_split_attr(ctx.split_attr.deps)),
+            deps = utils.collect_providers(DataBindingV2Info, utils.get_primary_split(ctx, "deps")),
             data_binding_exec = get_android_toolchain(ctx).data_binding_exec.files_to_run,
             data_binding_annotation_processor =
                 get_android_toolchain(ctx).data_binding_annotation_processor[JavaPluginInfo],
@@ -218,7 +218,7 @@ def _process_jvm(ctx, db_ctx, packaged_resources_ctx, proto_ctx, stamp_ctx, **_u
         javac_opts = ctx.attr.javacopts + db_ctx.javac_opts,
         r_java = packaged_resources_ctx.r_java,
         enable_deps_without_srcs = True,
-        deps = utils.collect_providers(JavaInfo, utils.dedupe_split_attr(ctx.split_attr.deps) + stamp_ctx.deps),
+        deps = utils.collect_providers(JavaInfo, utils.get_primary_split(ctx, "deps") + stamp_ctx.deps),
         plugins =
             utils.collect_providers(JavaPluginInfo, ctx.attr.plugins) +
             db_ctx.java_plugins,
@@ -484,7 +484,10 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, jvm_ctx, b
         # resource JARs.
         # TODO(b/69552500): Instead, handle this properly so R JARs aren't put on the classpath
         # for both binaries and libraries.
-        library_r_jar_dict = {jar: True for jar in _get_library_r_jars(ctx.attr.deps)}
+        library_r_jar_dict = {
+            jar: True
+            for jar in _get_library_r_jars(utils.get_primary_split(ctx, "deps"))
+        }
         transitive_runtime_jars_for_archive = [jar for jar in java_info.transitive_runtime_jars.to_list() if jar not in library_r_jar_dict]
         for jar in transitive_runtime_jars_for_archive:
             desugared_jars.append(desugar_dict.get(jar, jar))
@@ -580,7 +583,7 @@ def finalize(
         ] if deploy_ctx.one_version_enforcement_output else [],
         transitive = [info["_hidden_top_level_INTERNAL_"] for info in utils.collect_providers(
             OutputGroupInfo,
-            utils.dedupe_split_attr(ctx.split_attr.deps),
+            utils.get_primary_split(ctx, "deps"),
         )],
     )
     providers.extend(
@@ -647,7 +650,7 @@ def _process_baseline_profiles(ctx, validation_ctx, deploy_ctx, **_unused_ctxs):
                         profile_provider.files
                         for profile_provider in utils.collect_providers(
                             BaselineProfileProvider,
-                            ctx.attr.deps,
+                            utils.get_primary_split(ctx, "deps"),
                         )
                     ],
                 )
@@ -1003,7 +1006,10 @@ def _process_apk_packaging(ctx, packaged_resources_ctx, native_libs_ctx, dex_ctx
     )
 
 def _process_idl(ctx, **_unused_ctxs):
-    deps = utils.collect_providers(AndroidIdlInfo, ctx.attr.deps)
+    deps = utils.collect_providers(
+        AndroidIdlInfo,
+        utils.get_primary_split(ctx, "deps"),
+    )
 
     android_idl_info = AndroidIdlInfo(
         transitive_idl_import_roots = depset(

@@ -45,7 +45,7 @@ def _impl(ctx):
     else:
         args.add("")
     args.add(ctx.attr.binary[ApkInfo].unsigned_apk.path)
-    args.add(utils.dedupe_split_attr(ctx.split_attr.library).label)
+    args.add(utils.get_primary_split(ctx, "library").label)
     args.add(get_android_toolchain(ctx).xmllint_tool.files_to_run.executable)
     args.add(get_android_toolchain(ctx).unzip_tool.files_to_run.executable)
     args.add(ctx.attr.is_asset_pack)
@@ -67,7 +67,7 @@ def _impl(ctx):
     return [
         AndroidFeatureModuleInfo(
             binary = ctx.attr.binary,
-            library = utils.dedupe_split_attr(ctx.split_attr.library),
+            library = utils.get_primary_split(ctx, "library"),
             title_id = ctx.attr.title_id,
             title_lib = ctx.attr.title_lib,
             feature_name = ctx.attr.feature_name,

@@ -117,7 +117,10 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         else:
             fail("minSdkVersion must be an integer")
 
-    neverlink_infos = utils.collect_providers(StarlarkAndroidNeverlinkInfo, ctx.attr.deps)
+    neverlink_infos = utils.collect_providers(
+        StarlarkAndroidNeverlinkInfo,
+        utils.get_primary_split(ctx, "deps"),
+    )
     neverlink_jars = depset(transitive = [info.transitive_neverlink_libraries for info in neverlink_infos])
 
     args = ctx.actions.args()
