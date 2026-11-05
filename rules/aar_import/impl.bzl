@@ -515,10 +515,7 @@ def impl(ctx):
         r_java = resources_ctx.r_java,
         exports = _utils.collect_providers(JavaInfo, ctx.attr.exports),
         enable_desugar_java8 = read_possibly_native_flag(ctx, "desugar_for_android"),
-        enable_imports_deps_check = (
-            _acls.in_aar_import_deps_checker(str(ctx.label)) and
-            INCOMPLETE_DEPS_TAG not in ctx.attr.tags
-        ),
+        enable_imports_deps_check = INCOMPLETE_DEPS_TAG not in ctx.attr.tags,
         aar_embedded_jars_extractor_tool =
             _get_android_toolchain(ctx).aar_embedded_jars_extractor.files_to_run,
         bootclasspath =

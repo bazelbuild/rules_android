@@ -28,7 +28,6 @@ To update a list:
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/acls:aapt2_feature_flags.bzl", "AAPT2_FEATURE_FLAGS")
-load("//rules/acls:aar_import_deps_checker.bzl", "AAR_IMPORT_DEPS_CHECKER_FALLBACK", "AAR_IMPORT_DEPS_CHECKER_ROLLOUT")
 load("//rules/acls:aar_import_explicit_exports_manifest.bzl", "AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST")
 load("//rules/acls:aar_import_exports_r_java.bzl", "AAR_IMPORT_EXPORTS_R_JAVA")
 load("//rules/acls:aar_import_propagate_native_libs.bzl", "AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK")
@@ -70,9 +69,6 @@ load("//rules/acls:test_to_instrument_test_rollout.bzl", "TEST_TO_INSTRUMENT_TES
 load("//rules/acls:use_baseline_as_startup_profile.bzl", "USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK", "USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT")
 
 visibility(PROJECT_VISIBILITY)
-
-def _in_aar_import_deps_checker(fqn):
-    return not matches(fqn, AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT) and matches(fqn, AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT)
 
 def _in_aar_import_explicit_exports_manifest(fqn):
     return matches(fqn, AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT)
@@ -195,8 +191,6 @@ def make_min_sdk_dict(dict_of_lists):
         res[k] = make_dict(dict_of_lists[k])
     return res
 
-AAR_IMPORT_DEPS_CHECKER_FALLBACK_DICT = make_dict(AAR_IMPORT_DEPS_CHECKER_FALLBACK)
-AAR_IMPORT_DEPS_CHECKER_ROLLOUT_DICT = make_dict(AAR_IMPORT_DEPS_CHECKER_ROLLOUT)
 AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT = make_dict(AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST)
 AAR_IMPORT_EXPORTS_R_JAVA_DICT = make_dict(AAR_IMPORT_EXPORTS_R_JAVA)
 
@@ -300,7 +294,6 @@ acls = struct(
     get_android_archive_duplicate_class_allowlist = _get_android_archive_duplicate_class_allowlist,
     get_android_archive_exposed_package_allowlist = _get_android_archive_exposed_package_allowlist,
     get_optimizer_execution_requirements = _get_optimizer_execution_requirements,
-    in_aar_import_deps_checker = _in_aar_import_deps_checker,
     in_aar_import_explicit_exports_manifest = _in_aar_import_explicit_exports_manifest,
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
     in_android_archive_excluded_deps_denylist = _in_android_archive_excluded_deps_denylist,
