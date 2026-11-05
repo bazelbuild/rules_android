@@ -1,6 +1,6 @@
 module(
     name = "rules_android",
-    version = "0.8.0",
+    version = "0.8.1",
     bazel_compatibility = [
         ">=7.7.0",
         "-8.0.0",
