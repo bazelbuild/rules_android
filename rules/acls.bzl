@@ -32,6 +32,7 @@ load("//rules/acls:aar_import_deps_checker.bzl", "AAR_IMPORT_DEPS_CHECKER_FALLBA
 load("//rules/acls:aar_import_explicit_exports_manifest.bzl", "AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST")
 load("//rules/acls:aar_import_exports_r_java.bzl", "AAR_IMPORT_EXPORTS_R_JAVA")
 load("//rules/acls:aar_import_propagate_native_libs.bzl", "AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK")
+load("//rules/acls:aar_import_use_ijar.bzl", "AAR_IMPORT_USE_IJAR_FALLBACK")
 load("//rules/acls:allow_resource_conflicts.bzl", "ALLOW_RESOURCE_CONFLICTS")
 load("//rules/acls:android_apk_to_bundle_features_lockdown.bzl", "ANDROID_APK_TO_BUNDLE_FEATURES")
 load("//rules/acls:android_archive_duplicate_class_allowlist.bzl", "ANDROID_ARCHIVE_DUPLICATE_CLASS_ALLOWLIST")
@@ -181,6 +182,9 @@ def _in_allowed_bytecode_transformers(fqn):
 def _in_aar_import_propagate_native_libs(fqn):
     return not matches(fqn, AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK_DICT)
 
+def _in_aar_import_use_ijar(fqn):
+    return not matches(fqn, AAR_IMPORT_USE_IJAR_FALLBACK_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -241,6 +245,7 @@ USE_BASELINE_AS_STARTUP_PROFILE_ROLLOUT_DICT = make_dict(USE_BASELINE_AS_STARTUP
 USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT = make_dict(USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK)
 BYTECODE_TRANSFORMERS_DICT = make_dict(BYTECODE_TRANSFORMERS)
 AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK_DICT = make_dict(AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK)
+AAR_IMPORT_USE_IJAR_FALLBACK_DICT = make_dict(AAR_IMPORT_USE_IJAR_FALLBACK)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -329,6 +334,7 @@ acls = struct(
     use_baseline_as_startup_profile = _use_baseline_as_startup_profile,
     in_allowed_bytecode_transformers = _in_allowed_bytecode_transformers,
     in_aar_import_propagate_native_libs = _in_aar_import_propagate_native_libs,
+    in_aar_import_use_ijar = _in_aar_import_use_ijar,
 )
 
 # Visible for testing
