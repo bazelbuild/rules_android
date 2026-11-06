@@ -13,9 +13,14 @@
 # limitations under the License.
 """Shared logic related to desugaring. """
 
+load("//rules:desugar.bzl", "desugar")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 visibility(PROJECT_VISIBILITY)
 
-def get_desugar_classpath(java_info):
-    return java_info._transitive_full_compile_time_jars
+def get_desugar_classpath(ctx, java_info):
+    return desugar.get_classpath(
+        java_info,
+        use_header_jars = ctx.attr._desugar_with_header_jars[BuildSettingInfo].value,
+    )

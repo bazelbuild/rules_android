@@ -105,7 +105,7 @@ def extract(target, ctx):
                 (
                     build_stamp_java_info.runtime_output_jars if build_stamp_java_info else []
                 ),
-                get_desugar_classpath(target[JavaInfo]),
+                get_desugar_classpath(ctx, target[JavaInfo]),
                 bootclasspath = _desugar.get_boot_classpath(target, ctx),
             ),
             deps = providers.collect(MIAndroidDexInfo, deps),
