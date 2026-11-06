@@ -73,6 +73,9 @@ ATTRS = _attrs.add(
         _manifest_merge_order = attr.label(
             default = "//rules/flags:manifest_merge_order",
         ),
+        _skip_min_sdk_bump = attr.label(
+            default = "//rules/flags:aar_import_skip_min_sdk_bump",
+        ),
         _cpu_constraints = attr.label_keyed_string_dict(
             default = {
                 # The keys are labels to constraint_value targets representing the CPU for Android

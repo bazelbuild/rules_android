@@ -27,6 +27,7 @@ load(
     "//rules:java.bzl",
     _java = "java",
 )
+load("//rules:min_sdk_version.bzl", _min_sdk_version = "min_sdk_version")
 load("//rules:native_deps.bzl", "merge_transitive_native_libs")
 load(
     "//rules:resources.bzl",
@@ -41,6 +42,7 @@ load(
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "read_possibly_native_flag", _flags = "flags")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load("@rules_java//java/common:java_common.bzl", "java_common")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@rules_java//java/common:proguard_spec_info.bzl", "ProguardSpecInfo")
@@ -489,10 +491,13 @@ def impl(ctx):
         unzip_tool,
     )
 
-    # Bump min SDK to floor
+    # The manifest merger adds implied permissions for libraries that target old SDKs. Without
+    # targetSdkVersion it uses minSdkVersion, or 1, so the bump hides those permissions.
+    skip_min_sdk_bump = ctx.attr._skip_min_sdk_bump[BuildSettingInfo].value
     manifest_ctx = _resources.bump_min_sdk(
         ctx,
         manifest = android_manifest,
+        floor = 0 if skip_min_sdk_bump else _min_sdk_version.DEPOT_FLOOR,
     )
 
     resources_ctx = _process_resources(
