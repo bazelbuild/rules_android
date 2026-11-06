@@ -99,12 +99,13 @@ def define_flags():
         name = "r8_extract_embedded_proguard_specs",
         default = False,
         description = "When enabled, R8 extracts embedded proguard specs from META-INF/proguard/ " +
-                      "and META-INF/com.android.tools/ in the deploy JAR and passes them to R8.",
+                      "and META-INF/com.android.tools/ in each runtime JAR and passes them to R8.",
     )
 
     flags.DEFINE_bool(
         name = "aar_import_extract_r8_rules",
         default = False,
-        description = "When enabled, aar_import extracts R8-targeted proguard rules from " +
-                      "META-INF/com.android.tools/ inside classes.jar in addition to proguard.txt.",
+        description = "When enabled together with r8_extract_embedded_proguard_specs, aar_import " +
+                      "skips proguard.txt for AARs whose classes.jar has R8-targeted rules under " +
+                      "META-INF/com.android.tools/, which R8 then selects from classes.jar.",
     )

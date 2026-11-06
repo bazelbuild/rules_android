@@ -579,7 +579,13 @@ def impl(ctx):
         proguard_spec,
         aar,
         _get_android_toolchain(ctx).aar_embedded_proguard_extractor.files_to_run,
-        extract_r8_rules = _flags.get(ctx).aar_import_extract_r8_rules if _acls.use_r8(str(ctx.label)) else False,
+        # R8-targeted rules in classes.jar replace proguard.txt only if R8 reads
+        # them from each runtime JAR. Otherwise they could be lost in the deploy JAR merge.
+        extract_r8_rules = (
+            _flags.get(ctx).aar_import_extract_r8_rules and
+            _flags.get(ctx).r8_extract_embedded_proguard_specs and
+            _acls.use_r8(str(ctx.label))
+        ),
     ))
 
     lint_providers = _process_lint_rules(

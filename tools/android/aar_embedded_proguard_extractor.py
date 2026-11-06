@@ -37,7 +37,8 @@ flags.DEFINE_string("output_proguard_file", None,
                     "Output parameter file for proguard")
 flags.mark_flag_as_required("output_proguard_file")
 flags.DEFINE_boolean(
-    "extract_r8_rules", False, "Also extract R8-targeted rules from classes.jar"
+    "extract_r8_rules", False,
+    "Skip proguard.txt if classes.jar has R8-targeted rules"
 )
 
 
