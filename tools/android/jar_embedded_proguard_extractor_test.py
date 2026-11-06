@@ -31,7 +31,7 @@ class JarEmbeddedProguardExtractorTest(unittest.TestCase):
   def testNoProguardSpecs(self):
     jar = zipfile.ZipFile(io.BytesIO(), "w")
     proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file)
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
     proguard_file.seek(0)
     self.assertEqual(b"", proguard_file.read())
 
@@ -39,7 +39,7 @@ class JarEmbeddedProguardExtractorTest(unittest.TestCase):
     jar = zipfile.ZipFile(io.BytesIO(), "w")
     jar.writestr("META-INF/proguard/rules.pro", "-keep class A")
     proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file)
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
     proguard_file.seek(0)
     self.assertEqual(b"\n-keep class A", proguard_file.read())
 
@@ -48,48 +48,230 @@ class JarEmbeddedProguardExtractorTest(unittest.TestCase):
     jar.writestr("META-INF/proguard/rules1.pro", "-keep class A")
     jar.writestr("META-INF/proguard/rules2.pro", "-keep class B")
     proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file)
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
     proguard_file.seek(0)
     self.assertEqual(b"\n-keep class A\n-keep class B", proguard_file.read())
 
-  def testR8Rules(self):
+  def testTargetedR8RulesMatchingVersion(self):
     jar = zipfile.ZipFile(io.BytesIO(), "w")
-    jar.writestr("META-INF/com.android.tools/r8/rules.pro", "-keep class C")
+    jar.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class C",
+    )
     proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file)
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
     proguard_file.seek(0)
     self.assertEqual(b"\n-keep class C", proguard_file.read())
 
-  def testR8RulesVersionedSubdirs(self):
+  def testTargetedR8RulesNotMatchingVersionSuppressLegacy(self):
     jar = zipfile.ZipFile(io.BytesIO(), "w")
     jar.writestr(
-        "META-INF/com.android.tools/r8-from-8.0.0/rules.pro", "-keep class D"
+        "META-INF/com.android.tools/r8-from-1.0.0-upto-2.0.0/rules.pro",
+        "-keep class C",
     )
-    jar.writestr(
-        "META-INF/com.android.tools/r8-upto-8.0.0/rules.pro", "-keep class E"
-    )
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
     proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file)
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
     proguard_file.seek(0)
-    self.assertEqual(b"\n-keep class D\n-keep class E", proguard_file.read())
+    self.assertEqual(b"", proguard_file.read())
 
-  def testLegacyAndR8RulesCombined(self):
+  def testTargetedR8RulesPreferredOverLegacy(self):
     jar = zipfile.ZipFile(io.BytesIO(), "w")
-    jar.writestr("META-INF/proguard/rules.pro", "-keep class F")
-    jar.writestr("META-INF/com.android.tools/r8/rules.pro", "-keep class G")
+    jar.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class targeted",
+    )
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
     proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file)
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
     proguard_file.seek(0)
-    self.assertEqual(b"\n-keep class G\n-keep class F", proguard_file.read())
+    self.assertEqual(b"\n-keep class targeted", proguard_file.read())
+
+  def testVersionAtLowerBoundInclusive(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr(
+        "META-INF/com.android.tools/r8-from-8.9.35-upto-9.0.0/rules.pro",
+        "-keep class exact",
+    )
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class exact", proguard_file.read())
+
+  def testVersionAtUpperBoundExclusive(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-8.9.35/rules.pro",
+        "-keep class excluded",
+    )
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"", proguard_file.read())
+
+  def testUnversionedR8Rules(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/r8/rules.pro", "-keep class C")
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class C", proguard_file.read())
+
+  def testLowerBoundOnly(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/r8-from-8.0.0/rules.pro", "-keep class C")
+    jar.writestr("META-INF/com.android.tools/r8-from-9.0.0/rules.pro", "-keep class excluded")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class C", proguard_file.read())
+
+  def testUpperBoundOnly(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/r8-upto-3.0.0/rules.pro", "-keep class excluded")
+    jar.writestr("META-INF/com.android.tools/r8-upto-9.0.0/rules.pro", "-keep class C")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class C", proguard_file.read())
+
+  def testIgnoresProguardTargetedRules(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/proguard/rules.pro", "-keep class proguard")
+    jar.writestr("META-INF/com.android.tools/r8/rules.pro", "-keep class C")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class C", proguard_file.read())
+
+  def testKotlinxCoroutinesAndroidLayout(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/r8-upto-3.0.0/coroutines.pro", "-keep class old")
+    jar.writestr("META-INF/com.android.tools/r8-from-1.6.0/coroutines.pro", "-keep class modern")
+    jar.writestr("META-INF/com.android.tools/proguard/coroutines.pro", "-keep class proguard")
+    jar.writestr("META-INF/proguard/coroutines.pro", "-keep class legacy")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "9.5.28")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class modern", proguard_file.read())
+
+  def testVersionLabelWithSuffix(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/r8-from-9.5.0/rules.pro", "-keep class C")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "9.5.2-dev")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class C", proguard_file.read())
+
+  def testUnparseableVersionFallsBackToLegacy(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/r8/rules.pro", "-keep class C")
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "main")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class legacy", proguard_file.read())
+
+  def testDirectoryNamesAreCaseInsensitive(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/R8-From-8.0.0/rules.pro", "-keep class C")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class C", proguard_file.read())
+
+  def testBoundWithSuffix(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/r8-from-8.0.0-alpha01/rules.pro", "-keep class C")
+    jar.writestr("META-INF/com.android.tools/r8-upto-8.0.0-alpha01/rules.pro", "-keep class excluded")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class C", proguard_file.read())
+
+  def testUnparseableBoundIsNoConstraint(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/r8-from-unknown/rules.pro", "-keep class C")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class C", proguard_file.read())
+
+  def testProguardTargetedRulesOnlyUsesLegacy(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr("META-INF/com.android.tools/proguard/rules.pro", "-keep class proguard")
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class legacy", proguard_file.read())
+
+  def testReadR8VersionNextToScript(self):
+    script_dir = os.path.join(os.environ["TEST_TMPDIR"], "script")
+    os.makedirs(script_dir, exist_ok=True)
+    with open(os.path.join(script_dir, "r8.version"), "w") as f:
+      f.write("9.5.28\n")
+    self.assertEqual(
+        "9.5.28",
+        proguard_extractor_lib.ReadR8Version(os.path.join(script_dir, "extractor.py")),
+    )
+
+  def testReadR8VersionFromRunfilesManifest(self):
+    tmp = os.environ["TEST_TMPDIR"]
+    version_file = os.path.join(tmp, "manifest_r8.version")
+    with open(version_file, "w") as f:
+      f.write("9.3.16\n")
+    manifest = os.path.join(tmp, "MANIFEST")
+    with open(manifest, "w") as f:
+      f.write("rules_android+/tools/android/r8.version %s\n" % version_file)
+    old = os.environ.get("RUNFILES_MANIFEST_FILE")
+    os.environ["RUNFILES_MANIFEST_FILE"] = manifest
+    try:
+      self.assertEqual(
+          "9.3.16",
+          proguard_extractor_lib.ReadR8Version(os.path.join(tmp, "missing", "extractor.py")),
+      )
+    finally:
+      if old is None:
+        del os.environ["RUNFILES_MANIFEST_FILE"]
+      else:
+        os.environ["RUNFILES_MANIFEST_FILE"] = old
+
+  def testReadR8VersionMissing(self):
+    old = os.environ.pop("RUNFILES_MANIFEST_FILE", None)
+    try:
+      self.assertIsNone(
+          proguard_extractor_lib.ReadR8Version(
+              os.path.join(os.environ["TEST_TMPDIR"], "missing", "extractor.py")
+          )
+      )
+    finally:
+      if old is not None:
+        os.environ["RUNFILES_MANIFEST_FILE"] = old
+
+  def testMultipleVersionedDirsOnlyMatchingIncluded(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr(
+        "META-INF/com.android.tools/r8-from-1.0.0-upto-2.0.0/rules.pro",
+        "-keep class old",
+    )
+    jar.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class current",
+    )
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class current", proguard_file.read())
 
   def testIgnoresDirectoryEntries(self):
     jar = zipfile.ZipFile(io.BytesIO(), "w")
     jar.writestr("META-INF/proguard/", "")
-    jar.writestr("META-INF/com.android.tools/", "")
-    jar.writestr("META-INF/com.android.tools/r8/", "")
-    jar.writestr("META-INF/com.android.tools/r8/rules.pro", "-keep class H")
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class H")
     proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file)
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
     proguard_file.seek(0)
     self.assertEqual(b"\n-keep class H", proguard_file.read())
 
@@ -99,9 +281,57 @@ class JarEmbeddedProguardExtractorTest(unittest.TestCase):
     jar.writestr("META-INF/services/com.example.Spi", "com.example.SpiImpl")
     jar.writestr("com/example/Foo.class", "classdata")
     proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file)
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
     proguard_file.seek(0)
     self.assertEqual(b"", proguard_file.read())
+
+
+  def testNoneR8VersionFallsBackToLegacy(self):
+    jar = zipfile.ZipFile(io.BytesIO(), "w")
+    jar.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class targeted",
+    )
+    jar.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
+    proguard_file = io.BytesIO()
+    proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, None)
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class legacy", proguard_file.read())
+
+  def testMultipleJarsExtractedIndependently(self):
+    jar1 = zipfile.ZipFile(io.BytesIO(), "w")
+    jar1.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class A",
+    )
+
+    jar2 = zipfile.ZipFile(io.BytesIO(), "w")
+    jar2.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class B",
+    )
+
+    proguard_file = io.BytesIO()
+    for jar in [jar1, jar2]:
+      proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class A\n-keep class B", proguard_file.read())
+
+  def testMultipleJarsIndependentFallback(self):
+    jar1 = zipfile.ZipFile(io.BytesIO(), "w")
+    jar1.writestr(
+        "META-INF/com.android.tools/r8-from-8.0.0-upto-9.0.0/rules.pro",
+        "-keep class targeted",
+    )
+
+    jar2 = zipfile.ZipFile(io.BytesIO(), "w")
+    jar2.writestr("META-INF/proguard/rules.pro", "-keep class legacy")
+
+    proguard_file = io.BytesIO()
+    for jar in [jar1, jar2]:
+      proguard_extractor_lib.ExtractEmbeddedProguardFromJar(jar, proguard_file, "8.9.35")
+    proguard_file.seek(0)
+    self.assertEqual(b"\n-keep class targeted\n-keep class legacy", proguard_file.read())
 
 
 if __name__ == "__main__":

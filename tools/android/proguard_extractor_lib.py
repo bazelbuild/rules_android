@@ -19,80 +19,150 @@ from __future__ import division
 from __future__ import print_function
 
 import io
+import os
+import re
 import zipfile
 
 
-def ExtractR8Rules(jar, output):
-  """Extract R8 rules from META-INF/com.android.tools/ inside a JAR.
+_R8_VERSION_FILE = "tools/android/r8.version"
 
-  Handles subdirectories like r8-from-X-upto-Y/. All matching files are
-  concatenated into the output, sorted by path for determinism.
+
+def ReadR8Version(script_path):
+  """Reads the R8 version label bundled next to an extractor in its runfiles.
+
+  The extractors avoid the runfiles library: its repository root would shadow
+  this repository's tools package when rules_android is an external
+  repository.
 
   Args:
-    jar: The JAR file to extract from.
-    output: The output file to write to.
+    script_path: Path of the running extractor script.
+
+  Returns:
+    The R8 version label, or None if it can't be found.
   """
-  meta_inf_prefix = "META-INF/com.android.tools/"
+  path = os.path.join(os.path.dirname(script_path), os.path.basename(_R8_VERSION_FILE))
+  if not os.path.exists(path):
+    path = None
+    manifest = os.environ.get("RUNFILES_MANIFEST_FILE")
+    if manifest and os.path.exists(manifest):
+      with open(manifest) as f:
+        for line in f:
+          key, _, value = line.rstrip("\n").partition(" ")
+          if key.endswith("/" + _R8_VERSION_FILE):
+            path = value
+            break
+  if not path:
+    return None
+  with open(path) as f:
+    return f.readline().strip() or None
+
+
+def _parse_version(ver:str):
+  """Parses the numeric prefix of a version, e.g. "9.5.2-dev" or "8.0.0-alpha01"."""
+  match = re.match(r"(\d+(?:\.\d+)*)", ver or "")
+  if not match:
+    return None
+  return tuple(int(x) for x in match.group(1).split("."))
+
+
+_R8_RULES_PREFIX = "META-INF/com.android.tools/"
+_R8_RULES_DIR = re.compile(r"r8(?:-from-([^:@/]+?))?(?:-upto-([^:@/]+?))?")
+
+
+def _r8_rules_dir_matches(directory, r8_version):
+  """Whether a META-INF/com.android.tools/ directory targets r8_version.
+
+  Mirrors AGP's configDirMatchesVersion: r8, r8-from-<X>, r8-upto-<Y> and
+  r8-from-<X>-upto-<Y>, case-insensitive, with an inclusive lower and exclusive
+  upper bound. A bound that can't be parsed is no constraint. proguard*
+  directories target ProGuard and never match.
+  """
+  match = _R8_RULES_DIR.fullmatch(directory.lower())
+  if not match:
+    return False
+  lower_bound, upper_bound = (_parse_version(b) for b in match.groups())
+  if lower_bound and r8_version < lower_bound:
+    return False
+  if upper_bound and r8_version >= upper_bound:
+    return False
+  return True
+
+
+def _R8RuleEntries(jar):
+  """Returns the R8-targeted rule files in a JAR, for any R8 version."""
+  entries = []
   for entry in sorted(jar.namelist()):
-    if entry.startswith(meta_inf_prefix) and not entry.endswith("/"):
+    if not entry.startswith(_R8_RULES_PREFIX) or entry.endswith("/"):
+      continue
+    directory = entry[len(_R8_RULES_PREFIX):].split("/", 1)[0]
+    if _R8_RULES_DIR.fullmatch(directory.lower()):
+      entries.append((directory, entry))
+  return entries
+
+
+def _ExtractTargetedR8Rules(jar, output, r8_version):
+  """Extracts the R8-targeted rules matching r8_version.
+
+  Like AGP, R8-targeted rules take precedence over legacy rules whenever a JAR
+  has any, even if none of them match r8_version.
+
+  Returns:
+    Whether the JAR's R8-targeted rules were used, so legacy rules must be
+    skipped. False if it has none or r8_version is unknown.
+  """
+  version = _parse_version(r8_version)
+  entries = _R8RuleEntries(jar)
+  if not version or not entries:
+    return False
+  for directory, entry in entries:
+    if _r8_rules_dir_matches(directory, version):
       output.write(b"\n")
       output.write(jar.read(entry))
+  return True
 
 
-def ExtractEmbeddedProguardFromJar(jar, output):
+def ExtractEmbeddedProguardFromJar(jar, output, r8_version):
   """Extract proguard specs from a JAR file.
 
-  Reads both legacy META-INF/proguard/ and R8-targeted
-  META-INF/com.android.tools/ entries.
+  Extracts the R8-targeted rules under META-INF/com.android.tools/ that match
+  r8_version. Uses the legacy META-INF/proguard/ rules if the JAR has no
+  R8-targeted rules or r8_version is unknown.
 
   Args:
     jar: The JAR file to extract from.
     output: The output file to write to.
+    r8_version: The R8 version label, or None if unknown.
   """
-  legacy_prefix = "META-INF/proguard/"
-  r8_prefix = "META-INF/com.android.tools/"
+  if _ExtractTargetedR8Rules(jar, output, r8_version):
+    return
 
+  legacy_prefix = "META-INF/proguard/"
   for entry in sorted(jar.namelist()):
-    if not entry.endswith("/") and (
-        entry.startswith(legacy_prefix) or entry.startswith(r8_prefix)
-    ):
+    if entry.startswith(legacy_prefix) and not entry.endswith("/"):
       output.write(b"\n")
       output.write(jar.read(entry))
 
 
-def ExtractEmbeddedProguardFromAar(aar, output):
+def ExtractEmbeddedProguardFromAar(aar, output, r8_version, extract_r8_rules=True):
   """Extract proguard specs from an AAR file.
 
-  Reads proguard.txt from the AAR root, and also extracts R8 rules
-  from META-INF/com.android.tools/ inside classes.jar.
+  Extracts the R8-targeted rules in classes.jar that match r8_version. Like
+  AGP, uses proguard.txt from the AAR root instead if classes.jar has no
+  R8-targeted rules, r8_version is unknown, or extract_r8_rules is False.
 
   Args:
     aar: The AAR file to extract from.
     output: The output file to write to.
+    r8_version: The R8 version label, or None if unknown.
+    extract_r8_rules: Whether to consider R8-targeted rules in classes.jar.
   """
   proguard_spec = "proguard.txt"
   classes_jar = "classes.jar"
 
-  if proguard_spec in aar.namelist():
-    output.write(aar.read(proguard_spec))
-
-  # For AARs, META-INF/com.android.tools/ lives inside classes.jar
-  if classes_jar in aar.namelist():
+  if extract_r8_rules and classes_jar in aar.namelist():
     with zipfile.ZipFile(io.BytesIO(aar.read(classes_jar)), "r") as jar:
-      ExtractR8Rules(jar, output)
-
-
-def ExtractEmbeddedProguardFromAarLegacy(aar, output):
-  """Extract proguard specs from an AAR file (legacy behavior).
-
-  Only reads proguard.txt from the AAR root. Does not extract R8 rules
-  from classes.jar.
-
-  Args:
-    aar: The AAR file to extract from.
-    output: The output file to write to.
-  """
-  proguard_spec = "proguard.txt"
+      if _ExtractTargetedR8Rules(jar, output, r8_version):
+        return
 
   if proguard_spec in aar.namelist():
     output.write(aar.read(proguard_spec))

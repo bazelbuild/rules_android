@@ -281,6 +281,13 @@ java_binary(
 )
 
 java_binary(
+    name = "r8_version_bin",
+    srcs = ["R8Version.java"],
+    main_class = "tools.android.R8Version",
+    deps = ["@rules_android_maven//:com_android_tools_r8"],
+)
+
+java_binary(
     name = "tracereferences",
     jvm_flags = _JVM_FLAGS,
     main_class = "com.android.tools.r8.tracereferences.TraceReferences",
@@ -466,6 +473,7 @@ py_library(
 py_binary(
     name = "aar_embedded_proguard_extractor",
     srcs = ["aar_embedded_proguard_extractor.py"],
+    data = [":r8_version"],
     visibility = ["//visibility:public"],
     deps = [
         ":json_worker_wrapper",
@@ -478,6 +486,7 @@ py_binary(
 py_binary(
     name = "jar_embedded_proguard_extractor",
     srcs = ["jar_embedded_proguard_extractor.py"],
+    data = [":r8_version"],
     visibility = ["//visibility:public"],
     deps = [
         ":json_worker_wrapper",
@@ -690,4 +699,13 @@ genrule(
     zip -r $${out} .
 """,
     visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "r8_version",
+    outs = [
+        "r8.version",
+    ],
+    cmd = "$(location :r8_version_bin) >$(OUTS)",
+    tools = [":r8_version_bin"],
 )
