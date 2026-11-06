@@ -17,11 +17,11 @@ set -o errexit -o nounset -o pipefail
 
 # Set by GH actions, see
 # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
-TAG=${GITHUB_REF_NAME}
+TAG=${1:-${GITHUB_REF_NAME}}
 # The prefix is chosen to match what GitHub generates for source archives
 # This guarantees that users can easily switch from a released artifact to a source archive
 # with minimal differences in their code (e.g. strip_prefix remains the same)
-PREFIX="rules_android-${TAG:1}"
+PREFIX="rules_android-${TAG#v}"
 ARCHIVE="rules_android-$TAG.tar.gz"
 
 # NB: configuration for 'git archive' is in /.gitattributes
@@ -36,7 +36,7 @@ cat << EOF
 
 \`\`\`starlark
 # See examples/basicapp/MODULE.bazel.
-bazel_dep(name = "rules_android", version = "${TAG:1}")
+bazel_dep(name = "rules_android", version = "${TAG#v}")
 remote_android_extensions = use_extension(
     "@rules_android//bzlmod_extensions:android_extensions.bzl",
     "remote_android_tools_extensions")

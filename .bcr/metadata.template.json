@@ -2,14 +2,16 @@
     "homepage": "https://github.com/bazelbuild/rules_android",
     "maintainers": [
         {
-            "email": "ahumesky@google.com",
-            "github": "ahumesky",
-            "name": "ahumesky"
-        },
-        {
             "email": "tedx@google.com",
             "github": "ted-xie",
-            "name": "tedx"
+            "name": "Ted Xie",
+            "github_user_id": 4371677
+        },
+        {
+            "email": "ahumesky@google.com",
+            "github": "ahumesky",
+            "name": "Alex Humesky",
+            "github_user_id": 8110723
         }
     ],
     "repository": [
