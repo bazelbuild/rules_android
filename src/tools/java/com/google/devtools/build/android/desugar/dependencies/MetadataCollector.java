@@ -15,6 +15,7 @@ package com.google.devtools.build.android.desugar.dependencies;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.devtools.build.android.desugar.proto.DesugarDeps;
 import com.google.devtools.build.android.desugar.proto.DesugarDeps.Dependency;
@@ -22,14 +23,21 @@ import com.google.devtools.build.android.desugar.proto.DesugarDeps.DesugarDepsIn
 import com.google.devtools.build.android.desugar.proto.DesugarDeps.InterfaceDetails;
 import com.google.devtools.build.android.desugar.proto.DesugarDeps.InterfaceWithCompanion;
 import com.google.devtools.build.android.r8.DependencyCollector;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import javax.annotation.Nullable;
 
-/** Dependency collector that emits collected metadata as a {@link DesugarDepsInfo} proto. */
+/**
+ * Dependency collector that emits collected metadata as a {@link DesugarDepsInfo} proto or JSON
+ * payload.
+ */
 public final class MetadataCollector implements DependencyCollector {
 
   private final boolean tolerateMissingDeps;
+  private final boolean emitJson;
 
   private final ArrayList<DesugarDeps.Dependency> assumePresents = new ArrayList<>();
   private final ArrayList<DesugarDeps.Dependency> missingInterfaces = new ArrayList<>();
@@ -39,7 +47,12 @@ public final class MetadataCollector implements DependencyCollector {
       new ArrayList<>();
 
   public MetadataCollector(boolean tolerateMissingDeps) {
+    this(tolerateMissingDeps, /* emitJson= */ false);
+  }
+
+  public MetadataCollector(boolean tolerateMissingDeps, boolean emitJson) {
     this.tolerateMissingDeps = tolerateMissingDeps;
+    this.emitJson = emitJson;
   }
 
   private static boolean isInterfaceCompanionClass(String name) {
@@ -99,9 +112,56 @@ public final class MetadataCollector implements DependencyCollector {
   @Nullable
   public byte[] toByteArray() {
     DesugarDeps.DesugarDepsInfo result = buildInfo();
-    return DesugarDeps.DesugarDepsInfo.getDefaultInstance().equals(result)
-        ? null
-        : result.toByteArray();
+    if (DesugarDeps.DesugarDepsInfo.getDefaultInstance().equals(result)) {
+      return null;
+    }
+    return emitJson ? toJson(result).getBytes(UTF_8) : result.toByteArray();
+  }
+
+  private static String toJson(DesugarDeps.DesugarDepsInfo info) {
+    JsonObject root = new JsonObject();
+    if (info.getAssumePresentCount() > 0) {
+      root.add("assume_present", toJsonDependencies(info.getAssumePresentList()));
+    }
+    if (info.getMissingInterfaceCount() > 0) {
+      root.add("missing_interface", toJsonDependencies(info.getMissingInterfaceList()));
+    }
+    if (info.getInterfaceWithSupertypesCount() > 0) {
+      JsonArray supertypes = new JsonArray();
+      for (DesugarDeps.InterfaceDetails details : info.getInterfaceWithSupertypesList()) {
+        JsonObject entry = new JsonObject();
+        entry.addProperty("origin", details.getOrigin().getBinaryName());
+        JsonArray extended = new JsonArray();
+        for (DesugarDeps.Type type : details.getExtendedInterfaceList()) {
+          extended.add(type.getBinaryName());
+        }
+        entry.add("extended_interface", extended);
+        supertypes.add(entry);
+      }
+      root.add("interface_with_supertypes", supertypes);
+    }
+    if (info.getInterfaceWithCompanionCount() > 0) {
+      JsonArray companions = new JsonArray();
+      for (DesugarDeps.InterfaceWithCompanion companion : info.getInterfaceWithCompanionList()) {
+        JsonObject entry = new JsonObject();
+        entry.addProperty("origin", companion.getOrigin().getBinaryName());
+        entry.addProperty("num_default_methods", companion.getNumDefaultMethods());
+        companions.add(entry);
+      }
+      root.add("interface_with_companion", companions);
+    }
+    return root.toString();
+  }
+
+  private static JsonArray toJsonDependencies(List<DesugarDeps.Dependency> dependencies) {
+    JsonArray array = new JsonArray();
+    for (DesugarDeps.Dependency dep : dependencies) {
+      JsonObject entry = new JsonObject();
+      entry.addProperty("origin", dep.getOrigin().getBinaryName());
+      entry.addProperty("target", dep.getTarget().getBinaryName());
+      array.add(entry);
+    }
+    return array;
   }
 
   private DesugarDeps.DesugarDepsInfo buildInfo() {

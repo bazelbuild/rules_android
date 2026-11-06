@@ -20,6 +20,7 @@ java_library(
         "//src/tools/java/com/google/devtools/build/android/r8:deps_collector_api",
         "//third_party/bazel/src/main/protobuf:desugar_deps_java_proto",
         "@rules_android_maven//:com_google_code_findbugs_jsr305",
+        "@rules_android_maven//:com_google_code_gson_gson",
         "@rules_android_maven//:com_google_guava_guava",
     ],
 )

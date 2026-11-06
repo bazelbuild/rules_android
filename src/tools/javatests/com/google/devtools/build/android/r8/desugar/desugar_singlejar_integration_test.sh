@@ -27,6 +27,7 @@ readonly CLASSES_JAR="$1"; shift
 readonly JUST_K_JAR="$1"; shift
 readonly MISSING_INTERFACE_JAR="$1"; shift
 readonly UNZIP="$1"; shift
+readonly FORMAT="$1"; shift
 
 readonly basic_desugared="${TEST_TMPDIR}/basic_desugared.jar"
 readonly interfaces_desugared="${TEST_TMPDIR}/interfaces_desugared.jar"
@@ -38,6 +39,7 @@ readonly missing_interface_desugared="${TEST_TMPDIR}/missing_interface_desugared
 "$DESUGAR" \
   --bootclasspath_entry "$BOOTCLASSPATH" \
   --emit_dependency_metadata_as_needed \
+  --desugar_deps_format "$FORMAT" \
   -i "$BASIC_JAR" -o "$basic_desugared" \
   -i "$INTERFACES_JAR" -o "$interfaces_desugared" \
   -i "$JUST_K_JAR" -o "$just_k_desugared" \
@@ -47,6 +49,7 @@ readonly missing_interface_desugared="${TEST_TMPDIR}/missing_interface_desugared
   --bootclasspath_entry "$BOOTCLASSPATH" \
   --classpath_entry "$INTERFACES_JAR" \
   --emit_dependency_metadata_as_needed \
+  --desugar_deps_format "$FORMAT" \
   -i "$CLASSES_JAR" -o "$classes_desugared"
 
 for jar in \
@@ -57,6 +60,12 @@ for jar in \
   "$missing_interface_desugared"; do
   "$UNZIP" -l "$jar" META-INF/desugar_deps >/dev/null
 done
+
+if [[ "$FORMAT" == "json" ]]; then
+  # TODO(b/576977305): Enable once the singlejar change is submitted.
+  echo "PASS"
+  exit 0
+fi
 
 # 2. Verify singlejar succeeds on a self-contained desugared jar and strips
 # META-INF/desugar_deps from the output jar.

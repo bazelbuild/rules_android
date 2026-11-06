@@ -21,6 +21,7 @@ java_test(
         ":testdata_basic_desugared_classpath",
         ":testdata_basic_desugared_classpath_with_dependency_metadata",
         ":testdata_basic_desugared_with_dependency_metadata",
+        ":testdata_basic_desugared_with_dependency_metadata_json",
         ":testdata_basic_desugared_with_dependency_metadata_missing_interface",
         ":testdata_basic_double_desugared_with_dependency_metadata",
         ":testdata_basic_sharded_1_with_dependency_metadata.jar",
@@ -31,6 +32,7 @@ java_test(
         "-DDesugarBasicTest.testdata_basic_desugared=$(location :testdata_basic_desugared)",
         "-DDesugarBasicTest.testdata_basic_desugared_classpath=$(location :testdata_basic_desugared_classpath)",
         "-DDesugarBasicTest.testdata_basic_desugared_with_dependency_metadata=$(location :testdata_basic_desugared_with_dependency_metadata)",
+        "-DDesugarBasicTest.testdata_basic_desugared_with_dependency_metadata_json=$(rootpath :testdata_basic_desugared_with_dependency_metadata_json)",
         "-DDesugarBasicTest.testdata_basic_double_desugared_with_dependency_metadata=$(location :testdata_basic_double_desugared_with_dependency_metadata)",
         "-DDesugarBasicTest.testdata_basic_desugared_classpath_with_dependency_metadata=$(location :testdata_basic_desugared_classpath_with_dependency_metadata)",
         "-DDesugarBasicTest.testdata_basic_desugared_with_dependency_metadata_missing_interface=$(location :testdata_basic_desugared_with_dependency_metadata_missing_interface)",
@@ -152,6 +154,25 @@ java_import(
     jars = ["testdata_basic_desugared_with_dependency_metadata.jar"],
 )
 
+genrule(
+    name = "desugar_testdata_basic_with_dependency_metadata_json",
+    srcs = [
+        ":testdata_basic",
+        "//tools/android:bootclasspath",
+    ],
+    outs = ["testdata_basic_desugared_with_dependency_metadata_json.jar"],
+    cmd = "$(execpath //src/tools/java/com/google/devtools/build/android/r8:desugar) " +
+          "-i $(execpath :testdata_basic) -o $@ " +
+          "--bootclasspath_entry $(execpath //tools/android:bootclasspath) " +
+          "--emit_dependency_metadata_as_needed --desugar_deps_format=json",
+    tools = ["//src/tools/java/com/google/devtools/build/android/r8:desugar"],
+)
+
+java_import(
+    name = "testdata_basic_desugared_with_dependency_metadata_json",
+    jars = ["testdata_basic_desugared_with_dependency_metadata_json.jar"],
+)
+
 # We should not output dependency metadata on the second run since we don't need to desugar anything
 genrule(
     name = "double_desugar_testdata_basic_with_dependency_metadata",
@@ -242,6 +263,8 @@ genrule(
     tools = ["//src/tools/java/com/google/devtools/build/android/r8:desugar"],
 )
 
+# TODO(b/576977305): Also test the json format once rules_java is updated to a
+# version with a singlejar that supports it.
 sh_test(
     name = "desugar_integration_test",
     size = "medium",
@@ -256,6 +279,7 @@ sh_test(
         "$(rootpath :testdata_basic_just_k)",
         "$(rootpath :testdata_basic_missing_interface)",
         "$(rootpath //tools/android:unzip)",
+        "proto",
     ],
     data = [
         ":testdata_basic",

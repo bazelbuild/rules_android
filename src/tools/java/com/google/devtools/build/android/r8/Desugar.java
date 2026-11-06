@@ -146,6 +146,11 @@ public class Desugar {
     public boolean emitDependencyMetadata;
 
     @Parameter(
+        names = "--desugar_deps_format",
+        description = "Serialization format for META-INF/desugar_deps ('proto' or 'json').")
+    public String desugarDepsFormat = "proto";
+
+    @Parameter(
         names = "--best_effort_tolerate_missing_deps",
         arity = 1,
         description =
@@ -376,8 +381,9 @@ public class Desugar {
                 .getContextClassLoader()
                 .loadClass(
                     "com.google.devtools.build.android.desugar.dependencies.MetadataCollector")
-                .getConstructor(Boolean.TYPE)
-                .newInstance(options.tolerateMissingDependencies);
+                .getConstructor(Boolean.TYPE, Boolean.TYPE)
+                .newInstance(
+                    options.tolerateMissingDependencies, options.desugarDepsFormat.equals("json"));
       } catch (ReflectiveOperationException | SecurityException e) {
         throw new IllegalStateException("Can't emit desugaring metadata as requested", e);
       }
@@ -680,6 +686,11 @@ public class Desugar {
     if (options.inputJars.isEmpty() && !options.persistentWorker) {
       throw new AssertionError("--input is required when not running as a persistent worker");
     }
+
+    checkArgument(
+        options.desugarDepsFormat.equals("proto") || options.desugarDepsFormat.equals("json"),
+        "Invalid --desugar_deps_format '%s' (expected 'proto' or 'json')",
+        options.desugarDepsFormat);
 
     checkArgument(
         options.inputJars.size() == options.outputJars.size(),

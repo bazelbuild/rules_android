@@ -146,6 +146,7 @@ maven.install(
         "junit:junit:4.13.2",
         "com.beust:jcommander:1.82",
         "com.google.code.findbugs:jsr305:3.0.2",
+        "com.google.code.gson:gson:2.11.0",
         "androidx.databinding:databinding-compiler:8.7.0",
         "org.ow2.asm:asm:9.6",
         "org.ow2.asm:asm-commons:9.6",
