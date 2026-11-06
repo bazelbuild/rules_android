@@ -21,6 +21,17 @@ visibility(PROJECT_VISIBILITY)
 ANDROID_TOOLCHAIN_TYPE = Label("//toolchains/android:toolchain_type")
 ANDROID_SDK_TOOLCHAIN_TYPE = Label("//toolchains/android_sdk:toolchain_type")
 
+ANDROID_SDK_AND_JAVA_EXEC_GROUP = "android_sdk_and_java"
+
+ANDROID_SDK_AND_JAVA_EXEC_GROUPS = {
+    ANDROID_SDK_AND_JAVA_EXEC_GROUP: exec_group(
+        toolchains = [
+            ANDROID_SDK_TOOLCHAIN_TYPE,
+            "@bazel_tools//tools/jdk:toolchain_type",
+        ],
+    ),
+}
+
 _CUU = "\033[A"
 _EL = "\033[K"
 _DEFAULT = "\033[0m"
