@@ -118,10 +118,15 @@ def _filter_zip_exclude(
 
 def _create_signer_properties(ctx, oldest_key):
     properties = ctx.actions.declare_file("%s/keystore.properties" % ctx.label.name)
-    ctx.actions.expand_template(
-        template = ctx.file._bundle_keystore_properties,
+    ctx.actions.write(
         output = properties,
-        substitutions = {"%oldest_key%": oldest_key.short_path},
+        content = "\n".join([
+            "ks=" + oldest_key.short_path,
+            "ks-key-alias=androiddebugkey",
+            "ks-pass=pass:android",
+            "key-pass=pass:android",
+            "",
+        ]),
     )
     return properties
 
