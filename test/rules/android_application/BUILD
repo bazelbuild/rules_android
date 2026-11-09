@@ -19,6 +19,7 @@ android_application(
     deps = [],
     manifest = "AndroidManifest.xml",
     manifest_values = {"applicationId": "com.rotation"},
+    tags = ["manual"],
 )
 
 key_rotation_test(
