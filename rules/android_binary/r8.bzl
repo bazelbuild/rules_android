@@ -93,6 +93,7 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     # and META-INF/com.android.tools/) so they are passed to R8. Each JAR is processed
     # independently to avoid META-INF clobbering from the deploy JAR merge. R8's
     # ExtractR8Rules selects each JAR's rules the way R8 does for its own inputs.
+    r8_input_jar = deploy_jar
     if _flags.get(ctx).r8_extract_embedded_proguard_specs:
         jar_embedded_proguard = ctx.actions.declare_file(ctx.label.name + "_jar_embedded_proguard.pro")
         r8_jar = get_android_toolchain(ctx).r8.files_to_run.executable
@@ -118,6 +119,17 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
         )
         proguard_specs = proguard_specs + [jar_embedded_proguard]
 
+        # R8 would also select embedded rules from the merged deploy jar, applying the
+        # extracted rules a second time.
+        r8_input_jar = ctx.actions.declare_file(ctx.label.name + "_deploy_without_embedded_rules.jar")
+        common.filter_zip_exclude(
+            ctx,
+            output = r8_input_jar,
+            input = deploy_jar,
+            filters = ["^META-INF/proguard/", "^META-INF/com\\.android\\.tools/"],
+            compression_mode = "DONT_CARE",
+        )
+
     # Get min SDK version from attribute, manifest_values, or depot floor
     effective_min_sdk = min_sdk_version.DEPOT_FLOOR
     min_sdk_attr = getattr(ctx.attr, "min_sdk_version", 0)
@@ -141,11 +153,11 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     args.add_all(proguard_specs, before_each = "--pg-conf")
     args.add("--lib", android_jar)
     args.add_all(neverlink_jars, before_each = "--lib")
-    args.add(deploy_jar)  # jar to optimize + desugar + dex
+    args.add(r8_input_jar)  # jar to optimize + desugar + dex
     args.add("--pg-map-output", proguard_mappings_output_file)
     args.add("--build-metadata-output", build_metadata_output)
 
-    r8_inputs = [android_jar, deploy_jar] + proguard_specs
+    r8_inputs = [android_jar, r8_input_jar] + proguard_specs
     if read_possibly_native_flag(ctx, "desugar_java8_libs") and desugared_lib_config:
         args.add("--desugared-lib", desugared_lib_config)
         r8_inputs.append(desugared_lib_config)
