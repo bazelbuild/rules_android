@@ -19,29 +19,24 @@ from __future__ import division
 from __future__ import print_function
 
 import io
-import re
 import zipfile
 
 
-# The directories R8 selects rules from by its own version: r8, r8-from-<X>,
-# r8-upto-<Y> and r8-from-<X>-upto-<Y>.
-_R8_RULES = re.compile(r"META-INF/com\.android\.tools/r8(?:/|-from-|-upto-)[^/]*")
+_COM_ANDROID_TOOLS = "META-INF/com.android.tools/"
 
 
-def _HasR8Rules(jar):
-  """Whether a JAR has R8-targeted rules under META-INF/com.android.tools/."""
-  return any(
-      _R8_RULES.match(entry) and not entry.endswith("/")
-      for entry in jar.namelist()
-  )
+def _HasComAndroidTools(jar):
+  """Whether a JAR has a META-INF/com.android.tools/ directory."""
+  return any(entry.startswith(_COM_ANDROID_TOOLS) for entry in jar.namelist())
 
 
 def ExtractEmbeddedProguardFromAar(aar, output):
   """Extract proguard specs from an AAR file.
 
-  Reads proguard.txt from the AAR root. Like AGP, skips it if classes.jar has
-  R8-targeted rules. R8 selects those rules from classes.jar itself, so they
-  are not extracted here.
+  Reads proguard.txt from the AAR root. Like AGP, skips it if classes.jar has a
+  META-INF/com.android.tools/ directory, even if nothing in it matches the
+  current R8. R8 selects rules from classes.jar itself, so they are not
+  extracted here.
 
   Args:
     aar: The AAR file to extract from.
@@ -52,7 +47,7 @@ def ExtractEmbeddedProguardFromAar(aar, output):
 
   if classes_jar in aar.namelist():
     with zipfile.ZipFile(io.BytesIO(aar.read(classes_jar)), "r") as jar:
-      if _HasR8Rules(jar):
+      if _HasComAndroidTools(jar):
         return
 
   if proguard_spec in aar.namelist():

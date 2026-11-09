@@ -106,6 +106,6 @@ def define_flags():
         name = "aar_import_extract_r8_rules",
         default = False,
         description = "When enabled together with r8_extract_embedded_proguard_specs, aar_import " +
-                      "skips proguard.txt for AARs whose classes.jar has R8-targeted rules under " +
-                      "META-INF/com.android.tools/, which R8 then selects from classes.jar.",
+                      "skips proguard.txt for AARs whose classes.jar has META-INF/com.android.tools/, " +
+                      "like AGP. R8 then selects rules from classes.jar.",
     )

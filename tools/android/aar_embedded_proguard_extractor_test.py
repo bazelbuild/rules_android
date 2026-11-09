@@ -113,9 +113,10 @@ class AarEmbeddedProguardExtractorWithR8RulesTest(unittest.TestCase):
         }),
     )
 
-  def testR8RulesReplaceProguardTxt(self):
+  def testComAndroidToolsReplacesProguardTxt(self):
     for directory in ("r8", "r8-from-8.0.0", "r8-upto-8.0.0",
-                      "r8-from-8.0.0-upto-9.0.0"):
+                      "r8-from-8.0.0-upto-9.0.0", "r8-from-99.0.0",
+                      "proguard"):
       self.assertEqual(
           b"",
           self._extract(
@@ -125,23 +126,11 @@ class AarEmbeddedProguardExtractorWithR8RulesTest(unittest.TestCase):
           directory,
       )
 
-  def testProguardTargetedRulesKeepProguardTxt(self):
+  def testEmptyComAndroidToolsReplacesProguardTxt(self):
     self.assertEqual(
-        b"-keep class E",
+        b"",
         self._extract(
-            {"META-INF/com.android.tools/proguard/rules.pro": "-keep class D"},
-            proguard_txt="-keep class E",
-        ),
-    )
-
-  def testR8DirectoryEntriesKeepProguardTxt(self):
-    self.assertEqual(
-        b"-keep class E",
-        self._extract(
-            {
-                "META-INF/com.android.tools/": "",
-                "META-INF/com.android.tools/r8/": "",
-            },
+            {"META-INF/com.android.tools/": ""},
             proguard_txt="-keep class E",
         ),
     )
