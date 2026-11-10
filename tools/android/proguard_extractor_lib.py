@@ -22,49 +22,21 @@ import io
 import zipfile
 
 
-def ExtractR8Rules(jar, output):
-  """Extract R8 rules from META-INF/com.android.tools/ inside a JAR.
-
-  Handles subdirectories like r8-from-X-upto-Y/. All matching files are
-  concatenated into the output, sorted by path for determinism.
-
-  Args:
-    jar: The JAR file to extract from.
-    output: The output file to write to.
-  """
-  meta_inf_prefix = "META-INF/com.android.tools/"
-  for entry in sorted(jar.namelist()):
-    if entry.startswith(meta_inf_prefix) and not entry.endswith("/"):
-      output.write(b"\n")
-      output.write(jar.read(entry))
+_COM_ANDROID_TOOLS = "META-INF/com.android.tools/"
 
 
-def ExtractEmbeddedProguardFromJar(jar, output):
-  """Extract proguard specs from a JAR file.
-
-  Reads both legacy META-INF/proguard/ and R8-targeted
-  META-INF/com.android.tools/ entries.
-
-  Args:
-    jar: The JAR file to extract from.
-    output: The output file to write to.
-  """
-  legacy_prefix = "META-INF/proguard/"
-  r8_prefix = "META-INF/com.android.tools/"
-
-  for entry in sorted(jar.namelist()):
-    if not entry.endswith("/") and (
-        entry.startswith(legacy_prefix) or entry.startswith(r8_prefix)
-    ):
-      output.write(b"\n")
-      output.write(jar.read(entry))
+def _HasComAndroidTools(jar):
+  """Whether a JAR has a META-INF/com.android.tools/ directory."""
+  return any(entry.startswith(_COM_ANDROID_TOOLS) for entry in jar.namelist())
 
 
 def ExtractEmbeddedProguardFromAar(aar, output):
   """Extract proguard specs from an AAR file.
 
-  Reads proguard.txt from the AAR root, and also extracts R8 rules
-  from META-INF/com.android.tools/ inside classes.jar.
+  Reads proguard.txt from the AAR root. Like AGP, skips it if classes.jar has a
+  META-INF/com.android.tools/ directory, even if nothing in it matches the
+  current R8. R8 selects rules from classes.jar itself, so they are not
+  extracted here.
 
   Args:
     aar: The AAR file to extract from.
@@ -73,13 +45,13 @@ def ExtractEmbeddedProguardFromAar(aar, output):
   proguard_spec = "proguard.txt"
   classes_jar = "classes.jar"
 
-  if proguard_spec in aar.namelist():
-    output.write(aar.read(proguard_spec))
-
-  # For AARs, META-INF/com.android.tools/ lives inside classes.jar
   if classes_jar in aar.namelist():
     with zipfile.ZipFile(io.BytesIO(aar.read(classes_jar)), "r") as jar:
-      ExtractR8Rules(jar, output)
+      if _HasComAndroidTools(jar):
+        return
+
+  if proguard_spec in aar.namelist():
+    output.write(aar.read(proguard_spec))
 
 
 def ExtractEmbeddedProguardFromAarLegacy(aar, output):

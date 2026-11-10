@@ -81,3 +81,33 @@ def r8_implicit_outputs_test_impl(ctx):
 r8_implicit_outputs_test = analysistest.make(
     impl = r8_implicit_outputs_test_impl,
 )
+
+def _r8_program_jar(env):
+    actions = {a.mnemonic: a for a in analysistest.target_actions(env)}
+    r8_action = actions.get("AndroidR8", None)
+    if not r8_action:
+        analysistest.fail("R8 action not found")
+    return [a for a in r8_action.argv if a.endswith(".jar") and not a.endswith("android.jar") and "neverlink" not in a][-1], actions
+
+def r8_embedded_rules_not_filtered_test_impl(ctx):
+    """Tests that R8 reads the deploy jar directly when embedded rules aren't extracted.
+
+    Args:
+        ctx: The ctx.
+
+    Returns:
+        The providers.
+    """
+    env = analysistest.begin(ctx)
+    program_jar, actions = _r8_program_jar(env)
+    asserts.false(env, "FilterZipExclude" in actions, "Unexpected FilterZipExclude action")
+    asserts.true(
+        env,
+        program_jar.endswith("_deploy.jar"),
+        "R8 program input should be the deploy jar, got " + program_jar,
+    )
+    return analysistest.end(env)
+
+r8_embedded_rules_not_filtered_test = analysistest.make(
+    impl = r8_embedded_rules_not_filtered_test_impl,
+)

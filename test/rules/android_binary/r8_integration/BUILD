@@ -6,7 +6,12 @@ load(
 )
 load("@rules_python//python:py_test.bzl", "py_test")
 load("@rules_shell//shell:sh_library.bzl", "sh_library")
-load(":test.bzl", "r8_implicit_outputs_test", "r8_neverlink_deps_test")
+load(
+    ":test.bzl",
+    "r8_embedded_rules_not_filtered_test",
+    "r8_implicit_outputs_test",
+    "r8_neverlink_deps_test",
+)
 
 py_test(
     name = "r8_integration_test",
@@ -28,6 +33,11 @@ r8_implicit_outputs_test(
 
 r8_neverlink_deps_test(
     name = "r8_neverlink_deps_test",
+    target_under_test = "//test/rules/android_binary/r8_integration/java/com/neverlink:android_binary_with_neverlink_deps",
+)
+
+r8_embedded_rules_not_filtered_test(
+    name = "r8_embedded_rules_not_filtered_test",
     target_under_test = "//test/rules/android_binary/r8_integration/java/com/neverlink:android_binary_with_neverlink_deps",
 )
 
