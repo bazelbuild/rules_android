@@ -18,6 +18,7 @@ load("//rules/flags:flags.bzl", "flags")
 load(":deploy_info.bzl", "make_deploy_info_pb")
 load(":providers.bzl", "MIAppLaunchInfo")
 load(":utils.bzl", "utils")
+load("//rules:utils.bzl", "get_android_sdk")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -62,6 +63,7 @@ def _make_deploy_script(
 
 def _make_app_runner(
         ctx,
+        adb,
         manifest_package_name_path,
         out_launcher,
         out_launcher_flags,
@@ -86,6 +88,7 @@ def _make_app_runner(
     args["java_home"] = utils.host_jvm_path(ctx)
 
     args["studio_deployer"] = getattr(ctx.file._studio_deployer, path_type)
+    args["adb"] = getattr(adb, path_type)
     args["use_adb_root"] = str(use_adb_root).lower()
 
     if test_data:
@@ -132,12 +135,14 @@ def make_direct_launcher(
         A list of files required for runtime common for both running binary and test.
     """
     runfiles = []
+    adb = get_android_sdk(ctx.rule).adb.executable
 
     launcher_flags = utils.isolated_declare_file(ctx, "launcher.flag", sibling = launcher)
 
     runfiles.extend([launcher, launcher_flags])
 
     runfiles.append(ctx.file._studio_deployer)
+    runfiles.append(adb)
     if getattr(mi_app_info, "merged_manifest", None):
         runfiles.append(mi_app_info.merged_manifest)
     runfiles.append(mi_app_info.manifest_package_name)
@@ -166,6 +171,7 @@ def make_direct_launcher(
 
     runfiles.extend(_make_app_runner(
         ctx,
+        adb,
         mi_app_info.manifest_package_name,
         launcher,
         launcher_flags,
