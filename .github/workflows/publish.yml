@@ -20,12 +20,12 @@ on:
         type: string
 jobs:
   publish:
-    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v0.2.2
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.7.0
     with:
       tag_name: ${{ inputs.tag_name }}
       # GitHub repository which is a fork of the upstream where the Pull Request will be opened.
-      registry_fork: bazel-io/bazel-central-registry
-      draft: false
+      registry_fork: ${{ github.repository_owner == 'bazelbuild' && 'bazel-io/bazel-central-registry' || format('{0}/bazel-central-registry', github.repository_owner) }}
+      draft: ${{ github.repository_owner != 'bazelbuild' }}
     permissions:
       attestations: write
       contents: write
