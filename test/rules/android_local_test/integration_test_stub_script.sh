@@ -15,10 +15,10 @@
 
 exit_with_error() {
   echo "Expected to find JAVABIN=%expected_executable% but was"
-  echo $reference
+  echo "$reference"
   exit 1
 }
 
 executable="%executable%"
-reference=`grep -o '^\W*JAVABIN=.*' $executable`
-grep -c "^\W*JAVABIN=%expected_executable%$" $executable >> /dev/null || exit_with_error
+reference=$(grep -o '^\W*JAVABIN=.*' "$executable")
+grep -Eq "^\W*JAVABIN=%expected_executable%$" "$executable" || exit_with_error
