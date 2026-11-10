@@ -368,7 +368,7 @@ def _process_jars(
         deps = r_java_info + java_infos,  # TODO(djwhang): Exports are not deps.
         exports =
             (r_java_info if _acls.in_aar_import_exports_r_java(str(ctx.label)) else []) +
-            java_infos,  # TODO(djwhang): Deps are not exports.
+            (java_infos if _acls.in_aar_import_exports_deps(str(ctx.label)) else exports),
         # TODO(djwhang): AarImportTest is not expecting jdeps, enable or remove it completely
         # jdeps = jdeps_artifact,
     )
