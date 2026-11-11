@@ -576,6 +576,9 @@ def finalize(
       The list of providers the android_binary rule should return.
     """
     output_groups["_validation"] = depset(validation_outputs)
+    transitive_validations = utils.collect_transitive_validations(ctx)
+    if transitive_validations != None:
+        output_groups["_validation_transitive"] = transitive_validations
 
     output_groups["_hidden_top_level_INTERNAL_"] = depset(
         direct = [

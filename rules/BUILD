@@ -50,6 +50,7 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":add_constraints_bzl",
+        ":bazel_compat_bzl",
         ":visibility_bzl",
         "//flags:bzl",
         "//providers:providers_bzl",
@@ -68,6 +69,16 @@ bzl_library(
     visibility = ["//:__subpackages__"],
     deps = [
         ":visibility_bzl",
+    ],
+)
+
+bzl_library(
+    name = "bazel_compat_bzl",
+    srcs = ["bazel_compat.bzl"],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        ":visibility_bzl",
+        "@bazel_features//:features",
     ],
 )
 
@@ -155,6 +166,7 @@ bzl_library(
     srcs = ["utils.bzl"],
     visibility = ["//:__subpackages__"],
     deps = [
+        ":bazel_compat_bzl",
         ":visibility_bzl",
         "//providers:providers_bzl",
     ],

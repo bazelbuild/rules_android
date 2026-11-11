@@ -64,6 +64,13 @@ def _impl(ctx):
         toolchain = None,
     )
 
+    output_groups = dict(
+        _validation = depset([validation]),
+    )
+    transitive_validations = utils.collect_transitive_validations(ctx)
+    if transitive_validations != None:
+        output_groups["_validation_transitive"] = transitive_validations
+
     return [
         AndroidFeatureModuleInfo(
             binary = ctx.attr.binary,
@@ -74,7 +81,7 @@ def _impl(ctx):
             manifest = ctx.file.manifest,
             is_asset_pack = ctx.attr.is_asset_pack,
         ),
-        OutputGroupInfo(_validation = depset([validation])),
+        OutputGroupInfo(**output_groups),
     ]
 
 android_feature_module = rule(

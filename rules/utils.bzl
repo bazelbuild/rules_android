@@ -14,6 +14,7 @@
 """Utilities for the Android rules."""
 
 load("//providers:providers.bzl", "FailureInfo")
+load("//rules:bazel_compat.bzl", "supports_transitive_validation_override")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 
 visibility(PROJECT_VISIBILITY)
@@ -307,6 +308,82 @@ def _get_primary_split(ctx, attr_name, default = []):
         return split[platform.name]
     return split[sorted(split.keys())[0]]
 
+# Mirrors RuleConfiguredTargetBuilder.collectTransitiveValidationOutputGroups
+# and the list in java_binary_impl.bzl. Starlark cannot query an attribute's
+# cfg or skip_validations setting, so any new public cfg = "exec" or
+# skip_validations label attribute on android_binary or android_feature_module
+# (including Google-internal dev/ and release/ attrs) must be added here to
+# avoid propagating tool validations that Blaze drops by default.
+_VALIDATION_IGNORED_ATTRS = (
+    "applicable_licenses",
+    "compatible_with",
+    "debug_key",
+    "exec_compatible_with",
+    "exec_group_compatible_with",
+    "keystore",
+    "package_metadata",
+    "plugins",
+    "restricted_to",
+    "signing_keys",
+    "signing_lineage_file",
+    "target_compatible_with",
+)
+
+def _has_multi_split(ctx):
+    # Checks whether any public split attribute (expected to find
+    # android_binary.deps or android_feature_module.library; private split
+    # attributes such as _cc_toolchain_split are skipped) has more than one
+    # split branch.
+    split_attr = getattr(ctx, "split_attr", None)
+    if not split_attr:
+        return False
+    for attr_name in dir(split_attr):
+        if attr_name.startswith("_") or attr_name in _VALIDATION_IGNORED_ATTRS:
+            continue
+        split = getattr(split_attr, attr_name, None)
+        if split and len(split) > 1:
+            return True
+    return False
+
+def _get_validations_from_target(target):
+    if (
+        type(target) == "Target" and
+        OutputGroupInfo in target and
+        "_validation" in target[OutputGroupInfo]
+    ):
+        return target[OutputGroupInfo]["_validation"]
+    return None
+
+def _collect_transitive_validations(ctx):
+    """Collects transitive _validation output groups, using the primary split for split attrs.
+
+    Args:
+      ctx: The rule context.
+
+    Returns:
+      A depset of transitive validation artifacts, or None when native propagation suffices.
+    """
+
+    # TODO(b/580969965): Remove supports_transitive_validation_override() when
+    # Bazel 7 support is dropped in December.
+    if not _has_multi_split(ctx) or not supports_transitive_validation_override():
+        return None
+    transitive = []
+    for attr_name in dir(ctx.attr):
+        if attr_name.startswith("_") or attr_name in _VALIDATION_IGNORED_ATTRS:
+            continue
+        val = _get_primary_split(ctx, attr_name, default = None)
+        if type(val) == "list":
+            for target in val:
+                v = _get_validations_from_target(target)
+                if v:
+                    transitive.append(v)
+        elif val != None:
+            v = _get_validations_from_target(val)
+            if v:
+                transitive.append(v)
+    return depset(transitive = transitive)
+
 def _get_runfiles(ctx, attrs):
     all_runfiles = []
     for attr in attrs:
@@ -472,6 +549,7 @@ compilation_mode = struct(
 utils = struct(
     check_for_failures = _check_for_failures,
     collect_providers = _collect_providers,
+    collect_transitive_validations = _collect_transitive_validations,
     copy_file = _copy_file,
     copy_dir = _copy_dir,
     expand_make_vars = _expand_make_vars,
