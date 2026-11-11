@@ -299,7 +299,7 @@ def _get_primary_split(ctx, attr_name, default = []):
     """
     split_attr = getattr(ctx, "split_attr", None)
     split = getattr(split_attr, attr_name, None) if split_attr else None
-    if split == None:
+    if type(split) != "dict":
         return getattr(ctx.attr, attr_name, default)
     if not split:
         return default
@@ -327,6 +327,8 @@ _VALIDATION_IGNORED_ATTRS = (
     "signing_keys",
     "signing_lineage_file",
     "target_compatible_with",
+    "to_json",
+    "to_proto",
 )
 
 def _has_multi_split(ctx):
@@ -341,7 +343,7 @@ def _has_multi_split(ctx):
         if attr_name.startswith("_") or attr_name in _VALIDATION_IGNORED_ATTRS:
             continue
         split = getattr(split_attr, attr_name, None)
-        if split and len(split) > 1:
+        if type(split) == "dict" and len(split) > 1:
             return True
     return False
 
@@ -366,7 +368,7 @@ def _collect_transitive_validations(ctx):
 
     # TODO(b/580969965): Remove supports_transitive_validation_override() when
     # Bazel 7 support is dropped in December.
-    if not _has_multi_split(ctx) or not supports_transitive_validation_override():
+    if not supports_transitive_validation_override() or not _has_multi_split(ctx):
         return None
     transitive = []
     for attr_name in dir(ctx.attr):
@@ -578,4 +580,5 @@ log = struct(
 
 testing = struct(
     expand_var = _expand_var,
+    has_multi_split = _has_multi_split,
 )
