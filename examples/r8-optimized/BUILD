@@ -9,8 +9,9 @@ android_binary(
     custom_package = "com.r8app",
     manifest = "//java/com/r8app:AndroidManifest.xml",
     proguard_generate_mapping = True,
+    # Default Android optimization rules (proguard-android-optimize.txt) are
+    # automatically included when proguard_specs is non-empty.
     proguard_specs = [
-        "proguard-android-optimize.txt",
         "proguard-rules.pro",
     ],
     shrink_resources = True,

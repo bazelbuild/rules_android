@@ -54,7 +54,10 @@ bazel mobile-install //:r8_app
 
 ## Configuration Files
 
-- **`BUILD`**: Defines the `android_binary` (`r8_app`) and `android_application` (`r8_app_bundle`) targets with `proguard_specs` and `shrink_resources = True`.
+-   **`BUILD`**: Defines the `android_binary` (`r8_app`) and
+    `android_application` (`r8_app_bundle`) targets with `proguard_specs` and
+    `shrink_resources = True`. Default Android optimization rules
+    (`proguard-android-optimize.txt`) are automatically supplied by
+    `rules_android` when `proguard_specs` is non-empty.
 - **`proguard-rules.pro`**: App-specific keep rules for preserving entry points like `MainActivity`.
-- **`proguard-android-optimize.txt`**: Default Android optimization rules for R8.
 - **`.bazelrc`**: Flags and settings needed to build the app with `rules_android`.

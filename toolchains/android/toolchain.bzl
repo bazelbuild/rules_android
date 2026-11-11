@@ -129,6 +129,12 @@ _ATTRS = dict(
         default = "//tools/android:databinding_exec",
         executable = True,
     ),
+    default_proguard_specs = attr.label_list(
+        allow_files = True,
+        default = [
+            "//rules:proguard-android-optimize.txt",
+        ],
+    ),
     desugar = attr.label(
         cfg = "exec",
         default = Label("//tools/android:desugar_java8"),

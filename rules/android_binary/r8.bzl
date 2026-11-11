@@ -86,7 +86,15 @@ def process_r8(ctx, validation_ctx, jvm_ctx, packaged_resources_ctx, build_info_
     keep_radius = ctx.actions.declare_file(ctx.label.name + "_keep_radius.pb")
 
     android_jar = get_android_sdk(ctx).android_jar
-    proguard_specs = proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
+    default_proguard_specs = [
+        f
+        for t in getattr(get_android_toolchain(ctx), "default_proguard_specs", [])
+        for f in t.files.to_list()
+    ]
+    proguard_specs = (
+        default_proguard_specs +
+        proguard.get_proguard_specs(ctx, packaged_resources_ctx.resource_proguard_config)
+    )
     desugared_lib_config = ctx.file._desugared_lib_config
 
     # Optionally extract proguard specs embedded in runtime JARs (META-INF/proguard/

@@ -4,6 +4,7 @@ load("@rules_java//java:defs.bzl", "java_library")
 
 exports_files([
     "data_binding_annotation_template.txt",
+    "proguard-android-optimize.txt",
     "res_v3_dummy_AndroidManifest.xml",
     "res_v3_dummy_R.txt",
     "robolectric_properties_template.txt",
