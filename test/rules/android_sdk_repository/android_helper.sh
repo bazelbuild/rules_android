@@ -75,6 +75,7 @@ bazel_dep(name = "rules_java", version = "9.3.0")
 bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "rules_shell", version = "0.6.1")
 bazel_dep(name = "bazel_skylib", version = "1.8.1")
+bazel_dep(name = "bazel_features", version = "1.48.1")
 
 rules_java_toolchains = use_extension("@rules_java//java:extensions.bzl", "toolchains")
 use_repo(rules_java_toolchains, "remote_java_tools")
