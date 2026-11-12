@@ -501,6 +501,7 @@ def _optimizing_dex(
         outputs = [output, globals_output],
         mnemonic = "ShardedOptimizingDex",
         progress_message = "Optimized dexing %{input} with applicable dexopts " + str(incremental_dexopts),
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = toolchain_type,
     )
 
@@ -587,6 +588,7 @@ def _dex_merge(
         outputs = [output],
         mnemonic = "DexMerger",
         progress_message = "Assembling dex files into %{output}",
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = toolchain_type,
     )
 
