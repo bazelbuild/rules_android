@@ -61,10 +61,11 @@ for jar in \
   "$UNZIP" -l "$jar" META-INF/desugar_deps >/dev/null
 done
 
+desugar_deps_format_flag=""
 if [[ "$FORMAT" == "json" ]]; then
-  # TODO(b/576977305): Enable once the singlejar change is submitted.
-  echo "PASS"
-  exit 0
+  # TODO(b/576977305): Always pass --desugar_deps_format once prebuilt and OSS
+  # singlejar binaries support the flag.
+  desugar_deps_format_flag="--desugar_deps_format $FORMAT"
 fi
 
 # 2. Verify singlejar succeeds on a self-contained desugared jar and strips
@@ -72,6 +73,7 @@ fi
 readonly basic_out="${TEST_TMPDIR}/basic_out.jar"
 "$SINGLEJAR" \
   --check_desugar_deps \
+  $desugar_deps_format_flag \
   --output "$basic_out" \
   --sources "$basic_desugared"
 if "$UNZIP" -l "$basic_out" META-INF/desugar_deps >/dev/null 2>&1; then
@@ -84,6 +86,7 @@ fi
 readonly combined_out="${TEST_TMPDIR}/combined_out.jar"
 "$SINGLEJAR" \
   --check_desugar_deps \
+  $desugar_deps_format_flag \
   --output "$combined_out" \
   --sources "$classes_desugared" "$interfaces_desugared"
 
@@ -92,6 +95,7 @@ readonly combined_out="${TEST_TMPDIR}/combined_out.jar"
 readonly missing_interface_alone_out="${TEST_TMPDIR}/missing_interface_alone_out.jar"
 "$SINGLEJAR" \
   --check_desugar_deps \
+  $desugar_deps_format_flag \
   --output "$missing_interface_alone_out" \
   --sources "$missing_interface_desugared"
 
@@ -101,6 +105,7 @@ readonly missing_companion_out="${TEST_TMPDIR}/missing_companion_out.jar"
 readonly missing_companion_err="${TEST_TMPDIR}/missing_companion.err"
 if "$SINGLEJAR" \
   --check_desugar_deps \
+  $desugar_deps_format_flag \
   --output "$missing_companion_out" \
   --sources "$classes_desugared" 2>"$missing_companion_err"; then
   echo "Expected singlejar to fail when companion classes are missing" >&2
@@ -114,6 +119,7 @@ readonly missing_interface_violation_out="${TEST_TMPDIR}/missing_interface_viola
 readonly missing_interface_err="${TEST_TMPDIR}/missing_interface.err"
 if "$SINGLEJAR" \
   --check_desugar_deps \
+  $desugar_deps_format_flag \
   --output "$missing_interface_violation_out" \
   --sources "$missing_interface_desugared" "$just_k_desugared" 2>"$missing_interface_err"; then
   echo "Expected singlejar to fail when an interface with default methods was missing from the desugar classpath" >&2
