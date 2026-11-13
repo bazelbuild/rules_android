@@ -463,6 +463,10 @@ def _collect_proguard(
         transitive_proguard_specs.append(p.specs)
     return ProguardSpecInfo(depset([out_proguard], transitive = transitive_proguard_specs))
 
+def _is_external_target(label):
+    fqn = str(label)
+    return fqn.startswith("@") and not fqn.startswith("@//") and not fqn.startswith("@@//")
+
 def impl(ctx):
     """The rule implementation.
 
@@ -515,7 +519,10 @@ def impl(ctx):
         r_java = resources_ctx.r_java,
         exports = _utils.collect_providers(JavaInfo, ctx.attr.exports),
         enable_desugar_java8 = read_possibly_native_flag(ctx, "desugar_for_android"),
-        enable_imports_deps_check = INCOMPLETE_DEPS_TAG not in ctx.attr.tags,
+        enable_imports_deps_check = (
+            not _is_external_target(ctx.label) and
+            INCOMPLETE_DEPS_TAG not in ctx.attr.tags
+        ),
         aar_embedded_jars_extractor_tool =
             _get_android_toolchain(ctx).aar_embedded_jars_extractor.files_to_run,
         bootclasspath =
