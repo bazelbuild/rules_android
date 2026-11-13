@@ -19,6 +19,7 @@ import (
 	"context"
 	"flag"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -114,6 +115,14 @@ func main() {
 	ctx := context.Background()
 
 	flag.Parse()
+
+	if *adbPath != "" && filepath.Base(*adbPath) != *adbPath {
+		var err error
+		*adbPath, err = filepath.Abs(*adbPath)
+		if err != nil {
+			glog.Exitf("failed to resolve --adb path: %v", err)
+		}
+	}
 
 	pprint.Info("Deploying using OSS mobile-install!")
 
