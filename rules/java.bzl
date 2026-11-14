@@ -484,6 +484,13 @@ def _run(
     else:  # inputs is a depset
         args["inputs"] = depset(direct = [jar], transitive = [inputs, java_runtime.files])
 
+    # tools can be a list or a depset
+    tools = args.get("tools", default = [])
+    if type(tools) == type([]):
+        args["tools"] = tools + [jar, java_runtime.files]
+    else:  # tools is a depset
+        args["tools"] = [tools, jar, java_runtime.files]
+
     jar_args = ctx.actions.args()
     jar_args.add("-jar", jar)
 
