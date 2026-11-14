@@ -433,7 +433,8 @@ def _singlejar(
 
 def _run(
         ctx,
-        host_javabase,
+        host_javabase = None,
+        java_runtime = None,
         jvm_flags = [],
         mnemonic = None,
         supports_workers = False,
@@ -445,6 +446,7 @@ def _run(
     Args:
       ctx: The context.
       host_javabase: Target. The host_javabase.
+      java_runtime: JavaRuntimeInfo. The Java runtime to use instead of host_javabase.
       jvm_flags: Additional arguments to the JVM itself.
       mnemonic: A description of the action being executed.
       supports_workers: This action is worker-compatible (enabled with --strategy=MyAction=worker).
@@ -456,8 +458,10 @@ def _run(
     if type(ctx) != "ctx":
         fail("Expected type ctx for argument ctx, got %s" % type(ctx))
 
-    if type(host_javabase) != "Target":
-        fail("Expected type Target for argument host_javabase, got %s" % type(host_javabase))
+    if java_runtime == None:
+        if type(host_javabase) != "Target":
+            fail("Expected type Target for argument host_javabase, got %s" % type(host_javabase))
+        java_runtime = host_javabase[java_common.JavaRuntimeInfo]
 
     # Create a mutable copy of the exec requirements dict
     execution_requirements = dict(execution_requirements)
@@ -473,9 +477,9 @@ def _run(
     elif type(jar) != "File":
         fail("Expected type File or FilesToRunProvider for argument executable, got %s" % type(jar))
 
-    java_runtime = host_javabase[java_common.JavaRuntimeInfo]
     args["executable"] = java_runtime.java_executable_exec_path
-    args["toolchain"] = "@bazel_tools//tools/jdk:toolchain_type"
+    if "exec_group" not in args:
+        args["toolchain"] = "@bazel_tools//tools/jdk:toolchain_type"
 
     # inputs can be a list or a depset of File
     inputs = args.get("inputs", default = [])

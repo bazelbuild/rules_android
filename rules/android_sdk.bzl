@@ -13,6 +13,7 @@
 # limitations under the License.
 """Bazel rule for Android sdk."""
 
+load("@platforms//host:constraints.bzl", "HOST_CONSTRAINTS")
 load("//providers:providers.bzl", "AndroidSdkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":attrs.bzl", "ANDROID_SDK_ATTRS")
@@ -50,6 +51,7 @@ def _impl(ctx):
 android_sdk = rule(
     attrs = ANDROID_SDK_ATTRS,
     implementation = _impl,
+    exec_compatible_with = HOST_CONSTRAINTS,
     fragments = ["java"],
     provides = [AndroidSdkInfo],
 )

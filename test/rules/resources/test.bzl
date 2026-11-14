@@ -21,6 +21,7 @@ load("//rules:java.bzl", _java = "java")
 load("//rules:resources.bzl", _resources = "resources", _resources_testing = "testing")
 load(
     "//rules:utils.bzl",
+    "ANDROID_SDK_AND_JAVA_EXEC_GROUPS",
     "ANDROID_SDK_TOOLCHAIN_TYPE",
     "get_android_sdk",
     "get_android_toolchain",
@@ -134,6 +135,7 @@ starlark_process = rule(
         use_xsltproc = attr.bool(default = True),
         use_instrument_xslt = attr.bool(default = True),
     ),
+    exec_groups = ANDROID_SDK_AND_JAVA_EXEC_GROUPS,
     toolchains = [
         "//toolchains/android:toolchain_type",
         "@bazel_tools//tools/jdk:toolchain_type",
@@ -382,6 +384,7 @@ resources_package = rule(
         ),
         _wrapped_flags = ANDROID_BINARY_ATTRS.get("_wrapped_flags"),
     ),
+    exec_groups = ANDROID_SDK_AND_JAVA_EXEC_GROUPS,
     toolchains = [
         "//toolchains/android:toolchain_type",
         "@bazel_tools//tools/jdk:toolchain_type",

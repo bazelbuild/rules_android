@@ -51,6 +51,7 @@ run_singlejar = rule(
         "include_prefixes": attr.string_list(),
         "_java_toolchain": attr.label(default = Label("//tools/jdk:toolchain")),
     },
+    toolchains = ["@bazel_tools//tools/jdk:toolchain_type"],
 )
 
 def _run_ijar(ctx):
