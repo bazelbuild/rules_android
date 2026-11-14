@@ -109,7 +109,25 @@ def _get_boot_classpath(target, ctx):
     # This shouldn't ever be reached, but if it is, we should be clear about the error.
     fail("No compilation info or android jar!")
 
+def _get_classpath(java_info, use_header_jars = False):
+    """Returns the classpath to use when desugaring the target.
+
+    Full jars are the default. Header jars omit method bodies, so a method body change in a
+    dependency does not rerun desugaring of the jars that depend on it.
+
+    Args:
+      java_info: JavaInfo. The target's JavaInfo.
+      use_header_jars: Boolean. Whether to use header jars instead of full jars.
+
+    Returns:
+      A depset of Files.
+    """
+    if use_header_jars:
+        return java_info.transitive_compile_time_jars
+    return java_info._transitive_full_compile_time_jars
+
 desugar = struct(
     desugar = _desugar,
     get_boot_classpath = _get_boot_classpath,
+    get_classpath = _get_classpath,
 )

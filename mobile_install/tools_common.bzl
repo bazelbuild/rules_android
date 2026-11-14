@@ -39,6 +39,9 @@ TOOL_ATTRS = dict(
             "//rules/flags",
         ),
     ),
+    _desugar_with_header_jars = attr.label(
+        default = Label("//rules/flags:desugar_with_header_jars"),
+    ),
     _studio_deployer = attr.label(
         default = Label("//tools/android:apkdeployer_deploy.jar"),
         allow_single_file = True,
