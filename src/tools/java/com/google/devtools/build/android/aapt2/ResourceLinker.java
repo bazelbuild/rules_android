@@ -563,8 +563,17 @@ public class ResourceLinker {
     return new Inflater(/* nowrap= */ true);
   }
 
-  /** Fix compression in {@code apk} according to {@link overrideCompression(DirectoryEntry)}. */
-  private Path copyAndFixCompression(Path apk, Path workingDirectory) throws IOException {
+  /**
+   * Fix compression in {@code apk} according to {@link overrideCompression(DirectoryEntry)}.
+   *
+   * <p>Returns {@code apk} unchanged when aapt2 already keeps XML files compressed (b/186226111),
+   * since rewriting the archive would only reset entry timestamps.
+   */
+  @VisibleForTesting
+  Path copyAndFixCompression(Path apk, Path workingDirectory) throws IOException {
+    if (getCompatFlag("aapt2_xml_compression_fixed")) {
+      return apk;
+    }
     profiler.startTask("fixcompression");
     final Path outApk = workingDirectory.resolve("recompressed.apk");
     try (FileChannel inChannel = FileChannel.open(apk, StandardOpenOption.READ);
