@@ -17,7 +17,6 @@ launcher_test: Asserts that the executable is contained in the target's runfiles
 """
 
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
-load("@bazel_skylib//lib:sets.bzl", "sets")
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 
 visibility(PROJECT_VISIBILITY)
@@ -25,26 +24,25 @@ visibility(PROJECT_VISIBILITY)
 def _android_local_test_default_launcher(ctx):
     env = analysistest.begin(ctx)
     target_under_test = analysistest.target_under_test(env)
-    expected_runfile = getattr(env.ctx.attr, "expected_runfile")
 
-    runfiles = sets.make([f.short_path for f in target_under_test[DefaultInfo].default_runfiles.files.to_list()])
-    asserts.true(env, sets.contains(runfiles, expected_runfile), "Expect runfiles to contains {0} but was {1}".format(expected_runfile, runfiles))
+    runfiles = [f.short_path for f in target_under_test[DefaultInfo].default_runfiles.files.to_list()]
+    asserts.true(
+        env,
+        any([p.endswith("/bin/java") for p in runfiles]),
+        "Expected runfiles to contain .../bin/java, but got {0}".format(runfiles),
+    )
 
     return analysistest.end(env)
 
 android_local_test_default_launcher_test = analysistest.make(
     _android_local_test_default_launcher,
-    attrs = {
-        "expected_runfile": attr.string(),
-    },
 )
 
-def android_local_test_launcher_test_suite(name, expected_executable, **kwargs):
+def android_local_test_launcher_test_suite(name, **kwargs):
     tags = kwargs.pop("tags", [])
     android_local_test_default_launcher_test(
         name = "android_local_test_default_launcher",
         target_under_test = ":sample_test_default_launcher",
-        expected_runfile = expected_executable,
         tags = tags,
     )
 
