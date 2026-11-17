@@ -17,12 +17,18 @@ package adb
 import (
 	"context"
 	"fmt"
+	"os"
 	"reflect"
 	"testing"
 )
 
 func TestSetupEnv(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
+	fallbackPath := "/toolchain/adb"
+	// The pre-installed adb takes precedence over the toolchain when present.
+	if _, err := os.Stat(defaultADB); err == nil {
+		fallbackPath = defaultADB
+	}
 	tcs := []struct {
 		name             string
 		env              []string
@@ -67,9 +73,9 @@ func TestSetupEnv(t *testing.T) {
 			toolchainADBPath: "/toolchain/adb",
 			wantPath:         "/env/adb",
 		}, {
-			name:             "SpecifyADBPathViaToolchain",
+			name:             "FallbackToDefaultOrToolchainADB",
 			toolchainADBPath: "/toolchain/adb",
-			wantPath:         "/toolchain/adb",
+			wantPath:         fallbackPath,
 		},
 	}
 	for _, tc := range tcs {

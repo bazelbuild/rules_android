@@ -254,18 +254,22 @@ func setupEnv(ctx context.Context, env []string, adbPath, toolchainADBPath strin
 		}
 	}
 
+	// Fallback to default pre-installed adb, if it exists
+	if adbEnv.Path == "" {
+		if _, err := os.Stat(defaultADB); err == nil {
+			adbEnv.Path = defaultADB
+			adbSource = "fallback"
+		}
+	}
+
+	// If the toolchain provides an adb, use that
 	if adbEnv.Path == "" && toolchainADBPath != "" {
 		adbEnv.Path = toolchainADBPath
 		adbSource = "toolchain"
 	}
 
-	// Fallback to default pre-installed adb, if it exists, or fail if not found.
 	if adbEnv.Path == "" {
-		if _, err := os.Stat(defaultADB); err != nil {
-			return nil, errors.New("unable to find ADB, please set the ANDROID_ADB environment variable or use the --adb flag")
-		}
-		adbEnv.Path = defaultADB
-		adbSource = "fallback"
+		return nil, errors.New("unable to find ADB, please set the ANDROID_ADB environment variable or use the --adb flag")
 	}
 
 	pprint.Info("Using ADB from %s: %s", adbSource, adbEnv.Path)
