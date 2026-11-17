@@ -714,12 +714,12 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
 
     if ctx.attr._generate_art_profile_outputs and not art_profile_info:
         # There are a lot of ways baseline profiles could fail, and thus art profile generation also
-        # fails. For example, if the baseline profile is not included as a dependency, if the
-        # baseline profile is empty, or if you're attempting to use R8.
+        # fails. For example, if proguard_specs is empty, if the baseline profile is not included
+        # as a dependency, if the baseline profile is empty, or if you're attempting to use R8.
         ctx.actions.run_shell(
             mnemonic = "FailedGeneratingArtProfile",
             outputs = [ctx.outputs.primary_profile],
-            command = "echo \"Unable to generate art profile, ensure baseline profiles are included as dependencies or disable generate_art_profile\"; exit 1;",
+            command = "echo \"Unable to generate art profile, ensure proguard_specs is non-empty and baseline profiles are included as dependencies, or disable generate_art_profile\"; exit 1;",
         )
 
     return ProviderInfo(
