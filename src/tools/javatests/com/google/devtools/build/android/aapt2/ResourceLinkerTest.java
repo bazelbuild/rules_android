@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 import org.junit.After;
 import org.junit.Before;
@@ -45,6 +47,7 @@ public class ResourceLinkerTest {
   // ResourceLinker creates a "filtered" directory inside its working directory when it performs
   // filtering.
   private static final String FILTERED_DIR_NAME = "filtered";
+  private static final String STORED_XML_PATH = "res/layout/main.xml";
   private Path tempDir;
   private Path workingDir;
   private ListeningExecutorService executorService;
@@ -141,5 +144,56 @@ public class ResourceLinkerTest {
     assertThat(Files.exists(packagesFile)).isTrue();
     List<String> packages = Files.readAllLines(packagesFile);
     assertThat(packages).containsExactly("com.test.pkg1", "com.test.pkg2").inOrder();
+  }
+
+  @Test
+  public void testCopyAndFixCompression_xmlCompressionNotFixed_deflatesStoredXml()
+      throws Exception {
+    Path apk = createApkWithStoredXml();
+
+    Path fixed =
+        ResourceLinker.create(AAPT2, executorService, workingDir)
+            .aapt2CompatFlags(ImmutableMap.of("aapt2_xml_compression_fixed", "false"))
+            .copyAndFixCompression(apk, workingDir);
+
+    assertThat(fixed).isNotEqualTo(apk);
+    try (ZipFile zip = new ZipFile(fixed.toFile())) {
+      assertThat(zip.getEntry(STORED_XML_PATH).getMethod()).isEqualTo(ZipEntry.DEFLATED);
+    }
+  }
+
+  @Test
+  public void testCopyAndFixCompression_xmlCompressionFixed_returnsApkUnchanged()
+      throws Exception {
+    Path apk = createApkWithStoredXml();
+    byte[] original = Files.readAllBytes(apk);
+
+    Path fixed =
+        ResourceLinker.create(AAPT2, executorService, workingDir)
+            .aapt2CompatFlags(ImmutableMap.of("aapt2_xml_compression_fixed", "true"))
+            .copyAndFixCompression(apk, workingDir);
+
+    assertThat(fixed).isEqualTo(apk);
+    assertThat(Files.readAllBytes(fixed)).isEqualTo(original);
+    assertThat(Files.exists(workingDir.resolve("recompressed.apk"))).isFalse();
+  }
+
+  /** Creates an APK whose only entry is an uncompressed {@code res/} XML file. */
+  private Path createApkWithStoredXml() throws IOException {
+    byte[] content = "<LinearLayout/>".getBytes(UTF_8);
+    CRC32 crc = new CRC32();
+    crc.update(content);
+    Path apk = tempDir.resolve("input.apk");
+    try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(apk.toFile()))) {
+      ZipEntry entry = new ZipEntry(STORED_XML_PATH);
+      entry.setMethod(ZipEntry.STORED);
+      entry.setSize(content.length);
+      entry.setCompressedSize(content.length);
+      entry.setCrc(crc.getValue());
+      zos.putNextEntry(entry);
+      zos.write(content);
+      zos.closeEntry();
+    }
+    return apk;
   }
 }

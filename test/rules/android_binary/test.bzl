@@ -15,10 +15,17 @@
 
 load("@rules_cc//cc:defs.bzl", "CcToolchainConfigInfo")
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load(
+    "//rules:utils.bzl",
+    _utils = "utils",
+    _utils_testing = "testing",
+)
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(
     "//test/utils:lib.bzl",
     "analysistest",
+    "asserts",
+    "unittest",
 )
 
 visibility(PROJECT_VISIBILITY)
@@ -52,6 +59,7 @@ def multiple_android_platforms_test_impl(ctx):
     Returns:
         The providers.
     """
+
     # This test only needs to run analysis on the android_binary
     # in target_under_test.
     env = analysistest.begin(ctx)
@@ -70,4 +78,57 @@ multiple_android_platforms_test = analysistest.make(
             "@@//:armeabi-v7a",
         ],
     },
+)
+
+def _dummy():
+    pass
+
+def _has_multi_split_test_impl(ctx):
+    env = unittest.begin(ctx)
+
+    # In older Bazel versions (e.g. Bazel 7), dir(ctx.split_attr) includes built-in
+    # methods like to_json and to_proto. Non-dict attributes or methods must not be
+    # evaluated with len() directly.
+    fake_ctx_single_split = struct(
+        split_attr = struct(
+            deps = {"x86": []},
+            data = None,
+            non_dict_attr = _dummy,
+        ),
+    )
+    asserts.false(env, _utils_testing.has_multi_split(fake_ctx_single_split))
+
+    fake_ctx_multi_split = struct(
+        split_attr = struct(
+            deps = {"x86": [], "arm64-v8a": []},
+        ),
+    )
+    asserts.true(env, _utils_testing.has_multi_split(fake_ctx_multi_split))
+
+    fake_ctx_no_split = struct(
+        split_attr = None,
+    )
+    asserts.false(env, _utils_testing.has_multi_split(fake_ctx_no_split))
+
+    # _get_primary_split must safely fall back when queried attribute
+    # matches a non-dict value on split_attr or is not split.
+    fake_ctx_primary = struct(
+        fragments = struct(platform = struct(platform = None)),
+        split_attr = struct(
+            deps = {"x86": ["dep1"]},
+            non_split = "foo",
+        ),
+        attr = struct(
+            deps = ["dep_attr"],
+            non_split = "foo",
+        ),
+    )
+    asserts.equals(env, [], _utils.get_primary_split(fake_ctx_primary, "unknown_attr", default = []))
+    asserts.equals(env, ["dep1"], _utils.get_primary_split(fake_ctx_primary, "deps", default = []))
+    asserts.equals(env, "foo", _utils.get_primary_split(fake_ctx_primary, "non_split", default = "default"))
+
+    return unittest.end(env)
+
+has_multi_split_test = unittest.make(
+    impl = _has_multi_split_test_impl,
 )

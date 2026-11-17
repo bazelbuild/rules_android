@@ -501,6 +501,7 @@ def _optimizing_dex(
         outputs = [output, globals_output],
         mnemonic = "ShardedOptimizingDex",
         progress_message = "Optimized dexing %{input} with applicable dexopts " + str(incremental_dexopts),
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = toolchain_type,
     )
 
@@ -587,8 +588,15 @@ def _dex_merge(
         outputs = [output],
         mnemonic = "DexMerger",
         progress_message = "Assembling dex files into %{output}",
+        execution_requirements = {"supports-path-mapping": "1"},
         toolchain = toolchain_type,
     )
+
+def _has_multicore_reservation(execution_requirements):
+    return any([
+        req.startswith("cpu:") and req != "cpu:1"
+        for req in (execution_requirements or {})
+    ])
 
 def _optimized_dex_merge(
         ctx,
@@ -615,7 +623,13 @@ def _optimized_dex_merge(
     inputs.extend(globals_shards)
     param_file_args.add_all(globals_shards, before_each = "--globals")
     param_file_args.add("--output", output)
+    execution_requirements = acls.get_optimizer_execution_requirements(ctx.label.package)
+
     args = ctx.actions.args()
+    if _has_multicore_reservation(execution_requirements):
+        # This saves CPU and wall-clock time when multiple cores are available.
+        args.add("--jvm_flags=-XX:TieredStopAtLevel=4")
+
     args.add("--release")
 
     # --no-desugaring is unnecessary here. But it is left in for now to match
@@ -673,7 +687,7 @@ def _optimized_dex_merge(
         outputs = outputs,
         mnemonic = "OptimizingDex",
         progress_message = "Optimized dexing for %{label}",
-        execution_requirements = acls.get_optimizer_execution_requirements(ctx.label.package),
+        execution_requirements = execution_requirements,
         toolchain = toolchain_type,
     )
 
@@ -713,6 +727,7 @@ dex = struct(
     get_dx_artifact = _get_dx_artifact,
     get_effective_incremental_dexing = _get_effective_incremental_dexing,
     get_java8_legacy_dex_and_map = _get_java8_legacy_dex_and_map,
+    has_multicore_reservation = _has_multicore_reservation,
     filter_dexopts = _filter_dexopts,
     merge_infos = _merge_infos,
     normalize_dexopts = _normalize_dexopts,

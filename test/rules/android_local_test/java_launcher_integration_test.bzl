@@ -48,13 +48,15 @@ integration_test = rule(
             default = ":integration_test_stub_script.sh",
             allow_single_file = True,
         ),
-        expected_executable = attr.string(),
+        expected_executable = attr.string(
+            default = ".*/bin/java(\\))?",
+        ),
     ),
     test = True,
     implementation = _android_local_test_launcher_integration,
 )
 
-def android_local_test_launcher_integration_test_suite(name, expected_executable, **kwargs):
+def android_local_test_launcher_integration_test_suite(name, expected_executable = ".*/bin/java(\\))?", **kwargs):
     tags = kwargs.pop("tags", [])
     integration_test(
         name = "android_local_test_default_launcher_integration",

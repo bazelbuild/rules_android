@@ -368,7 +368,7 @@ def _process_jars(
         deps = r_java_info + java_infos,  # TODO(djwhang): Exports are not deps.
         exports =
             (r_java_info if _acls.in_aar_import_exports_r_java(str(ctx.label)) else []) +
-            java_infos,  # TODO(djwhang): Deps are not exports.
+            (java_infos if _acls.in_aar_import_exports_deps(str(ctx.label)) else exports),
         # TODO(djwhang): AarImportTest is not expecting jdeps, enable or remove it completely
         # jdeps = jdeps_artifact,
     )
@@ -463,6 +463,10 @@ def _collect_proguard(
         transitive_proguard_specs.append(p.specs)
     return ProguardSpecInfo(depset([out_proguard], transitive = transitive_proguard_specs))
 
+def _is_external_target(label):
+    fqn = str(label)
+    return fqn.startswith("@") and not fqn.startswith("@//") and not fqn.startswith("@@//")
+
 def impl(ctx):
     """The rule implementation.
 
@@ -515,7 +519,10 @@ def impl(ctx):
         r_java = resources_ctx.r_java,
         exports = _utils.collect_providers(JavaInfo, ctx.attr.exports),
         enable_desugar_java8 = read_possibly_native_flag(ctx, "desugar_for_android"),
-        enable_imports_deps_check = INCOMPLETE_DEPS_TAG not in ctx.attr.tags,
+        enable_imports_deps_check = (
+            not _is_external_target(ctx.label) and
+            INCOMPLETE_DEPS_TAG not in ctx.attr.tags
+        ),
         aar_embedded_jars_extractor_tool =
             _get_android_toolchain(ctx).aar_embedded_jars_extractor.files_to_run,
         bootclasspath =
@@ -579,7 +586,13 @@ def impl(ctx):
         proguard_spec,
         aar,
         _get_android_toolchain(ctx).aar_embedded_proguard_extractor.files_to_run,
-        extract_r8_rules = _flags.get(ctx).aar_import_extract_r8_rules if _acls.use_r8(str(ctx.label)) else False,
+        # R8-targeted rules in classes.jar replace proguard.txt only if R8 reads
+        # them from each runtime JAR. Otherwise they could be lost in the deploy JAR merge.
+        extract_r8_rules = (
+            _flags.get(ctx).aar_import_extract_r8_rules and
+            _flags.get(ctx).r8_extract_embedded_proguard_specs and
+            _acls.use_r8(str(ctx.label))
+        ),
     ))
 
     lint_providers = _process_lint_rules(

@@ -37,11 +37,13 @@ _ATTRS = dict(
         default = "//tools/android:aar_embedded_proguard_extractor",
         executable = True,
     ),
+    # Deprecated and unused: embedded rules are now extracted with R8's ExtractR8Rules.
+    # Kept so toolchains that still set it keep working; it will be removed.
     jar_embedded_proguard_extractor = attr.label(
         allow_files = True,
         cfg = "exec",
-        default = "//tools/android:jar_embedded_proguard_extractor",
         executable = True,
+        doc = "Deprecated and unused.",
     ),
     aar_native_libs_zip_creator = attr.label(
         allow_files = True,
@@ -126,6 +128,12 @@ _ATTRS = dict(
         cfg = "exec",
         default = "//tools/android:databinding_exec",
         executable = True,
+    ),
+    default_proguard_specs = attr.label_list(
+        allow_files = True,
+        default = [
+            "//rules:proguard-android-optimize.txt",
+        ],
     ),
     desugar = attr.label(
         cfg = "exec",

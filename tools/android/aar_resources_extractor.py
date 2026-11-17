@@ -104,8 +104,14 @@ def WriteFileWithJunctions(filename, content):
 
 def ExtractOneFile(aar, name, abs_output_dir):
   """Extract one file from the aar to the output directory."""
+  abs_output_dir = os.path.normpath(abs_output_dir)
+  fullpath = os.path.normpath(os.path.join(abs_output_dir, name))
+  if (
+      os.path.commonpath([abs_output_dir, fullpath]) != abs_output_dir
+      or fullpath == abs_output_dir
+  ):
+    raise ValueError(f"Cannot extract {name} outside of {abs_output_dir}")
   if os.name == "nt":
-    fullpath = os.path.normpath(os.path.join(abs_output_dir, name))
     if name[-1] == "/":
       # The zip entry is a directory. Create a junction to it, which also
       # takes care of creating the directory and all of its parents in a

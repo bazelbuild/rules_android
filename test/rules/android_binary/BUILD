@@ -3,7 +3,7 @@ load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 load("@rules_java//java:java_library.bzl", "java_library")
 load("//rules:rules.bzl", "android_binary", "android_library")
-load(":test.bzl", "fake_cc_toolchain_config", "multiple_android_platforms_test")
+load(":test.bzl", "fake_cc_toolchain_config", "has_multi_split_test", "multiple_android_platforms_test")
 
 filegroup(name = "empty")
 
@@ -90,6 +90,10 @@ android_library(
 multiple_android_platforms_test(
     name = "multiple_android_platforms_test",
     target_under_test = ":basicapp",
+)
+
+has_multi_split_test(
+    name = "has_multi_split_test",
 )
 
 android_library(

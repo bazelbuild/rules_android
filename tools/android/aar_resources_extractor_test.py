@@ -18,6 +18,7 @@ import io
 import os
 import shutil
 import unittest
+from unittest import mock
 import zipfile
 
 from tools.android import aar_resources_extractor
@@ -129,6 +130,27 @@ class AarResourcesExtractorTest(unittest.TestCase):
 
     with open("out_dir/setter_store/" + setter_store_filepath, "r") as f:
       self.assertEqual("setter store data", f.read())
+
+  def testPathTraversalRejected(self):
+    os.makedirs("out_dir")
+    for entry, extract_fn in [
+        ("res/../../evil.xml", aar_resources_extractor.ExtractResources),
+        ("res/..", aar_resources_extractor.ExtractResources),
+        ("assets/../../evil.txt", aar_resources_extractor.ExtractAssets),
+        (
+            "data-binding/../../evil--br.bin",
+            lambda aar, out: aar_resources_extractor.ExtractDatabinding(
+                aar, "br.bin", out
+            ),
+        ),
+    ]:
+      aar = zipfile.ZipFile(io.BytesIO(), "w")
+      aar.writestr(entry, "evil")
+      with self.assertRaises(ValueError):
+        extract_fn(aar, "out_dir")
+      with mock.patch.object(os, "name", "nt"):
+        with self.assertRaises(ValueError):
+          extract_fn(aar, "out_dir")
 
 
 if __name__ == "__main__":

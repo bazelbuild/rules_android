@@ -29,6 +29,7 @@ To update a list:
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/acls:aapt2_feature_flags.bzl", "AAPT2_FEATURE_FLAGS")
 load("//rules/acls:aar_import_explicit_exports_manifest.bzl", "AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST")
+load("//rules/acls:aar_import_exports_deps.bzl", "AAR_IMPORT_EXPORTS_DEPS")
 load("//rules/acls:aar_import_exports_r_java.bzl", "AAR_IMPORT_EXPORTS_R_JAVA")
 load("//rules/acls:aar_import_propagate_native_libs.bzl", "AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK")
 load("//rules/acls:aar_import_use_ijar.bzl", "AAR_IMPORT_USE_IJAR_FALLBACK")
@@ -72,6 +73,12 @@ visibility(PROJECT_VISIBILITY)
 
 def _in_aar_import_explicit_exports_manifest(fqn):
     return matches(fqn, AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT)
+
+def _in_aar_import_exports_deps(fqn):
+    # External repository targets should not default to True for this legacy allowlist.
+    if fqn.startswith("@") and not fqn.startswith("@//") and not fqn.startswith("@@//"):
+        return False
+    return matches(fqn, AAR_IMPORT_EXPORTS_DEPS_DICT)
 
 def _in_aar_import_exports_r_java(fqn):
     return matches(fqn, AAR_IMPORT_EXPORTS_R_JAVA_DICT)
@@ -192,6 +199,7 @@ def make_min_sdk_dict(dict_of_lists):
     return res
 
 AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST_DICT = make_dict(AAR_IMPORT_EXPLICIT_EXPORTS_MANIFEST)
+AAR_IMPORT_EXPORTS_DEPS_DICT = make_dict(AAR_IMPORT_EXPORTS_DEPS)
 AAR_IMPORT_EXPORTS_R_JAVA_DICT = make_dict(AAR_IMPORT_EXPORTS_R_JAVA)
 
 ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST_DICT = make_dict(ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST)
@@ -295,6 +303,7 @@ acls = struct(
     get_android_archive_exposed_package_allowlist = _get_android_archive_exposed_package_allowlist,
     get_optimizer_execution_requirements = _get_optimizer_execution_requirements,
     in_aar_import_explicit_exports_manifest = _in_aar_import_explicit_exports_manifest,
+    in_aar_import_exports_deps = _in_aar_import_exports_deps,
     in_aar_import_exports_r_java = _in_aar_import_exports_r_java,
     in_android_archive_excluded_deps_denylist = _in_android_archive_excluded_deps_denylist,
     in_android_feature_splits_dogfood = _in_android_feature_splits_dogfood,

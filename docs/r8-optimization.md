@@ -48,16 +48,15 @@ optimization attributes.
 
 *   `proguard_specs`: A list of labels pointing to ProGuard/R8 configuration
     files containing keep rules and optimization directives. Specifying this
-    attribute enables R8 code shrinking and optimization. Typically, this
-    includes:
-*   [`proguard-android-optimize.txt`](https://github.com/bazelbuild/rules_android/blob/main/examples/r8-optimized/proguard-android-optimize.txt):
-    Contains standard recommended Android app optimizations and default keep
-    rules (equivalent to the default configuration provided by the Android
-    Gradle Plugin). You can download it from the example repository and place it
-    in your project.
-*   `proguard-rules.pro`: An empty file where you add custom keep rules
-    specific to your app, following the guide on [adding keep
-    rules](https://developer.android.com/topic/performance/app-optimization/add-keep-rules).
+    attribute enables R8 code shrinking and optimization. When `proguard_specs`
+    is non-empty, `rules_android` automatically includes
+    [`proguard-android-optimize.txt`](https://github.com/bazelbuild/rules_android/blob/main/rules/proguard-android-optimize.txt),
+    which contains standard recommended Android app optimizations and default
+    keep rules (equivalent to the default configuration provided by the Android
+    Gradle Plugin). You only need to provide:
+    *   `proguard-rules.pro`: A file where you add custom keep rules
+        specific to your app, following the guide on [adding keep
+        rules](https://developer.android.com/topic/performance/app-optimization/add-keep-rules).
 *   `shrink_resources`: A boolean indicating whether to enable resource
     shrinking. When set to `True`, unused Android resources are removed from the
     packaged APK or AAB. *Note: Resource shrinking requires `proguard_specs` to
@@ -93,7 +92,6 @@ android_binary(
     manifest = "//src/main/java/com/example/bazel:AndroidManifest.xml",
     proguard_generate_mapping = True,
     proguard_specs = [
-        "proguard-android-optimize.txt",
         "proguard-rules.pro",
     ],
     shrink_resources = True,

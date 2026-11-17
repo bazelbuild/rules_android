@@ -95,53 +95,45 @@ class AarEmbeddedProguardExtractorWithR8RulesTest(unittest.TestCase):
     proguard_file.seek(0)
     self.assertEqual(b"hello world", proguard_file.read())
 
-  def testR8RulesFromClassesJar(self):
-    classes_jar = self.make_classes_jar({
-        "META-INF/com.android.tools/r8/rules.pro": "-keep class A",
-    })
+  def _extract(self, entries, proguard_txt=None):
     aar = zipfile.ZipFile(io.BytesIO(), "w")
-    aar.writestr("classes.jar", classes_jar)
+    if proguard_txt is not None:
+      aar.writestr("proguard.txt", proguard_txt)
+    aar.writestr("classes.jar", self.make_classes_jar(entries))
     proguard_file = io.BytesIO()
     proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, proguard_file)
     proguard_file.seek(0)
-    self.assertEqual(b"\n-keep class A", proguard_file.read())
+    return proguard_file.read()
 
-  def testR8RulesFromVersionedSubdirs(self):
-    classes_jar = self.make_classes_jar({
-        "META-INF/com.android.tools/r8-from-8.0.0/rules.pro": "-keep class B",
-        "META-INF/com.android.tools/r8-upto-8.0.0/rules.pro": "-keep class C",
-    })
-    aar = zipfile.ZipFile(io.BytesIO(), "w")
-    aar.writestr("classes.jar", classes_jar)
-    proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, proguard_file)
-    proguard_file.seek(0)
-    self.assertEqual(b"\n-keep class B\n-keep class C", proguard_file.read())
+  def testR8RulesInClassesJarAreLeftToR8(self):
+    self.assertEqual(
+        b"",
+        self._extract({
+            "META-INF/com.android.tools/r8/rules.pro": "-keep class A",
+        }),
+    )
 
-  def testR8RulesAndProguardTxtCombined(self):
-    classes_jar = self.make_classes_jar({
-        "META-INF/com.android.tools/r8/rules.pro": "-keep class D",
-    })
-    aar = zipfile.ZipFile(io.BytesIO(), "w")
-    aar.writestr("proguard.txt", "-keep class E")
-    aar.writestr("classes.jar", classes_jar)
-    proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, proguard_file)
-    proguard_file.seek(0)
-    self.assertEqual(b"-keep class E\n-keep class D", proguard_file.read())
+  def testComAndroidToolsReplacesProguardTxt(self):
+    for directory in ("r8", "r8-from-8.0.0", "r8-upto-8.0.0",
+                      "r8-from-8.0.0-upto-9.0.0", "r8-from-99.0.0",
+                      "proguard"):
+      self.assertEqual(
+          b"",
+          self._extract(
+              {"META-INF/com.android.tools/%s/rules.pro" % directory: "-keep class D"},
+              proguard_txt="-keep class E",
+          ),
+          directory,
+      )
 
-  def testR8RulesIgnoresDirectoryEntries(self):
-    classes_jar = self.make_classes_jar({
-        "META-INF/com.android.tools/": "",
-        "META-INF/com.android.tools/r8/": "",
-        "META-INF/com.android.tools/r8/rules.pro": "-keep class F",
-    })
-    aar = zipfile.ZipFile(io.BytesIO(), "w")
-    aar.writestr("classes.jar", classes_jar)
-    proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, proguard_file)
-    proguard_file.seek(0)
-    self.assertEqual(b"\n-keep class F", proguard_file.read())
+  def testEmptyComAndroidToolsReplacesProguardTxt(self):
+    self.assertEqual(
+        b"",
+        self._extract(
+            {"META-INF/com.android.tools/": ""},
+            proguard_txt="-keep class E",
+        ),
+    )
 
   def testNoClassesJarNoR8Rules(self):
     aar = zipfile.ZipFile(io.BytesIO(), "w")
@@ -152,15 +144,13 @@ class AarEmbeddedProguardExtractorWithR8RulesTest(unittest.TestCase):
     self.assertEqual(b"", proguard_file.read())
 
   def testClassesJarWithoutR8Rules(self):
-    classes_jar = self.make_classes_jar({
-        "com/example/Foo.class": "classdata",
-    })
-    aar = zipfile.ZipFile(io.BytesIO(), "w")
-    aar.writestr("classes.jar", classes_jar)
-    proguard_file = io.BytesIO()
-    proguard_extractor_lib.ExtractEmbeddedProguardFromAar(aar, proguard_file)
-    proguard_file.seek(0)
-    self.assertEqual(b"", proguard_file.read())
+    self.assertEqual(
+        b"-keep class E",
+        self._extract(
+            {"com/example/Foo.class": "classdata"},
+            proguard_txt="-keep class E",
+        ),
+    )
 
 
 if __name__ == "__main__":

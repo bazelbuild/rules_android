@@ -16,4 +16,5 @@
 AAPT2_COMPAT_FLAGS = {
     "aapt2_skip_flat_files_fix": False,
     "aapt2_othroughput_supported": False,
+    "aapt2_xml_compression_fixed": False,
 }
