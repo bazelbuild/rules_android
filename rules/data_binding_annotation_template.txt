@@ -1,6 +1,6 @@
 package android.databinding.layouts;
 
-import android.databinding.BindingBuildInfo;
+import androidx.databinding.BindingBuildInfo;
 
 /**
  * Template for the file that feeds data binding's annotation processor. The
