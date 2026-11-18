@@ -598,6 +598,14 @@ def _has_multicore_reservation(execution_requirements):
         for req in (execution_requirements or {})
     ])
 
+def _has_large_memory_reservation(execution_requirements):
+    for req in (execution_requirements or {}):
+        if req.startswith("requires-mem:"):
+            mem = req[len("requires-mem:"):].strip().lower()
+            if mem.endswith("g") and mem[:-1].isdigit() and int(mem[:-1]) >= 24:
+                return True
+    return False
+
 def _optimized_dex_merge(
         ctx,
         output = None,
@@ -629,6 +637,10 @@ def _optimized_dex_merge(
     if _has_multicore_reservation(execution_requirements):
         # This saves CPU and wall-clock time when multiple cores are available.
         args.add("--jvm_flags=-XX:TieredStopAtLevel=4")
+    if _has_large_memory_reservation(execution_requirements):
+        # D8 defaults to -Xmx8g; raise to -Xmx16g only for opted-in large-memory
+        # targets (>=24g) so smaller default containers do not OOM.
+        args.add("--jvm_flags=-Xmx16g")
 
     args.add("--release")
 
@@ -728,6 +740,7 @@ dex = struct(
     get_effective_incremental_dexing = _get_effective_incremental_dexing,
     get_java8_legacy_dex_and_map = _get_java8_legacy_dex_and_map,
     has_multicore_reservation = _has_multicore_reservation,
+    has_large_memory_reservation = _has_large_memory_reservation,
     filter_dexopts = _filter_dexopts,
     merge_infos = _merge_infos,
     normalize_dexopts = _normalize_dexopts,
