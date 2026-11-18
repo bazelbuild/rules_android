@@ -36,6 +36,7 @@ cat > "$work/tool" <<'TOOL'
 #!/usr/bin/env bash
 set -eu
 basename "$0" >> "$TOOL_LOG"
+echo "${JAVA_RUNFILES-}" >> "$TOOL_LOG.java_runfiles"
 while [[ $# -gt 0 ]]; do
   if [[ "$1" == --output ]]; then
     echo output > "$2"
@@ -61,7 +62,10 @@ MANIFEST
     echo "rules_android/tools/android/$tool$suffix $work/$tool$suffix" >> "$manifest"
   done
   export RUNFILES_DIR='' RUNFILES_MANIFEST_FILE="$manifest"
+  # An unsandboxed genrule can inherit another target's JAVA_RUNFILES.
+  export JAVA_RUNFILES="$work/other.runfiles"
   : > "$TOOL_LOG"
+  : > "$TOOL_LOG.java_runfiles"
   bash "$script" --android_jar "$work/libs.jar" --output "$work/dex.zip"
   test -s "$work/dex.zip"
   bash "$script" --android_jar "$work/libs.jar" --binary "$work/libs.jar" \
@@ -69,5 +73,7 @@ MANIFEST
   test -s "$work/shrunk.zip"
   printf 'd8%s\ntracereferences%s\nr8%s\n' "$suffix" "$suffix" "$suffix" > "$work/expected"
   diff "$work/expected" "$TOOL_LOG"
+  # Java launchers must find their own runfiles, not the caller's.
+  test "$(sort -u "$TOOL_LOG.java_runfiles")" = "$script.runfiles"
   rm "$work/dex.zip" "$work/shrunk.zip"
 done
