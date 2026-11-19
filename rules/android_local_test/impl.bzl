@@ -14,6 +14,7 @@
 """Bazel rule for Android local test."""
 
 load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
+load("//rules:acls.bzl", "acls")
 load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:attrs.bzl", "attrs")
 load("//rules:common.bzl", "common")
@@ -282,11 +283,34 @@ def _process_deploy_jar(ctx, java_package, jvm_ctx, proto_ctx, resources_ctx, **
         preserve_compression = True,
         java_toolchain = common.get_java_toolchain(ctx),
     )
+
+    one_version_enforcement_output = None
+    if (ctx.fragments.java.one_version_enforcement_on_java_tests and
+        acls.in_android_local_test_one_version_rollout(str(ctx.label))):
+        one_version_inputs = depset(
+            transitive = [
+                proto_ctx.proto_extension_registry_dep,
+                out_jar_dep,
+                resources_ctx.r_java.compile_jars,
+                properties_jar_dep,
+                runtime_deps,
+                jvm_ctx.java_info.transitive_runtime_jars,
+            ],
+        )
+        one_version_enforcement_output = java.check_one_version(
+            ctx,
+            inputs = one_version_inputs,
+            java_toolchain = common.get_java_toolchain(ctx),
+            one_version_enforcement_level = ctx.fragments.java.one_version_enforcement_level,
+            use_allowlist_for_tests = True,
+        )
+
     return ProviderInfo(
         name = "deploy_jar_ctx",
         value = struct(
             classpath = classpath,
             deploy_jar = ctx.outputs.deploy_jar,
+            validation_outputs = [one_version_enforcement_output] if one_version_enforcement_output else [],
         ),
         runfiles = ctx.runfiles(files = res_runfiles, transitive_files = classpath),
     )
