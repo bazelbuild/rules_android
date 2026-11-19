@@ -953,9 +953,8 @@ def _merge_manifests(
     if manifest:
         args.add("--manifest", manifest)
 
-    if getattr(ctx.fragments, "bazel_android", None):
-        if ctx.fragments.bazel_android.merge_android_manifest_permissions:
-            args.add("--mergeManifestPermissions")
+    if read_possibly_native_flag(ctx, "merge_android_manifest_permissions"):
+        args.add("--mergeManifestPermissions")
 
     if mergee_manifests:
         if manifest_merge_order == "dependency":

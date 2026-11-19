@@ -327,3 +327,8 @@ flag_alias(
     name = "internal_persistent_multiplex_busybox_tools",
     starlark_flag = "//flags:internal_persistent_multiplex_busybox_tools",
 )
+
+flag_alias(
+    name = "merge_android_manifest_permissions",
+    starlark_flag = "//flags:merge_android_manifest_permissions",
+)

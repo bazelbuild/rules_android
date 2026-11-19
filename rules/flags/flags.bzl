@@ -231,6 +231,13 @@ _POSSIBLY_NATIVE_FLAGS = {
     "experimental_android_resource_shrinking": (lambda ctx: ctx.fragments.android.use_android_resource_shrinking, "starlark"),
     "experimental_android_resource_path_shortening": (lambda ctx: ctx.fragments.android.use_android_resource_path_shortening, "starlark"),
     "experimental_android_resource_name_obfuscation": (lambda ctx: ctx.fragments.android.use_android_resource_name_obfuscation, "starlark"),
+    "merge_android_manifest_permissions": (
+        lambda ctx: bool(
+            getattr(ctx.fragments, "bazel_android", None) and
+            ctx.fragments.bazel_android.merge_android_manifest_permissions,
+        ),
+        "starlark",
+    ),
     "optimizing_dexer": (lambda ctx: ctx.attr._optimizing_dexer, "native"),
 }
 
