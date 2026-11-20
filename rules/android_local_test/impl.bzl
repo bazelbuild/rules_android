@@ -13,7 +13,7 @@
 # limitations under the License.
 """Bazel rule for Android local test."""
 
-load("//providers:providers.bzl", "AndroidFilteredJdepsInfo")
+load("//providers:providers.bzl", "AndroidFilteredJdepsInfo", "StarlarkApkInfo")
 load("//rules:acls.bzl", "acls")
 load("//rules:add_constraints.bzl", "add_constraints")
 load("//rules:attrs.bzl", "attrs")
@@ -101,9 +101,14 @@ def _process_manifest(ctx, java_package, **_unused_sub_ctxs):
     )
 
 def _process_resources(ctx, java_package, manifest_ctx, **_unused_sub_ctxs):
+    resource_apks = [
+        apk.signed_apk
+        for apk in utils.collect_providers(StarlarkApkInfo, ctx.attr.resource_apks)
+    ]
     resources_ctx = resources.package(
         ctx,
         deps = ctx.attr.deps,
+        resource_apks = resource_apks,
         manifest = manifest_ctx.processed_manifest,
         manifest_values = manifest_ctx.processed_manifest_values,
         manifest_merge_order = ctx.attr._manifest_merge_order[BuildSettingInfo].value,

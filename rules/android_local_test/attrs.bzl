@@ -13,6 +13,7 @@
 # limitations under the License.
 """Attributes."""
 
+load("//providers:providers.bzl", "StarlarkApkInfo")
 load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
@@ -105,6 +106,15 @@ def make_attrs(additional_aspects = [], native_libs_transition = None):
 
                 Resources may be source files or generated files.
 
+                """,
+            ),
+            resource_apks = attr.label_list(
+                allow_rules = ["apk_import"],
+                providers = [
+                    [StarlarkApkInfo],
+                ],
+                doc = """
+                List of resource only apks to link against.
                 """,
             ),
             runtime_deps = attr.label_list(
