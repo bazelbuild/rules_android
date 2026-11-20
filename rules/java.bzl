@@ -533,8 +533,8 @@ def _check_one_version(
       java_toolchain: Target. The java_toolchain Target.
       one_version_enforcement_level: String. The enforcement level of one version check. Can only be
         'OFF', 'WARNING' or 'ERROR'.
-      use_allowlist_for_tests: Whether to use the allowlist for tests. This should only be True when
-      a test rule (rule name ending with "_test") calls it.
+      use_allowlist_for_tests: Whether to use the allowlist for tests (for test rules and
+        `testonly` binaries).
     Returns:
       A file containing the results of one version check.
     """

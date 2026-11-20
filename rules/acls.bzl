@@ -39,6 +39,7 @@ load("//rules/acls:android_archive_duplicate_class_allowlist.bzl", "ANDROID_ARCH
 load("//rules/acls:android_archive_excluded_deps_denylist.bzl", "ANDROID_ARCHIVE_EXCLUDED_DEPS_DENYLIST")
 load("//rules/acls:android_archive_exposed_package_allowlist.bzl", "ANDROID_ARCHIVE_EXPOSED_PACKAGE_ALLOWLIST")
 load("//rules/acls:android_binary_min_sdk_version_attribute.bzl", "ANDROID_BINARY_MIN_SDK_VERSION_ATTRIBUTE_ALLOWLIST")
+load("//rules/acls:android_binary_one_version_validation_rollout.bzl", "ANDROID_BINARY_ONE_VERSION_VALIDATION_FALLBACK", "ANDROID_BINARY_ONE_VERSION_VALIDATION_ROLLOUT")
 load("//rules/acls:android_binary_raw_access_to_resource_paths_allowlist.bzl", "ANDROID_BINARY_RAW_ACCESS_TO_RESOURCE_PATHS_ALLOWLIST")
 load("//rules/acls:android_binary_resource_name_obfuscation_opt_out_allowlist.bzl", "ANDROID_BINARY_RESOURCE_NAME_OBFUSCATION_OPT_OUT_ALLOWLIST")
 load("//rules/acls:android_binary_resource_shrinking_in_optimizer_rollout.bzl", "RESOURCE_SHRINKING_IN_OPTIMIZER_FALLBACK", "RESOURCE_SHRINKING_IN_OPTIMIZER_ROLLOUT")
@@ -49,6 +50,7 @@ load("//rules/acls:android_instrumentation_test_prebuilt_test_apk.bzl", "ANDROID
 load("//rules/acls:android_library_resources_without_srcs.bzl", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS", "ANDROID_LIBRARY_RESOURCES_WITHOUT_SRCS_GENERATOR_FUNCTIONS")
 load("//rules/acls:android_lint_checks_rollout.bzl", "ANDROID_LINT_CHECKS_FALLBACK", "ANDROID_LINT_CHECKS_ROLLOUT")
 load("//rules/acls:android_lint_rollout.bzl", "ANDROID_LINT_FALLBACK", "ANDROID_LINT_ROLLOUT")
+load("//rules/acls:android_local_test_one_version_rollout.bzl", "ANDROID_LOCAL_TEST_ONE_VERSION_FALLBACK", "ANDROID_LOCAL_TEST_ONE_VERSION_ROLLOUT")
 load("//rules/acls:baseline_profiles_optimizer_integration.bzl", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION", "BASELINE_PROFILES_OPTIMIZER_INTEGRATION_FALLBACK")
 load("//rules/acls:bytecode_transformers.bzl", "BYTECODE_TRANSFORMERS")
 load("//rules/acls:d8_optimization_metadata.bzl", "D8_OPTIMIZATION_METADATA")
@@ -188,6 +190,12 @@ def _in_aar_import_propagate_native_libs(fqn):
 def _in_aar_import_use_ijar(fqn):
     return not matches(fqn, AAR_IMPORT_USE_IJAR_FALLBACK_DICT)
 
+def _in_android_binary_one_version_validation_rollout(fqn):
+    return not matches(fqn, ANDROID_BINARY_ONE_VERSION_VALIDATION_FALLBACK_DICT) and matches(fqn, ANDROID_BINARY_ONE_VERSION_VALIDATION_ROLLOUT_DICT)
+
+def _in_android_local_test_one_version_rollout(fqn):
+    return not matches(fqn, ANDROID_LOCAL_TEST_ONE_VERSION_FALLBACK_DICT) and matches(fqn, ANDROID_LOCAL_TEST_ONE_VERSION_ROLLOUT_DICT)
+
 def make_dict(lst):
     """Do not use this method outside of acls directory."""
     return {t: True for t in lst}
@@ -248,6 +256,10 @@ USE_BASELINE_AS_STARTUP_PROFILE_FALLBACK_DICT = make_dict(USE_BASELINE_AS_STARTU
 BYTECODE_TRANSFORMERS_DICT = make_dict(BYTECODE_TRANSFORMERS)
 AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK_DICT = make_dict(AAR_IMPORT_PROPAGATE_NATIVE_LIBS_FALLBACK)
 AAR_IMPORT_USE_IJAR_FALLBACK_DICT = make_dict(AAR_IMPORT_USE_IJAR_FALLBACK)
+ANDROID_BINARY_ONE_VERSION_VALIDATION_ROLLOUT_DICT = make_dict(ANDROID_BINARY_ONE_VERSION_VALIDATION_ROLLOUT)
+ANDROID_BINARY_ONE_VERSION_VALIDATION_FALLBACK_DICT = make_dict(ANDROID_BINARY_ONE_VERSION_VALIDATION_FALLBACK)
+ANDROID_LOCAL_TEST_ONE_VERSION_ROLLOUT_DICT = make_dict(ANDROID_LOCAL_TEST_ONE_VERSION_ROLLOUT)
+ANDROID_LOCAL_TEST_ONE_VERSION_FALLBACK_DICT = make_dict(ANDROID_LOCAL_TEST_ONE_VERSION_FALLBACK)
 
 def matches(fqn, dct):
     # Labels with workspace names ("@workspace//pkg:target") are not supported.
@@ -337,6 +349,8 @@ acls = struct(
     in_allowed_bytecode_transformers = _in_allowed_bytecode_transformers,
     in_aar_import_propagate_native_libs = _in_aar_import_propagate_native_libs,
     in_aar_import_use_ijar = _in_aar_import_use_ijar,
+    in_android_binary_one_version_validation_rollout = _in_android_binary_one_version_validation_rollout,
+    in_android_local_test_one_version_rollout = _in_android_local_test_one_version_rollout,
 )
 
 # Visible for testing

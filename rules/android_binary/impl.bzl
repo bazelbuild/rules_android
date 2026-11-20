@@ -520,12 +520,13 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, jvm_ctx, b
         )
         deploy_jar = filtered_deploy_jar
 
-    # TODO(b/269498486): Switch this action to a validation action and add the output to validation_outputs.
+    use_validation = acls.in_android_binary_one_version_validation_rollout(str(ctx.label))
     one_version_enforcement_output = java.check_one_version(
         ctx,
         inputs = runtime_jars,
         java_toolchain = java_toolchain,
         one_version_enforcement_level = ctx.fragments.java.one_version_enforcement_level,
+        use_allowlist_for_tests = ctx.attr.testonly if use_validation else False,
     )
 
     return ProviderInfo(
@@ -536,7 +537,8 @@ def _process_deploy_jar(ctx, validation_ctx, stamp_ctx, manifest_ctx, jvm_ctx, b
             deploy_jar = deploy_jar,
             desugar_dict = desugar_dict,
             filtered_deploy_jar = filtered_deploy_jar,
-            one_version_enforcement_output = one_version_enforcement_output,
+            one_version_enforcement_output = None if use_validation else one_version_enforcement_output,
+            validation_outputs = [one_version_enforcement_output] if use_validation and one_version_enforcement_output else [],
             providers = [],
             implicit_outputs = [deploy_jar],
         ),
@@ -714,12 +716,12 @@ def _process_art_profile(ctx, validation_ctx, bp_ctx, dex_ctx, optimize_ctx, **_
 
     if ctx.attr._generate_art_profile_outputs and not art_profile_info:
         # There are a lot of ways baseline profiles could fail, and thus art profile generation also
-        # fails. For example, if the baseline profile is not included as a dependency, if the
-        # baseline profile is empty, or if you're attempting to use R8.
+        # fails. For example, if proguard_specs is empty, if the baseline profile is not included
+        # as a dependency, if the baseline profile is empty, or if you're attempting to use R8.
         ctx.actions.run_shell(
             mnemonic = "FailedGeneratingArtProfile",
             outputs = [ctx.outputs.primary_profile],
-            command = "echo \"Unable to generate art profile, ensure baseline profiles are included as dependencies or disable generate_art_profile\"; exit 1;",
+            command = "echo \"Unable to generate art profile, ensure proguard_specs is non-empty and baseline profiles are included as dependencies, or disable generate_art_profile\"; exit 1;",
         )
 
     return ProviderInfo(

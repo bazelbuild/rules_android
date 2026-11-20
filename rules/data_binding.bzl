@@ -67,7 +67,7 @@ def _gen_sources(ctx, output_dir, java_package, deps, layout_info, data_binding_
     args.add("-classInfoOut", class_info)
     args.add("-sourceOut", srcjar)
     args.add("-zipSourceOutput", "true")
-    args.add("-useAndroidX", "false")
+    args.add("-useAndroidX", "true")
 
     if deps:
         if type(deps[0].class_infos) == "depset":
@@ -161,6 +161,7 @@ def _get_javac_opts(
 
     javac_opts.append("-Aandroid.databinding.classLogDir=" + class_info_path)
     javac_opts.append("-Aandroid.databinding.layoutInfoDir=" + layout_info_path)
+    javac_opts.append("-Xep:RestrictTo:OFF")
     return javac_opts
 
 def _merge_lists(lists):

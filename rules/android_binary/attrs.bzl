@@ -108,7 +108,8 @@ ATTRS = _attrs.replace(
                 dependencies. If specified, all baseline profiles coming in from
                 android_library.baseline_profiles are ignored. Only use this if your baseline
                 profiles cover a very representative set of app functions. These will also be used
-                as startup profiles if startup profiles are not specified.
+                as startup profiles if startup profiles are not specified. Only processed when
+                `generate_art_profile` is `True` and `proguard_specs` is non-empty.
                 """,
             ),
             proguard_specs = attr.label_list(

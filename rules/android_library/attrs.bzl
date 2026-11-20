@@ -36,7 +36,9 @@ ATTRS = _attrs.add(
             doc = (
                 "The list of baseline profiles. They provide a way for developers " +
                 "to provide profile rules and could be used at installation time to " +
-                "speed up app startup and reduce jank. See " +
+                "speed up app startup and reduce jank. Consuming `android_binary` targets " +
+                "only compile and bundle these profiles when `generate_art_profile` is `True` " +
+                "and `proguard_specs` is non-empty. See " +
                 "https://developer.android.com/topic/performance/baselineprofiles/overview for " +
                 "more details."
             ),

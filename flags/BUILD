@@ -204,6 +204,13 @@ string_flag(
     visibility = ["//visibility:public"],
 )
 
+bool_flag(
+    name = "merge_android_manifest_permissions",
+    build_setting_default = False,
+    scope = "universal",
+    visibility = ["//visibility:public"],
+)
+
 flags_wrapper_macro(
     name = "flags_wrapper",
 )
