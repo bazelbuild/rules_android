@@ -26,7 +26,7 @@ the one above, the
    an [issue](https://github.com/bazelbuild/rules_android/issues) or comment on
    an existing issue.
 1. Prepare a git commit with your change. Don't forget to
-   add [tests](https://github.com/bazelbuild/rules_android/tree/master/tests).
+   add [tests](https://github.com/bazelbuild/rules_android/tree/main/test).
    Run the existing tests with `bazel test //...`. Update
    [README.md](https://github.com/bazelbuild/rules_android/blob/master/README.md)
    if appropriate.
