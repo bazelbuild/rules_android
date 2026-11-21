@@ -71,6 +71,12 @@ def _desugar(
     if min_sdk_version > 0:
         args.add("--min_sdk_version", str(min_sdk_version))
 
+    execution_requirements = {"supports-path-mapping": "1"}
+    if read_possibly_native_flag(ctx, "internal_persistent_android_dex_desugar"):
+        execution_requirements["supports-workers"] = "1"
+        if read_possibly_native_flag(ctx, "internal_persistent_multiplex_android_dex_desugar"):
+            execution_requirements["supports-multiplex-workers"] = "1"
+
     ctx.actions.run(
         inputs = depset(input_file_deps + bootclasspath, transitive = [classpath]),
         outputs = [output],
@@ -78,7 +84,7 @@ def _desugar(
         arguments = [args],
         mnemonic = "Desugar",
         progress_message = "Desugaring %{input} for Android",
-        execution_requirements = {"supports-workers": "1", "supports-path-mapping": "1"},
+        execution_requirements = execution_requirements,
         use_default_shell_env = True,
         toolchain = toolchain_type,
     )
