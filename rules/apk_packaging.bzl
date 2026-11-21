@@ -17,6 +17,7 @@ load("//flags:flags_wrapper.bzl", "WrappedFlagsInfo")
 load("//providers:providers.bzl", "ApkInfo")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load(":java.bzl", "java")
+load(":utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -339,7 +340,7 @@ def _zipalign_apk(
         arguments = [args],
         mnemonic = "AndroidZipAlign",
         progress_message = "Zipaligning apk",
-        toolchain = toolchain_type,
+        toolchain = ANDROID_SDK_TOOLCHAIN_TYPE,
     )
 
 def _sign_apk(
@@ -415,7 +416,7 @@ def _sign_apk(
         arguments = [args],
         mnemonic = "ApkSignerTool",
         progress_message = "Signing apk",
-        toolchain = toolchain_type,
+        toolchain = ANDROID_SDK_TOOLCHAIN_TYPE,
     )
 
 def _create_deploy_info(

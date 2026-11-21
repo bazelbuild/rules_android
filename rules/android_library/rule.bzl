@@ -18,7 +18,7 @@ load(
     "//rules:attrs.bzl",
     _attrs = "attrs",
 )
-load("//rules:utils.bzl", "ANDROID_SDK_TOOLCHAIN_TYPE")
+load("//rules:utils.bzl", "ANDROID_SDK_AND_JAVA_EXEC_GROUPS", "ANDROID_SDK_TOOLCHAIN_TYPE")
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load(":attrs.bzl", _ATTRS = "ATTRS")
@@ -169,6 +169,7 @@ def make_rule(
             JavaInfo,
         ] + additional_providers,
         outputs = outputs,
+        exec_groups = ANDROID_SDK_AND_JAVA_EXEC_GROUPS,
         toolchains = [
             "//toolchains/android:toolchain_type",
             "@bazel_tools//tools/jdk:toolchain_type",
