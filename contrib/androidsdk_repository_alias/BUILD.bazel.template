@@ -1,0 +1,136 @@
+load(
+    ":rule.bzl",
+    "android_sdk_alias",
+    "android_sdk_toolchain_alias",
+    "android_tool_alias",
+    "filegroup_alias",
+    "java_binary_alias",
+    "java_import_alias",
+)
+
+package(default_visibility = ["//visibility:public"])
+
+toolchain_type(name = "sdk_toolchain_type")
+
+android_sdk_alias(
+    name = "sdk",
+)
+
+
+android_sdk_toolchain_alias(
+    name = "sdk-toolchain",
+)
+
+android_tool_alias(
+    name = "aapt",
+    tool_name = "aapt",
+)
+
+android_tool_alias(
+    name = "aapt2",
+    tool_name = "aapt2",
+)
+
+android_tool_alias(
+    name = "adb",
+    tool_name = "adb",
+)
+
+android_tool_alias(
+    name = "aidl",
+    tool_name = "aidl",
+)
+
+java_binary_alias(
+    name = "apksigner",
+    target_name = "apk_signer",
+)
+
+java_binary_alias(
+    name = "dx",
+    target_name = "dx",
+)
+
+android_tool_alias(
+    name = "zipalign",
+    tool_name = "zip_align",
+)
+
+alias(
+    name = "zipalign_binary",
+    actual = ":zipalign",
+)
+
+android_tool_alias(
+    name = "main_dex_list_creator",
+    tool_name = "main_dex_list_creator",
+)
+
+java_binary_alias(
+    name = "legacy_main_dex_list_generator",
+    target_name = "legacy_main_dex_list_generator",
+)
+
+android_tool_alias(
+    name = "proguard",
+    tool_name = "proguard",
+)
+
+java_import_alias(
+    name = "core-for-system-modules-jar",
+    target_name = "core_for_system_modules_jar",
+)
+
+java_import_alias(
+    name = "org_apache_http_legacy",
+    target_name = "org_apache_http_legacy",
+)
+
+config_setting(
+    name = "windows",
+    constraint_values = ["@platforms//os:windows"],
+)
+
+genrule(
+    name = "generate_fail_sh",
+    outs = ["fail.sh"],
+    cmd = "echo -e '#!/bin/bash\\\\nexit 1' >> $@; chmod +x $@",
+    executable = True,
+)
+
+sh_binary(
+    name = "bash_fail",
+    srcs = [":generate_fail_sh"],
+)
+
+genrule(
+    name = "generate_fail_cmd",
+    outs = ["fail.cmd"],
+    cmd = "echo @exit /b 1 > $@",
+    executable = True,
+)
+
+sh_binary(
+    name = "windows_fail",
+    srcs = [":generate_fail_cmd"],
+)
+
+alias(
+    name = "fail",
+    actual = select({
+        ":windows": ":windows_fail",
+        "//conditions:default": ":bash_fail",
+    }),
+)
+
+filegroup_alias(
+    name = "sdk_path",
+    target_name = "sdk_path",
+)
+
+filegroup_alias(
+    name = "files",
+    target_name = "files",
+)
+
+
