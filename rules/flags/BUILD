@@ -1,7 +1,7 @@
 # Flags for Android rules and mobile-install
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
 load("//rules/flags:additional_flags.bzl", "additional_flags")
 load("//rules/flags:configurations.bzl", "configurations")
 load("//rules/flags:flag_defs.bzl", "define_flags")
@@ -36,6 +36,14 @@ bzl_library(
 string_flag(
     name = "runfiles_root_prefix",
     build_setting_default = "rules_android/",
+    visibility = ["//visibility:public"],
+)
+
+# When true, desugar actions use the header jars of dependencies as the classpath instead of
+# their full jars. A method body change then reruns fewer desugar actions.
+bool_flag(
+    name = "desugar_with_header_jars",
+    build_setting_default = False,
     visibility = ["//visibility:public"],
 )
 

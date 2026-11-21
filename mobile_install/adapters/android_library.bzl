@@ -94,7 +94,7 @@ def _adapt(target, ctx):
                     ctx.label.name + "_resources.jar",
                     target[JavaInfo].runtime_output_jars,
                 ),
-                get_desugar_classpath(target[JavaInfo]),
+                get_desugar_classpath(ctx, target[JavaInfo]),
                 bootclasspath = _desugar.get_boot_classpath(target, ctx),
             ),
             deps = providers.collect(
