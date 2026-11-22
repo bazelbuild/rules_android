@@ -15,6 +15,8 @@
 This module adds no-op repository rules when the Android SDK is not installed.
 """
 
+load("@bazel_skylib//rules:common_settings.bzl", "bool_setting")
+
 package(default_visibility = ["//visibility:public"])
 
 # android_sdk_repository was used without a valid Android SDK being set.
@@ -25,13 +27,9 @@ package(default_visibility = ["//visibility:public"])
 # The toolchain type used to distinguish Android SDK toolchains.
 toolchain_type(name = "sdk_toolchain_type")
 
-config_feature_flag(
+bool_setting(
     name = "true",
-    allowed_values = [
-        "true",
-        "false",
-    ],
-    default_value = "true",
+    build_setting_default = True,
 )
 
 config_setting(
