@@ -18,6 +18,7 @@ load(
     "ANDROID_TOOLCHAIN_TYPE",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
+load(":busybox_compat.bzl", "AAPT2_COMPAT_FLAGS")
 
 visibility(PROJECT_VISIBILITY)
 
@@ -188,6 +189,8 @@ echo $(tac $1) > $2
     args.add("link")
     if enable_static_lib:
         args.add("--static-lib")
+    elif AAPT2_COMPAT_FLAGS["aapt2_generate_ref_by_name_maps_supported"]:
+        args.add("--generate-ref-by-name-maps")
     args.add("--no-version-vectors")
     args.add("--no-static-lib-packages")  # Turn off namespaced resource
 

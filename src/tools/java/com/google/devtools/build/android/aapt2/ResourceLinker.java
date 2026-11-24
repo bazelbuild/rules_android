@@ -471,6 +471,8 @@ public class ResourceLinker {
             .add("link")
             .when(optimizeThroughput)
             .thenAdd("-Othroughput")
+            .when(getCompatFlag("aapt2_generate_ref_by_name_maps_supported"))
+            .thenAdd("--generate-ref-by-name-maps")
             .whenVersionIsAtLeast(new Revision(23))
             .thenAdd("--no-version-vectors")
             // Turn off namespaced resources
