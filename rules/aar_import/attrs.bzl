@@ -51,6 +51,12 @@ ATTRS = _attrs.add(
             doc = "Whether the aar contains a lint.jar. This is required to " +
                   "know at analysis time if a lint jar is included in the aar.",
         ),
+        has_native_libs = attr.bool(
+            default = True,
+            doc = "Whether the aar may contain native libraries. Set to False " +
+                  "when the aar is known not to contain native libraries to " +
+                  "avoid extracting native_libs.zip across all CPU splits.",
+        ),
         package = attr.string(
             doc = "Package to use while processing the aar at analysis time. " +
                   "This needs to be the same value as the manifest's package.",

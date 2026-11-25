@@ -396,6 +396,8 @@ def _validate_rule(
     if ctx.attr.has_lint_jar:
         args.add("-has_lint_jar")
     args.add("-output", validation_output)
+    if not ctx.attr.has_native_libs:
+        args.add("-has_native_libs=false")
 
     ctx.actions.run(
         executable = checks,
@@ -540,28 +542,32 @@ def impl(ctx):
     providers.extend(jvm_ctx.providers)
     validation_outputs.extend(jvm_ctx.validation_results)
 
-    native_libs_cpu = None
-    for target, cpu in ctx.attr._cpu_constraints.items():
-        constraint = target[platform_common.ConstraintValueInfo]
-        if ctx.target_platform_has_constraint(constraint):
-            native_libs_cpu = cpu
-            break
-    if native_libs_cpu == None:
-        fail(("Target platform %s does not match one of the " +
-              "applicable CPU constraints for aar_import %s. " +
-              "Applicable CPU constraints are listed in " +
-              "https://blog.bazel.build/2023/11/15/android-platforms.html") %
-             (ctx.fragments.platform.platform, ctx.label))
+    direct_native_libs = []
+    if ctx.attr.has_native_libs:
+        native_libs_cpu = None
+        for target, cpu in ctx.attr._cpu_constraints.items():
+            constraint = target[platform_common.ConstraintValueInfo]
+            if ctx.target_platform_has_constraint(constraint):
+                native_libs_cpu = cpu
+                break
+        if native_libs_cpu == None:
+            fail(("Target platform %s does not match one of the " +
+                  "applicable CPU constraints for aar_import %s. " +
+                  "Applicable CPU constraints are listed in " +
+                  "https://blog.bazel.build/2023/11/15/android-platforms.html") %
+                 (ctx.fragments.platform.platform, ctx.label))
 
-    native_libs = create_aar_artifact(ctx, "native_libs.zip")
-    _extract_native_libs(
-        ctx,
-        native_libs,
-        aar = aar,
-        cpu = native_libs_cpu,
-        aar_native_libs_zip_creator_tool =
-            _get_android_toolchain(ctx).aar_native_libs_zip_creator.files_to_run,
-    )
+        native_libs = create_aar_artifact(ctx, "native_libs.zip")
+        _extract_native_libs(
+            ctx,
+            native_libs,
+            aar = aar,
+            cpu = native_libs_cpu,
+            aar_native_libs_zip_creator_tool =
+                _get_android_toolchain(ctx).aar_native_libs_zip_creator.files_to_run,
+        )
+        direct_native_libs.append(native_libs)
+
     native_libs_infos = _utils.collect_providers(
         AndroidNativeLibsInfo,
         ctx.attr.deps,
@@ -570,7 +576,7 @@ def impl(ctx):
     providers.append(
         AndroidNativeLibsInfo(
             native_libs = depset(
-                [native_libs],
+                direct_native_libs,
                 transitive = [info.native_libs for info in native_libs_infos],
             ),
         ),
