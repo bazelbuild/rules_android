@@ -66,7 +66,10 @@ java_binary(
     name = "bundletool",
     main_class = "com.android.tools.build.bundletool.BundleToolMain",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@rules_android_maven//:com_android_tools_build_bundletool"],
+    runtime_deps = [
+        "@rules_android_maven//:com_android_tools_build_bundletool",
+        "@rules_android_maven//:org_jetbrains_kotlin_kotlin_stdlib",
+    ],
 )
 
 java_plugin(
