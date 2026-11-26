@@ -250,7 +250,11 @@ def _android_sdk_repository_extension_impl(module_ctx):
     # NOTE: 'watch' is the best approximation for the extension_metadata
     # function accepting the reproducible paramater
     if hasattr(module_ctx, "watch"):
-        return module_ctx.extension_metadata(reproducible = True)
+        return module_ctx.extension_metadata(
+            root_module_direct_deps = ["androidsdk"],
+            root_module_direct_dev_deps = [],
+            reproducible = True,
+        )
     return None
 
 android_sdk_repository_extension = module_extension(
