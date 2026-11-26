@@ -273,7 +273,6 @@ def _legacy_merge_manifests(
     args.use_param_file("%s", use_always = True)
     args.set_param_file_format("multiline")
     args.add("--merger=%s" % manifest.path)
-    args.add("--exclude_permission=all")
     args.add("--output=%s" % out_merged_manifest.path)
 
     manifest_params = ctx.actions.declare_file(ctx.label.name + "/legacy_merger.params")
