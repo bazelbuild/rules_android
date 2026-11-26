@@ -18,6 +18,7 @@ load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
 load("//rules/flags:flags.bzl", "read_possibly_native_flag")
 load("@rules_java//java/common:java_info.bzl", "JavaInfo")
 load("@bazel_skylib//lib:partial.bzl", "partial")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 load(":attrs.bzl", _attrs = "attrs")
 load(":desugar.bzl", _desugar = "desugar")
 load(":dex.bzl", _dex = "dex")
@@ -74,9 +75,6 @@ def get_aspect_deps(ctx):
 
     return deps_list
 
-def _get_desugar_classpath(java_info):
-    return java_info._transitive_full_compile_time_jars
-
 def _aspect_impl(target, ctx):
     """Adapts the rule and target data.
 
@@ -103,7 +101,10 @@ def _aspect_impl(target, ctx):
     dex_archives_dict = {}
     runtime_jars = _get_produced_runtime_jars(target, ctx, extra_toolchain_jars)
     bootclasspath = _desugar.get_boot_classpath(target, ctx)
-    desugar_classpath = _get_desugar_classpath(target[JavaInfo]) if JavaInfo in target else depset([])
+    desugar_classpath = _desugar.get_classpath(
+        target[JavaInfo],
+        use_header_jars = ctx.attr._desugar_with_header_jars[BuildSettingInfo].value,
+    ) if JavaInfo in target else depset([])
 
     bt = ctx.attr._bytecode_transformer
     bytecode_transformer = bt[AndroidBytecodeTransformerInfo] if AndroidBytecodeTransformerInfo in bt else None
@@ -255,6 +256,9 @@ dex_desugar_aspect = aspect(
                 default = Label(
                     "//rules/flags:bytecode_transformer",
                 ),
+            ),
+            "_desugar_with_header_jars": attr.label(
+                default = Label("//rules/flags:desugar_with_header_jars"),
             ),
             "_desugared_lib_config": attr.label(
                 allow_single_file = True,
