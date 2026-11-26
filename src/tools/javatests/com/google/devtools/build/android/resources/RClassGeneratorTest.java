@@ -394,9 +394,10 @@ public class RClassGeneratorTest {
   }
 
   @Test
-  public void writeNothingWithNoResources() throws Exception {
+  public void writesEmptyOuterClassWithNoResources() throws Exception {
     boolean finalFields = true;
-    // Test what happens if the library R.txt has no elements.
+    // The library R.txt has no elements. The outer R class is still emitted (matching the runtime
+    // R.jar produced by the Android Gradle plugin); no R$type inner classes are written.
     ResourceSymbols symbolValues =
         createSymbolFile("R.txt", "int layout stubbable_activity 0x7f020000");
     ResourceSymbols symbolsInLibrary = createSymbolFile("lib.R.txt");
@@ -406,7 +407,8 @@ public class RClassGeneratorTest {
 
     Path packageDir = out.resolve("com/foo");
 
-    checkFilesInPackage(packageDir);
+    checkFilesInPackage(packageDir, "R.class");
+    checkTopLevelClass(out, "com.foo.R");
   }
 
   @Test

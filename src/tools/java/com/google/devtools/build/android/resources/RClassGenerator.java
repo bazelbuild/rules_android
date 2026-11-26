@@ -17,7 +17,6 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceType;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
@@ -144,12 +143,9 @@ public class RClassGenerator {
     for (String folder : folders) {
       packageDir = packageDir.resolve(folder);
     }
-    // If there are no symbols, don't create the R.class and inner class files (no need to have an
-    // empty class).
-    if (Iterables.isEmpty(initializersToWrite)) {
-      return;
-    }
-
+    // Emit the outer R class even when the library has no resource symbols, matching the runtime
+    // R.jar that the Android Gradle plugin generates. Inner R$type classes are still only written
+    // for the resource types that actually have symbols.
     Path rClassFile = packageDir.resolve(SdkConstants.FN_COMPILED_RESOURCE_CLASS);
 
     String packageWithSlashes = packageName.replaceAll("\\.", "/");
