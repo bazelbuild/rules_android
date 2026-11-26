@@ -125,6 +125,7 @@ def _process_feature_module(
         out_file = res_apk,
         manifest = manifest,
         java_package = java_package,
+        resource_overlays = res.resource_overlays,
         direct_resources_nodes = res.direct_resources_nodes,
         transitive_resources_nodes = res.transitive_resources_nodes,
         transitive_manifests = [res.transitive_manifests],

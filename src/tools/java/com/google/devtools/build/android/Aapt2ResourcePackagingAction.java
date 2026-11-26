@@ -44,7 +44,9 @@ import com.google.devtools.build.android.xml.XmlUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -102,6 +104,12 @@ public class Aapt2ResourcePackagingAction {
                 + DependencyAndroidData.EXPECTED_FORMAT
                 + "[,...]")
     public List<DependencyAndroidData> directData = ImmutableList.of();
+
+    @Parameter(
+        names = "--resourceOverlays",
+        listConverter = CompatPathListConverter.class,
+        description = "Compiled resources in low-to-high overlay priority.")
+    public List<Path> resourceOverlays;
 
     @Parameter(
         names = "--assets",
@@ -372,6 +380,22 @@ public class Aapt2ResourcePackagingAction {
           concat(options.transitiveData.stream(), options.directData.stream())
               .map(DependencyAndroidData::getCompiledSymbols)
               .collect(toList());
+
+      if (options.resourceOverlays != null) {
+        // Reorder the compiled dependencies to match the explicit low-to-high overlay priority,
+        // so that AAPT2's "last wins" overlay semantics line up with Gradle's ordering.
+        Map<Path, CompiledResources> resourcesByPath = new HashMap<>();
+        for (CompiledResources dependency : compiledResourceDeps) {
+          resourcesByPath.put(dependency.getZip(), dependency);
+        }
+        compiledResourceDeps =
+            options.resourceOverlays.stream()
+                .map(
+                    path ->
+                        Preconditions.checkNotNull(
+                            resourcesByPath.get(path), "Missing resource dependency: %s", path))
+                .collect(toList());
+      }
 
       // NB: "-A" options are in *decreasing* precedence, while "-R" options are in *increasing*
       // precedence.  While this is internally inconsistent, it matches AAPTv1's treatment of "-A".
