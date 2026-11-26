@@ -550,7 +550,7 @@ def _check_one_version(
     else:
         allowlist = java_toolchain._one_version_allowlist
 
-    if not tool or not allowlist:
+    if not tool:
         return None
 
     output = ctx.actions.declare_file(ctx.label.name + "-one-version.txt")
@@ -560,7 +560,8 @@ def _check_one_version(
     args.use_param_file("@%s", use_always = True)
 
     args.add("--output", output)
-    args.add("--allowlist", allowlist)
+    if allowlist:
+        args.add("--allowlist", allowlist)
     if one_version_enforcement_level == "WARNING":
         args.add("--succeed_on_found_violations")
     args.add_all(
@@ -573,7 +574,7 @@ def _check_one_version(
         executable = tool,
         arguments = [args],
         outputs = [output],
-        inputs = depset([allowlist], transitive = [inputs]),
+        inputs = depset([allowlist] if allowlist else [], transitive = [inputs]),
         mnemonic = "JavaOneVersion",
         progress_message = "Checking for one-version violations in %{label}",
         toolchain = "@bazel_tools//tools/jdk:toolchain_type",
