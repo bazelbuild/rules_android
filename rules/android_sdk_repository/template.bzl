@@ -15,6 +15,7 @@
 This module contains repository rules and helpers needed to configure the Android SDK for Bazel.
 """
 
+load("@bazel_skylib//rules:common_settings.bzl", "bool_setting")
 load(
     "@rules_android//rules/android_sdk_repository:helper.bzl",
     "create_android_sdk_rules",
@@ -26,13 +27,9 @@ package(default_visibility = ["//visibility:public"])
 # The toolchain type used to distinguish Android SDK toolchains.
 toolchain_type(name = "sdk_toolchain_type")
 
-config_feature_flag(
+bool_setting(
     name = "true",
-    allowed_values = [
-        "true",
-        "false",
-    ],
-    default_value = "true",
+    build_setting_default = True,
 )
 
 config_setting(
