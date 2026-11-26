@@ -577,3 +577,21 @@ package_resources_final_id_test = analysistest.make(
         "final": attr.bool(mandatory = True),
     },
 )
+
+def _package_resources_resource_overlays_test(ctx):
+    env = analysistest.begin(ctx)
+    actions = analysistest.target_actions(env)
+    found_resource_overlays = False
+    for a in actions:
+        if a.mnemonic == "PackageAndroidResources" and "--resourceOverlays" in a.argv:
+            found_resource_overlays = True
+    asserts.true(
+        env,
+        found_resource_overlays,
+        "Missing expected --resourceOverlays in the PackageAndroidResources action",
+    )
+    return analysistest.end(env)
+
+package_resources_resource_overlays_test = analysistest.make(
+    _package_resources_resource_overlays_test,
+)

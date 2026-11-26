@@ -11,6 +11,7 @@ load(
     "FakeSplitTransitionTarget",
     "filter_multi_cpu_configuration_targets_test",
     "package_resources_final_id_test",
+    "package_resources_resource_overlays_test",
     "resources_package",
     "resources_package_test",
     "starlark_process",
@@ -1920,5 +1921,10 @@ package_resources_final_id_test(
 package_resources_final_id_test(
     name = "package_resources_final_id",
     final = True,
+    target_under_test = ":resource_package_with_res_and_multiple_dep",
+)
+
+package_resources_resource_overlays_test(
+    name = "package_resources_resource_overlays",
     target_under_test = ":resource_package_with_res_and_multiple_dep",
 )

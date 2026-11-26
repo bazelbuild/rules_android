@@ -467,6 +467,16 @@ def _get_proguard_specs_for_manifest(ctx, merged_manifest):
     )
     return assumes_value_spec
 
+def _resource_overlays(deps, compiled = []):
+    # AAPT2's last overlay wins. Visit later dependencies first, then the library
+    # itself. Postorder keeps shared dependencies below every consumer, matching
+    # Gradle's resource overlay precedence.
+    return depset(
+        compiled,
+        transitive = [dep.resource_overlays for dep in utils.collect_providers(StarlarkAndroidResourcesInfo, deps)[::-1]],
+        order = "postorder",
+    )
+
 def _package(
         ctx,
         assets = [],
@@ -729,6 +739,7 @@ def _package(
     _busybox.package(
         ctx,
         out_file = resource_apk,
+        resource_overlays = _resource_overlays(deps),
         out_r_src_jar = r_java,
         out_r_txt = r_txt,
         out_manifest = processed_manifest,
@@ -1362,6 +1373,7 @@ def _process(
                 out_r_src_jar = ctx.actions.declare_file(ctx.label.name + ".srcjar"),
                 out_r_txt = r_txt,
                 out_manifest = out_manifest,
+                resource_overlays = _resource_overlays(deps + exports),
                 manifest = generated_manifest,
                 assets = assets,
                 assets_dir = assets_dir,
@@ -1551,10 +1563,7 @@ def _process(
             out_r_txt = r_txt,
             out_file = apk,
             compiled_resources = compiled_resources,
-            transitive_compiled_resources = depset(
-                transitive = transitive_compiled_resources,
-                order = "preorder",
-            ),
+            transitive_compiled_resources = _resource_overlays(deps + exports),
             transitive_compiled_resources_with_public_xml = depset(
                 transitive = transitive_compiled_resources_with_public_xml,
                 order = "preorder",
@@ -1618,6 +1627,7 @@ def _process(
     # TODO(b/69668042): Don't propagate exported providers/artifacts. Exports should respect neverlink.
     if resources_neverlink:
         resources_ctx[_PROVIDERS].append(StarlarkAndroidResourcesInfo(
+            resource_overlays = _resource_overlays(exports),
             direct_resources_nodes = depset(
                 transitive = exports_direct_resources_nodes,
                 order = "preorder",
@@ -1675,6 +1685,7 @@ def _process(
     else:
         # Depsets are ordered below to match the order in the legacy native rules.
         resources_ctx[_PROVIDERS].append(StarlarkAndroidResourcesInfo(
+            resource_overlays = _resource_overlays(deps + exports, [compiled_resources] if compiled_resources else []),
             direct_resources_nodes = depset(
                 [ResourcesNodeInfo(
                     label = ctx.label,

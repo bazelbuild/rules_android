@@ -225,6 +225,7 @@ def _package(
         package_id = None,
         direct_resources_nodes = [],
         transitive_resources_nodes = [],
+        resource_overlays = None,
         transitive_manifests = [],
         transitive_assets = [],
         transitive_compiled_assets = [],
@@ -279,6 +280,8 @@ def _package(
         ResourcesNodeInfo from direct dependencies.
       transitive_resources_nodes: Depset of ResourcesNodeInfo providers. The set
         of ResourcesNodeInfo from transitive dependencies (not including directs).
+      resource_overlays: Depset of compiled resources in low-to-high overlay
+        priority, or None to keep the legacy dependency ordering.
       transitive_manifests: List of Depsets. Depsets contain all transitive manifests.
       transitive_assets: List of Depsets. Depsets contain all transitive assets.
       transitive_compiled_assets: List of Depsets. Depsets contain all transitive
@@ -322,6 +325,9 @@ def _package(
     _set_worker_mode_param_file(ctx, args)
     args.add("--tool", "AAPT2_PACKAGE")
     args.add("--")
+    if resource_overlays != None:
+        args.add_joined("--resourceOverlays", resource_overlays, join_with = ":", omit_if_empty = False)
+        transitive_input_files.append(resource_overlays)
     args.add("--aapt2", aapt.executable)
     args.add_joined(
         "--data",
