@@ -16,6 +16,7 @@
 load("//providers:providers.bzl", "AndroidIdeInfo", "AndroidLibraryResourceClassJarProvider", "AndroidNativeLibsInfo")
 load(
     "//rules:utils.bzl",
+    "ANDROID_SDK_AND_JAVA_EXEC_GROUPS",
     "ANDROID_SDK_TOOLCHAIN_TYPE",
 )
 load("//rules:visibility.bzl", "PROJECT_VISIBILITY")
@@ -74,6 +75,7 @@ aar_import = rule(
         AndroidNativeLibsInfo,
         JavaInfo,
     ],
+    exec_groups = ANDROID_SDK_AND_JAVA_EXEC_GROUPS,
     toolchains = [
         "//toolchains/android:toolchain_type",
         "@bazel_tools//tools/jdk:toolchain_type",

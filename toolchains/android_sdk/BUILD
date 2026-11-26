@@ -1,6 +1,7 @@
 # Description:
 #   Defines the Android SDK toolchain.
 
+load("@platforms//host:constraints.bzl", "HOST_CONSTRAINTS")
 load(":rule.bzl", "dummy_toolchain_dep")
 
 licenses(["notice"])
@@ -18,13 +19,7 @@ toolchain_type(
 
 toolchain(
     name = "android_sdk_tools",
-    # This causes the toolchain to not be selected under arm, so
-    # disable for now.
-    # To be refined as part of https://github.com/bazelbuild/rules_android/issues/72
-    #exec_compatible_with = [
-    #    "@platforms//cpu:x86_64",
-    #    "@platforms//os:linux",
-    #],
+    exec_compatible_with = HOST_CONSTRAINTS,
     # TODO(b/175833893): This causes the toolchain to not be selected, so
     # disable for now.
     #target_compatible_with = [
