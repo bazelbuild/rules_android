@@ -624,7 +624,7 @@ java_library(
 genrule(
     name = "desugar_globals",
     outs = ["desugar.globals"],
-    cmd = "$(JAVA) -Dcom.android.tools.r8.disableLambdaMethodAnnotations -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --output $@".format(min_sdk_version.DEX_DESUGAR),
+    cmd = "$(JAVA) -Dcom.android.tools.r8.disableLambdaMethodAnnotations -Dcom.android.tools.r8.deterministicdebugging=1 -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --output $@".format(min_sdk_version.DEX_DESUGAR),
     toolchains = ["//tools/jdk:current_host_java_runtime"],
     tools = [":global_synthetics_generator_deploy.jar"],
     visibility = ["//visibility:public"],
@@ -645,7 +645,7 @@ genrule(
 genrule(
     name = "desugar_globals_classes",
     outs = ["desugar_globals_classes.zip"],
-    cmd = "$(JAVA) -Dcom.android.tools.r8.disableLambdaMethodAnnotations -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --classfile --output $@".format(min_sdk_version.DEX_DESUGAR),
+    cmd = "$(JAVA) -Dcom.android.tools.r8.disableLambdaMethodAnnotations -Dcom.android.tools.r8.deterministicdebugging=1 -jar $(location :global_synthetics_generator_deploy.jar) --min-api {} --classfile --output $@".format(min_sdk_version.DEX_DESUGAR),
     toolchains = ["//tools/jdk:current_host_java_runtime"],
     tools = [":global_synthetics_generator_deploy.jar"],
     visibility = ["//visibility:public"],
