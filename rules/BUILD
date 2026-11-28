@@ -130,12 +130,7 @@ bzl_library(
         "dex_toolchains.bzl",
         "rules.bzl",
     ],
-    visibility = [
-        "//mobile_install:__pkg__",
-        "//stardoc:__pkg__",
-        "//test/rules/android_binary/r8_integration:__pkg__",
-        "//test/rules/android_sdk_repository:__pkg__",
-    ],
+    visibility = ["//visibility:public"],
     deps = [
         ":common_bzl",
         ":min_sdk_version_bzl",
