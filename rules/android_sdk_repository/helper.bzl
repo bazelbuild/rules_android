@@ -14,7 +14,7 @@
 """Helpers for the build file used in android_sdk_repository."""
 
 load("@platforms//host:constraints.bzl", "HOST_CONSTRAINTS")
-load("@rules_android//rules:rules.bzl", "android_sdk")
+load("@rules_android//rules:android_sdk.bzl", "android_sdk")
 load("@rules_java//java:defs.bzl", "java_binary", "java_import")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
