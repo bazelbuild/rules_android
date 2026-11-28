@@ -106,6 +106,19 @@ function test_build_tools_largest() {
   expect_log "build_tools_version: 36.0.0"
 }
 
+# The SDK repo is loaded to resolve the registered toolchains, so its BUILD file
+# must not load the whole rule set.
+function test_sdk_build_file_does_not_load_rules() {
+  local sdk_path="$(create_android_sdk_basic)"
+
+  setup_android_sdk_bzlmod "${sdk_path}" ""
+
+  "${BIT_BAZEL_BINARY}" query 'buildfiles(@androidsdk//:sdk-toolchain)' >& $TEST_log \
+    || fail "Expected query to succeed"
+  expect_log "rules:android_sdk.bzl"
+  expect_not_log "rules:rules.bzl"
+}
+
 # TODO(rules-android): Fix API selection with platforms.
 function ignore_test_api_level_default() {
   # create several api levels
